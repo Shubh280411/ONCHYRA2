@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Panel — ONCHYRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:'Inter',sans-serif;
+background:#070816;
+color:white;
+padding:30px;
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
+radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
+z-index:-1;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+h1{
+font-family:'Manrope';
+margin-bottom:25px;
+background:linear-gradient(90deg,#a78bfa,#60a5fa);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:16px;
+padding:20px;
+margin-bottom:20px;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#a78bfa,#60a5fa);
+color:#070816;
+font-weight:700;
+cursor:pointer;
+margin-top:10px;
+}
+
+.stat{
+font-size:18px;
+margin-top:6px;
+}
+
+.logout{
+background:#ef4444;
+color:white;
+margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>ONCHYRA Admin Panel</h1>
+
+<!-- STATS -->
+
+<div class="card">
+
+<h3>Platform Stats</h3>
+
+<div class="stat">Total Users: <span id="users">0</span></div>
+
+<div class="stat">Total Claims: <span id="claims">0</span></div>
+
+</div>
+
+<!-- NAVIGATION -->
+
+<div class="card">
+
+<h3>Admin Controls</h3>
+
+<button onclick="location.href='admin-users.html'">
+Manage Users
+</button>
+
+<button onclick="location.href='admin-updates.html'">
+Manage Updates
+</button>
+
+<button onclick="location.href='powerdrop-admin.html'">
+Manage PowerDrops
+</button>
+
+<button onclick="location.href='powerdrop-participants.html'">
+View Participants
+</button>
+
+<button onclick="location.href='admin-analytics.html'">
+Analytics
+</button>
+
+</div>
+
+<button class="logout" onclick="logout()">
+Logout
+</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+authDomain: "onchyra.firebaseapp.com",
+projectId: "onchyra",
+storageBucket: "onchyra.firebasestorage.app",
+messagingSenderId: "441822770982",
+appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* AUTH CHECK */
+
+onAuthStateChanged(auth,(user)=>{
+
+if(!user){
+
+window.location="admin-login.html";
+
+}
+
+loadStats();
+
+});
+
+/* LOAD STATS */
+
+async function loadStats(){
+
+const usersSnap = await getDocs(collection(db,"users"));
+document.getElementById("users").innerText = usersSnap.size;
+
+const claimsSnap = await getDocs(collection(db,"claims"));
+document.getElementById("claims").innerText = claimsSnap.size;
+
+}
+
+/* LOGOUT */
+
+window.logout = ()=>{
+
+signOut(auth);
+window.location="admin-login.html";
+
+}
+
+</script>
+
+</body>
+</html>

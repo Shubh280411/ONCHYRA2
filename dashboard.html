@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+/* --- KEEPING ORIGINAL UI EXACTLY SAME --- */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter;background:#070816;color:white;padding:20px;transition: 0.8s ease;}
+
+#loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#070816;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;}
+.spinner{width:70px;height:70px;border-radius:50%;border:6px solid #2e2e5f;border-top:6px solid #a78bfa;animation:spin 1s linear infinite;margin-bottom:10px;}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+.menu{position:fixed;top:0;left:-240px;width:220px;height:100%;background:#0b0b20;padding:30px;transition:0.3s;display:flex;flex-direction:column;gap:20px;z-index:10;}
+.menu a{color:white;text-decoration:none;font-size:17px;cursor:pointer;}
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;z-index:5;}
+
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:18px;}
+
+.coin-wrapper { position: relative; width: 90px; height: 90px; margin: 20px auto; }
+.coin{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 0 25px #a78bfa;animation:mine 3s linear infinite;position:relative;z-index:2;}
+.particle{position:absolute;width:4px;height:4px;background:#a78bfa;border-radius:50%;opacity:0;animation:floatUp 2s infinite linear;z-index:1;}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0.8;}100%{transform:translateY(-60px);opacity:0;}}
+@keyframes mine{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+button{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#070816;font-weight:700;cursor:pointer;margin-top:10px;}
+button:disabled{opacity:0.4;cursor:not-allowed;}
+
+.progress{width:100%;height:10px;background:#1b1b3d;border-radius:20px;overflow:hidden;margin-top:10px;}
+#progressBar{height:100%;width:0%;background:#a78bfa;transition: width 0.5s ease, background 0.5s ease;}
+
+.heatmap{display:flex;gap:4px;margin-top:10px;}
+.h-box{width:14px;height:14px;border-radius:3px;background:#1b1b3d;}
+.badge-tag{background:rgba(167,139,250,0.2);border:1px solid #a78bfa;padding:2px 8px;border-radius:10px;font-size:10px;text-transform:uppercase;margin-left:8px;}
+
+.stats{display:flex;gap:10px;margin-top:10px;}
+.stat{flex:1;background:rgba(255,255,255,0.05);padding:14px;border-radius:12px;text-align:center;}
+.lb{display:flex;justify-content:space-between;padding:10px;background:rgba(255,255,255,0.05);border-radius:10px;margin-top:8px;}
+.small{font-size:13px;opacity:0.8;}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#11112a;padding:14px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);display:none;z-index:999;font-size:14px;}
+</style>
+</head>
+
+<body id="mainContent">
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="loaderText">Syncing Blockchain...</div>
+    <div id="timer" style="font-size:26px">3</div>
+</div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<div class="menu" id="menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="referrals.html">Referrals</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="powerdrop.html">Powerdrop</a>
+    <a href="updates.html">Updates</a>
+    <a href="profile.html">Profile</a>
+    <a onclick="logout()">Logout</a>
+</div>
+
+<div class="nav">
+    <div onclick="toggleMenu()" style="cursor:pointer">☰</div>
+    <div class="logo">ONCHYRA</div>
+</div>
+
+<div class="card">
+    <span id="greetLabel">Hello</span>, <span id="username">...</span> <span id="userRank" class="badge-tag">Rookie</span>
+    <div class="coin-wrapper">
+        <div class="particle" style="left:20%; animation-delay:0s"></div>
+        <div class="particle" style="left:50%; animation-delay:0.7s"></div>
+        <div class="particle" style="left:80%; animation-delay:1.3s"></div>
+        <div class="coin">ONC</div>
+    </div>
+    <h2 id="balance" style="text-align:center">0.00 ONC</h2>
+</div>
+
+<div class="card">
+    <h3>Daily Claim</h3>
+    <div id="claimStatus" class="small">Initializing...</div>
+    <button id="claimBtn" onclick="claim()">Claim ONC</button>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div>🔥 Streak: <span id="streak">0</span> days</div>
+        <div class="heatmap" id="streakMap"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Referral Code</h3>
+    <div id="refcode" style="text-align:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; margin:10px 0; font-family:monospace;">...</div>
+    <button onclick="copyLink()">Copy Invite Link</button>
+</div>
+
+<div class="card" onclick="window.location='leaderboard.html'" style="cursor:pointer">
+    <h3>Top Miners</h3>
+    <div id="miniLeaderboard">Loading...</div>
+</div>
+
+<div class="card" onclick="window.location='updates.html'" style="cursor:pointer">
+    <h3>Latest Update</h3>
+    <div id="update">Loading...</div>
+</div>
+
+<div class="card">
+    <h3>Network Stats</h3>
+    <div class="stats">
+        <div class="stat"><h2 id="totalUsers">0</h2><div class="small">Users</div></div>
+        <div class="stat"><h2 id="totalMined">0</h2><div class="small">ONC Mined</div></div>
+    </div>
+</div>
+
+<div id="toast"><span id="toastText"></span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain:"onchyra.firebaseapp.com",
+    projectId:"onchyra",
+    storageBucket:"onchyra.firebasestorage.app",
+    messagingSenderId:"441822770982",
+    appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid, userData;
+let claimInterval = null; // Fix 4: To handle multiple intervals
+
+/* --- SMART LOADER (3 SEC) --- */
+const isFirstVisit = !sessionStorage.getItem("visited");
+if(isFirstVisit) {
+    let t=3;
+    const lInt = setInterval(() => {
+        t--; document.getElementById('timer').innerText=t;
+        if(t<=0) { clearInterval(lInt); document.getElementById('loader').style.display="none"; sessionStorage.setItem("visited", "true"); }
+    }, 1000);
+} else { document.getElementById('loader').style.display="none"; }
+
+/* --- DYNAMIC TITLE --- */
+window.onblur = () => { document.title = "⚠️ Mining active! Come back..."; };
+window.onfocus = () => { document.title = "Dashboard — ONCHYRA"; };
+
+/* --- AUTH STATE --- */
+onAuthStateChanged(auth, async(user) => {
+    if(!user) { window.location="login.html"; return; }
+    uid = user.uid;
+    const snap = await getDoc(doc(db, "users", uid));
+    if(snap.exists()){
+        userData = snap.data();
+        
+        // Fix 3 & 5: Safe handling of lastClaim
+        if(!userData.lastClaim) userData.lastClaim = 0;
+        if(!userData.streak) userData.streak = 0;
+
+        updateUI();
+        checkClaim(); // Fix 4: Start interval
+        loadLeaderboard();
+        loadStats();
+        loadUpdate();
+    }
+});
+
+function updateUI() {
+    const hr = new Date().getHours();
+    document.getElementById('greetLabel').innerText = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : "Good Evening";
+    
+    const bal = userData.balance || 0;
+    document.getElementById('userRank').innerText = bal > 100 ? "Whale" : bal > 50 ? "Pro" : "Rookie";
+
+    const s = userData.streak || 0;
+    const map = document.getElementById('streakMap');
+    map.innerHTML = '';
+    for(let i=1; i<=7; i++) {
+        const active = i <= (s % 8 || (s > 0 ? 7 : 0));
+        map.innerHTML += `<div class="h-box" style="background:${active ? '#a78bfa' : '#1b1b3d'}; box-shadow:${active ? '0 0 8px #a78bfa' : 'none'}"></div>`;
+    }
+
+    document.getElementById('username').innerText = userData.name;
+    document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2) + " ONC";
+    document.getElementById('refcode').innerText = userData.referralCode;
+    document.getElementById('streak').innerText = userData.streak;
+}
+
+/* --- CLAIM LOGIC (Fix 1) --- */
+window.claim = async() => {
+    const now = Date.now();
+    const last = Number(userData.lastClaim) || 0;
+    const diff = now - last;
+
+    if(last !== 0 && diff < 86400000) return showToast("Cooldown active!");
+
+    let newStreak = 1;
+    if(last === 0) {
+        newStreak = 1; // First claim ever
+    } else if(diff > 172800000) {
+        newStreak = 1; // More than 48 hours = Reset
+    } else {
+        newStreak = (userData.streak || 0) + 1; // Within 24-48 hours = Increase
+    }
+
+    try {
+        const newBal = (userData.balance || 0) + 0.1;
+        await updateDoc(doc(db, "users", uid), {
+            balance: newBal,
+            lastClaim: now,
+            streak: newStreak
+        });
+        
+        userData.balance = newBal;
+        userData.lastClaim = now;
+        userData.streak = newStreak;
+        updateUI();
+        showToast("Claim Successful! +0.10 ONC");
+    } catch(e) { showToast("Error syncing with node."); }
+}
+
+/* --- TIMER & PROGRESS (Fix 2, 3, 4) --- */
+function checkClaim() {
+    if(claimInterval) clearInterval(claimInterval); // Fix 4: Clear existing
+
+    claimInterval = setInterval(() => {
+        const now = Date.now();
+        const last = Number(userData.lastClaim) || 0;
+        const diff = 86400000 - (now - last);
+        
+        // Progress Calculation
+        let percent = ((86400000 - diff) / 86400000) * 100;
+        percent = percent < 0 ? 0 : percent > 100 ? 100 : percent;
+
+        const pBar = document.getElementById('progressBar');
+        pBar.style.width = percent + "%";
+
+        // Fix 3: Progress Colors
+        if(percent > 50) pBar.style.background = "#10b981"; // Green
+        else if(percent >= 20) pBar.style.background = "#f59e0b"; // Yellow
+        else pBar.style.background = "#ef4444"; // Red
+
+        const btn = document.getElementById('claimBtn');
+        const status = document.getElementById('claimStatus');
+
+        if(diff <= 0) {
+            status.innerText = "Ready to claim!";
+            btn.disabled = false;
+        } else {
+            // Fix 2: Proper Format
+            let h = Math.floor(diff / 3600000);
+            let m = Math.floor((diff % 3600000) / 60000);
+            let s = Math.floor((diff % 60000) / 1000);
+            status.innerText = `Next claim in ${h}h ${m}m ${s}s`;
+            btn.disabled = true;
+        }
+    }, 1000);
+}
+
+/* --- DATA LOADERS --- */
+async function loadLeaderboard() {
+    const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(3));
+    const snap = await getDocs(q);
+    let html = ""; let r = 1;
+    snap.forEach(d => {
+        let b = r==1 ? "🥇" : r==2 ? "🥈" : "🥉";
+        html += `<div class="lb"><div>${b} ${d.data().name}</div><div>${(d.data().balance || 0).toFixed(2)} ONC</div></div>`;
+        r++;
+    });
+    document.getElementById('miniLeaderboard').innerHTML = html;
+}
+
+async function loadStats() {
+    const snap = await getDocs(collection(db, "users"));
+    document.getElementById('totalUsers').innerText = snap.size;
+    let t = 0; snap.forEach(d => t += (d.data().balance || 0));
+    document.getElementById('totalMined').innerText = t.toFixed(2);
+}
+
+async function loadUpdate() {
+    const q = query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1));
+    const snap = await getDocs(q);
+    snap.forEach(d => document.getElementById('update').innerText = d.data().title);
+}
+
+/* --- UTILS --- */
+window.toggleMenu = () => {
+    const m = document.getElementById('menu');
+    const o = document.getElementById('overlay');
+    const open = m.style.left === "0px";
+    m.style.left = open ? "-240px" : "0px";
+    o.style.display = open ? "none" : "block";
+};
+
+window.logout = () => signOut(auth).then(() => { sessionStorage.clear(); window.location="login.html"; });
+
+window.copyLink = () => {
+    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + (userData.referralCode || "none"));
+    showToast("Invite link copied!");
+};
+
+function showToast(text) {
+    document.getElementById('toastText').innerText = text;
+    document.getElementById('toast').style.display = "block";
+    setTimeout(() => document.getElementById('toast').style.display = "none", 3000);
+}
+</script>
+</body>
+</html>

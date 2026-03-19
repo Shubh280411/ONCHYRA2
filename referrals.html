@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Referrals — ONCHYRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Inter;
+background:#070816;
+color:white;
+padding:20px;
+}
+
+/* NAV */
+
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.logo{
+font-family:Manrope;
+font-size:22px;
+background:linear-gradient(90deg,#a78bfa,#60a5fa);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* CARD */
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:16px;
+padding:22px;
+margin-bottom:20px;
+}
+
+/* CODE */
+
+.code{
+font-size:32px;
+font-weight:700;
+letter-spacing:4px;
+text-align:center;
+margin:10px 0;
+color:#a78bfa;
+text-shadow:0 0 15px #a78bfa;
+}
+
+/* BUTTON */
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:linear-gradient(135deg,#a78bfa,#60a5fa);
+color:#070816;
+font-weight:700;
+cursor:pointer;
+margin-top:10px;
+}
+
+/* STATS */
+
+.stat{
+display:flex;
+justify-content:space-between;
+padding:14px;
+border-radius:10px;
+margin-top:10px;
+font-weight:600;
+}
+
+.total{background:#1b1b3a}
+.l1{background:#064e3b}
+.l2{background:#1e3a8a}
+.l3{background:#4c1d95}
+
+/* HISTORY */
+
+.history-item{
+padding:12px;
+border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.name{font-weight:600}
+.email{font-size:13px;color:#60a5fa}
+.date{font-size:12px;opacity:.6}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="nav">
+<a href="dashboard.html">← Back</a>
+<div class="logo">ONCHYRA</div>
+</div>
+
+<div class="card">
+
+<h2>Your Referral Code</h2>
+
+<div id="refCode" class="code">...</div>
+
+<button onclick="copyLink()">Copy Invite Link</button>
+
+<div class="stat total">
+<span>Total Team</span>
+<span id="totalRef">0</span>
+</div>
+
+<div class="stat l1">
+<span>Direct Referrals</span>
+<span id="l1">0</span>
+</div>
+
+<div class="stat l2">
+<span>Level 2</span>
+<span id="l2">0</span>
+</div>
+
+<div class="stat l3">
+<span>Level 3</span>
+<span id="l3">0</span>
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Referral History</h2>
+
+<div id="history">Loading...</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { 
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { 
+getFirestore,
+doc,
+getDoc,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+authDomain:"onchyra.firebaseapp.com",
+projectId:"onchyra",
+storageBucket:"onchyra.firebasestorage.app",
+messagingSenderId:"441822770982",
+appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let userData;
+
+/* AUTH */
+
+onAuthStateChanged(auth,async(user)=>{
+
+if(!user){
+window.location="login.html";
+return;
+}
+
+const uid=user.uid;
+
+const snap=await getDoc(doc(db,"users",uid));
+userData=snap.data();
+
+/* SET DATA */
+
+document.getElementById("refCode").innerText=userData.referralCode;
+
+const l1 = userData.refLevel1 || 0;
+const l2 = userData.refLevel2 || 0;
+const l3 = userData.refLevel3 || 0;
+
+document.getElementById("l1").innerText=l1;
+document.getElementById("l2").innerText=l2;
+document.getElementById("l3").innerText=l3;
+document.getElementById("totalRef").innerText=l1+l2+l3;
+
+/* LOAD HISTORY */
+
+loadHistory(userData.referralCode);
+
+});
+
+/* HISTORY FIXED */
+
+async function loadHistory(code){
+
+const container = document.getElementById("history");
+
+try{
+
+const snap = await getDocs(collection(db,"users"));
+
+let html="";
+let count=0;
+
+snap.forEach(docSnap=>{
+
+const d = docSnap.data();
+
+if(d.referredBy && d.referredBy === code){
+
+count++;
+
+let date="";
+
+if(d.createdAt){
+date=new Date(d.createdAt.seconds*1000).toLocaleDateString();
+}
+
+html+=`
+<div class="history-item">
+<div class="name">${d.name || "No Name"}</div>
+<div class="email">${d.email || "No Email"}</div>
+<div class="date">${date}</div>
+</div>
+`;
+
+}
+
+});
+
+if(count===0){
+container.innerHTML="No referrals yet";
+}else{
+container.innerHTML=html;
+}
+
+}catch(err){
+
+console.error(err);
+container.innerHTML="Error loading referrals";
+
+}
+
+}
+
+/* COPY */
+
+window.copyLink=()=>{
+
+const link=window.location.origin+"/register.html?ref="+userData.referralCode;
+
+navigator.clipboard.writeText(link);
+
+alert("Invite link copied");
+
+}
+
+</script>
+
+
+
+</body>
+</html>

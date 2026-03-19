@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Profile — ONCHYRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Inter;
+background:#070816;
+color:white;
+padding:20px;
+}
+
+/* glow background */
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
+radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
+z-index:-1;
+}
+
+/* header */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.logo{
+font-family:Manrope;
+font-size:22px;
+background:linear-gradient(90deg,#a78bfa,#60a5fa);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.back{
+color:#a78bfa;
+text-decoration:none;
+}
+
+/* card */
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:18px;
+padding:25px;
+text-align:center;
+}
+
+/* avatar */
+
+.avatar{
+width:100px;
+height:100px;
+border-radius:50%;
+background:linear-gradient(135deg,#6d28d9,#2563eb);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+font-weight:700;
+margin:auto;
+margin-bottom:15px;
+}
+
+/* inputs */
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+border:none;
+background:rgba(255,255,255,0.08);
+color:white;
+}
+
+/* balance */
+
+.balance{
+font-size:24px;
+font-weight:700;
+margin:15px 0;
+}
+
+/* buttons */
+
+button{
+width:100%;
+padding:12px;
+margin-top:12px;
+border:none;
+border-radius:12px;
+background:linear-gradient(135deg,#a78bfa,#60a5fa);
+color:#070816;
+font-weight:700;
+cursor:pointer;
+}
+
+.refbox{
+margin-top:15px;
+font-size:14px;
+opacity:0.9;
+word-break:break-all;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+<a class="back" href="dashboard.html">← Back</a>
+<div class="logo">ONCHYRA</div>
+</div>
+
+<div class="card">
+
+<div class="avatar" id="avatar">U</div>
+
+<h3 id="displayName">User</h3>
+
+<div class="balance" id="balance">0 ONC</div>
+
+<input id="nameInput" placeholder="Change Name">
+
+<input id="emailInput" disabled>
+
+<button onclick="saveName()">Save Name</button>
+
+<div class="refbox" id="refLink">Loading referral...</div>
+
+<button onclick="copyLink()">Copy Referral Link</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+getDoc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig={
+
+apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+authDomain:"onchyra.firebaseapp.com",
+projectId:"onchyra",
+storageBucket:"onchyra.firebasestorage.app",
+messagingSenderId:"441822770982",
+appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let uid;
+
+onAuthStateChanged(auth, async user=>{
+
+if(!user){
+window.location="login.html";
+return;
+}
+
+uid=user.uid;
+
+const snap=await getDoc(doc(db,"users",uid));
+const data=snap.data();
+
+document.getElementById("displayName").innerText=data.name;
+
+document.getElementById("avatar").innerText=data.name.charAt(0).toUpperCase();
+
+document.getElementById("nameInput").value=data.name;
+
+document.getElementById("emailInput").value=data.email;
+
+document.getElementById("balance").innerText=(Number(data.balance)||0).toFixed(2)+" ONC";
+
+const link=window.location.origin+"/register.html?ref="+data.referralCode;
+
+document.getElementById("refLink").innerText=link;
+
+});
+
+window.saveName=async function(){
+
+const newName=document.getElementById("nameInput").value;
+
+await updateDoc(doc(db,"users",uid),{
+
+name:newName
+
+});
+
+document.getElementById("displayName").innerText=newName;
+
+document.getElementById("avatar").innerText=newName.charAt(0).toUpperCase();
+
+alert("Name updated");
+
+}
+
+window.copyLink=function(){
+
+const link=document.getElementById("refLink").innerText;
+
+navigator.clipboard.writeText(link);
+
+alert("Referral link copied");
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Updates — ONCHYRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:'Inter',sans-serif;
+background:#070816;
+color:white;
+padding:20px;
+}
+
+/* header */
+
+.header{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:20px;
+}
+
+.back{
+cursor:pointer;
+font-size:20px;
+}
+
+.logo{
+font-family:'Manrope';
+font-size:22px;
+background:linear-gradient(90deg,#a78bfa,#60a5fa);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* card */
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:16px;
+padding:20px;
+margin-bottom:16px;
+}
+
+/* title */
+
+.title{
+font-size:18px;
+font-weight:600;
+margin-bottom:6px;
+}
+
+/* date */
+
+.date{
+font-size:12px;
+opacity:0.6;
+margin-bottom:10px;
+}
+
+/* message */
+
+.msg{
+font-size:14px;
+line-height:1.5;
+opacity:0.9;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<div class="back" onclick="window.location='dashboard.html'">←</div>
+
+<div class="logo">ONCHYRA</div>
+
+</div>
+
+<div id="updates">
+
+Loading updates...
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+query,
+orderBy,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+authDomain:"onchyra.firebaseapp.com",
+projectId:"onchyra",
+storageBucket:"onchyra.firebasestorage.app",
+messagingSenderId:"441822770982",
+appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+/* load updates */
+
+async function loadUpdates(){
+
+const q = query(collection(db,"updates"),orderBy("createdAt","desc"));
+
+const snap = await getDocs(q);
+
+let html = "";
+
+snap.forEach(doc=>{
+
+const d = doc.data();
+
+let date = "";
+
+if(d.createdAt){
+date = new Date(d.createdAt.seconds*1000).toLocaleDateString();
+}
+
+html += `
+
+<div class="card">
+
+<div class="title">${d.title}</div>
+
+<div class="date">${date}</div>
+
+<div class="msg">${d.message}</div>
+
+</div>
+
+`;
+
+});
+
+if(html==="") html="No updates yet";
+
+updates.innerHTML = html;
+
+}
+
+loadUpdates();
+
+</script>
+
+</body>
+</html>
+

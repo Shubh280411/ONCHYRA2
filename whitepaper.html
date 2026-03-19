@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Whitepaper — ONCHYRA</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Inter;
+background:#070816;
+color:white;
+padding:20px;
+line-height:1.6;
+}
+
+/* glow background */
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
+radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
+z-index:-1;
+}
+
+/* navbar */
+
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.back{
+color:#a78bfa;
+text-decoration:none;
+font-size:18px;
+}
+
+.logo{
+font-family:Manrope;
+font-size:22px;
+background:linear-gradient(90deg,#a78bfa,#60a5fa);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* card */
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.1);
+border-radius:16px;
+padding:25px;
+margin-bottom:20px;
+}
+
+/* headings */
+
+h2{
+margin-bottom:10px;
+color:#a78bfa;
+}
+
+p{
+opacity:0.9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="nav">
+<a href="index.html" class="back">← Back</a>
+<div class="logo">ONCHYRA</div>
+</div>
+
+<div class="card">
+<h2>Introduction</h2>
+<p>
+ONCHYRA is a decentralized mining ecosystem designed to reward users for participation,
+community growth, and network expansion. Users earn ONC tokens through daily mining
+and referral-based network building.
+</p>
+</div>
+
+<div class="card">
+<h2>Mining System</h2>
+<p>
+Users can claim ONC tokens once every 24 hours through the dashboard mining system.
+This ensures fair distribution and prevents excessive inflation of the token supply.
+</p>
+</div>
+
+<div class="card">
+<h2>Referral Network</h2>
+<p>
+ONCHYRA uses a 3-level referral structure:
+</p>
+
+<p>
+Level 1 – Direct referral<br>
+Level 2 – Referral of referral<br>
+Level 3 – Third level network
+</p>
+
+<p>
+This structure helps grow the network organically while maintaining fairness.
+</p>
+</div>
+
+<div class="card">
+<h2>Token Utility</h2>
+<p>
+Future updates will introduce multiple utilities for ONC tokens including ecosystem
+access, premium features, and potential exchange integrations.
+</p>
+</div>
+
+<div class="card">
+<h2>Roadmap</h2>
+<p>
+Phase 1 – Platform launch and mining system<br>
+Phase 2 – Referral rewards and ecosystem expansion<br>
+Phase 3 – Token utility and marketplace integration
+</p>
+</div>
+
+<div class="card">
+<h2>Conclusion</h2>
+<p>
+ONCHYRA aims to build a strong community-driven network powered by simple mining,
+referrals, and continuous platform development.
+</p>
+</div>
+
+</body>
+</html>

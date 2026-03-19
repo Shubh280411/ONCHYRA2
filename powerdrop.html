@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PowerDrop — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+:root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #050610; --tg: #0088cc; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter, sans-serif;background:var(--bg);color:white;padding:20px;overflow-x:hidden;}
+
+.container{max-width:480px;margin:auto;}
+.header{text-align:center;margin-bottom:20px;}
+.header h1{font-family:Manrope;font-size:28px;background:linear-gradient(90deg, var(--primary), var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* Calendar Plate Timer */
+.timer-container { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
+.time-plate {
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px; min-width: 70px; text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.time-num { display: block; font-family: 'Manrope'; font-size: 24px; font-weight: 800; color: var(--secondary); text-shadow: 0 0 10px rgba(96,165,250,0.3); }
+.time-label { display: block; font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-top: 2px; }
+
+.event-status{display:inline-block;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase; letter-spacing:1px;}
+.status-active{background:rgba(16,185,129,0.1);color:#10b981;border:1px solid #10b981; animation: pulse 2s infinite;}
+.status-upcoming{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid #f59e0b;}
+.status-ended{background:rgba(255,255,255,0.05);color:#777;border:1px solid #333;}
+
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+.card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:28px;padding:30px;backdrop-filter:blur(20px);margin-bottom:15px; text-align:center; position: relative;}
+.reward-amount{font-size:48px;font-weight:800;font-family:Manrope;color:#fff; letter-spacing:-1px;}
+.usdt-tag{font-size:18px; color:var(--primary); font-weight:700; margin-left:6px;}
+
+.progress-bar{height:8px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden; margin:15px 0;}
+#fill{height:100%;width:0%;background:linear-gradient(90deg, var(--primary), var(--secondary));transition:width 1.2s cubic-bezier(0.4, 0, 0.2, 1);}
+
+input{width:100%;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.4);color:white;margin:15px 0;outline:none; text-align:center; font-family: monospace; transition: 0.3s;}
+input:focus{border-color: var(--primary); background: rgba(0,0,0,0.6);}
+
+.btn-main{width:100%;padding:18px;border:none;border-radius:14px;background:linear-gradient(135deg, var(--primary), var(--secondary));color:#050610;font-weight:800;cursor:pointer; font-size:16px; transition: 0.3s; box-shadow: 0 8px 20px rgba(167,139,250,0.2);}
+.btn-main:hover{transform: translateY(-2px); filter: brightness(1.1);}
+.btn-main:disabled{opacity:0.3;filter:grayscale(1); transform: none;}
+
+.btn-tg {
+    width: 100%; padding: 15px; border: none; border-radius: 14px; background: rgba(0, 136, 204, 0.1);
+    color: var(--tg); font-weight: 700; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid rgba(0, 136, 204, 0.2); transition: 0.3s;
+}
+.btn-tg:hover { background: rgba(0, 136, 204, 0.2); }
+
+#msg{text-align:center;margin-top:15px;font-size:13px; font-weight:600;}
+.loading{height:300px;display:flex;align-items:center;justify-content:center;opacity:0.6; font-weight:700; letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>ONCHYRA</h1>
+        <div id="eventStatus" class="event-status">Initializing...</div>
+    </div>
+
+    <div id="loader" class="loading">SYNCING EVENT NODE...</div>
+
+    <div id="eventUI" style="display:none;">
+        <div class="card">
+            <div id="eventTitle" style="font-size: 13px; opacity: 0.5; letter-spacing: 2px; text-transform: uppercase;">LOADING EVENT</div>
+            <div class="reward-box">
+                <span class="reward-amount" id="reward">0</span><span class="usdt-tag">USDT</span>
+            </div>
+
+            <div class="timer-container">
+                <div class="time-plate"><span class="time-num" id="days">00</span><span class="time-label">Days</span></div>
+                <div class="time-plate"><span class="time-num" id="hours">00</span><span class="time-label">Hours</span></div>
+                <div class="time-plate"><span class="time-num" id="mins">00</span><span class="time-label">Mins</span></div>
+                <div class="time-plate"><span class="time-num" id="secs">00</span><span class="time-label">Secs</span></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; font-size:12px; opacity:0.7;">
+                <span>Total Participants</span>
+                <span id="pCount">0 / 0</span>
+            </div>
+            <div class="progress-bar"><div id="fill"></div></div>
+
+            <input type="text" id="wallet" placeholder="Enter USDT BEP20 Address">
+            <button id="joinBtn" class="btn-main" onclick="participate()" disabled>JOIN POWERDROP</button>
+            
+            <button id="shareBtn" class="btn-tg" onclick="shareOnTG()" style="display:none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.48.99-.74 3.84-1.67 6.41-2.77 7.7-3.3 3.65-1.5 4.41-1.76 4.9-1.77.11 0 .35.03.5.15.13.1.17.24.18.33.01.07.01.2-.01.3z"/></svg>
+                Invite Friends on Telegram
+            </button>
+            
+            <div id="msg"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain:"onchyra.firebaseapp.com",
+    projectId:"onchyra",
+    storageBucket:"onchyra.firebasestorage.app",
+    messagingSenderId:"441822770982",
+    appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentEventId = null, userUid = null, tInterval = null, currentTitle = "", currentReward = "";
+
+onAuthStateChanged(auth, (user) => {
+    if (user) { userUid = user.uid; initEvent(); } 
+    else { setTimeout(() => window.location.href="login.html", 1000); }
+});
+
+async function initEvent() {
+    onSnapshot(collection(db, "powerdrops"), (snap) => {
+        if (!snap.empty) {
+            const d = snap.docs[0];
+            currentEventId = d.id;
+            const data = d.data();
+            currentTitle = data.title;
+            currentReward = data.reward;
+            render(data);
+            checkJoined();
+        } else {
+            document.getElementById('loader').innerText = "NO ACTIVE EVENTS";
+        }
+    });
+}
+
+function render(data) {
+    document.getElementById('loader').style.display = "none";
+    document.getElementById('eventUI').style.display = "block";
+    document.getElementById('eventTitle').innerText = data.title || "POWERDROP EVENT";
+    document.getElementById('reward').innerText = data.reward || "0";
+    
+    const c = data.participantsCount || 0, m = data.maxParticipants || 100;
+    document.getElementById('pCount').innerText = `${c} / ${m}`;
+    document.getElementById('fill').style.width = (c/m*100) + "%";
+
+    if(tInterval) clearInterval(tInterval);
+    const start = data.startTime.toMillis(), end = start + (data.duration * 86400000);
+
+    tInterval = setInterval(() => {
+        const now = Date.now();
+        let target, statusText, statusClass;
+
+        if (now < start) {
+            target = start; statusText = "Upcoming"; statusClass = "status-upcoming";
+            document.getElementById('joinBtn').disabled = true;
+        } else if (now < end) {
+            target = end; statusText = "Live Now"; statusClass = "status-active";
+        } else {
+            clearInterval(tInterval);
+            updateTimerDisplay(0,0,0,0);
+            document.getElementById('eventStatus').innerText = "Ended";
+            document.getElementById('joinBtn').disabled = true;
+            return;
+        }
+
+        const diff = target - now;
+        const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+        updateTimerDisplay(d,h,m,s);
+        document.getElementById('eventStatus').innerText = statusText;
+        document.getElementById('eventStatus').className = "event-status " + statusClass;
+    }, 1000);
+}
+
+function updateTimerDisplay(d,h,m,s) {
+    document.getElementById('days').innerText = d.toString().padStart(2,'0');
+    document.getElementById('hours').innerText = h.toString().padStart(2,'0');
+    document.getElementById('mins').innerText = m.toString().padStart(2,'0');
+    document.getElementById('secs').innerText = s.toString().padStart(2,'0');
+}
+
+async function checkJoined() {
+    const snap = await getDoc(doc(db, "powerdrops", currentEventId, "participants", userUid));
+    if (snap.exists()) {
+        const btn = document.getElementById('joinBtn');
+        btn.disabled = true; btn.innerText = "ALREADY JOINED";
+        document.getElementById('wallet').value = snap.data().address;
+        document.getElementById('wallet').disabled = true;
+        document.getElementById('shareBtn').style.display = "flex";
+    } else {
+        document.getElementById('joinBtn').disabled = false;
+        document.getElementById('shareBtn').style.display = "none";
+    }
+}
+
+window.participate = async () => {
+    const addr = document.getElementById('wallet').value.trim();
+    if (addr.length < 15) return showMsg("Please enter a valid wallet address", "#ef4444");
+    const btn = document.getElementById('joinBtn');
+    btn.disabled = true; btn.innerText = "CONFIRMING ENTRY...";
+    try {
+        await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), {
+            uid: userUid, address: addr, joinedAt: serverTimestamp()
+        });
+        await updateDoc(doc(db, "powerdrops", currentEventId), { participantsCount: increment(1) });
+        showMsg("Successfully Registered! Share with friends.", "#10b981");
+    } catch (e) { 
+        btn.disabled = false; btn.innerText = "JOIN POWERDROP"; 
+        showMsg("Submission error, try again.", "#ef4444");
+    }
+}
+
+window.shareOnTG = () => {
+    const text = `🔥 ONCHYRA POWERDROP IS LIVE! 🔥\n\n🎁 Event: ${currentTitle}\n💰 Reward: ${currentReward} USDT\n⏳ Status: Limited Slots Available!\n\nDon't miss out, join now! 👇\n\nhttps://onchyra.web.app/powerdrop.html`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(text)}`, '_blank');
+}
+
+function showMsg(t, c) {
+    const m = document.getElementById('msg');
+    m.innerText = t; m.style.color = c;
+}
+</script>
+</body>
+</html>
