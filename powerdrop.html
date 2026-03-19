@@ -4,48 +4,111 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PowerDrop — ONCHYRA</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
 
 <style>
-:root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #050610; --card: rgba(255,255,255,0.03); --tg: #0088cc; }
+:root { 
+    --primary: #c084fc; 
+    --secondary: #6366f1; 
+    --accent: #fcd34d; /* Gold touch for Classy look */
+    --bg: #020617; 
+    --card-bg: rgba(15, 23, 42, 0.6);
+    --border: rgba(255, 255, 255, 0.1);
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter, sans-serif;background:var(--bg);color:white;padding:20px;}
+body{
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: #f1f5f9;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(192, 132, 252, 0.15) 0%, transparent 40%);
+}
 
-.container{max-width:480px;margin:auto;}
-.header{text-align:center;margin-bottom:20px;}
-.header h1{font-family:Manrope;font-size:28px;background:linear-gradient(90deg, var(--primary), var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.container{width: 100%; max-width: 420px;}
 
-/* Timer Plates */
-.timer-container { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
-.time-plate { background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; min-width: 70px; text-align: center; }
-.time-num { display: block; font-family: 'Manrope'; font-size: 24px; font-weight: 800; color: var(--secondary); }
-.time-label { display: block; font-size: 9px; opacity: 0.5; text-transform: uppercase; }
+.header{text-align:center; margin-bottom:40px;}
+.header h1{
+    font-family: 'Outfit', sans-serif;
+    font-size: 36px; 
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    text-transform: uppercase;
+    background: linear-gradient(to bottom, #ffffff 30%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-.event-status{display:inline-block;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase; letter-spacing:1px;}
-.status-active{background:rgba(16,185,129,0.1);color:#10b981;border:1px solid #10b981; animation: pulse 2s infinite;}
-.status-upcoming{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid #f59e0b;}
+.card{
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 40px 30px;
+    backdrop-filter: blur(25px);
+    text-align: center;
+    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.7);
+    position: relative;
+    overflow: hidden;
+}
 
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+/* Shine effect on card */
+.card::before {
+    content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+    pointer-events: none;
+}
 
-.card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:28px;padding:30px;backdrop-filter:blur(20px);margin-bottom:15px; text-align:center;}
-.reward-amount{font-size:48px;font-weight:800;font-family:Manrope;color:#fff;}
-.usdt-tag{font-size:18px; color:var(--primary); font-weight:700; margin-left:5px;}
+.reward-label{font-size: 10px; text-transform: uppercase; opacity: 0.6; letter-spacing: 4px; margin-bottom: 10px; color: var(--primary);}
+.reward-amount{
+    font-size: 64px; font-weight: 800; font-family: 'Outfit';
+    color: #fff; line-height: 1;
+}
 
-.progress-bar{height:8px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden; margin:15px 0;}
-#fill{height:100%;width:0%;background:linear-gradient(90deg, var(--primary), var(--secondary));transition:width 1s ease;}
+/* Minimalist Timer */
+.timer-container { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+.time-num { display: block; font-size: 24px; font-weight: 800; color: #fff; font-family: 'Outfit'; }
+.time-label { display: block; font-size: 9px; opacity: 0.4; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;}
 
-input{width:100%;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.4);color:white;margin:15px 0;outline:none; text-align:center; font-family:monospace;}
+.progress-section { margin: 30px 0; }
+.progress-bar{ height: 4px; background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; margin-top: 10px;}
+#fill{ height: 100%; width: 0%; background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 2s cubic-bezier(0.2, 0, 0, 1); }
 
-.btn-main{width:100%;padding:18px;border:none;border-radius:14px;background:linear-gradient(135deg, var(--primary), var(--secondary));color:#050610;font-weight:800;cursor:pointer; font-size:16px; box-shadow: 0 10px 20px rgba(167,139,250,0.2);}
-.btn-main:disabled{opacity:0.4; filter:grayscale(1); cursor:not-allowed;}
+input{
+    width: 100%; padding: 20px; border-radius: 20px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03); color: white; margin-bottom: 20px; outline: none;
+    text-align: center; font-size: 14px; transition: all 0.4s ease;
+}
+input:focus { border-color: var(--primary); background: rgba(255,255,255,0.07); box-shadow: 0 0 20px rgba(192, 132, 252, 0.1); }
 
-/* Rules Section */
-.rules-section { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 20px; margin-top: 10px; }
-.rules-section h3 { font-size: 14px; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-.rule-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-align: left; line-height: 1.4; }
-.rule-item span { color: var(--secondary); font-weight: bold; }
+.btn-main{
+    width: 100%; padding: 22px; border: none; border-radius: 24px;
+    background: #fff; color: #000; font-weight: 800; cursor: pointer;
+    font-size: 16px; transition: 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+.btn-main:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(255,255,255,0.1); }
+.btn-main:disabled { opacity: 0.15; cursor: not-allowed; transform: none; }
 
-.loading{height:300px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.btn-tg {
+    width: 100%; padding: 18px; border-radius: 20px; background: transparent;
+    color: #94a3b8; font-weight: 600; border: 1px solid var(--border);
+    margin-top: 20px; display: none; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: 0.3s;
+}
+.btn-tg:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
+#msg{ margin-top: 25px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px;}
+
+/* Status badge */
+.status-badge {
+    position: absolute; top: 20px; right: 20px; font-size: 9px; 
+    font-weight: 800; text-transform: uppercase; color: var(--accent);
+    padding: 4px 10px; border: 1px solid rgba(252, 211, 77, 0.3); border-radius: 50px;
+}
 </style>
 </head>
 <body>
@@ -53,42 +116,42 @@ input{width:100%;padding:16px;border-radius:14px;border:1px solid rgba(255,255,2
 <div class="container">
     <div class="header">
         <h1>ONCHYRA</h1>
-        <div id="eventStatus" class="event-status">Syncing...</div>
     </div>
 
-    <div id="loader" class="loading">VERIFYING ACCOUNT...</div>
+    <div id="loader" style="text-align:center; opacity: 0.3; font-size: 11px; letter-spacing: 3px;">CONNECTING TO MAINNET...</div>
 
     <div id="eventUI" style="display:none;">
         <div class="card">
-            <div id="eventTitle" style="font-size: 13px; opacity: 0.5; letter-spacing: 2px;">EVENT TITLE</div>
+            <div class="status-badge" id="eventStatus">OFFLINE</div>
+            <p class="reward-label" id="eventTitle">LOADING DROP</p>
             <div class="reward-box">
-                <span class="reward-amount" id="reward">0</span><span class="usdt-tag">USDT</span>
+                <span class="reward-amount" id="reward">0</span>
+                <span style="font-size: 16px; font-weight: 800; color: var(--primary); margin-left: 5px;">USDT</span>
             </div>
 
             <div class="timer-container">
-                <div class="time-plate"><span class="time-num" id="days">00</span><span class="time-label">Days</span></div>
-                <div class="time-plate"><span class="time-num" id="hours">00</span><span class="time-label">Hours</span></div>
-                <div class="time-plate"><span class="time-num" id="mins">00</span><span class="time-label">Mins</span></div>
-                <div class="time-plate"><span class="time-num" id="secs">00</span><span class="time-label">Secs</span></div>
+                <div class="time-item"><span class="time-num" id="days">00</span><span class="time-label">D</span></div>
+                <div class="time-item"><span class="time-num" id="hours">00</span><span class="time-label">H</span></div>
+                <div class="time-item"><span class="time-num" id="mins">00</span><span class="time-label">M</span></div>
+                <div class="time-item"><span class="time-num" id="secs">00</span><span class="time-label">S</span></div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; font-size:12px; opacity:0.7;">
-                <span>Total Registered</span>
-                <span id="pCount">0 / 0</span>
+            <div class="progress-section">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight: 800; opacity:0.4; letter-spacing: 1px;">
+                    <span>NETWORK LOAD</span>
+                    <span id="pCount">0 / 0</span>
+                </div>
+                <div class="progress-bar"><div id="fill"></div></div>
             </div>
-            <div class="progress-bar"><div id="fill"></div></div>
 
-            <input type="text" id="wallet" placeholder="USDT BEP20 Address">
-            <button id="joinBtn" class="btn-main" onclick="participate()">JOIN POWERDROP</button>
-            <div id="msg" style="margin-top:10px; font-size:13px;"></div>
-        </div>
-
-        <div class="rules-section">
-            <h3>Event Rules</h3>
-            <div class="rule-item"><span>01.</span> Valid USDT (BEP20) address is mandatory for rewards.</div>
-            <div class="rule-item"><span>02.</span> Only one entry per user. Multiple accounts lead to a permanent ban.</div>
-            <div class="rule-item"><span>03.</span> Participation is open until all slots are filled.</div>
-            <div class="rule-item"><span>04.</span> Rewards will be distributed within 48-72 hours after event ends.</div>
+            <input type="text" id="wallet" placeholder="USDT BEP20 Address" spellcheck="false">
+            <button id="joinBtn" class="btn-main" onclick="participate()" disabled>CONFIRM ENTRY</button>
+            
+            <button id="shareBtn" class="btn-tg" onclick="shareOnTG()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.48.99-.74 3.84-1.67 6.41-2.77 7.7-3.3 3.65-1.5 4.41-1.76 4.9-1.77.11 0 .35.03.5.15.13.1.17.24.18.33.01.07.01.2-.01.3z"/></svg>
+                Invite Network
+            </button>
+            <div id="msg"></div>
         </div>
     </div>
 </div>
@@ -106,6 +169,106 @@ const firebaseConfig = {
     messagingSenderId:"441822770982",
     appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentEventId = null, userUid = null, tInterval = null;
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) { 
+        userUid = user.uid; 
+        const uSnap = await getDoc(doc(db, "users", userUid));
+        if (uSnap.exists() && uSnap.data().banned === true) { window.location.href = "banned.html"; return; }
+        initEvent(); 
+    } else { window.location.href="login.html"; }
+});
+
+async function initEvent() {
+    onSnapshot(collection(db, "powerdrops"), (snap) => {
+        if (!snap.empty) {
+            const d = snap.docs[0];
+            currentEventId = d.id;
+            const data = d.data();
+            render(data);
+            checkJoined();
+        } else { document.getElementById('loader').innerText = "NO EVENTS FOUND"; }
+    });
+}
+
+function render(data) {
+    document.getElementById('loader').style.display = "none";
+    document.getElementById('eventUI').style.display = "block";
+    document.getElementById('eventTitle').innerText = data.title || "POWERDROP";
+    document.getElementById('reward').innerText = data.reward || "0";
+    
+    const c = data.participantsCount || 0, m = data.maxParticipants || 50;
+    document.getElementById('pCount').innerText = `${c} / ${m}`;
+    document.getElementById('fill').style.width = Math.min((c/m*100), 100) + "%";
+
+    if(tInterval) clearInterval(tInterval);
+    const start = data.startTime.toMillis(), end = start + (data.duration * 86400000);
+
+    tInterval = setInterval(() => {
+        const now = Date.now();
+        let target = (now < start) ? start : end;
+        const diff = target - now;
+        
+        if (diff <= 0) { clearInterval(tInterval); return; }
+
+        const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+        document.getElementById('days').innerText = d.toString().padStart(2,'0');
+        document.getElementById('hours').innerText = h.toString().padStart(2,'0');
+        document.getElementById('mins').innerText = m.toString().padStart(2,'0');
+        document.getElementById('secs').innerText = s.toString().padStart(2,'0');
+        
+        document.getElementById('eventStatus').innerText = (now < start) ? "UPCOMING" : "LIVE NOW";
+    }, 1000);
+}
+
+async function checkJoined() {
+    const snap = await getDoc(doc(db, "powerdrops", currentEventId, "participants", userUid));
+    if (snap.exists()) {
+        const btn = document.getElementById('joinBtn');
+        btn.disabled = true; btn.innerText = "ENTRY VERIFIED";
+        document.getElementById('wallet').value = snap.data().address;
+        document.getElementById('wallet').disabled = true;
+        document.getElementById('shareBtn').style.display = "flex";
+    } else { document.getElementById('joinBtn').disabled = false; }
+}
+
+window.participate = async () => {
+    const addr = document.getElementById('wallet').value.trim();
+    if (addr.length < 15) return showMsg("Invalid Destination Address", "#f87171");
+
+    const btn = document.getElementById('joinBtn');
+    btn.disabled = true; btn.innerText = "VERIFYING...";
+
+    try {
+        await updateDoc(doc(db, "powerdrops", currentEventId), { participantsCount: increment(1) });
+        await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), {
+            address: addr, joinedAt: serverTimestamp()
+        });
+        showMsg("Entry added to blockchain.", "#10b981");
+        btn.innerText = "ENTRY VERIFIED";
+        document.getElementById('shareBtn').style.display = "flex";
+    } catch (e) { 
+        showMsg("Node connection error.", "#f87171");
+        btn.disabled = false;
+    }
+}
+
+window.shareOnTG = () => {
+    const link = window.location.origin + "/powerdrop.html";
+    const text = `🔥 ONCHYRA POWERDROP 🔥\nWin rewards from the live drop!\n\nLink: ${link}`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(text)}`, '_blank');
+}
+
+function showMsg(t, c) { document.getElementById('msg').innerText = t; document.getElementById('msg').style.color = c; }
+</script>
+</body>
+</html>
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
