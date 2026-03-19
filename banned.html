@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACCESS DENIED — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --danger: #ff4b2b;
+    --bg: #050505;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body {
+    background: var(--bg);
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    text-align: center;
+}
+
+.bg-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, rgba(255, 75, 43, 0.05) 0%, transparent 70%);
+    z-index: -1;
+}
+
+.container { padding: 20px; max-width: 450px; position: relative; z-index: 10;}
+
+.icon-box {
+    font-size: 80px;
+    margin-bottom: 20px;
+    color: var(--danger);
+    text-shadow: 0 0 20px rgba(255, 75, 43, 0.4);
+    animation: glitch 1s infinite linear alternate-reverse;
+}
+
+h1 {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+p {
+    font-size: 14px;
+    opacity: 0.6;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 6px 15px;
+    border: 1px solid rgba(255, 75, 43, 0.3);
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--danger);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+/* --- THE CLEAR BUTTON --- */
+.support-btn {
+    display: inline-block;
+    padding: 16px 40px;
+    background: transparent; /* Ekdum saaf/clear */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Patli white border */
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.support-btn:hover {
+    background: white; /* Hover karne par hi color aayega */
+    color: black;
+    border-color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+}
+
+@keyframes glitch {
+    0% { transform: translate(0); text-shadow: -2px 0 red, 2px 0 blue; }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); text-shadow: 2px 0 red, -2px 0 blue; }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+body::after {
+    content: " ";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 118, 0.03));
+    z-index: 2;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<div class="container">
+    <div class="icon-box">⚠</div>
+    <div class="status-tag">Access Revoked</div>
+    <h1>Account Suspended</h1>
+    <p>Your node connection has been terminated for violating ONCHYRA security protocols. All assets are currently frozen.</p>
+    
+    <a href="https://t.me/onchyra_support" class="support-btn">Appeal on Telegram</a>
+    
+    <div style="margin-top: 50px; font-size: 9px; opacity: 0.2; letter-spacing: 3px; font-weight: 800;">
+        ERROR_CODE: ONC-SEC-403
+    </div>
+</div>
+
+<script>
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
+        window.history.go(1);
+    };
+</script>
+
+</body>
+</html>
+
