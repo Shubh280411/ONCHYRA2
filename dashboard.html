@@ -53,7 +53,7 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
 
 <div id="loader">
     <div class="spinner"></div>
-    <div id="loaderText">Syncing Blockchain...</div>
+    <div id="loaderText">Securing Connection...</div>
     <div id="timer" style="font-size:26px">3</div>
 </div>
 
@@ -74,49 +74,51 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
     <div class="logo">ONCHYRA</div>
 </div>
 
-<div class="card">
-    <span id="greetLabel">Hello</span>, <span id="username">...</span> <span id="userRank" class="badge-tag">Rookie</span>
-    <div class="coin-wrapper">
-        <div class="particle" style="left:20%; animation-delay:0s"></div>
-        <div class="particle" style="left:50%; animation-delay:0.7s"></div>
-        <div class="particle" style="left:80%; animation-delay:1.3s"></div>
-        <div class="coin">ONC</div>
+<div id="dashboardData" style="display:none;">
+    <div class="card">
+        <span id="greetLabel">Hello</span>, <span id="username">...</span> <span id="userRank" class="badge-tag">Rookie</span>
+        <div class="coin-wrapper">
+            <div class="particle" style="left:20%; animation-delay:0s"></div>
+            <div class="particle" style="left:50%; animation-delay:0.7s"></div>
+            <div class="particle" style="left:80%; animation-delay:1.3s"></div>
+            <div class="coin">ONC</div>
+        </div>
+        <h2 id="balance" style="text-align:center">0.00 ONC</h2>
     </div>
-    <h2 id="balance" style="text-align:center">0.00 ONC</h2>
-</div>
 
-<div class="card">
-    <h3>Daily Claim</h3>
-    <div id="claimStatus" class="small">Initializing...</div>
-    <button id="claimBtn" onclick="claim()">Claim ONC</button>
-    <div class="progress"><div id="progressBar"></div></div>
-    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-        <div>🔥 Streak: <span id="streak">0</span> days</div>
-        <div class="heatmap" id="streakMap"></div>
+    <div class="card">
+        <h3>Daily Claim</h3>
+        <div id="claimStatus" class="small">Initializing...</div>
+        <button id="claimBtn" onclick="claim()">Claim ONC</button>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>🔥 Streak: <span id="streak">0</span> days</div>
+            <div class="heatmap" id="streakMap"></div>
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <h3>Referral Code</h3>
-    <div id="refcode" style="text-align:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; margin:10px 0; font-family:monospace;">...</div>
-    <button onclick="copyLink()">Copy Invite Link</button>
-</div>
+    <div class="card">
+        <h3>Referral Code</h3>
+        <div id="refcode" style="text-align:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; margin:10px 0; font-family:monospace;">...</div>
+        <button onclick="copyLink()">Copy Invite Link</button>
+    </div>
 
-<div class="card" onclick="window.location='leaderboard.html'" style="cursor:pointer">
-    <h3>Top Miners</h3>
-    <div id="miniLeaderboard">Loading...</div>
-</div>
+    <div class="card" onclick="window.location='leaderboard.html'" style="cursor:pointer">
+        <h3>Top Miners</h3>
+        <div id="miniLeaderboard">Loading...</div>
+    </div>
 
-<div class="card" onclick="window.location='updates.html'" style="cursor:pointer">
-    <h3>Latest Update</h3>
-    <div id="update">Loading...</div>
-</div>
+    <div class="card" onclick="window.location='updates.html'" style="cursor:pointer">
+        <h3>Latest Update</h3>
+        <div id="update">Loading...</div>
+    </div>
 
-<div class="card">
-    <h3>Network Stats</h3>
-    <div class="stats">
-        <div class="stat"><h2 id="totalUsers">0</h2><div class="small">Users</div></div>
-        <div class="stat"><h2 id="totalMined">0</h2><div class="small">ONC Mined</div></div>
+    <div class="card">
+        <h3>Network Stats</h3>
+        <div class="stats">
+            <div class="stat"><h2 id="totalUsers">0</h2><div class="small">Users</div></div>
+            <div class="stat"><h2 id="totalMined">0</h2><div class="small">ONC Mined</div></div>
+        </div>
     </div>
 </div>
 
@@ -141,7 +143,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let uid, userData;
-let claimInterval = null; // Fix 4: To handle multiple intervals
+let claimInterval = null;
 
 /* --- SMART LOADER (3 SEC) --- */
 const isFirstVisit = !sessionStorage.getItem("visited");
@@ -149,41 +151,52 @@ if(isFirstVisit) {
     let t=3;
     const lInt = setInterval(() => {
         t--; document.getElementById('timer').innerText=t;
-        if(t<=0) { clearInterval(lInt); document.getElementById('loader').style.display="none"; sessionStorage.setItem("visited", "true"); }
+        if(t<=0) { 
+            clearInterval(lInt); 
+            const loader = document.getElementById('loader');
+            if(loader) loader.style.display="none"; 
+            sessionStorage.setItem("visited", "true"); 
+        }
     }, 1000);
 } else { document.getElementById('loader').style.display="none"; }
 
-/* --- DYNAMIC TITLE --- */
-window.onblur = () => { document.title = "⚠️ Mining active! Come back..."; };
-window.onfocus = () => { document.title = "Dashboard — ONCHYRA"; };
-
-/* --- AUTH STATE --- */
+/* --- AUTH STATE + SECURITY CHECK --- */
 onAuthStateChanged(auth, async(user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
-    const snap = await getDoc(doc(db, "users", uid));
-    if(snap.exists()){
-        userData = snap.data();
-        
-        // Fix 3 & 5: Safe handling of lastClaim
-        if(!userData.lastClaim) userData.lastClaim = 0;
-        if(!userData.streak) userData.streak = 0;
+    
+    try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if(snap.exists()){
+            userData = snap.data();
 
-        updateUI();
-        checkClaim(); // Fix 4: Start interval
-        loadLeaderboard();
-        loadStats();
-        loadUpdate();
-    }
+            // 🚨 THE BAN SECURITY CHECK
+            if(userData.banned === true) {
+                window.location.href = "banned.html";
+                return;
+            }
+
+            // Show Dashboard if not banned
+            document.getElementById('dashboardData').style.display = "block";
+
+            if(!userData.lastClaim) userData.lastClaim = 0;
+            if(!userData.streak) userData.streak = 0;
+
+            updateUI();
+            checkClaim(); 
+            loadLeaderboard();
+            loadStats();
+            loadUpdate();
+        }
+    } catch(e) { console.log("Error:", e); }
 });
 
+/* --- ALL YOUR ORIGINAL LOGIC BELOW --- */
 function updateUI() {
     const hr = new Date().getHours();
     document.getElementById('greetLabel').innerText = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : "Good Evening";
-    
     const bal = userData.balance || 0;
     document.getElementById('userRank').innerText = bal > 100 ? "Whale" : bal > 50 ? "Pro" : "Rookie";
-
     const s = userData.streak || 0;
     const map = document.getElementById('streakMap');
     map.innerHTML = '';
@@ -191,85 +204,46 @@ function updateUI() {
         const active = i <= (s % 8 || (s > 0 ? 7 : 0));
         map.innerHTML += `<div class="h-box" style="background:${active ? '#a78bfa' : '#1b1b3d'}; box-shadow:${active ? '0 0 8px #a78bfa' : 'none'}"></div>`;
     }
-
     document.getElementById('username').innerText = userData.name;
     document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2) + " ONC";
     document.getElementById('refcode').innerText = userData.referralCode;
     document.getElementById('streak').innerText = userData.streak;
 }
 
-/* --- CLAIM LOGIC (Fix 1) --- */
 window.claim = async() => {
     const now = Date.now();
     const last = Number(userData.lastClaim) || 0;
     const diff = now - last;
-
     if(last !== 0 && diff < 86400000) return showToast("Cooldown active!");
-
-    let newStreak = 1;
-    if(last === 0) {
-        newStreak = 1; // First claim ever
-    } else if(diff > 172800000) {
-        newStreak = 1; // More than 48 hours = Reset
-    } else {
-        newStreak = (userData.streak || 0) + 1; // Within 24-48 hours = Increase
-    }
-
+    let newStreak = (last === 0 || diff > 172800000) ? 1 : (userData.streak || 0) + 1;
     try {
         const newBal = (userData.balance || 0) + 0.1;
-        await updateDoc(doc(db, "users", uid), {
-            balance: newBal,
-            lastClaim: now,
-            streak: newStreak
-        });
-        
-        userData.balance = newBal;
-        userData.lastClaim = now;
-        userData.streak = newStreak;
-        updateUI();
-        showToast("Claim Successful! +0.10 ONC");
-    } catch(e) { showToast("Error syncing with node."); }
+        await updateDoc(doc(db, "users", uid), { balance: newBal, lastClaim: now, streak: newStreak });
+        userData.balance = newBal; userData.lastClaim = now; userData.streak = newStreak;
+        updateUI(); showToast("Claim Successful! +0.10 ONC");
+    } catch(e) { showToast("Error syncing."); }
 }
 
-/* --- TIMER & PROGRESS (Fix 2, 3, 4) --- */
 function checkClaim() {
-    if(claimInterval) clearInterval(claimInterval); // Fix 4: Clear existing
-
+    if(claimInterval) clearInterval(claimInterval);
     claimInterval = setInterval(() => {
         const now = Date.now();
         const last = Number(userData.lastClaim) || 0;
         const diff = 86400000 - (now - last);
-        
-        // Progress Calculation
-        let percent = ((86400000 - diff) / 86400000) * 100;
-        percent = percent < 0 ? 0 : percent > 100 ? 100 : percent;
-
+        let percent = Math.max(0, Math.min(100, ((86400000 - diff) / 86400000) * 100));
         const pBar = document.getElementById('progressBar');
         pBar.style.width = percent + "%";
-
-        // Fix 3: Progress Colors
-        if(percent > 50) pBar.style.background = "#10b981"; // Green
-        else if(percent >= 20) pBar.style.background = "#f59e0b"; // Yellow
-        else pBar.style.background = "#ef4444"; // Red
-
+        pBar.style.background = percent > 50 ? "#10b981" : percent >= 20 ? "#f59e0b" : "#ef4444";
         const btn = document.getElementById('claimBtn');
         const status = document.getElementById('claimStatus');
-
-        if(diff <= 0) {
-            status.innerText = "Ready to claim!";
-            btn.disabled = false;
-        } else {
-            // Fix 2: Proper Format
-            let h = Math.floor(diff / 3600000);
-            let m = Math.floor((diff % 3600000) / 60000);
-            let s = Math.floor((diff % 60000) / 1000);
-            status.innerText = `Next claim in ${h}h ${m}m ${s}s`;
-            btn.disabled = true;
+        if(diff <= 0) { status.innerText = "Ready to claim!"; btn.disabled = false; }
+        else {
+            let h = Math.floor(diff / 3600000); let m = Math.floor((diff % 3600000) / 60000); let s = Math.floor((diff % 60000) / 1000);
+            status.innerText = `Next claim in ${h}h ${m}m ${s}s`; btn.disabled = true;
         }
     }, 1000);
 }
 
-/* --- DATA LOADERS --- */
 async function loadLeaderboard() {
     const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(3));
     const snap = await getDocs(q);
@@ -295,13 +269,10 @@ async function loadUpdate() {
     snap.forEach(d => document.getElementById('update').innerText = d.data().title);
 }
 
-/* --- UTILS --- */
 window.toggleMenu = () => {
-    const m = document.getElementById('menu');
-    const o = document.getElementById('overlay');
+    const m = document.getElementById('menu'); const o = document.getElementById('overlay');
     const open = m.style.left === "0px";
-    m.style.left = open ? "-240px" : "0px";
-    o.style.display = open ? "none" : "block";
+    m.style.left = open ? "-240px" : "0px"; o.style.display = open ? "none" : "block";
 };
 
 window.logout = () => signOut(auth).then(() => { sessionStorage.clear(); window.location="login.html"; });
