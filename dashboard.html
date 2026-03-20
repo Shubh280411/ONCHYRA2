@@ -7,20 +7,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
-/* --- KEEPING ORIGINAL UI EXACTLY SAME --- */
+/* --- ORIGINAL UI --- */
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter;background:#070816;color:white;padding:20px;transition: 0.8s ease;}
+body{font-family:Inter;background:#070816;color:white;padding:20px;}
 
-#loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#070816;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;}
-.spinner{width:70px;height:70px;border-radius:50%;border:6px solid #2e2e5f;border-top:6px solid #a78bfa;animation:spin 1s linear infinite;margin-bottom:10px;}
+/* Simple Loader Fix */
+#loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#070816;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+.spinner{width:50px;height:50px;border-radius:50%;border:5px solid #1b1b3d;border-top:5px solid #a78bfa;animation:spin 1s linear infinite;}
 @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
 .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
-.menu{position:fixed;top:0;left:-240px;width:220px;height:100%;background:#0b0b20;padding:30px;transition:0.3s;display:flex;flex-direction:column;gap:20px;z-index:10;}
+.menu{position:fixed;top:0;left:-240px;width:220px;height:100%;background:#0b0b20;padding:30px;transition:0.3s;display:flex;flex-direction:column;gap:20px;z-index:99;}
 .menu a{color:white;text-decoration:none;font-size:17px;cursor:pointer;}
-#overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;z-index:5;}
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;z-index:90;}
 
 .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:18px;}
 
@@ -34,7 +35,7 @@ button{width:100%;padding:14px;border:none;border-radius:12px;background:linear-
 button:disabled{opacity:0.4;cursor:not-allowed;}
 
 .progress{width:100%;height:10px;background:#1b1b3d;border-radius:20px;overflow:hidden;margin-top:10px;}
-#progressBar{height:100%;width:0%;background:#a78bfa;transition: width 0.5s ease, background 0.5s ease;}
+#progressBar{height:100%;width:0%;background:#a78bfa;transition: 0.5s ease;}
 
 .heatmap{display:flex;gap:4px;margin-top:10px;}
 .h-box{width:14px;height:14px;border-radius:3px;background:#1b1b3d;}
@@ -49,12 +50,11 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
 </style>
 </head>
 
-<body id="mainContent">
+<body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <div id="loaderText">Securing Connection...</div>
-    <div id="timer" style="font-size:26px">3</div>
+    <div style="margin-top:15px; font-size:14px; opacity:0.6;">Syncing Node Data...</div>
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
@@ -70,7 +70,7 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
 </div>
 
 <div class="nav">
-    <div onclick="toggleMenu()" style="cursor:pointer">☰</div>
+    <div onclick="toggleMenu()" style="cursor:pointer; font-size:24px;">☰</div>
     <div class="logo">ONCHYRA</div>
 </div>
 
@@ -83,15 +83,15 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
             <div class="particle" style="left:80%; animation-delay:1.3s"></div>
             <div class="coin">ONC</div>
         </div>
-        <h2 id="balance" style="text-align:center">0.00 ONC</h2>
+        <h2 id="balance" style="text-align:center; font-family:Manrope; font-size:32px;">0.00 ONC</h2>
     </div>
 
     <div class="card">
         <h3>Daily Claim</h3>
-        <div id="claimStatus" class="small">Initializing...</div>
-        <button id="claimBtn" onclick="claim()">Claim ONC</button>
+        <div id="claimStatus" class="small" style="margin-bottom:5px;">Initializing...</div>
+        <button id="claimBtn" onclick="claim()" disabled>Claim ONC</button>
         <div class="progress"><div id="progressBar"></div></div>
-        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
             <div>🔥 Streak: <span id="streak">0</span> days</div>
             <div class="heatmap" id="streakMap"></div>
         </div>
@@ -99,18 +99,18 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
 
     <div class="card">
         <h3>Referral Code</h3>
-        <div id="refcode" style="text-align:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; margin:10px 0; font-family:monospace;">...</div>
+        <div id="refcode" style="text-align:center; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; margin:10px 0; font-family:monospace; color:#a78bfa; font-weight:bold; letter-spacing:1px;">...</div>
         <button onclick="copyLink()">Copy Invite Link</button>
     </div>
 
     <div class="card" onclick="window.location='leaderboard.html'" style="cursor:pointer">
-        <h3>Top Miners</h3>
-        <div id="miniLeaderboard">Loading...</div>
+        <div style="display:flex; justify-content:space-between;"><h3>Top Miners</h3><span>→</span></div>
+        <div id="miniLeaderboard" style="margin-top:10px;">Loading...</div>
     </div>
 
     <div class="card" onclick="window.location='updates.html'" style="cursor:pointer">
         <h3>Latest Update</h3>
-        <div id="update">Loading...</div>
+        <div id="update" class="small" style="margin-top:5px; color:#60a5fa;">Loading...</div>
     </div>
 
     <div class="card">
@@ -127,7 +127,7 @@ button:disabled{opacity:0.4;cursor:not-allowed;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -142,61 +142,47 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let uid, userData;
-let claimInterval = null;
+let uid, userData, claimInterval = null;
 
-/* --- SMART LOADER (3 SEC) --- */
-const isFirstVisit = !sessionStorage.getItem("visited");
-if(isFirstVisit) {
-    let t=3;
-    const lInt = setInterval(() => {
-        t--; document.getElementById('timer').innerText=t;
-        if(t<=0) { 
-            clearInterval(lInt); 
-            const loader = document.getElementById('loader');
-            if(loader) loader.style.display="none"; 
-            sessionStorage.setItem("visited", "true"); 
-        }
-    }, 1000);
-} else { document.getElementById('loader').style.display="none"; }
-
-/* --- AUTH STATE + SECURITY CHECK --- */
-onAuthStateChanged(auth, async(user) => {
+onAuthStateChanged(auth, (user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
-    
-    try {
-        const snap = await getDoc(doc(db, "users", uid));
+
+    // ✅ FIXED: Using onSnapshot instead of getDoc to avoid blank screen bug
+    onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
             userData = snap.data();
 
-            // 🚨 THE BAN SECURITY CHECK
-            if(userData.banned === true) {
+            if(userData.banned === true || userData.isBanned === true) {
                 window.location.href = "banned.html";
                 return;
             }
 
-            // Show Dashboard if not banned
+            // Hide loader and show data
+            document.getElementById('loader').style.display = "none";
             document.getElementById('dashboardData').style.display = "block";
-
-            if(!userData.lastClaim) userData.lastClaim = 0;
-            if(!userData.streak) userData.streak = 0;
 
             updateUI();
             checkClaim(); 
-            loadLeaderboard();
-            loadStats();
-            loadUpdate();
         }
-    } catch(e) { console.log("Error:", e); }
+    }, (err) => {
+        console.error("Snapshot Error:", err);
+    });
+
+    // Load other async data
+    loadLeaderboard();
+    loadStats();
+    loadUpdate();
 });
 
-/* --- ALL YOUR ORIGINAL LOGIC BELOW --- */
 function updateUI() {
     const hr = new Date().getHours();
     document.getElementById('greetLabel').innerText = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : "Good Evening";
+    
     const bal = userData.balance || 0;
     document.getElementById('userRank').innerText = bal > 100 ? "Whale" : bal > 50 ? "Pro" : "Rookie";
+    
+    // Streak Map
     const s = userData.streak || 0;
     const map = document.getElementById('streakMap');
     map.innerHTML = '';
@@ -204,24 +190,36 @@ function updateUI() {
         const active = i <= (s % 8 || (s > 0 ? 7 : 0));
         map.innerHTML += `<div class="h-box" style="background:${active ? '#a78bfa' : '#1b1b3d'}; box-shadow:${active ? '0 0 8px #a78bfa' : 'none'}"></div>`;
     }
-    document.getElementById('username').innerText = userData.name;
-    document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2) + " ONC";
-    document.getElementById('refcode').innerText = userData.referralCode;
-    document.getElementById('streak').innerText = userData.streak;
+
+    document.getElementById('username').innerText = userData.name || "Miner";
+    document.getElementById('balance').innerText = bal.toFixed(2) + " ONC";
+    document.getElementById('refcode').innerText = userData.referralCode || "---";
+    document.getElementById('streak').innerText = s;
 }
 
 window.claim = async() => {
     const now = Date.now();
     const last = Number(userData.lastClaim) || 0;
     const diff = now - last;
+    
     if(last !== 0 && diff < 86400000) return showToast("Cooldown active!");
+    
     let newStreak = (last === 0 || diff > 172800000) ? 1 : (userData.streak || 0) + 1;
+    const btn = document.getElementById('claimBtn');
+    btn.disabled = true;
+
     try {
         const newBal = (userData.balance || 0) + 0.1;
-        await updateDoc(doc(db, "users", uid), { balance: newBal, lastClaim: now, streak: newStreak });
-        userData.balance = newBal; userData.lastClaim = now; userData.streak = newStreak;
-        updateUI(); showToast("Claim Successful! +0.10 ONC");
-    } catch(e) { showToast("Error syncing."); }
+        await updateDoc(doc(db, "users", uid), { 
+            balance: newBal, 
+            lastClaim: now, 
+            streak: newStreak 
+        });
+        showToast("Claim Successful! +0.10 ONC");
+    } catch(e) { 
+        showToast("Sync Error. Try again."); 
+        btn.disabled = false;
+    }
 }
 
 function checkClaim() {
@@ -230,62 +228,87 @@ function checkClaim() {
         const now = Date.now();
         const last = Number(userData.lastClaim) || 0;
         const diff = 86400000 - (now - last);
-        let percent = Math.max(0, Math.min(100, ((86400000 - diff) / 86400000) * 100));
+        
         const pBar = document.getElementById('progressBar');
-        pBar.style.width = percent + "%";
-        pBar.style.background = percent > 50 ? "#10b981" : percent >= 20 ? "#f59e0b" : "#ef4444";
         const btn = document.getElementById('claimBtn');
         const status = document.getElementById('claimStatus');
-        if(diff <= 0) { status.innerText = "Ready to claim!"; btn.disabled = false; }
-        else {
-            let h = Math.floor(diff / 3600000); let m = Math.floor((diff % 3600000) / 60000); let s = Math.floor((diff % 60000) / 1000);
-            status.innerText = `Next claim in ${h}h ${m}m ${s}s`; btn.disabled = true;
+
+        if(diff <= 0) {
+            pBar.style.width = "100%";
+            pBar.style.background = "#10b981";
+            status.innerText = "Mining Session Ready!";
+            btn.disabled = false;
+        } else {
+            let percent = Math.max(0, Math.min(100, ((86400000 - diff) / 86400000) * 100));
+            pBar.style.width = percent + "%";
+            pBar.style.background = percent > 50 ? "#a78bfa" : "#ef4444";
+            
+            let h = Math.floor(diff / 3600000); 
+            let m = Math.floor((diff % 3600000) / 60000); 
+            let s = Math.floor((diff % 60000) / 1000);
+            status.innerText = `Next claim in ${h}h ${m}m ${s}s`; 
+            btn.disabled = true;
         }
     }, 1000);
 }
 
+// Optimization: Separate async functions
 async function loadLeaderboard() {
-    const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(3));
-    const snap = await getDocs(q);
-    let html = ""; let r = 1;
-    snap.forEach(d => {
-        let b = r==1 ? "🥇" : r==2 ? "🥈" : "🥉";
-        html += `<div class="lb"><div>${b} ${d.data().name}</div><div>${(d.data().balance || 0).toFixed(2)} ONC</div></div>`;
-        r++;
-    });
-    document.getElementById('miniLeaderboard').innerHTML = html;
+    try {
+        const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(3));
+        const snap = await getDocs(q);
+        let html = ""; let r = 1;
+        snap.forEach(d => {
+            let b = r==1 ? "🥇" : r==2 ? "🥈" : "🥉";
+            html += `<div class="lb"><div>${b} ${d.data().name}</div><div>${(d.data().balance || 0).toFixed(2)} ONC</div></div>`;
+            r++;
+        });
+        document.getElementById('miniLeaderboard').innerHTML = html;
+    } catch(e) { console.error(e); }
 }
 
 async function loadStats() {
-    const snap = await getDocs(collection(db, "users"));
-    document.getElementById('totalUsers').innerText = snap.size;
-    let t = 0; snap.forEach(d => t += (d.data().balance || 0));
-    document.getElementById('totalMined').innerText = t.toFixed(2);
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        document.getElementById('totalUsers').innerText = snap.size;
+        let t = 0; snap.forEach(d => t += (d.data().balance || 0));
+        document.getElementById('totalMined').innerText = t.toFixed(2);
+    } catch(e) { console.error(e); }
 }
 
 async function loadUpdate() {
-    const q = query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1));
-    const snap = await getDocs(q);
-    snap.forEach(d => document.getElementById('update').innerText = d.data().title);
+    try {
+        const q = query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1));
+        const snap = await getDocs(q);
+        if(!snap.empty) {
+            snap.forEach(d => document.getElementById('update').innerText = d.data().title);
+        } else {
+            document.getElementById('update').innerText = "No new updates.";
+        }
+    } catch(e) { console.error(e); }
 }
 
 window.toggleMenu = () => {
-    const m = document.getElementById('menu'); const o = document.getElementById('overlay');
+    const m = document.getElementById('menu'); 
+    const o = document.getElementById('overlay');
     const open = m.style.left === "0px";
-    m.style.left = open ? "-240px" : "0px"; o.style.display = open ? "none" : "block";
+    m.style.left = open ? "-240px" : "0px"; 
+    o.style.display = open ? "none" : "block";
 };
 
 window.logout = () => signOut(auth).then(() => { sessionStorage.clear(); window.location="login.html"; });
 
 window.copyLink = () => {
-    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + (userData.referralCode || "none"));
+    const code = userData.referralCode || "none";
+    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + code);
     showToast("Invite link copied!");
 };
 
 function showToast(text) {
+    const t = document.getElementById('toast');
     document.getElementById('toastText').innerText = text;
-    document.getElementById('toast').style.display = "block";
-    setTimeout(() => document.getElementById('toast').style.display = "none", 3000);
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 3000);
 }
 </script>
 </body>
