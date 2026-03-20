@@ -15,9 +15,19 @@ body{
     display: flex; justify-content: center; align-items: flex-start;
     background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, transparent 50%);
 }
-.container{width: 100%; max-width: 420px; margin-top: 10px;}
-.header{text-align:center; margin-bottom:25px;}
-.header h1{ font-family: 'Space Grotesk'; font-size: 28px; letter-spacing: -1.5px; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.container{width: 100%; max-width: 420px;}
+
+/* Simple Back Nav */
+.nav-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+.back-btn {
+    background: var(--glass); border: 1px solid var(--border);
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; cursor: pointer; transition: 0.3s;
+}
+.back-btn:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
+
+.header h1{ font-family: 'Space Grotesk'; font-size: 24px; letter-spacing: -1px; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 .card{ 
     background: var(--glass); border: 1px solid var(--border); border-radius: 36px; 
@@ -27,9 +37,6 @@ body{
 
 #eventTitle { display: block; color: var(--primary); font-weight: 800; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px; }
 .reward-amount{ font-size: 50px; font-weight: 800; font-family: 'Space Grotesk'; color: #fff; line-height: 1; }
-
-/* Participation Feed */
-#liveFeed { font-size: 10px; color: var(--primary); opacity: 0.6; margin-bottom: 20px; height: 15px; font-weight: 600; }
 
 .timer-container { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
 .time-plate { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 10px; min-width: 60px; }
@@ -41,13 +48,12 @@ body{
 #fill{ height: 100%; width: 0%; background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 2s ease; }
 
 input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: white; margin-bottom: 15px; outline: none; text-align: center; }
-.btn-main{ width: 100%; padding: 18px; border: none; border-radius: 20px; background: #fff; color: #000; font-weight: 800; cursor: pointer; transition: 0.3s; }
-.btn-main:hover { transform: scale(1.02); }
+.btn-main{ width: 100%; padding: 18px; border: none; border-radius: 20px; background: #fff; color: #000; font-weight: 800; cursor: pointer; }
 .btn-main:disabled { opacity: 0.1; }
 
 .btn-tg { width: 100%; padding: 15px; border-radius: 18px; background: transparent; color: #fff; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 15px; display: none; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-size: 13px; }
 
-.rules-card { background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin-top: 10px; }
+.rules-card { background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border); border-radius: 24px; padding: 20px; }
 .rules-card h3 { font-size: 11px; letter-spacing: 2px; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; }
 .rule-item { display: flex; gap: 8px; margin-bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.5); text-align: left; }
 
@@ -57,13 +63,18 @@ input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--
 <body>
 
 <div class="container">
-    <div class="header"><h1>ONCHYRA</h1></div>
-    <div id="loader" style="text-align:center; opacity: 0.5;">SECURE CONNECT...</div>
+    <div class="nav-bar">
+        <div class="back-btn" onclick="window.location.href='dashboard.html'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </div>
+        <div class="header"><h1>ONCHYRA</h1></div>
+    </div>
+
+    <div id="loader" style="text-align:center; opacity: 0.5; padding-top: 50px;">LOADING...</div>
 
     <div id="eventUI" style="display:none;">
         <div class="card">
             <span id="eventTitle">POWER DROP</span>
-            <div id="liveFeed">Awaiting new node connections...</div>
             
             <div class="reward-box">
                 <span class="reward-amount" id="reward">0</span>
@@ -85,7 +96,7 @@ input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--
                 <div class="progress-bar"><div id="fill"></div></div>
             </div>
 
-            <input type="text" id="wallet" placeholder="Enter USDT BEP20 Address">
+            <input type="text" id="wallet" placeholder="USDT BEP20 Address">
             <button id="joinBtn" class="btn-main" onclick="participate()" disabled>CONFIRM ENTRY</button>
             <div id="msg"></div>
 
@@ -97,9 +108,8 @@ input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--
 
         <div class="rules-card">
             <h3>Protocol Rules</h3>
-            <div class="rule-item"><span>▹ One entry per node. Multiple attempts lead to instant ban.</span></div>
+            <div class="rule-item"><span>▹ One entry per node. Multi-accounts lead to instant ban.</span></div>
             <div class="rule-item"><span>▹ Valid USDT BEP20 (BSC) address is required.</span></div>
-            <div class="rule-item"><span>▹ Winners selected randomly after timer hits zero.</span></div>
         </div>
     </div>
 </div>
@@ -132,14 +142,6 @@ onAuthStateChanged(auth, async (user) => {
         initEvent(); 
     } else { window.location.href="login.html"; }
 });
-
-// Participation Feed Logic
-const users = ["0x71...f2a", "0x92...b1c", "0x31...e90", "0x12...a55", "User_88", "CryptoKing"];
-setInterval(() => {
-    const user = users[Math.floor(Math.random() * users.length)];
-    document.getElementById('liveFeed').innerText = `Node ${user} joined the drop just now`;
-    setTimeout(() => { if(document.getElementById('liveFeed')) document.getElementById('liveFeed').innerText = ""; }, 3000);
-}, 8000);
 
 async function initEvent() {
     onSnapshot(collection(db, "powerdrops"), (snap) => {
@@ -193,18 +195,15 @@ window.participate = async () => {
     try {
         await updateDoc(doc(db, "powerdrops", currentEventId), { participantsCount: increment(1) });
         await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), { address: addr, joinedAt: serverTimestamp() });
-        
-        // 🎉 Confetti Effect
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#c084fc', '#ffffff'] });
-        
-        showMsg("Node Connection Secured!", "#34d399");
+        showMsg("Node Secured!", "#34d399");
         btn.innerText = "ENTRY VERIFIED ✅";
         document.getElementById('shareBtn').style.display = "flex";
-    } catch (e) { showMsg("Error connecting.", "#f87171"); btn.disabled = false; }
+    } catch (e) { showMsg("Error. Try again.", "#f87171"); btn.disabled = false; }
 }
 
 window.shareOnTG = () => {
-    const text = `🔥 Join the ONCHYRA PowerDrop! Register: ${window.location.origin}/powerdrop.html`;
+    const text = `🔥 Join ONCHYRA PowerDrop! ${window.location.origin}/powerdrop.html`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(text)}`, '_blank');
 }
 
