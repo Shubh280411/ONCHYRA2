@@ -1,111 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
 
-<title>ONCHYRA</title>
+    <title>ONCHYRA | Phase 2 - Mining Ecosystem</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <meta name="description" content="ONCHYRA Phase 2 is here. The wait is over, start your digital mining journey today.">
+    <meta property="og:title" content="ONCHYRA - Phase 2 Live">
+    <meta property="og:description" content="Early access mining is now open for the community. Secure your spot.">
+    <meta property="og:image" content="https://oncnet.netlify.app/og-image.png">
+    <meta property="og:url" content="https://oncnet.netlify.app/">
 
-<style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+    <style>
+        :root {
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --bg: #070816;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
 
-body{
-font-family:'Inter',sans-serif;
-background:#070816;
-color:white;
-line-height:1.6;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
 
-/* animated glow background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
 
-body::before{
-content:"";
-position:fixed;
-inset:0;
+        /* Animated Glow Background */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(109, 40, 217, 0.2), transparent 35%),
+                radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.2), transparent 35%);
+            z-index: -1;
+        }
 
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
+        .container { max-width: 1100px; margin: auto; padding: 0 24px; }
 
-animation:bgMove 12s infinite alternate ease-in-out;
-z-index:-1;
-}
+        /* HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 120px 0 60px;
+        }
 
-@keyframes bgMove{
-from{transform:scale(1)}
-to{transform:scale(1.1)}
-}
+        .phase-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-/* container */
+        .hero h1 {
+            font-family: 'Manrope', sans-serif;
+            font-size: clamp(3rem, 8vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: -2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
 
-.container{
-max-width:1100px;
-margin:auto;
-padding:60px 20px;
-}
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
 
-/* hero */
+        /* BUTTONS */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
 
-.hero{
-text-align:center;
-padding-top:80px;
-}
+        .btn {
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.hero h1{
-font-family:'Manrope',sans-serif;
-font-size:3.5rem;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #070816;
+            border: none;
+        }
 
-.hero p{
-margin-top:20px;
-font-size:1.1rem;
-opacity:0.75;
-}
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 1px solid var(--border);
+        }
 
-/* buttons */
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.3);
+        }
 
-.buttons{
-margin-top:40px;
-display:flex;
-flex-direction:column;
-gap:18px;
-align-items:center;
-}
+        /* SECTIONS */
+        .section { padding: 100px 0 40px; text-align: center; }
 
-button{
+        .section h2 {
+            font-family: 'Manrope', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+        }
 
-width:240px;
+        .section-desc {
+            max-width: 700px;
+            margin: 0 auto 60px;
+            opacity: 0.7;
+        }
 
-padding:16px 28px;
+        /* FEATURES GRID */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
 
-border:none;
+        .feature-card {
+            padding: 40px;
+            border-radius: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            text-align: left;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
 
-border-radius:14px;
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-8px);
+        }
 
-font-weight:800;
-font-size:15px;
+        .feature-card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--primary); }
 
-letter-spacing:0.5px;
+        /* ROADMAP */
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
 
-cursor:pointer;
+        .phase {
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            text-align: left;
+            position: relative;
+        }
 
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
+        .phase.active {
+            border-color: var(--primary);
+            background: rgba(167, 139, 250, 0.05);
+        }
 
-color:#0b0b20;
+        .phase.active::after {
+            content: "CURRENT";
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 900;
+        }
 
-display:flex;
-align-items:center;
+        /* FOOTER */
+        footer {
+            margin-top: 100px;
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+
+        .social-link:hover { background: var(--primary); color: #070816; }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="hero">
+            <div class="phase-badge">Phase 2: Execution</div>
+            <h1>ONCHYRA</h1>
+            <p>The waiting list is over. Welcome to the official mining phase of the ONCHYRA network.</p>
+            <div class="buttons">
+                <a href="login.html" class="btn btn-primary">🚀 Start Mining</a>
+                <a href="whitepaper.html" class="btn btn-secondary">📄 Documentation</a>
+            </div>
+        </header>
+
+        <section class="section">
+            <h2>The Phase 2 Vision</h2>
+            <p class="section-desc">
+                After a successful Phase 1 community build, we are moving into the active ecosystem phase. 
+                Now, users can participate directly in the network through our secure mining portal.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2>Ecosystem Features</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>Direct Mining</h3>
+                    <p>Access your dashboard to claim your daily ONC tokens. Consistency is key to growing your network power.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>User Dashboard</h3>
+                    <p>Track your balance, mining streaks, and community standing in real-time with our updated interface.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Secure Infrastructure</h3>
+                    <p>Phase 2 brings enhanced security to ensure every participant's data and rewards are protected.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>The Roadmap</h2>
+            <div class="roadmap-grid">
+                <div class="phase">
+                    <strong>Phase 1</strong>
+                    <p>Early community formation and email collection (Completed).</p>
+                </div>
+                <div class="phase active">
+                    <strong>Phase 2</strong>
+                    <p>Official mining portal, dashboard launch, and network participation.</p>
+                </div>
+                <div class="phase">
+                    <strong>Phase 3</strong>
+                    <p>Referral rewards, expanded tasks, and ecosystem utilities.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>FAQ</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>Can I still join?</h3>
+                    <p>Yes, Phase 2 is open for all new and existing members to start their mining journey.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>What happened to Phase 1?</h3>
+                    <p>Phase 1 was our foundation period. All early supporters are now prioritized for Phase 2 access.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>How much can I mine?</h3>
+                    <p>Currently, the standard rate is 0.10 ONC per daily claim to maintain a healthy ecosystem supply.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 ONCHYRA NETWORK</p>
+            <a href="https://www.instagram.com/onc.network" target="_blank" class="social-link">
+                <span>Follow on Instagram</span>
+            </a>
+        </footer>
+    </div>
+
+</body>
+</html>
 justify-content:center;
 gap:10px;
 
