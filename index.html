@@ -9,13 +9,7 @@
 
     <title>ONCHYRA | Phase 2 - Mining Ecosystem</title>
 
-    <meta name="description" content="ONCHYRA Phase 2 is here. The wait is over, start your digital mining journey today.">
-    <meta property="og:title" content="ONCHYRA - Phase 2 Live">
-    <meta property="og:description" content="Early access mining is now open for the community. Secure your spot.">
-    <meta property="og:image" content="https://oncnet.netlify.app/og-image.png">
-    <meta property="og:url" content="https://oncnet.netlify.app/">
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;500;700&family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -26,86 +20,253 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: white;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Animated Glow Background */
-        body::before {
-            content: "";
+        /* --- TIMER OVERLAY STYLES --- */
+        #launch-overlay {
             position: fixed;
             inset: 0;
-            background: 
-                radial-gradient(circle at 15% 20%, rgba(109, 40, 217, 0.2), transparent 35%),
-                radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.2), transparent 35%);
-            z-index: -1;
-        }
-
-        .container { max-width: 1100px; margin: auto; padding: 0 24px; }
-
-        /* HERO SECTION */
-        .hero {
-            text-align: center;
-            padding: 120px 0 60px;
-        }
-
-        .phase-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(167, 139, 250, 0.1);
-            border: 1px solid var(--primary);
-            border-radius: 20px;
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hero h1 {
-            font-family: 'Manrope', sans-serif;
-            font-size: clamp(3rem, 8vw, 4.5rem);
-            font-weight: 800;
-            letter-spacing: -2px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto 40px;
-        }
-
-        /* BUTTONS */
-        .buttons {
+            background: radial-gradient(circle at center, #0f1126 0%, #020205 100%);
+            z-index: 100000;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 20px;
+            padding: 20px;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        .overlay-content {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            padding: clamp(30px, 5vw, 60px) 20px;
+            border-radius: 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 750px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+
+        .timer-logo { width: clamp(80px, 12vw, 110px); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary)); }
+        
+        .timer-h1 { 
+            font-family: 'Syncopate', sans-serif; 
+            font-size: clamp(1.5rem, 4vw, 2.5rem); 
+            letter-spacing: 8px; 
+            margin-bottom: 10px; 
+            color: white; 
+            text-transform: uppercase;
+        }
+
+        #typewriter {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--primary);
+            font-size: clamp(10px, 2.5vw, 14px);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            height: 20px;
+            font-weight: 500;
+        }
+
+        .countdown-grid { 
+            display: flex; 
+            gap: clamp(10px, 2.5vw, 20px); 
+            justify-content: center; 
+            margin-bottom: 30px;
             flex-wrap: wrap;
         }
 
-        .btn {
-            padding: 16px 32px;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+        .time-box { 
+            background: rgba(255, 255, 255, 0.03); 
+            width: clamp(70px, 18vw, 100px); 
+            height: clamp(80px, 22vw, 110px); 
+            border-radius: 15px; 
+            font-size: clamp(1.8rem, 5vw, 3rem); 
+            font-weight: 800; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            border: 1px solid var(--border); 
+            position: relative;
+        }
+
+        .time-box span { line-height: 1; }
+        .time-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 8px; font-weight: 700; }
+
+        .pulse-anim { animation: pulse 0.5s ease; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); color: var(--primary); } 100% { transform: scale(1); } }
+
+        /* --- ORIGINAL SITE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; line-height: 1.6; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 15% 20%, rgba(109, 40, 217, 0.2), transparent 35%), radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.2), transparent 35%); z-index: -1; }
+        .container { max-width: 1100px; margin: auto; padding: 0 24px; }
+        .hero { text-align: center; padding: 120px 0 60px; }
+        .phase-badge { display: inline-block; padding: 6px 16px; background: rgba(167, 139, 250, 0.1); border: 1px solid var(--primary); border-radius: 20px; color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .hero h1 { font-family: 'Manrope', sans-serif; font-size: clamp(3rem, 8vw, 4.5rem); font-weight: 800; letter-spacing: -2px; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        .hero p { font-size: 1.2rem; opacity: 0.8; max-width: 600px; margin: 0 auto 40px; }
+        .buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .btn { padding: 16px 32px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #070816; border: none; }
+        .btn-secondary { background: transparent; color: white; border: 1px solid var(--border); }
+        .btn:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(167, 139, 250, 0.3); }
+        .section { padding: 100px 0 40px; text-align: center; }
+        .section h2 { font-family: 'Manrope', sans-serif; font-size: 2.5rem; margin-bottom: 24px; }
+        .section-desc { max-width: 700px; margin: 0 auto 60px; opacity: 0.7; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .feature-card { padding: 40px; border-radius: 24px; background: var(--card-bg); border: 1px solid var(--border); text-align: left; transition: all 0.3s ease; backdrop-filter: blur(10px); }
+        .feature-card:hover { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); transform: translateY(-8px); }
+        .feature-card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--primary); }
+        .roadmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .phase { padding: 30px; border-radius: 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); text-align: left; position: relative; }
+        .phase.active { border-color: var(--primary); background: rgba(167, 139, 250, 0.05); }
+        .phase.active::after { content: "CURRENT"; position: absolute; top: 10px; right: 15px; font-size: 10px; color: var(--primary); font-weight: 900; }
+        footer { margin-top: 100px; padding: 60px 0; border-top: 1px solid var(--border); text-align: center; }
+        .social-link { display: inline-flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-weight: 600; margin-top: 20px; padding: 10px 20px; background: var(--card-bg); border-radius: 30px; transition: 0.3s; }
+        .social-link:hover { background: var(--primary); color: #070816; }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="launch-overlay">
+        <div class="overlay-content">
+            <img src="logo.png" alt="ONCHYRA LOGO" class="timer-logo">
+            <h1 class="timer-h1">ONCHYRA</h1>
+            <div id="typewriter"></div>
+
+            <div class="countdown-grid">
+                <div class="time-box"><span id="days">00</span><div class="time-label">Days</div></div>
+                <div class="time-box"><span id="hours">00</span><div class="time-label">Hours</div></div>
+                <div class="time-box"><span id="minutes">00</span><div class="time-label">Mins</div></div>
+                <div class="time-box"><span id="seconds">00</span><div class="time-label">Secs</div></div>
+            </div>
+            <p style="opacity: 0.3; font-size: 10px; letter-spacing: 2px;">GLOBAL MAINNET DEPLOYMENT // 26.03.2026</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="hero">
+            <div class="phase-badge">Phase 2: Execution</div>
+            <h1>ONCHYRA</h1>
+            <p>The waiting list is over. Welcome to the official mining phase of the ONCHYRA network.</p>
+            <div class="buttons">
+                <a href="login.html" class="btn btn-primary">🚀 Start Mining</a>
+                <a href="whitepaper.html" class="btn btn-secondary">📄 Documentation</a>
+            </div>
+        </header>
+
+        <section class="section">
+            <h2>The Phase 2 Vision</h2>
+            <p class="section-desc">
+                After a successful Phase 1 community build, we are moving into the active ecosystem phase. 
+                Now, users can participate directly in the network through our secure mining portal.
+            </p>
+        </section>
+
+        <section class="section">
+            <h2>Ecosystem Features</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>Direct Mining</h3>
+                    <p>Access your dashboard to claim your daily ONC tokens. Consistency is key to growing your network power.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>User Dashboard</h3>
+                    <p>Track your balance, mining streaks, and community standing in real-time with our updated interface.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Secure Infrastructure</h3>
+                    <p>Phase 2 brings enhanced security to ensure every participant's data and rewards are protected.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>The Roadmap</h2>
+            <div class="roadmap-grid">
+                <div class="phase">
+                    <strong>Phase 1</strong>
+                    <p>Early community formation and email collection (Completed).</p>
+                </div>
+                <div class="phase active">
+                    <strong>Phase 2</strong>
+                    <p>Official mining portal, dashboard launch, and network participation.</p>
+                </div>
+                <div class="phase">
+                    <strong>Phase 3</strong>
+                    <p>Referral rewards, expanded tasks, and ecosystem utilities.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 ONCHYRA NETWORK</p>
+            <a href="https://www.instagram.com/onc.network" target="_blank" class="social-link">
+                <span>Follow on Instagram</span>
+            </a>
+        </footer>
+    </div>
+
+    <script>
+        // TYPEWRITER
+        const tagText = "Mine The Future";
+        let charIdx = 0;
+        function typeEffect() {
+            if (charIdx < tagText.length) {
+                document.getElementById("typewriter").innerHTML += tagText.charAt(charIdx);
+                charIdx++;
+                setTimeout(typeEffect, 100);
+            }
+        }
+
+        // COUNTDOWN
+        const targetDate = new Date("March 26, 2026 18:15:00").getTime();
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const gap = targetDate - now;
+
+            if (gap <= 0) {
+                const over = document.getElementById("launch-overlay");
+                over.style.opacity = "0";
+                setTimeout(() => over.style.display = "none", 1000);
+                return;
+            }
+
+            const d = Math.floor(gap / (1000 * 60 * 60 * 24));
+            const h = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((gap % (1000 * 60)) / 1000);
+
+            setVal("days", d);
+            setVal("hours", h);
+            setVal("minutes", m);
+            setVal("seconds", s);
+        }
+
+        function setVal(id, val) {
+            const el = document.getElementById(id);
+            const stringVal = val.toString().padStart(2, '0');
+            if (el.innerText !== stringVal) {
+                el.innerText = stringVal;
+                el.parentElement.classList.add('pulse-anim');
+                setTimeout(() => el.parentElement.classList.remove('pulse-anim'), 500);
+            }
+        }
+
+        window.onload = () => {
+            typeEffect();
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        };
+    </script>
+
+</body>
+</html>
         }
 
         .btn-primary {
