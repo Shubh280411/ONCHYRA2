@@ -1,260 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>ONCHYRA Admin Updates</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-
-<style>
-
-body{
-font-family:'Inter',sans-serif;
-background:#070816;
-color:white;
-padding:30px;
-}
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
-}
-
-.container{
-max-width:850px;
-margin:auto;
-}
-
-h1{
-font-family:'Manrope';
-margin-bottom:20px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.card{
-background:rgba(255,255,255,0.05);
-border-radius:16px;
-padding:20px;
-margin-bottom:20px;
-}
-
-input,textarea,select{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-background:rgba(255,255,255,0.08);
-color:white;
-}
-
-button{
-margin-top:10px;
-padding:12px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
-color:#070816;
-font-weight:700;
-cursor:pointer;
-width:100%;
-}
-
-.update{
-margin-top:12px;
-padding:14px;
-background:rgba(255,255,255,0.06);
-border-radius:10px;
-}
-
-.delete{
-background:#ef4444;
-color:white;
-margin-top:8px;
-}
-
-.priority{
-font-size:13px;
-opacity:0.7;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin Updates</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #070816; color: white; padding: 30px; }
+        body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%); z-index: -1; }
+        .container { max-width: 850px; margin: auto; }
+        h1 { font-family: 'Manrope'; margin-bottom: 20px; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card { background: rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        input, textarea, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.08); color: white; box-sizing: border-box; }
+        button { margin-top: 10px; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #a78bfa, #60a5fa); color: #070816; font-weight: 700; cursor: pointer; width: 100%; }
+        .update { margin-top: 12px; padding: 14px; background: rgba(255, 255, 255, 0.06); border-radius: 10px; border-left: 4px solid #a78bfa; }
+        .delete { background: #ef4444; color: white; margin-top: 8px; }
+        .priority { font-size: 13px; opacity: 0.7; margin-top: 5px; }
+    </style>
 </head>
-
 <body>
 
 <div class="container">
+    <h1>ONCHYRA Updates</h1>
+    <div class="card">
+        <h3>Publish Update</h3>
+        <input id="title" placeholder="Update Title">
+        <textarea id="message" rows="4" placeholder="Update Message"></textarea>
+        <select id="visible">
+            <option value="true">Visible</option>
+            <option value="false">Hidden</option>
+        </select>
+        <input id="priority" type="number" placeholder="Priority (1 highest)" value="1">
+        <button onclick="publishUpdate()">Publish Update</button>
+    </div>
 
-<h1>ONCHYRA Updates</h1>
-
-<div class="card">
-
-<h3>Publish Update</h3>
-
-<input id="title" placeholder="Update Title">
-
-<textarea id="message" placeholder="Update Message"></textarea>
-
-<select id="visible">
-<option value="true">Visible</option>
-<option value="false">Hidden</option>
-</select>
-
-<input id="priority" type="number" placeholder="Priority (1 highest)" value="1">
-
-<button onclick="publishUpdate()">Publish Update</button>
-
-</div>
-
-<div class="card">
-
-<h3>All Updates</h3>
-
-<div id="updatesList"></div>
-
-</div>
-
+    <div class="card">
+        <h3>All Updates</h3>
+        <div id="updatesList">Loading updates...</div>
+    </div>
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc,
-serverTimestamp,
-query,
-orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-
-apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-authDomain: "onchyra.firebaseapp.com",
-projectId: "onchyra",
-storageBucket: "onchyra.firebasestorage.app",
-messagingSenderId: "441822770982",
-appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
-
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth,(user)=>{
-
-if(!user){
-window.location="admin-login.html";
-}
-
+// Auth Check
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location = "admin-login.html";
+    }
 });
 
-const updatesList=document.getElementById("updatesList");
+const updatesList = document.getElementById("updatesList");
 
-/* LOAD UPDATES */
+/* 1. LOAD UPDATES */
+window.loadUpdates = async function() {
+    try {
+        const q = query(collection(db, "updates"), orderBy("priority", "asc"));
+        const snap = await getDocs(q);
+        updatesList.innerHTML = "";
+        
+        if (snap.empty) {
+            updatesList.innerHTML = "No updates found.";
+            return;
+        }
 
-async function loadUpdates(){
-
-updatesList.innerHTML="";
-
-const q=query(collection(db,"updates"),orderBy("priority","asc"));
-
-const snap=await getDocs(q);
-
-snap.forEach(d=>{
-
-const data=d.data();
-
-updatesList.innerHTML+=`
-
-<div class="update">
-
-<b>${data.title}</b>
-
-<p>${data.message}</p>
-
-<div class="priority">
-Priority: ${data.priority} | Visible: ${data.visible}
-</div>
-
-<button class="delete"
-onclick="deleteUpdate('${d.id}')">
-
-Delete
-
-</button>
-
-</div>
-
-`;
-
-});
-
+        snap.forEach(d => {
+            const data = d.data();
+            updatesList.innerHTML += `
+                <div class="update">
+                    <b>${data.title}</b>
+                    <p>${data.message}</p>
+                    <div class="priority">
+                        Priority: ${data.priority} | Visible: ${data.visible}
+                    </div>
+                    <button class="delete" onclick="deleteUpdate('${d.id}')">Delete</button>
+                </div>
+            `;
+        });
+    } catch (err) {
+        updatesList.innerHTML = "Error loading: " + err.message;
+    }
 }
 
-/* PUBLISH UPDATE */
+/* 2. PUBLISH UPDATE */
+window.publishUpdate = async () => {
+    const title = document.getElementById("title").value;
+    const message = document.getElementById("message").value;
+    const visible = document.getElementById("visible").value === "true";
+    const priority = Number(document.getElementById("priority").value);
 
-window.publishUpdate = async()=>{
+    if (!title || !message) {
+        alert("Bhai Title aur Message toh daal!");
+        return;
+    }
 
-const title=document.getElementById("title").value;
-const message=document.getElementById("message").value;
-const visible=document.getElementById("visible").value==="true";
-const priority=Number(document.getElementById("priority").value);
-
-await addDoc(collection(db,"updates"),{
-
-title,
-message,
-visible,
-priority,
-createdAt:serverTimestamp()
-
-});
-
-alert("Update Published");
-
-document.getElementById("title").value="";
-document.getElementById("message").value="";
-
-loadUpdates();
-
+    try {
+        await addDoc(collection(db, "updates"), {
+            title,
+            message,
+            visible,
+            priority,
+            createdAt: serverTimestamp()
+        });
+        alert("Update Live Ho Gaya! 🚀");
+        document.getElementById("title").value = "";
+        document.getElementById("message").value = "";
+        window.loadUpdates();
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
 }
 
-/* DELETE UPDATE */
-
-window.deleteUpdate = async(id)=>{
-
-await deleteDoc(doc(db,"updates",id));
-
-loadUpdates();
-
+/* 3. DELETE UPDATE */
+window.deleteUpdate = async (id) => {
+    if (confirm("Sach mein delete karna hai?")) {
+        try {
+            await deleteDoc(doc(db, "updates", id));
+            window.loadUpdates();
+        } catch (err) {
+            alert("Delete nahi ho pa raha: " + err.message);
+        }
+    }
 }
 
-loadUpdates();
+// Initial Call
+window.loadUpdates();
 
 </script>
-
 </body>
 </html>
