@@ -1,111 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Register — ONCHYRA</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:'Inter',sans-serif;
-background:#070816;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-/* glow background */
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
-}
-
-/* card */
-
-.card{
-width:360px;
-padding:40px;
-border-radius:18px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.1);
-text-align:center;
-}
-
-/* title */
-
-h1{
-font-family:'Manrope';
-margin-bottom:20px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-/* inputs */
-
-input{
-width:100%;
-padding:14px;
-margin-top:12px;
-border-radius:10px;
-border:none;
-background:rgba(255,255,255,0.08);
-color:white;
-}
-
-/* button */
-
-button{
-width:100%;
-margin-top:18px;
-padding:14px;
-border:none;
-border-radius:12px;
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
-color:#0b0b20;
-font-weight:700;
-cursor:pointer;
-}
-
-/* links */
-
-.link{
-margin-top:14px;
-font-size:0.9rem;
-opacity:0.85;
-}
-
-.link a{
-color:#a78bfa;
-text-decoration:none;
-cursor:pointer;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif;
+            background:#070816;
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+        body::before {
+            content:"";
+            position:fixed;
+            inset:0;
+            background: radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
+            z-index:-1;
+        }
+        .card {
+            width:360px;
+            padding:40px;
+            border-radius:18px;
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(255,255,255,0.1);
+            text-align:center;
+        }
+        h1 {
+            font-family:'Manrope';
+            margin-bottom:20px;
+            background:linear-gradient(90deg,#a78bfa,#60a5fa);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+        input {
+            width:100%;
+            padding:14px;
+            margin-top:12px;
+            border-radius:10px;
+            border:none;
+            background:rgba(255,255,255,0.08);
+            color:white;
+        }
+        button {
+            width:100%;
+            margin-top:18px;
+            padding:14px;
+            border:none;
+            border-radius:12px;
+            background:linear-gradient(135deg,#a78bfa,#60a5fa);
+            color:#0b0b20;
+            font-weight:700;
+            cursor:pointer;
+        }
+        .link { margin-top:14px; font-size:0.9rem; opacity:0.85; }
+        .link a { color:#a78bfa; text-decoration:none; cursor:pointer; }
+    </style>
 </head>
-
 <body>
 
+<div class="card">
+    <h1>ONCHYRA</h1>
+    <input id="name" placeholder="Full Name">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <input id="referral" placeholder="Referral Code (Optional)">
+    <button onclick="registerUser()">Create Account</button>
+    <div class="link">
+        Already have an account? <a href="login.html">Login</a>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    /* AUTO-FILL REFERRAL CODE FROM URL */
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) {
+            document.getElementById('referral').value = refCode.toUpperCase();
+        }
+    });
+
+    /* DEVICE ID (ANTI CHEAT) */
+    let deviceId = localStorage.getItem("onc_device");
+    if(!deviceId){
+        deviceId = crypto.randomUUID();
+        localStorage.setItem("onc_device", deviceId);
+    }
+
+    window.registerUser = async function(){
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const referral = document.getElementById("referral").value.trim();
+
+        if(!name || !email || !password){
+            alert("Please fill all required fields");
+            return;
+        }
+
+        try {
+            /* LIMIT ACCOUNTS PER DEVICE (ANTI-CHEAT) */
+            const deviceQuery = query(collection(db,"users"), where("deviceId","==",deviceId));
+            const deviceSnap = await getDocs(deviceQuery);
+
+            if(deviceSnap.size >= 3){
+                alert("Too many accounts created from this device (Limit: 3)");
+                return;
+            }
+
+            /* CREATE AUTH ACCOUNT */
+            const userCred = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = userCred.user.uid;
+            const referralCode = Math.random().toString(36).substring(2,8).toUpperCase();
+            let referredBy = null;
+
+            /* REFERRAL SYSTEM LOGIC */
+            if(referral){
+                const q = query(collection(db,"users"), where("referralCode","==",referral));
+                const snap = await getDocs(q);
+
+                if(!snap.empty){
+                    const level1User = snap.docs[0];
+                    const level1Data = level1User.data();
+
+                    // Level 1 Update
+                    await updateDoc(doc(db,"users",level1User.id), {
+                        referrals: (level1Data.referrals||0)+1,
+                        refLevel1: (level1Data.refLevel1||0)+1
+                    });
+
+                    // Level 2 & 3 Chain Logic... (Same as your original code)
+                    if(level1Data.referredBy){
+                        const q2=query(collection(db,"users"),where("referralCode","==",level1Data.referredBy));
+                        const snap2=await getDocs(q2);
+                        if(!snap2.empty){
+                            const level2User=snap2.docs[0];
+                            const level2Data=level2User.data();
+                            await updateDoc(doc(db,"users",level2User.id),{ refLevel2:(level2Data.refLevel2||0)+1 });
+                            if(level2Data.referredBy){
+                                const q3=query(collection(db,"users"),where("referralCode","==",level2Data.referredBy));
+                                const snap3=await getDocs(q3);
+                                if(!snap3.empty){
+                                    const level3User=snap3.docs[0];
+                                    const level3Data=level3User.data();
+                                    await updateDoc(doc(db,"users",level3User.id),{ refLevel3:(level3Data.refLevel3||0)+1 });
+                                }
+                            }
+                        }
+                    }
+                    referredBy = referral;
+                }
+            }
+
+            /* CREATE USER DOCUMENT */
+            await setDoc(doc(db,"users",uid), {
+                name: name,
+                email: email,
+                balance: 0,
+                deviceId: deviceId,
+                banned: false,
+                referrals: 0,
+                refLevel1: 0,
+                refLevel2: 0,
+                refLevel3: 0,
+                referralCode: referralCode,
+                referredBy: referredBy,
+                totalClaimed: 0,
+                lastClaim: 0,
+                createdAt: serverTimestamp()
+            });
+
+            alert("Account Created Successfully!");
+            window.location.href="dashboard.html";
+
+        } catch(err) {
+            alert(err.message);
+        }
+    }
+</script>
+
+</body>
+</html>
 <div class="card">
 
 <h1>ONCHYRA</h1>
