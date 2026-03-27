@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Monitor — ONCHYRA Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b0c1a; color: white; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stats { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 14px; }
+        th { background: #1a1b2e; color: #a78bfa; }
+        .duplicate { background: rgba(239, 68, 68, 0.2) !important; color: #f87171; font-weight: bold; }
+        .clean { color: #4ade80; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
+        .badge-red { background: #ef4444; color: white; }
+        button { cursor: pointer; padding: 6px 12px; border-radius: 5px; border: none; background: #374151; color: white; }
+        button:hover { background: #4b5563; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📱 Device Monitor</h1>
+        <button onclick="location.reload()">Refresh Data</button>
+    </div>
+
+    <div class="stats">
+        Total Users Scanned: <span id="totalUsers">0</span> | 
+        <span style="color:#f87171;">Duplicate Devices Flagged: <span id="totalDupes">0</span></span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Device ID (Short)</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="userTable">
+            </tbody>
+    </table>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadMonitor() {
+        const tableBody = document.getElementById("userTable");
+        const querySnapshot = await getDocs(collection(db, "users"));
+        
+        let users = [];
+        let deviceCount = {};
+        let duplicateCounter = 0;
+
+        // 1. Pehle saara data array mein daalo aur IDs count karo
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            users.push({ id: doc.id, ...data });
+            const dId = data.deviceId || "Unknown";
+            deviceCount[dId] = (deviceCount[dId] || 0) + 1;
+        });
+
+        document.getElementById("totalUsers").innerText = users.length;
+
+        // 2. Table mein display karo with logic
+        users.forEach(user => {
+            const dId = user.deviceId || "Unknown";
+            const isDuplicate = deviceCount[dId] > 1;
+            if(isDuplicate) duplicateCounter++;
+
+            const tr = document.createElement("tr");
+            if(isDuplicate) tr.className = "duplicate";
+
+            tr.innerHTML = `
+                <td>${user.email}</td>
+                <td><code>${dId.substring(0, 12)}...</code></td>
+                <td>${isDuplicate ? '<span class="badge badge-red">DUPLICATE</span>' : '<span class="clean">SINGLE</span>'}</td>
+                <td>
+                    <button onclick="banUser('${user.id}')">Ban</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        document.getElementById("totalDupes").innerText = duplicateCounter;
+    }
+
+    window.banUser = async function(uid) {
+        if(confirm("Bhai, pakka ban karna hai?")){
+            await updateDoc(doc(db, "users", uid), { banned: true });
+            alert("User Banned!");
+            location.reload();
+        }
+    }
+
+    loadMonitor();
+</script>
+</body>
+</html>
+
