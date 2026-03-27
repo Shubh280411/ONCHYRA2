@@ -1,111 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:Inter;background:#070816;color:white;padding:20px;}
+        body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);z-index:-1;}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .back{color:#a78bfa;text-decoration:none;}
+        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;margin-bottom:20px;}
+        .stats{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:600;}
+        .rank-card{text-align:center;padding:20px;border-radius:16px;background:linear-gradient(135deg,#6d28d9,#2563eb);box-shadow:0 0 20px rgba(167,139,250,0.4);}
+        .rank-number{font-size:40px;font-weight:800;margin:10px 0;}
+        .leader-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);transition:0.3s;}
+        .leader-item:hover{background:rgba(255,255,255,0.05);transform:scale(1.02);}
+        .rank-badge{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:18px;animation:glow 2s infinite alternate;}
+        .gold{background:linear-gradient(135deg,#ffd700,#ffb300);box-shadow:0 0 15px #ffd700;}
+        .silver{background:linear-gradient(135deg,#d1d5db,#9ca3af);box-shadow:0 0 15px #c0c0c0;}
+        .bronze{background:linear-gradient(135deg,#cd7f32,#b45309);box-shadow:0 0 15px #cd7f32;}
+        .normal-rank{width:40px;text-align:center;font-weight:700;opacity:0.8;}
+        @keyframes glow{0%{transform:scale(1)}100%{transform:scale(1.15)}}
+        .player{display:flex;align-items:center;gap:12px;flex:1;}
+        .balance{font-weight:700; text-align: right;}
+        .team-text{font-size: 11px; color: #a78bfa; margin-top: 2px;}
+    </style>
+</head>
+<body>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div class="header">
+    <a class="back" href="dashboard.html">← Back</a>
+    <div class="logo">ONCHYRA</div>
+</div>
 
-<title>Leaderboard — ONCHYRA</title>
+<div class="card stats">
+    <div>Total Miners: <span id="miners">0</span></div>
+</div>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<div class="card rank-card">
+    <div>👑 Your Rank</div>
+    <div class="rank-number" id="yourRank">--</div>
+    <div id="yourBalance">0 ONC</div>
+</div>
 
-<style>
+<div class="card">
+    <h3 style="margin-bottom:15px;">Top 100 Miners</h3>
+    <div id="leaderboard">Loading...</div>
+</div>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+    currentUser = user;
+    loadLeaderboard();
+});
+
+async function loadLeaderboard() {
+    const container = document.getElementById("leaderboard");
+    try {
+        // 🔥 FIXED QUERY: Sorting by balance then createdAt
+        const q = query(
+            collection(db, "users"),
+            orderBy("balance", "desc"),
+            orderBy("createdAt", "asc"),
+            limit(100)
+        );
+
+        const snap = await getDocs(q);
+        document.getElementById("miners").innerText = snap.size;
+
+        let html = "";
+        let rank = 1;
+
+        snap.forEach(doc => {
+            const d = doc.data();
+
+            if(currentUser && doc.id === currentUser.uid){
+                document.getElementById("yourRank").innerText = "#" + rank;
+                document.getElementById("yourBalance").innerText = (Number(d.balance)||0).toFixed(2) + " ONC";
+            }
+
+            let badge = "";
+            if(rank === 1) badge = `<div class="rank-badge gold">🥇</div>`;
+            else if(rank === 2) badge = `<div class="rank-badge silver">🥈</div>`;
+            else if(rank === 3) badge = `<div class="rank-badge bronze">🥉</div>`;
+            else badge = `<div class="normal-rank">${rank}</div>`;
+
+            // Displaying Name + Team Size
+            html += `
+                <div class="leader-item">
+                    <div class="player">
+                        ${badge}
+                        <div>
+                            <div style="font-weight:600;">${d.name || "User"}</div>
+                            <div class="team-text">👥 Team: ${d.referralCount || 0}</div>
+                        </div>
+                    </div>
+                    <div class="balance">
+                        <div>${(Number(d.balance)||0).toFixed(2)}</div>
+                        <div style="font-size:10px; opacity:0.6;">ONC</div>
+                    </div>
+                </div>
+            `;
+            rank++;
+        });
+
+        container.innerHTML = html;
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = "Error loading leaderboard. Make sure index is enabled.";
+    }
 }
+</script>
 
-body{
-font-family:Inter;
-background:#070816;
-color:white;
-padding:20px;
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:Inter;background:#070816;color:white;padding:20px;}
+        body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);z-index:-1;}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .back{color:#a78bfa;text-decoration:none;}
+        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;margin-bottom:20px;}
+        .stats{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:600;}
+        .rank-card{text-align:center;padding:20px;border-radius:16px;background:linear-gradient(135deg,#6d28d9,#2563eb);box-shadow:0 0 20px rgba(167,139,250,0.4);}
+        .rank-number{font-size:40px;font-weight:800;margin:10px 0;}
+        .leader-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);transition:0.3s;}
+        .leader-item:hover{background:rgba(255,255,255,0.05);transform:scale(1.02);}
+        .rank-badge{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:18px;animation:glow 2s infinite alternate;}
+        .gold{background:linear-gradient(135deg,#ffd700,#ffb300);box-shadow:0 0 15px #ffd700;}
+        .silver{background:linear-gradient(135deg,#d1d5db,#9ca3af);box-shadow:0 0 15px #c0c0c0;}
+        .bronze{background:linear-gradient(135deg,#cd7f32,#b45309);box-shadow:0 0 15px #cd7f32;}
+        .normal-rank{width:40px;text-align:center;font-weight:700;opacity:0.8;}
+        @keyframes glow{0%{transform:scale(1)}100%{transform:scale(1.15)}}
+        .player{display:flex;align-items:center;gap:12px;flex:1;}
+        .balance{font-weight:700; text-align: right;}
+        .team-text{font-size: 11px; color: #a78bfa; margin-top: 2px;}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back" href="dashboard.html">← Back</a>
+    <div class="logo">ONCHYRA</div>
+</div>
+
+<div class="card stats">
+    <div>Total Miners: <span id="miners">0</span></div>
+</div>
+
+<div class="card rank-card">
+    <div>👑 Your Rank</div>
+    <div class="rank-number" id="yourRank">--</div>
+    <div id="yourBalance">0 ONC</div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:15px;">Top 100 Miners</h3>
+    <div id="leaderboard">Loading...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+    currentUser = user;
+    loadLeaderboard();
+});
+
+async function loadLeaderboard() {
+    const container = document.getElementById("leaderboard");
+    try {
+        // 🔥 FIXED QUERY: Sorting by balance then createdAt
+        const q = query(
+            collection(db, "users"),
+            orderBy("balance", "desc"),
+            orderBy("createdAt", "asc"),
+            limit(100)
+        );
+
+        const snap = await getDocs(q);
+        document.getElementById("miners").innerText = snap.size;
+
+        let html = "";
+        let rank = 1;
+
+        snap.forEach(doc => {
+            const d = doc.data();
+
+            if(currentUser && doc.id === currentUser.uid){
+                document.getElementById("yourRank").innerText = "#" + rank;
+                document.getElementById("yourBalance").innerText = (Number(d.balance)||0).toFixed(2) + " ONC";
+            }
+
+            let badge = "";
+            if(rank === 1) badge = `<div class="rank-badge gold">🥇</div>`;
+            else if(rank === 2) badge = `<div class="rank-badge silver">🥈</div>`;
+            else if(rank === 3) badge = `<div class="rank-badge bronze">🥉</div>`;
+            else badge = `<div class="normal-rank">${rank}</div>`;
+
+            // Displaying Name + Team Size
+            html += `
+                <div class="leader-item">
+                    <div class="player">
+                        ${badge}
+                        <div>
+                            <div style="font-weight:600;">${d.name || "User"}</div>
+                            <div class="team-text">👥 Team: ${d.referralCount || 0}</div>
+                        </div>
+                    </div>
+                    <div class="balance">
+                        <div>${(Number(d.balance)||0).toFixed(2)}</div>
+                        <div style="font-size:10px; opacity:0.6;">ONC</div>
+                    </div>
+                </div>
+            `;
+            rank++;
+        });
+
+        container.innerHTML = html;
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = "Error loading leaderboard. Make sure index is enabled.";
+    }
 }
+</script>
 
-/* glow background */
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
-}
-
-/* header */
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.logo{
-font-family:Manrope;
-font-size:22px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.back{
-color:#a78bfa;
-text-decoration:none;
-}
-
-/* cards */
-
-.card{
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-border-radius:18px;
-padding:20px;
-margin-bottom:20px;
-}
-
-/* stats */
-
-.stats{
-display:flex;
-justify-content:space-between;
-margin-bottom:10px;
-font-weight:600;
-}
-
-/* rank card */
-
-.rank-card{
-text-align:center;
-padding:20px;
-border-radius:16px;
-background:linear-gradient(135deg,#6d28d9,#2563eb);
-box-shadow:0 0 20px rgba(167,139,250,0.4);
-}
-
-.rank-number{
-font-size:40px;
-font-weight:800;
-margin:10px 0;
-}
-
-/* leaderboard */
-
-.leader-item{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:16px;
-border-bottom:1px solid rgba(255,255,255,0.05);
-transition:0.3s;
-}
-
-.leader-item:hover{
-background:rgba(255,255,255,0.05);
+</body>
+</html>
 transform:scale(1.02);
 }
 
