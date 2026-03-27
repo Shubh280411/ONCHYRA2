@@ -26,7 +26,7 @@
         @keyframes glow{0%{transform:scale(1)}100%{transform:scale(1.15)}}
         .player{display:flex;align-items:center;gap:12px;flex:1;}
         .balance{font-weight:700; text-align: right;}
-        .team-info{font-size: 11px; color: #a78bfa; margin-top: 2px; font-weight: 600;}
+        .team-badge{font-size: 11px; color: #a78bfa; font-weight: 600; margin-top: 2px;}
     </style>
 </head>
 <body>
@@ -79,10 +79,11 @@ onAuthStateChanged(auth, user => {
 async function loadLeaderboard() {
     const container = document.getElementById("leaderboard");
     try {
-        // 🔥 Is Query ke liye Index "Enabled" hona zaroori hai (Jo tune kar diya hai)
+        // 🔥 ULTIMATE LOGIC: Balance -> Referrals -> CreatedAt
         const q = query(
             collection(db, "users"),
             orderBy("balance", "desc"),
+            orderBy("referrals", "desc"),
             orderBy("createdAt", "asc"),
             limit(100)
         );
@@ -107,20 +108,18 @@ async function loadLeaderboard() {
             else if(rank === 3) badge = `<div class="rank-badge bronze">🥉</div>`;
             else badge = `<div class="normal-rank">${rank}</div>`;
 
-            // 🔥 NOTE: Yahan 'referralCount' check kar raha hu. 
-            // Agar 0 aa raha hai, to check kar database mein field ka sahi naam kya hai.
             html += `
                 <div class="leader-item">
                     <div class="player">
                         ${badge}
                         <div>
                             <div style="font-weight:600;">${d.name || "Miner"}</div>
-                            <div class="team-info">👥 Team: ${d.referralCount || 0}</div>
+                            <div class="team-badge">👥 Team: ${d.referrals || 0}</div>
                         </div>
                     </div>
                     <div class="balance">
                         <div style="font-size:16px;">${(Number(d.balance)||0).toFixed(2)}</div>
-                        <div style="font-size:9px; opacity:0.5; letter-spacing:1px;">ONC</div>
+                        <div style="font-size:9px; opacity:0.5;">ONC</div>
                     </div>
                 </div>
             `;
@@ -130,7 +129,7 @@ async function loadLeaderboard() {
         container.innerHTML = html;
     } catch(e) {
         console.error("Leaderboard Error:", e);
-        container.innerHTML = "<div style='color:#ff4444; text-align:center;'>Leaderboard Error! Check Console.</div>";
+        container.innerHTML = "<div style='text-align:center; padding:20px; color:#ff4444;'>Leaderboard sync error. Check if Index is Enabled.</div>";
     }
 }
 </script>
