@@ -26,7 +26,7 @@
         @keyframes glow{0%{transform:scale(1)}100%{transform:scale(1.15)}}
         .player{display:flex;align-items:center;gap:12px;flex:1;}
         .balance{font-weight:700; text-align: right;}
-        .team-text{font-size: 11px; color: #a78bfa; margin-top: 2px;}
+        .team-info{font-size: 11px; color: #a78bfa; margin-top: 2px; font-weight: 600;}
     </style>
 </head>
 <body>
@@ -79,7 +79,7 @@ onAuthStateChanged(auth, user => {
 async function loadLeaderboard() {
     const container = document.getElementById("leaderboard");
     try {
-        // 🔥 FIXED QUERY: Sorting by balance then createdAt
+        // 🔥 Is Query ke liye Index "Enabled" hona zaroori hai (Jo tune kar diya hai)
         const q = query(
             collection(db, "users"),
             orderBy("balance", "desc"),
@@ -107,19 +107,20 @@ async function loadLeaderboard() {
             else if(rank === 3) badge = `<div class="rank-badge bronze">🥉</div>`;
             else badge = `<div class="normal-rank">${rank}</div>`;
 
-            // Displaying Name + Team Size
+            // 🔥 NOTE: Yahan 'referralCount' check kar raha hu. 
+            // Agar 0 aa raha hai, to check kar database mein field ka sahi naam kya hai.
             html += `
                 <div class="leader-item">
                     <div class="player">
                         ${badge}
                         <div>
-                            <div style="font-weight:600;">${d.name || "User"}</div>
-                            <div class="team-text">👥 Team: ${d.referralCount || 0}</div>
+                            <div style="font-weight:600;">${d.name || "Miner"}</div>
+                            <div class="team-info">👥 Team: ${d.referralCount || 0}</div>
                         </div>
                     </div>
                     <div class="balance">
-                        <div>${(Number(d.balance)||0).toFixed(2)}</div>
-                        <div style="font-size:10px; opacity:0.6;">ONC</div>
+                        <div style="font-size:16px;">${(Number(d.balance)||0).toFixed(2)}</div>
+                        <div style="font-size:9px; opacity:0.5; letter-spacing:1px;">ONC</div>
                     </div>
                 </div>
             `;
@@ -128,8 +129,8 @@ async function loadLeaderboard() {
 
         container.innerHTML = html;
     } catch(e) {
-        console.error(e);
-        container.innerHTML = "Error loading leaderboard. Make sure index is enabled.";
+        console.error("Leaderboard Error:", e);
+        container.innerHTML = "<div style='color:#ff4444; text-align:center;'>Leaderboard Error! Check Console.</div>";
     }
 }
 </script>
