@@ -7,11 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:Inter;background:#070816;color:white;padding:20px;}
+        body{font-family:Inter, sans-serif;background:#070816;color:white;padding:20px;}
         body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);z-index:-1;}
         .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
         .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        .back{color:#a78bfa;text-decoration:none;}
+        .back{color:#a78bfa;text-decoration:none;font-weight:600;}
         .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;margin-bottom:20px;}
         .stats{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:600;}
         .rank-card{text-align:center;padding:20px;border-radius:16px;background:linear-gradient(135deg,#6d28d9,#2563eb);box-shadow:0 0 20px rgba(167,139,250,0.4);}
@@ -78,8 +78,7 @@ onAuthStateChanged(auth, user => {
 async function loadLeaderboard() {
     const container = document.getElementById("leaderboard");
     try {
-        // 🔥 ULTIMATE SORTING: Balance -> Referrals -> Time
-        // Is query ke liye balance(desc), referrals(desc), createdAt(asc) ka index chahiye.
+        // 🔥 LOGIC: Balance (Desc) -> Referrals (Desc) -> CreatedAt (Asc)
         const q = query(
             collection(db, "users"),
             orderBy("balance", "desc"),
@@ -96,6 +95,9 @@ async function loadLeaderboard() {
 
         snap.forEach(doc => {
             const d = doc.data();
+
+            // 🔥 TEAM LOGIC: L1 + L2 + L3 calculate karke dikha rahe hain
+            const totalTeam = (d.refLevel1 || 0) + (d.refLevel2 || 0) + (d.refLevel3 || 0);
 
             if(currentUser && doc.id === currentUser.uid){
                 document.getElementById("yourRank").innerText = "#" + rank;
@@ -114,7 +116,7 @@ async function loadLeaderboard() {
                         ${badge}
                         <div>
                             <div style="font-weight:600;">${d.name || "Miner"}</div>
-                            <div class="team-text">👥 Team: ${d.referrals || 0}</div>
+                            <div class="team-text">👥 Total Team: ${totalTeam}</div>
                         </div>
                     </div>
                     <div class="balance">
@@ -129,37 +131,7 @@ async function loadLeaderboard() {
         container.innerHTML = html;
     } catch(e) {
         console.error(e);
-        container.innerHTML = "<div style='text-align:center;'>Sorting Error! Please check Index link in console.</div>";
-    }
-}
-</script>
-
-</body>
-</html>
-            else badge = `<div class="normal-rank">${rank}</div>`;
-
-            html += `
-                <div class="leader-item">
-                    <div class="player">
-                        ${badge}
-                        <div>
-                            <div style="font-weight:600;">${d.name || "Miner"}</div>
-                            <div class="team-badge">👥 Team: ${d.referrals || 0}</div>
-                        </div>
-                    </div>
-                    <div class="balance">
-                        <div style="font-size:16px;">${(Number(d.balance)||0).toFixed(2)}</div>
-                        <div style="font-size:9px; opacity:0.5;">ONC</div>
-                    </div>
-                </div>
-            `;
-            rank++;
-        });
-
-        container.innerHTML = html;
-    } catch(e) {
-        console.error("Leaderboard Error:", e);
-        container.innerHTML = "<div style='text-align:center; padding:20px; color:#ff4444;'>Leaderboard sync error. Check if Index is Enabled.</div>";
+        container.innerHTML = "<div style='text-align:center; padding:20px;'>Updating ranking system... Check back in 5 mins.</div>";
     }
 }
 </script>
