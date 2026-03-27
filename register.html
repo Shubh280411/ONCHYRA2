@@ -46,6 +46,7 @@
             border:none;
             background:rgba(255,255,255,0.08);
             color:white;
+            outline: none;
         }
         button {
             width:100%;
@@ -57,6 +58,12 @@
             color:#0b0b20;
             font-weight:700;
             cursor:pointer;
+            transition: 0.3s;
+        }
+        button:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
         }
         .link { margin-top:14px; font-size:0.9rem; opacity:0.85; }
         .link a { color:#a78bfa; text-decoration:none; cursor:pointer; }
@@ -70,7 +77,7 @@
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <input id="referral" placeholder="Referral Code (Optional)">
-    <button onclick="registerUser()">Create Account</button>
+    <button id="regBtn" onclick="registerUser()">Create Account</button>
     <div class="link">
         Already have an account? <a href="login.html">Login</a>
     </div>
@@ -94,7 +101,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    /* AUTO-FILL REFERRAL CODE FROM URL */
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
@@ -103,101 +109,84 @@
         }
     });
 
-    /* DEVICE ID (ANTI CHEAT) */
-    let deviceId = localStorage.getItem("onc_device");
-    if(!deviceId){
-        deviceId = crypto.randomUUID();
-        localStorage.setItem("onc_device", deviceId);
-    }
+    let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
+    localStorage.setItem("onc_device", deviceId);
 
     window.registerUser = async function(){
-        const name = document.getElementById("name").value;
-        const email = document.getElementById("email").value;
+        const btn = document.getElementById("regBtn");
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
         const referral = document.getElementById("referral").value.trim();
 
         if(!name || !email || !password){
-            alert("Please fill all required fields");
+            alert("Please fill all fields!");
             return;
         }
 
+        // 1. Disable Button Immediately
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+
         try {
-            /* LIMIT ACCOUNTS PER DEVICE (ANTI-CHEAT) */
+            /* 2. DEVICE CHECK (ANTI-CHEAT) */
             const deviceQuery = query(collection(db,"users"), where("deviceId","==",deviceId));
             const deviceSnap = await getDocs(deviceQuery);
-
             if(deviceSnap.size >= 3){
-                alert("Too many accounts created from this device (Limit: 3)");
-                return;
+                throw new Error("Device limit reached (Max: 3 accounts)");
             }
 
-            /* CREATE AUTH ACCOUNT */
+            /* 3. CREATE AUTH */
             const userCred = await createUserWithEmailAndPassword(auth, email, password);
             const uid = userCred.user.uid;
-            const referralCode = Math.random().toString(36).substring(2,8).toUpperCase();
+            const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
             let referredBy = null;
 
-            /* REFERRAL SYSTEM LOGIC */
+            /* 4. REFERRAL SYSTEM */
             if(referral){
                 const q = query(collection(db,"users"), where("referralCode","==",referral));
                 const snap = await getDocs(q);
-
                 if(!snap.empty){
-                    const level1User = snap.docs[0];
-                    const level1Data = level1User.data();
-
-                    // Level 1 Update
-                    await updateDoc(doc(db,"users",level1User.id), {
-                        referrals: (level1Data.referrals||0)+1,
-                        refLevel1: (level1Data.refLevel1||0)+1
+                    const l1Doc = snap.docs[0];
+                    const l1Data = l1Doc.data();
+                    
+                    // Update Level 1
+                    await updateDoc(doc(db,"users",l1Doc.id), {
+                        referrals: (l1Data.referrals||0)+1,
+                        refLevel1: (l1Data.refLevel1||0)+1
                     });
 
-                    // Level 2 & 3 Chain Logic... (Same as your original code)
-                    if(level1Data.referredBy){
-                        const q2=query(collection(db,"users"),where("referralCode","==",level1Data.referredBy));
-                        const snap2=await getDocs(q2);
-                        if(!snap2.empty){
-                            const level2User=snap2.docs[0];
-                            const level2Data=level2User.data();
-                            await updateDoc(doc(db,"users",level2User.id),{ refLevel2:(level2Data.refLevel2||0)+1 });
-                            if(level2Data.referredBy){
-                                const q3=query(collection(db,"users"),where("referralCode","==",level2Data.referredBy));
-                                const snap3=await getDocs(q3);
-                                if(!snap3.empty){
-                                    const level3User=snap3.docs[0];
-                                    const level3Data=level3User.data();
-                                    await updateDoc(doc(db,"users",level3User.id),{ refLevel3:(level3Data.refLevel3||0)+1 });
-                                }
-                            }
+                    // Level 2 Logic (Optional Chain)
+                    if(l1Data.referredBy){
+                        const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
+                        const snap2 = await getDocs(q2);
+                        if(!snap2.empty) {
+                            await updateDoc(doc(db,"users",snap2.docs[0].id), {
+                                refLevel2: (snap2.docs[0].data().refLevel2||0)+1
+                            });
                         }
                     }
                     referredBy = referral;
                 }
             }
 
-            /* CREATE USER DOCUMENT */
+            /* 5. CREATE SINGLE DOC (FIXED) */
+            // Using 'uid' as the document name ensures NO DUPLICATES
             await setDoc(doc(db,"users",uid), {
-                name: name,
-                email: email,
-                balance: 0,
-                deviceId: deviceId,
-                banned: false,
-                referrals: 0,
-                refLevel1: 0,
-                refLevel2: 0,
-                refLevel3: 0,
-                referralCode: referralCode,
-                referredBy: referredBy,
-                totalClaimed: 0,
-                lastClaim: 0,
+                name, email, uid, balance:0, deviceId, 
+                banned:false, referrals:0, refLevel1:0, 
+                refLevel2:0, refLevel3:0, referralCode: myRefCode,
+                referredBy, totalClaimed:0, lastClaim:0, 
                 createdAt: serverTimestamp()
             });
 
-            alert("Account Created Successfully!");
+            alert("Registration Successful!");
             window.location.href="dashboard.html";
 
         } catch(err) {
             alert(err.message);
+            btn.disabled = false;
+            btn.innerText = "Create Account";
         }
     }
 </script>
