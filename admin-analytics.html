@@ -3,81 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA Analytics — Command Center</title>
+<title>ONCHYRA Analytics — Admin Only</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+    /* Sab purana styling yahan rahega */
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Inter;background:#050610;color:white;padding:20px;}
+    body{font-family:Inter;background:#050610;color:white;padding:20px; display: none;} /* Pehle body chhupa di taaki data leak na ho */
     .container{max-width:1200px;margin:auto;}
     h1{font-family:Manrope;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent; margin-bottom: 20px;}
-    
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px;}
-    .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;}
-    .card h4{font-size:12px;opacity:0.6;text-transform:uppercase;margin-bottom:5px;}
-    
-    .chart-row{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;margin-bottom:25px;}
-    .chart-box, .table-box{background:rgba(255,255,255,0.03);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.05);}
-    
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:25px;}
+    .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px; text-align: center;}
+    .card h4{font-size:11px;opacity:0.5;text-transform:uppercase;margin-bottom:8px;}
+    .main-layout{display:grid;grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;}
+    .chart-box, .table-box{background:rgba(255,255,255,0.03);padding:20px;border-radius:18px;border:1px solid rgba(255,255,255,0.05); height: 400px; overflow-y: auto;}
     table{width:100%;border-collapse:collapse;margin-top:10px;}
-    th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
+    th,td{padding:12px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;}
     th{color:#a78bfa;}
-
-    /* Live Feed Styling */
-    .feed-container { height: 300px; overflow-y: auto; }
-    .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-    
-    button{padding:10px 20px; border-radius:10px; background:#a78bfa; color:#050610; font-weight:700; cursor:pointer; border:none; margin-bottom:20px;}
-    
-    @media(max-width:900px){ .chart-row{grid-template-columns:1fr;} }
+    .status-dot{height:8px;width:8px;border-radius:50%;display:inline-block;margin-right:8px;}
+    .admin-row{background: rgba(167, 139, 250, 0.1) !important; color: #a78bfa; font-weight: bold;}
+    button{padding:12px 24px; border-radius:12px; background:#a78bfa; color:#050610; font-weight:700; cursor:pointer; border:none; margin-bottom:20px;}
+    @media(max-width:900px){ .main-layout{grid-template-columns:1fr;} }
 </style>
 </head>
 
 <body>
-<div class="container">
-    <h1>ONCHYRA Analytics 🚀</h1>
-    
-    <button onclick="loadAnalytics()">🔄 Refresh Data</button>
+<div class="container" id="adminContent">
+    <h1>ONCHYRA Command Center 🛰️</h1>
+    <div style="display:flex; gap:10px;">
+        <button onclick="loadAnalytics()">🔄 Sync Live Data</button>
+        <button onclick="logoutAdmin()" style="background:#ef4444; color:white;">🚪 Logout</button>
+    </div>
 
     <div class="grid">
-        <div class="card"><h4>Total Users</h4><h2 id="users">0</h2></div>
-        <div class="card"><h4>Active (24h)</h4><h2 id="active">0</h2></div>
-        <div class="card"><h4>Avg Balance</h4><h2 id="avgBal">0</h2></div>
-        <div class="card"><h4>Dormant (48h+)</h4><h2 id="dormantCount" style="color:#ef4444">0</h2></div>
+        <div class="card"><h4>Total Miners</h4><h2 id="users">0</h2></div>
+        <div class="card"><h4>Active (24h)</h4><h2 id="active" style="color:#10b981">0</h2></div>
+        <div class="card"><h4>Circulating Supply</h4><h2 id="totalMined">0</h2></div>
+        <div class="card"><h4>Dormant Users</h4><h2 id="dormant" style="color:#ef4444">0</h2></div>
+        <div class="card"><h4>Avg Holding</h4><h2 id="avgBal">0</h2></div>
     </div>
 
-    <div class="chart-row">
+    <div class="main-layout">
         <div class="table-box">
-            <h3>⚡ Live Activity Feed (Latest Actions)</h3>
-            <div class="feed-container">
-                <table>
-                    <tbody id="feedBody"><tr><td>Syncing feed...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="chart-box">
-            <h3>📊 User Retention Status</h3>
-            <canvas id="retentionChart"></canvas>
-        </div>
-    </div>
-
-    <div class="chart-row">
-        <div class="chart-box">
-            <h3>📈 Growth Curve</h3>
-            <canvas id="growthChart" height="150"></canvas>
+            <h3>🏆 Global Rich List</h3>
+            <table id="richTable"><thead><tr><th>Rank</th><th>User</th><th>Balance</th></tr></thead><tbody id="richBody"></tbody></table>
         </div>
         <div class="table-box">
             <h3>🔗 Referral Kings</h3>
-            <table id="refsTable"></table>
+            <table id="refsTable"><thead><tr><th>Rank</th><th>Influencer</th><th>Referrals</th></tr></thead><tbody id="refsBody"></tbody></table>
         </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="chart-box"><h3>📊 User Retention Graph</h3><canvas id="retentionChart"></canvas></div>
+        <div class="table-box"><h3>⚡ Recent Activity</h3><table><tbody id="feedBody"></tbody></table></div>
     </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -90,101 +77,80 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+let rChart;
 
-let rChart, gChart;
+// 🛡️ SECURITY GUARD: Check if Admin is logged in
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // User is signed in, show the page and load data
+        document.body.style.display = "block";
+        loadAnalytics();
+    } else {
+        // No user is signed in, redirect to login page
+        window.location.href = "admin-login.html";
+    }
+});
+
+window.logoutAdmin = function() {
+    signOut(auth).then(() => {
+        window.location.href = "admin-login.html";
+    });
+}
 
 window.loadAnalytics = async function() {
     const usersSnap = await getDocs(collection(db, "users"));
     const now = Date.now();
-    
-    let totalMined = 0;
-    let active24 = 0;
-    let dormant = 0;
-    let ghost = 0;
-    let growthMap = {};
-    let activityLog = [];
+    let totalMined = 0, active24 = 0, dormant = 0, ghost = 0;
+    let allUsers = [];
 
     usersSnap.forEach(doc => {
         const d = doc.data();
-        const bal = d.balance || 0;
-        totalMined += bal;
-        
-        // Retention Logic
+        totalMined += (d.balance || 0);
         const diff = now - (d.lastClaim || 0);
         if(diff < 86400000) active24++;
         else if(diff < 172800000) dormant++;
         else ghost++;
-
-        // Growth Map
-        let date = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString() : new Date().toLocaleDateString();
-        growthMap[date] = (growthMap[date] || 0) + 1;
-
-        // Activity Feed Logic (Collecting Recent)
-        if(d.lastClaim) {
-            activityLog.push({name: d.name, time: d.lastClaim, type: 'Claim'});
-        }
+        allUsers.push({ id: doc.id, ...d, active: diff < 86400000 });
     });
 
-    // Update Cards
     document.getElementById("users").innerText = usersSnap.size;
     document.getElementById("active").innerText = active24;
-    document.getElementById("dormantCount").innerText = dormant;
+    document.getElementById("dormant").innerText = dormant;
+    document.getElementById("totalMined").innerText = totalMined.toFixed(2);
     document.getElementById("avgBal").innerText = (totalMined / (usersSnap.size || 1)).toFixed(2);
 
-    // Update Feed (Sorted by Latest)
-    activityLog.sort((a,b) => b.time - a.time);
-    let feedHTML = activityLog.slice(0, 15).map(log => `
-        <tr>
-            <td><span class="status-dot" style="background:#10b981"></span></td>
-            <td><b>${log.name}</b> performed a claim</td>
-            <td style="opacity:0.5">${new Date(log.time).toLocaleTimeString()}</td>
+    const richList = [...allUsers].sort((a,b) => b.balance - a.balance).slice(0, 10);
+    document.getElementById("richBody").innerHTML = richList.map((u, i) => `
+        <tr class="${u.name === 'Global Star' ? 'admin-row' : ''}">
+            <td>#${i+1}</td>
+            <td><span class="status-dot" style="background:${u.active ? '#10b981' : '#4b5563'}"></span>${u.name}</td>
+            <td>${u.balance.toFixed(2)} ONC</td>
         </tr>
     `).join('');
-    document.getElementById("feedBody").innerHTML = feedHTML;
 
-    // Charts
-    renderRetention(active24, dormant, ghost);
-    renderGrowth(growthMap);
-    loadReferrals();
+    const refList = [...allUsers].sort((a,b) => (b.referrals || 0) - (a.referrals || 0)).slice(0, 10);
+    document.getElementById("refsBody").innerHTML = refList.map((u, i) => `
+        <tr><td>#${i+1}</td><td>${u.name}</td><td style="color:#a78bfa; font-weight:bold">${u.referrals || 0}</td></tr>
+    `).join('');
+
+    const feedList = [...allUsers].filter(u => u.lastClaim).sort((a,b) => b.lastClaim - a.lastClaim).slice(0, 15);
+    document.getElementById("feedBody").innerHTML = feedList.map(u => `
+        <tr><td><b>${u.name}</b> claimed</td><td style="opacity:0.5; font-size:11px">${new Date(u.lastClaim).toLocaleTimeString()}</td></tr>
+    `).join('');
+
+    renderRetentionChart(active24, dormant, ghost);
 }
 
-function renderRetention(a, d, g) {
+function renderRetentionChart(a, d, g) {
     const ctx = document.getElementById('retentionChart');
     if(rChart) rChart.destroy();
     rChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: ['Active', 'Dormant', 'Inactive'],
-            datasets: [{ data: [a, d, g], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }]
-        },
-        options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+        data: { labels: ['Active', 'Dormant', 'Inactive'], datasets: [{ data: [a, d, g], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
+        options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
     });
 }
-
-function renderGrowth(map) {
-    const ctx = document.getElementById('growthChart');
-    if(gChart) gChart.destroy();
-    gChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: Object.keys(map),
-            datasets: [{ label: 'New Users', data: Object.values(map), borderColor: '#60a5fa', tension: 0.3, fill: true, backgroundColor: 'rgba(96,165,250,0.1)' }]
-        },
-        options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#fff' } }, y: { display: false } } }
-    });
-}
-
-async function loadReferrals() {
-    const rQuery = query(collection(db, "users"), orderBy("referrals", "desc"), limit(5));
-    const rSnap = await getDocs(rQuery);
-    let html = "<tr><th>User</th><th>Referrals</th></tr>";
-    rSnap.forEach(d => {
-        html += `<tr><td>${d.data().name}</td><td style="color:#a78bfa; font-weight:bold">${d.data().referrals || 0}</td></tr>`;
-    });
-    document.getElementById("refsTable").innerHTML = html;
-}
-
-loadAnalytics();
 </script>
 </body>
 </html>
