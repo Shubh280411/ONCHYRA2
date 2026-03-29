@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel — ONCHYRA</title>
+    <title>ONCHYRA Control — Kundali Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,10 +11,18 @@
         body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 20% 30%, #6d28d922, transparent 40%), radial-gradient(circle at 80% 70%, #2563eb22, transparent 40%); z-index: -1; }
         .container { max-width: 500px; margin: auto; }
         h1 { font-family: 'Manrope'; margin-bottom: 20px; text-align: center; background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; backdrop-filter: blur(10px); }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; backdrop-filter: blur(10px); position: relative;}
         input { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; font-size: 16px; outline: none; border: 1px solid transparent; transition: 0.3s; }
         input:focus { border-color: #60a5fa; background: rgba(255,255,255,0.12); }
-        .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        /* SEARCH SUGGESTIONS STYLE */
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; margin-top: 5px;}
+        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #94a3b8;}
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .search-item span { color: white; font-weight: bold; }
+
+        .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
         .streak-badge { background: linear-gradient(90deg, #f59e0b, #ef4444); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; margin-left: 8px; }
         .total-team { background: rgba(96, 165, 250, 0.1); border: 1px dashed #60a5fa; padding: 10px; border-radius: 12px; text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; }
         .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
@@ -36,29 +44,30 @@
     <h1>ONCHYRA Control</h1>
 
     <div class="card">
-        <h3>Fast Search ⚡</h3>
-        <input id="search" placeholder="Type Name or Email..." oninput="liveSearch(this.value)">
-        <div id="info" class="info-box">Searching for a miner...</div>
+        <h3>Fast Search (Auto-Suggest) ⚡</h3>
+        <input id="search" placeholder="Type Name or Email..." oninput="getSuggestions(this.value)" autocomplete="off">
+        <div id="searchResults" class="search-results"></div>
+        <div id="info" class="info-box">Select a miner from the list...</div>
     </div>
 
     <div class="card">
-        <h3>Balance 💰</h3>
+        <h3>Adjust Balance 💰</h3>
         <input id="amount" type="number" placeholder="Enter Amount">
         <div class="quick-pills">
-            <div class="pill" onclick="document.getElementById('amount').value=1">+1</div>
-            <div class="pill" onclick="document.getElementById('amount').value=5">+5</div>
-            <div class="pill" onclick="document.getElementById('amount').value=10">+10</div>
+            <div class="pill" onclick="document.getElementById('amount').value=1">+1 ONC</div>
+            <div class="pill" onclick="document.getElementById('amount').value=5">+5 ONC</div>
+            <div class="pill" onclick="document.getElementById('amount').value=10">+10 ONC</div>
         </div>
         <div class="row">
-            <button class="primary-btn" onclick="adjustOnc(true)">Add ONC</button>
+            <button class="primary-btn" onclick="adjustOnc(true)">Add Balance</button>
             <button style="background:rgba(255,255,255,0.1); color:white;" onclick="adjustOnc(false)">Remove</button>
         </div>
     </div>
 
     <div class="card">
-        <h3>Account 🛡️</h3>
+        <h3>Account Control 🛡️</h3>
         <div class="row">
-            <button class="ban-btn" onclick="toggleBan(true)">Ban</button>
+            <button class="ban-btn" onclick="toggleBan(true)">Ban User</button>
             <button class="unban-btn" onclick="toggleBan(false)">Unban</button>
         </div>
     </div>
@@ -90,28 +99,43 @@
         else { document.body.style.opacity = "1"; }
     });
 
-    window.liveSearch = async (val) => {
-        if (val.length < 2) return;
+    // --- AUTO-SUGGEST LIST ---
+    window.getSuggestions = async (val) => {
+        const resultsDiv = document.getElementById("searchResults");
+        if (val.length < 2) { resultsDiv.style.display = "none"; return; }
+
+        // Fetch users matching Name prefix
         const q = query(collection(db, "users"), where("name", ">=", val), where("name", "<=", val + '\uf8ff'));
         const snap = await getDocs(q);
+
+        resultsDiv.innerHTML = ""; // Clear old list
+
         if (!snap.empty) {
-            currentUID = snap.docs[0].id;
-            currentUser = snap.docs[0].data();
-            showUser();
+            resultsDiv.style.display = "block";
+            snap.forEach(doc => {
+                const userData = doc.data();
+                const div = document.createElement("div");
+                div.className = "search-item";
+                div.innerHTML = `<span>${userData.name}</span> (${userData.email})`;
+                div.onclick = () => selectUser(doc.id, userData); // Tap to Kundali
+                resultsDiv.appendChild(div);
+            });
         } else {
-            const qE = query(collection(db, "users"), where("email", "==", val));
-            const snapE = await getDocs(qE);
-            if(!snapE.empty) {
-                currentUID = snapE.docs[0].id;
-                currentUser = snapE.docs[0].data();
-                showUser();
-            }
+            resultsDiv.style.display = "none";
         }
     };
 
-    function showUser() {
+    // --- LOAD KUNDALI (On Tap) ---
+    function selectUser(uid, data) {
+        currentUID = uid;
+        currentUser = data;
+        
+        // Hide list, show info box
+        document.getElementById("searchResults").style.display = "none";
+        document.getElementById("search").value = currentUser.name; // Fill input
+        document.getElementById("info").style.display = "block";
+
         const info = document.getElementById("info");
-        // Logic for Team calculation
         const l1 = Number(currentUser.l1 || currentUser.referrals || 0);
         const l2 = Number(currentUser.l2 || 0);
         const l3 = Number(currentUser.l3 || 0);
@@ -119,7 +143,7 @@
 
         info.innerHTML = `
             <div style="font-size: 18px; font-weight: 700;">${currentUser.name} ${currentUser.streak > 0 ? `<span class="streak-badge">🔥 ${currentUser.streak}</span>` : ''}</div>
-            <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">UID: ${currentUID}</div>
+            <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">Email: ${currentUser.email}</div>
             <div style="font-size: 14px;">Balance: <b style="color:#60a5fa">${parseFloat(currentUser.balance || 0).toFixed(4)} ONC</b></div>
             
             <div class="total-team">👥 Total Network: ${totalTeam} Users</div>
@@ -132,19 +156,23 @@
         `;
     }
 
+    // --- BALANCE ACTIONS (CONFIRMATION ADDED) ---
     window.adjustOnc = async (isAdd) => {
-        if (!currentUID) return alert("Search user!");
+        if (!currentUID) return alert("Select user first!");
         const amt = parseFloat(document.getElementById("amount").value);
-        if (isNaN(amt) || amt <= 0) return;
+        if (isNaN(amt) || amt <= 0) return alert("Enter valid amount!");
         const final = isAdd ? amt : -amt;
-        await updateDoc(doc(db, "users", currentUID), { balance: increment(final) });
-        currentUser.balance = (currentUser.balance || 0) + final;
-        showUser();
-        alert("Success!");
+
+        if (confirm(`Confirm: ${isAdd ? 'Add' : 'Remove'} ${amt} ONC to ${currentUser.name}?`)) {
+            await updateDoc(doc(db, "users", currentUID), { balance: increment(final) });
+            currentUser.balance = (currentUser.balance || 0) + final;
+            selectUser(currentUID, currentUser); // Refresh UI
+            alert("Success!");
+        }
     };
 
     window.toggleBan = async (status) => {
-        if (!currentUID) return;
+        if (!currentUID) return alert("Select user first!");
         if(confirm(`Are you sure you want to ${status ? 'BAN' : 'UNBAN'} this user?`)) {
             await updateDoc(doc(db, "users", currentUID), { banned: status });
             alert(status ? "User Banned!" : "User Unbanned!");
