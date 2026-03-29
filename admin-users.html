@@ -7,54 +7,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #070816;
-            color: white;
-            padding: 20px;
-            opacity: 0; /* Hidden until login check */
-            transition: opacity 0.5s;
-        }
-        body::before {
-            content: ""; position: fixed; inset: 0;
-            background: radial-gradient(circle at 20% 30%, #6d28d933, transparent 40%),
-                        radial-gradient(circle at 80% 70%, #2563eb33, transparent 40%);
-            z-index: -1;
-        }
-        .container { max-width: 550px; margin: auto; }
+        body { font-family: 'Inter', sans-serif; background: #070816; color: white; padding: 20px; opacity: 0; transition: opacity 0.5s; }
+        body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 20% 30%, #6d28d922, transparent 40%), radial-gradient(circle at 80% 70%, #2563eb22, transparent 40%); z-index: -1; }
+        .container { max-width: 500px; margin: auto; }
         h1 { font-family: 'Manrope'; margin-bottom: 20px; text-align: center; background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; backdrop-filter: blur(10px); }
-        input { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; font-size: 16px; outline: none; border: 1px solid transparent; }
-        input:focus { border-color: #60a5fa; }
+        input { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; font-size: 16px; outline: none; border: 1px solid transparent; transition: 0.3s; }
+        input:focus { border-color: #60a5fa; background: rgba(255,255,255,0.12); }
         .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
         .streak-badge { background: linear-gradient(90deg, #f59e0b, #ef4444); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; margin-left: 8px; }
-        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(167, 139, 250, 0.2); }
-        .level-item span { display: block; font-size: 18px; font-weight: 800; color: #a78bfa; }
-        .level-item label { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+        .total-team { background: rgba(96, 165, 250, 0.1); border: 1px dashed #60a5fa; padding: 10px; border-radius: 12px; text-align: center; margin-top: 15px; font-weight: bold; color: #60a5fa; }
+        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .level-item { background: rgba(255,255,255,0.03); padding: 8px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .level-item span { display: block; font-size: 16px; font-weight: 700; color: #a78bfa; }
+        .level-item label { font-size: 9px; color: #94a3b8; text-transform: uppercase; }
         .row { display: flex; gap: 10px; margin-top: 10px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .primary-btn { background: linear-gradient(135deg,#a78bfa,#60a5fa); color: #070816; }
         .ban-btn { background: #ef4444; color: white; }
         .unban-btn { background: #22c55e; color: white; }
-        .quick-pills { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
+        .quick-pills { display: flex; gap: 8px; margin-top: 10px; }
         .pill { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>ONCHYRA Admin</h1>
+    <h1>ONCHYRA Control</h1>
 
     <div class="card">
-        <h3>Live User Search 🔍</h3>
+        <h3>Fast Search ⚡</h3>
         <input id="search" placeholder="Type Name or Email..." oninput="liveSearch(this.value)">
-        <div id="info" class="info-box">Waiting for input...</div>
+        <div id="info" class="info-box">Searching for a miner...</div>
     </div>
 
     <div class="card">
-        <h3>Adjust Balance 💰</h3>
-        <input id="amount" type="number" placeholder="Enter ONC Amount">
+        <h3>Balance 💰</h3>
+        <input id="amount" type="number" placeholder="Enter Amount">
         <div class="quick-pills">
             <div class="pill" onclick="document.getElementById('amount').value=1">+1</div>
             <div class="pill" onclick="document.getElementById('amount').value=5">+5</div>
@@ -67,7 +56,7 @@
     </div>
 
     <div class="card">
-        <h3>Controls 🛡️</h3>
+        <h3>Account 🛡️</h3>
         <div class="row">
             <button class="ban-btn" onclick="toggleBan(true)">Ban</button>
             <button class="unban-btn" onclick="toggleBan(false)">Unban</button>
@@ -96,19 +85,13 @@
     let currentUID = null;
     let currentUser = null;
 
-    // --- LOGIN CHECK ---
     onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            alert("Admin login required!");
-            window.location.href = "admin-login.html";
-        } else {
-            document.body.style.opacity = "1";
-        }
+        if (!user) { window.location.href = "admin-login.html"; }
+        else { document.body.style.opacity = "1"; }
     });
 
-    // --- LIVE SEARCH ---
     window.liveSearch = async (val) => {
-        if (val.length < 3) return;
+        if (val.length < 2) return;
         const q = query(collection(db, "users"), where("name", ">=", val), where("name", "<=", val + '\uf8ff'));
         const snap = await getDocs(q);
         if (!snap.empty) {
@@ -128,34 +111,44 @@
 
     function showUser() {
         const info = document.getElementById("info");
+        // Logic for Team calculation
+        const l1 = Number(currentUser.l1 || currentUser.referrals || 0);
+        const l2 = Number(currentUser.l2 || 0);
+        const l3 = Number(currentUser.l3 || 0);
+        const totalTeam = l1 + l2 + l3;
+
         info.innerHTML = `
             <div style="font-size: 18px; font-weight: 700;">${currentUser.name} ${currentUser.streak > 0 ? `<span class="streak-badge">🔥 ${currentUser.streak}</span>` : ''}</div>
-            <div style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">${currentUser.email}</div>
-            <div style="font-size: 14px;">Balance: <b>${parseFloat(currentUser.balance).toFixed(4)} ONC</b></div>
+            <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">UID: ${currentUID}</div>
+            <div style="font-size: 14px;">Balance: <b style="color:#60a5fa">${parseFloat(currentUser.balance || 0).toFixed(4)} ONC</b></div>
+            
+            <div class="total-team">👥 Total Network: ${totalTeam} Users</div>
+
             <div class="level-grid">
-                <div class="level-item"><label>L1</label><span>${currentUser.l1 || 0}</span></div>
-                <div class="level-item"><label>L2</label><span>${currentUser.l2 || 0}</span></div>
-                <div class="level-item"><label>L3</label><span>${currentUser.l3 || 0}</span></div>
+                <div class="level-item"><label>L1 (Direct)</label><span>${l1}</span></div>
+                <div class="level-item"><label>L2 (Sub)</label><span>${l2}</span></div>
+                <div class="level-item"><label>L3 (Deep)</label><span>${l3}</span></div>
             </div>
         `;
     }
 
-    // --- ACTIONS ---
     window.adjustOnc = async (isAdd) => {
-        if (!currentUID) return alert("Search user first!");
+        if (!currentUID) return alert("Search user!");
         const amt = parseFloat(document.getElementById("amount").value);
-        if (isNaN(amt)) return;
+        if (isNaN(amt) || amt <= 0) return;
         const final = isAdd ? amt : -amt;
         await updateDoc(doc(db, "users", currentUID), { balance: increment(final) });
-        currentUser.balance += final;
+        currentUser.balance = (currentUser.balance || 0) + final;
         showUser();
-        alert("Done!");
+        alert("Success!");
     };
 
     window.toggleBan = async (status) => {
         if (!currentUID) return;
-        await updateDoc(doc(db, "users", currentUID), { banned: status });
-        alert(status ? "User Banned!" : "User Unbanned!");
+        if(confirm(`Are you sure you want to ${status ? 'BAN' : 'UNBAN'} this user?`)) {
+            await updateDoc(doc(db, "users", currentUID), { banned: status });
+            alert(status ? "User Banned!" : "User Unbanned!");
+        }
     };
 </script>
 </body>
