@@ -3,67 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONCHYRA Admin Pro</title>
+    <title>Admin Control — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #070816; color: white; padding: 15px; opacity: 0; transition: opacity 0.5s; }
-        .container { max-width: 480px; margin: auto; }
-        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(15px); }
-        h1 { text-align: center; margin-bottom: 20px; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; }
+        body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; opacity: 0; transition: opacity 0.5s; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(10px); }
+        h1 { text-align: center; margin-bottom: 20px; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; }
         
-        /* Dropdown Suggestion Box */
-        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid #3b82f6; border-radius: 12px; max-height: 250px; overflow-y: auto; z-index: 99; display: none; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid #3b82f6; border-radius: 12px; max-height: 250px; overflow-y: auto; z-index: 999; display: none; margin-top: 5px; }
+        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .search-item:hover { background: #3b82f6; }
-        .search-item b { display: block; color: #fff; font-size: 15px; }
-        .search-item span { font-size: 11px; color: #94a3b8; }
 
-        /* User Kundali UI */
-        #info { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-        .badge-banned { background: #ef4444; color: white; }
-        .badge-active { background: #22c55e; color: white; }
+        .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+        .banned { background: #ef4444; color: white; }
+        .active { background: #22c55e; color: white; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .stat-card { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-card small { font-size: 10px; color: #94a3b8; display: block; }
-        .stat-card b { font-size: 16px; color: #a78bfa; }
+        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .level-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+        .level-item b { font-size: 18px; color: #a78bfa; display: block; }
 
-        .team-total { background: linear-gradient(90deg, #1e293b, #0f172a); border: 1px solid #3b82f6; padding: 12px; border-radius: 12px; text-align: center; margin: 15px 0; color: #60a5fa; font-weight: bold; }
-
-        .btn-row { display: flex; gap: 8px; margin-top: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 13px; }
-        .btn-add { background: #3b82f6; color: white; }
-        .btn-ban { background: #ef4444; color: white; }
-        .btn-unban { background: #22c55e; color: white; }
+        .row { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .primary-btn { background: #3b82f6; color: white; }
+        .ban-btn { background: #ef4444; color: white; }
+        .unban-btn { background: #22c55e; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>ONCHYRA ⚡</h1>
+    <h1>ONCHYRA Panel 🛰️</h1>
 
     <div class="card">
-        <h3>Search & Kundali 🕵️‍♂️</h3>
-        <input id="searchBox" placeholder="Start typing name..." oninput="fetchUsers(this.value)" autocomplete="off">
+        <h3>Find Miner 🕵️‍♂️</h3>
+        <input id="search" placeholder="Type name or email..." oninput="fetchUsers(this.value)" autocomplete="off">
         <div id="searchResults" class="search-results"></div>
 
-        <div id="info">
+        <div id="info" class="info-box">
             </div>
     </div>
 
-    <div class="card" id="actionPanel" style="display:none;">
-        <h3>Manage Miner ⚙️</h3>
-        <input id="amountInput" type="number" placeholder="Enter Amount">
-        <div class="btn-row">
-            <button class="btn-add" onclick="updateBalance(true)">+ Add ONC</button>
-            <button style="background:#334155; color:white;" onclick="updateBalance(false)">- Remove</button>
+    <div class="card" id="actions" style="display:none;">
+        <h3>Admin Actions ⚙️</h3>
+        <input id="amount" type="number" placeholder="Enter ONC Amount">
+        <div class="row">
+            <button class="primary-btn" onclick="updateOnc(true)">Add Balance</button>
+            <button style="background:#334155; color:white;" onclick="updateOnc(false)">Remove</button>
         </div>
-        <div class="btn-row">
-            <button id="banActionBtn" onclick="toggleUserStatus()"></button>
-        </div>
+        <div class="row" id="banToggleArea">
+            </div>
     </div>
 </div>
 
@@ -85,8 +77,8 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let activeUID = null;
-    let activeUser = null;
+    let currentUID = null;
+    let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
         if (!user) window.location.href = "admin-login.html";
@@ -96,87 +88,71 @@
     window.fetchUsers = async (val) => {
         const resDiv = document.getElementById("searchResults");
         if (val.length < 2) { resDiv.style.display = "none"; return; }
-
-        try {
-            const snap = await getDocs(collection(db, "users"));
-            resDiv.innerHTML = "";
-            let matchFound = false;
-
-            snap.forEach(d => {
-                const u = d.data();
-                const name = (u.name || "").toLowerCase();
-                const email = (u.email || "").toLowerCase();
-                const searchVal = val.toLowerCase();
-
-                if (name.includes(searchVal) || email.includes(searchVal)) {
-                    matchFound = true;
-                    const item = document.createElement("div");
-                    item.className = "search-item";
-                    item.innerHTML = `<b>${u.name || 'No Name'}</b><span>${u.email || 'No Email'}</span>`;
-                    item.onclick = () => loadUser(d.id, u);
-                    resDiv.appendChild(item);
-                }
-            });
-            resDiv.style.display = matchFound ? "block" : "none";
-        } catch (e) { console.error("Fetch Error:", e); }
+        const snap = await getDocs(collection(db, "users"));
+        resDiv.innerHTML = "";
+        let found = false;
+        snap.forEach(d => {
+            const u = d.data();
+            if ((u.name && u.name.toLowerCase().includes(val.toLowerCase())) || (u.email && u.email.toLowerCase().includes(val.toLowerCase()))) {
+                found = true;
+                const item = document.createElement("div");
+                item.className = "search-item";
+                item.innerHTML = `<b>${u.name}</b><span>${u.email}</span>`;
+                item.onclick = () => selectUser(d.id, u);
+                resDiv.appendChild(item);
+            }
+        });
+        resDiv.style.display = found ? "block" : "none";
     };
 
-    function loadUser(uid, data) {
-        activeUID = uid;
-        activeUser = data;
+    function selectUser(uid, data) {
+        currentUID = uid;
+        currentUser = data;
         document.getElementById("searchResults").style.display = "none";
-        document.getElementById("searchBox").value = data.name || data.email;
+        document.getElementById("search").value = data.name;
         document.getElementById("info").style.display = "block";
-        document.getElementById("actionPanel").style.display = "block";
+        document.getElementById("actions").style.display = "block";
 
-        // Level Logic: Scanning multiple possible field names
-        const l1 = Number(data.l1 || data.referrals || 0);
-        const l2 = Number(data.l2 || data.referrals_l2 || 0);
-        const l3 = Number(data.l3 || data.referrals_l3 || 0);
-        const totalTeam = l1 + l2 + l3;
-        const banned = data.banned === true;
-
-        const banBtn = document.getElementById("banActionBtn");
-        banBtn.innerText = banned ? "🔓 UNBAN THIS USER" : "🚫 BAN THIS USER";
-        banBtn.className = banned ? "btn-unban" : "btn-ban";
+        const isBanned = data.banned === true;
+        const l1 = data.refLevel1 || 0;
+        const l2 = data.refLevel2 || 0;
+        const l3 = data.refLevel3 || 0;
 
         document.getElementById("info").innerHTML = `
-            <div class="badge ${banned ? 'badge-banned' : 'badge-active'}">
-                ${banned ? 'Banned' : 'Active Account'}
-            </div>
-            <h2 style="font-size:22px;">${data.name || 'N/A'} ${data.streak ? '🔥'+data.streak : ''}</h2>
-            <p style="color:#94a3b8; font-size:12px; margin-bottom:5px;"><b>Email:</b> ${data.email || 'Private'}</p>
+            <div class="status-badge ${isBanned ? 'banned' : 'active'}">${isBanned ? 'BANNED' : 'ACTIVE'}</div>
+            <h2>${data.name} ${data.streak ? '🔥'+data.streak : ''}</h2>
+            <p style="color:#94a3b8; font-size:13px; margin-top:5px;"><b>Email:</b> ${data.email}</p>
             <p style="color:#94a3b8; font-size:11px;"><b>UID:</b> ${uid}</p>
-            
-            <p style="margin-top:10px;">Balance: <b style="color:#60a5fa; font-size:18px;">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
-            
-            <div class="team-total">Total Network: ${totalTeam} Users</div>
-            
-            <div class="stats-grid">
-                <div class="stat-card"><small>Level 1</small><b>${l1}</b></div>
-                <div class="stat-card"><small>Level 2</small><b>${l2}</b></div>
-                <div class="stat-card"><small>Level 3</small><b>${l3}</b></div>
+            <p style="margin-top:10px; font-size:18px;">Balance: <b style="color:#60a5fa">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
+            <div class="level-grid">
+                <div class="level-item"><small>L1</small><b>${l1}</b></div>
+                <div class="level-item"><small>L2</small><b>${l2}</b></div>
+                <div class="level-item"><small>L3</small><b>${l3}</b></div>
             </div>
+        `;
+
+        document.getElementById("banToggleArea").innerHTML = `
+            <button class="${isBanned ? 'unban-btn' : 'ban-btn'}" onclick="handleBan(${!isBanned})">
+                ${isBanned ? 'Unban User' : 'Ban User'}
+            </button>
         `;
     }
 
-    window.updateBalance = async (isAdd) => {
-        const amt = parseFloat(document.getElementById("amountInput").value);
-        if (!activeUID || isNaN(amt)) return alert("Select user & amount!");
-        const diff = isAdd ? amt : -amt;
-        
-        if(confirm(`Update ${activeUser.name}'s balance by ${diff} ONC?`)) {
-            await updateDoc(doc(db, "users", activeUID), { balance: increment(diff) });
-            alert("Done! Page Refreshing...");
+    window.updateOnc = async (isAdd) => {
+        const amt = parseFloat(document.getElementById("amount").value);
+        if (!currentUID || isNaN(amt)) return;
+        const change = isAdd ? amt : -amt;
+        if(confirm(`Confirm balance update?`)) {
+            await updateDoc(doc(db, "users", currentUID), { balance: increment(change) });
+            alert("Updated!");
             location.reload();
         }
     };
 
-    window.toggleUserStatus = async () => {
-        if (!activeUID) return;
-        const targetStatus = !activeUser.banned;
-        if(confirm(`Are you sure you want to ${targetStatus ? 'BAN' : 'UNBAN'} this user?`)) {
-            await updateDoc(doc(db, "users", activeUID), { banned: targetStatus });
+    window.handleBan = async (newStatus) => {
+        if (!currentUID) return;
+        if(confirm(`Are you sure you want to ${newStatus ? 'BAN' : 'UNBAN'} this user?`)) {
+            await updateDoc(doc(db, "users", currentUID), { banned: newStatus });
             alert("Status Changed!");
             location.reload();
         }
