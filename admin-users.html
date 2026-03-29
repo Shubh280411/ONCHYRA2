@@ -1,348 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Admin Users — ONCHYRA</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-
-<style>
-
-*{margin:0;padding:0;box-sizing:border-box}
-
-body{
-font-family:'Inter',sans-serif;
-background:#070816;
-color:white;
-padding:30px;
-}
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
-}
-
-.container{
-max-width:850px;
-margin:auto;
-}
-
-h1{
-font-family:'Manrope';
-margin-bottom:25px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.card{
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-border-radius:16px;
-padding:20px;
-margin-bottom:20px;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-background:rgba(255,255,255,0.08);
-color:white;
-}
-
-button{
-margin-top:12px;
-padding:12px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
-color:#070816;
-font-weight:700;
-cursor:pointer;
-width:100%;
-}
-
-.row{
-display:flex;
-gap:10px;
-}
-
-.smallBtn{
-flex:1;
-}
-
-.ban{
-background:#ef4444;
-color:white;
-}
-
-.unban{
-background:#22c55e;
-color:#022c22;
-}
-
-.info{
-margin-top:10px;
-font-size:15px;
-line-height:1.6;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #070816;
+            color: white;
+            padding: 20px;
+            opacity: 0; /* Hidden until login check */
+            transition: opacity 0.5s;
+        }
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: radial-gradient(circle at 20% 30%, #6d28d933, transparent 40%),
+                        radial-gradient(circle at 80% 70%, #2563eb33, transparent 40%);
+            z-index: -1;
+        }
+        .container { max-width: 550px; margin: auto; }
+        h1 { font-family: 'Manrope'; margin-bottom: 20px; text-align: center; background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; backdrop-filter: blur(10px); }
+        input { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; font-size: 16px; outline: none; border: 1px solid transparent; }
+        input:focus { border-color: #60a5fa; }
+        .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .streak-badge { background: linear-gradient(90deg, #f59e0b, #ef4444); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; margin-left: 8px; }
+        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(167, 139, 250, 0.2); }
+        .level-item span { display: block; font-size: 18px; font-weight: 800; color: #a78bfa; }
+        .level-item label { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+        .row { display: flex; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .primary-btn { background: linear-gradient(135deg,#a78bfa,#60a5fa); color: #070816; }
+        .ban-btn { background: #ef4444; color: white; }
+        .unban-btn { background: #22c55e; color: white; }
+        .quick-pills { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
+        .pill { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    </style>
 </head>
-
 <body>
 
 <div class="container">
+    <h1>ONCHYRA Admin</h1>
 
-<h1>ONCHYRA User Management</h1>
+    <div class="card">
+        <h3>Live User Search 🔍</h3>
+        <input id="search" placeholder="Type Name or Email..." oninput="liveSearch(this.value)">
+        <div id="info" class="info-box">Waiting for input...</div>
+    </div>
 
-<div class="card">
+    <div class="card">
+        <h3>Adjust Balance 💰</h3>
+        <input id="amount" type="number" placeholder="Enter ONC Amount">
+        <div class="quick-pills">
+            <div class="pill" onclick="document.getElementById('amount').value=1">+1</div>
+            <div class="pill" onclick="document.getElementById('amount').value=5">+5</div>
+            <div class="pill" onclick="document.getElementById('amount').value=10">+10</div>
+        </div>
+        <div class="row">
+            <button class="primary-btn" onclick="adjustOnc(true)">Add ONC</button>
+            <button style="background:rgba(255,255,255,0.1); color:white;" onclick="adjustOnc(false)">Remove</button>
+        </div>
+    </div>
 
-<h3>Search User (UID or Email)</h3>
-
-<input id="search" placeholder="Enter UID or Email">
-
-<button onclick="searchUser()">Search</button>
-
-<div class="info" id="info"></div>
-
-</div>
-
-<div class="card">
-
-<h3>Adjust Balance</h3>
-
-<input id="amount" type="number" placeholder="ONC Amount">
-
-<div class="row">
-
-<button class="smallBtn" onclick="addOnc()">Add ONC</button>
-
-<button class="smallBtn" onclick="removeOnc()">Remove ONC</button>
-
-</div>
-
-</div>
-
-<div class="card">
-
-<h3>User Control</h3>
-
-<div class="row">
-
-<button class="smallBtn ban" onclick="banUser()">Ban User</button>
-
-<button class="smallBtn unban" onclick="unbanUser()">Unban User</button>
-
-</div>
-
-</div>
-
+    <div class="card">
+        <h3>Controls 🛡️</h3>
+        <div class="row">
+            <button class="ban-btn" onclick="toggleBan(true)">Ban</button>
+            <button class="unban-btn" onclick="toggleBan(false)">Unban</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-doc,
-getDoc,
-updateDoc,
-collection,
-query,
-where,
-getDocs,
-increment
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const firebaseConfig = {
-
-apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-authDomain: "onchyra.firebaseapp.com",
-projectId: "onchyra",
-storageBucket: "onchyra.firebasestorage.app",
-messagingSenderId: "441822770982",
-appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
-
-};
-
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-const auth = getAuth(app);
-
-/* ADMIN LOGIN CHECK */
-
-onAuthStateChanged(auth,(user)=>{
-
-if(!user){
-
-alert("Admin login required");
-
-window.location="admin-login.html";
-
-}
-
-});
-
-let currentUID=null;
-let currentUser=null;
-
-/* SEARCH USER */
-
-window.searchUser = async()=>{
-
-const value=document.getElementById("search").value.trim();
-
-let userDoc = await getDoc(doc(db,"users",value));
-
-if(userDoc.exists()){
-
-currentUID=value;
-currentUser=userDoc.data();
-
-}else{
-
-const q=query(collection(db,"users"),where("email","==",value));
-
-const snap=await getDocs(q);
-
-if(snap.empty){
-
-info.innerHTML="User not found";
-return;
-
-}
-
-const docSnap=snap.docs[0];
-
-currentUID=docSnap.id;
-currentUser=docSnap.data();
-
-}
-
-showUser();
-
-}
-
-/* SHOW USER INFO */
-
-function showUser(){
-
-info.innerHTML=`
-Name: ${currentUser.name}<br>
-Email: ${currentUser.email}<br>
-Balance: ${currentUser.balance} ONC<br>
-Referrals: ${currentUser.referrals}<br>
-Banned: ${currentUser.banned}
-`;
-
-}
-
-/* ADD ONC */
-
-window.addOnc = async()=>{
-
-if(!currentUID)return alert("Search user first");
-
-const amount=Number(document.getElementById("amount").value);
-
-await updateDoc(doc(db,"users",currentUID),{
-
-balance:increment(amount)
-
-});
-
-currentUser.balance += amount;
-
-showUser();
-
-alert("ONC Added");
-
-}
-
-/* REMOVE ONC */
-
-window.removeOnc = async()=>{
-
-if(!currentUID)return alert("Search user first");
-
-const amount=Number(document.getElementById("amount").value);
-
-await updateDoc(doc(db,"users",currentUID),{
-
-balance:increment(-amount)
-
-});
-
-currentUser.balance -= amount;
-
-showUser();
-
-alert("ONC Removed");
-
-}
-
-/* BAN USER */
-
-window.banUser = async()=>{
-
-if(!currentUID)return alert("Search user first");
-
-await updateDoc(doc(db,"users",currentUID),{
-
-banned:true
-
-});
-
-currentUser.banned=true;
-
-showUser();
-
-alert("User banned");
-
-}
-
-/* UNBAN USER */
-
-window.unbanUser = async()=>{
-
-if(!currentUID)return alert("Search user first");
-
-await updateDoc(doc(db,"users",currentUID),{
-
-banned:false
-
-});
-
-currentUser.banned=false;
-
-showUser();
-
-alert("User unbanned");
-
-}
-
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUID = null;
+    let currentUser = null;
+
+    // --- LOGIN CHECK ---
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            alert("Admin login required!");
+            window.location.href = "admin-login.html";
+        } else {
+            document.body.style.opacity = "1";
+        }
+    });
+
+    // --- LIVE SEARCH ---
+    window.liveSearch = async (val) => {
+        if (val.length < 3) return;
+        const q = query(collection(db, "users"), where("name", ">=", val), where("name", "<=", val + '\uf8ff'));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            currentUID = snap.docs[0].id;
+            currentUser = snap.docs[0].data();
+            showUser();
+        } else {
+            const qE = query(collection(db, "users"), where("email", "==", val));
+            const snapE = await getDocs(qE);
+            if(!snapE.empty) {
+                currentUID = snapE.docs[0].id;
+                currentUser = snapE.docs[0].data();
+                showUser();
+            }
+        }
+    };
+
+    function showUser() {
+        const info = document.getElementById("info");
+        info.innerHTML = `
+            <div style="font-size: 18px; font-weight: 700;">${currentUser.name} ${currentUser.streak > 0 ? `<span class="streak-badge">🔥 ${currentUser.streak}</span>` : ''}</div>
+            <div style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">${currentUser.email}</div>
+            <div style="font-size: 14px;">Balance: <b>${parseFloat(currentUser.balance).toFixed(4)} ONC</b></div>
+            <div class="level-grid">
+                <div class="level-item"><label>L1</label><span>${currentUser.l1 || 0}</span></div>
+                <div class="level-item"><label>L2</label><span>${currentUser.l2 || 0}</span></div>
+                <div class="level-item"><label>L3</label><span>${currentUser.l3 || 0}</span></div>
+            </div>
+        `;
+    }
+
+    // --- ACTIONS ---
+    window.adjustOnc = async (isAdd) => {
+        if (!currentUID) return alert("Search user first!");
+        const amt = parseFloat(document.getElementById("amount").value);
+        if (isNaN(amt)) return;
+        const final = isAdd ? amt : -amt;
+        await updateDoc(doc(db, "users", currentUID), { balance: increment(final) });
+        currentUser.balance += final;
+        showUser();
+        alert("Done!");
+    };
+
+    window.toggleBan = async (status) => {
+        if (!currentUID) return;
+        await updateDoc(doc(db, "users", currentUID), { banned: status });
+        alert(status ? "User Banned!" : "User Unbanned!");
+    };
 </script>
-
 </body>
 </html>
