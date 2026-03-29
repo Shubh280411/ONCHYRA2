@@ -3,44 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONCHYRA Admin — Fixed Control</title>
+    <title>Admin Control — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #070816; color: white; padding: 20px; opacity: 0; transition: opacity 0.5s; }
+        body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; opacity: 0; transition: opacity 0.5s; }
         .container { max-width: 500px; margin: auto; }
-        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; }
-        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(10px); }
+        h1 { text-align: center; margin-bottom: 20px; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; transition: 0.3s; }
+        input:focus { background: rgba(255,255,255,0.15); box-shadow: 0 0 0 2px #3b82f6; }
         
-        /* Dropdown Suggestions */
-        .search-results { 
-            position: absolute; top: 100%; left: 0; width: 100%; 
-            background: #1a1b3a; border: 1px solid #3b82f6; border-radius: 12px; 
-            max-height: 250px; overflow-y: auto; z-index: 999; display: none; margin-top: 5px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
+        /* Search List */
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid #3b82f6; border-radius: 12px; max-height: 250px; overflow-y: auto; z-index: 999; display: none; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .search-item:hover { background: #2563eb; }
-        .search-item b { color: #fff; display: block; }
-        .search-item span { font-size: 11px; color: #cbd5e1; }
+        .search-item:hover { background: #3b82f6; }
+        .search-item b { display: block; color: #fff; }
+        .search-item span { font-size: 11px; color: #94a3b8; }
 
+        /* Kundali UI */
         .info-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
-        .total-team { background: rgba(59, 130, 246, 0.2); padding: 10px; border-radius: 12px; text-align: center; margin: 15px 0; color: #60a5fa; font-weight: bold; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+        .banned { background: #ef4444; color: white; }
+        .active { background: #22c55e; color: white; }
+        .total-team { background: rgba(96, 165, 250, 0.1); border: 1px dashed #3b82f6; padding: 12px; border-radius: 12px; text-align: center; margin: 15px 0; color: #60a5fa; font-weight: bold; font-size: 18px; }
         .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .level-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .level-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+        .level-item small { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+        .level-item b { font-size: 18px; color: #a78bfa; display: block; }
+
         .row { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .primary-btn { background: #3b82f6; color: white; }
+        .primary-btn:hover { background: #2563eb; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; margin-bottom:20px;">Admin Control</h1>
+    <h1>ONCHYRA Panel 🛰️</h1>
 
     <div class="card">
-        <h3>Find Miner ⚡</h3>
-        <input id="search" placeholder="Type Name or Email..." oninput="fetchUsers(this.value)" autocomplete="off">
+        <h3>Search Miner 🕵️‍♂️</h3>
+        <input id="search" placeholder="Enter Name or Email..." oninput="fetchUsers(this.value)" autocomplete="off">
         <div id="searchResults" class="search-results"></div>
 
         <div id="info" class="info-box">
@@ -48,22 +53,21 @@
     </div>
 
     <div class="card" id="actions" style="display:none;">
-        <h3>Manage Balance</h3>
-        <input id="amount" type="number" placeholder="Enter Amount">
+        <h3>Manage User ⚙️</h3>
+        <input id="amount" type="number" placeholder="Enter ONC Amount">
         <div class="row">
-            <button class="primary-btn" onclick="updateOnc(true)">Add ONC</button>
-            <button style="background:#475569; color:white;" onclick="updateOnc(false)">Remove</button>
+            <button class="primary-btn" onclick="updateOnc(true)">Add Balance</button>
+            <button style="background:#334155; color:white;" onclick="updateOnc(false)">Remove</button>
         </div>
         <div class="row">
-            <button style="background:#ef4444; color:white;" onclick="ban(true)">Ban User</button>
-            <button style="background:#22c55e; color:white;" onclick="ban(false)">Unban</button>
+            <button id="banBtn" onclick="toggleBan()"></button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, where, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -87,7 +91,6 @@
         else document.body.style.opacity = "1";
     });
 
-    // --- SMART FETCH LOGIC ---
     window.fetchUsers = async (val) => {
         const resDiv = document.getElementById("searchResults");
         if (val.length < 2) { resDiv.style.display = "none"; return; }
@@ -99,19 +102,18 @@
 
             snap.forEach(d => {
                 const u = d.data();
-                const nameMatch = u.name && u.name.toLowerCase().includes(val.toLowerCase());
-                const emailMatch = u.email && u.email.toLowerCase().includes(val.toLowerCase());
+                const match = (u.name && u.name.toLowerCase().includes(val.toLowerCase())) || 
+                              (u.email && u.email.toLowerCase().includes(val.toLowerCase()));
 
-                if (nameMatch || emailMatch) {
+                if (match) {
                     found = true;
                     const item = document.createElement("div");
                     item.className = "search-item";
-                    item.innerHTML = `<b>${u.name}</b><span>${u.email}</span>`;
+                    item.innerHTML = `<b>${u.name || 'No Name'}</b><span>${u.email}</span>`;
                     item.onclick = () => selectUser(d.id, u);
                     resDiv.appendChild(item);
                 }
             });
-
             resDiv.style.display = found ? "block" : "none";
         } catch (e) { console.error(e); }
     };
@@ -124,36 +126,56 @@
         document.getElementById("info").style.display = "block";
         document.getElementById("actions").style.display = "block";
 
+        // Team Logic: Fetching from all possible field names
         const l1 = Number(data.l1 || data.referrals || 0);
-        const l2 = Number(data.l2 || 0);
-        const l3 = Number(data.l3 || 0);
+        const l2 = Number(data.l2 || data.referrals_l2 || 0);
+        const l3 = Number(data.l3 || data.referrals_l3 || 0);
+        const isBanned = data.banned === true;
+
+        const banBtn = document.getElementById("banBtn");
+        banBtn.innerText = isBanned ? "✅ UNBAN USER" : "🚫 BAN USER";
+        banBtn.style.background = isBanned ? "#22c55e" : "#ef4444";
+        banBtn.style.color = "white";
 
         document.getElementById("info").innerHTML = `
-            <h2>${data.name} ${data.streak ? '🔥'+data.streak : ''}</h2>
-            <p style="color:#94a3b8; font-size:12px;">UID: ${uid}</p>
-            <p style="margin-top:10px;">Balance: <b style="color:#60a5fa">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
-            <div class="total-team">Team Size: ${l1 + l2 + l3}</div>
+            <div class="status-badge ${isBanned ? 'banned' : 'active'}">
+                ${isBanned ? 'BANNED' : 'ACTIVE MINER'}
+            </div>
+            <h2 style="font-size:24px;">${data.name} ${data.streak ? '🔥'+data.streak : ''}</h2>
+            <p style="color:#94a3b8; font-size:12px; margin-bottom:10px;">UID: ${uid}</p>
+            
+            <p>Balance: <b style="color:#60a5fa; font-size:18px;">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
+            
+            <div class="total-team">Total Team: ${l1 + l2 + l3}</div>
+            
             <div class="level-grid">
-                <div class="level-item"><small>L1</small><br><b>${l1}</b></div>
-                <div class="level-item"><small>L2</small><br><b>${l2}</b></div>
-                <div class="level-item"><small>L3</small><br><b>${l3}</b></div>
+                <div class="level-item"><small>L1 (Direct)</small><b>${l1}</b></div>
+                <div class="level-item"><small>L2 (Sub)</small><b>${l2}</b></div>
+                <div class="level-item"><small>L3 (Deep)</small><b>${l3}</b></div>
             </div>
         `;
     }
 
     window.updateOnc = async (isAdd) => {
         const amt = parseFloat(document.getElementById("amount").value);
-        if (!currentUID || isNaN(amt)) return alert("Check user/amount!");
+        if (!currentUID || isNaN(amt)) return alert("Select user & enter amount!");
         const change = isAdd ? amt : -amt;
-        await updateDoc(doc(db, "users", currentUID), { balance: increment(change) });
-        alert("Balance Updated!");
-        location.reload(); // Refresh to see changes
+        
+        if(confirm(`Confirm ${isAdd?'Add':'Remove'} ${amt} ONC?`)) {
+            await updateDoc(doc(db, "users", currentUID), { balance: increment(change) });
+            alert("Success! Reloading...");
+            location.reload();
+        }
     };
 
-    window.ban = async (status) => {
+    window.toggleBan = async () => {
         if (!currentUID) return;
-        await updateDoc(doc(db, "users", currentUID), { banned: status });
-        alert(status ? "User Banned" : "User Unbanned");
+        const newStatus = !currentUser.banned;
+        if(confirm(`Sure you want to ${newStatus ? 'BAN' : 'UNBAN'} this user?`)) {
+            await updateDoc(doc(db, "users", currentUID), { banned: newStatus });
+            alert("Status Updated!");
+            location.reload();
+        }
     };
 </script>
 </body>
