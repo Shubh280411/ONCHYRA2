@@ -1,358 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA PowerDrop Dashboard | Admin</title>
 
-<title>ONCHYRA PowerDrop Participants</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
-
-body{
-font-family:'Inter',sans-serif;
-background:#070816;
-color:white;
-padding:30px;
+:root {
+  --bg-dark: #070816;
+  --primary-gradient: linear-gradient(135deg, #a78bfa, #60a5fa);
+  --success-color: #22c55e; /* Bright Green for Winners */
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
 }
 
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
 }
 
-.container{
-max-width:1000px;
-margin:auto;
+/* Moving Glow Background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 15% 25%, rgba(109, 40, 217, 0.3), transparent 35%),
+    radial-gradient(circle at 85% 75%, rgba(37, 99, 235, 0.3), transparent 35%);
+  z-index: -1;
+  animation: bgPulse 15s infinite alternate;
 }
 
-h1{
-font-family:'Manrope';
-margin-bottom:20px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+@keyframes bgPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
 }
 
-.card{
-background:rgba(255,255,255,0.05);
-border-radius:16px;
-padding:20px;
-margin-bottom:20px;
+.container {
+  max-width: 1100px;
+  margin: auto;
 }
 
-select{
-width:100%;
-padding:12px;
-border:none;
-border-radius:8px;
-background:rgba(255,255,255,0.08);
-color:white;
-margin-top:10px;
+/* Header & Stats Section */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-button{
-padding:12px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
-color:#070816;
-font-weight:700;
-cursor:pointer;
-margin-top:10px;
+h1 {
+  font-family: 'Manrope';
+  font-weight: 800;
+  font-size: 2.5rem;
+  margin: 0;
+  background: linear-gradient(90deg, #c7d2fe, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.row{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
+.stats-container {
+  display: flex;
+  gap: 15px;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:15px;
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px 20px;
+  min-width: 140px;
+  text-align: center;
+  backdrop-filter: blur(10px);
 }
 
-th,td{
-padding:12px;
-border-bottom:1px solid rgba(255,255,255,0.1);
-text-align:left;
+.stat-val {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: 'Manrope';
 }
 
-th{
-opacity:0.7;
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.small{
-font-size:13px;
-opacity:0.8;
-margin-bottom:10px;
+/* Controls Card */
+.card-controls {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 25px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.selector-grp label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+button {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  color: var(--bg-dark);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* Tables Section */
+.tables-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 25px;
+}
+
+.card-table {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.card-title {
+  font-family: 'Manrope';
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.table-wrapper {
+  max-height: 450px;
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: rgba(20, 20, 30, 1);
+  padding: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: left;
+  letter-spacing: 1px;
+}
+
+td {
+  padding: 14px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Specific Tweeks */
+td.addy {
+ font-family: 'Courier New', monospace;
+ font-size: 13px;
+ color: var(--text-muted);
+}
+
+#winnerTable tr {
+  background: rgba(34, 197, 94, 0.05); /* Winner tint */
+}
+
+#winnerTable td {
+  border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+#winnerTable .name-cell {
+ color: var(--success-color);
+ font-weight: 600;
 }
 
 </style>
-
 </head>
-
 <body>
 
 <div class="container">
 
-<h1>PowerDrop Participants</h1>
+  <div class="header-row">
+    <h1>ONCHYRA Dashboard</h1>
+    
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-val" id="totalCount">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="todayCount">0</div>
+        <div class="stat-label">Joined Today</div>
+      </div>
+    </div>
+  </div>
 
-<div class="card">
+  <div class="card-controls">
+    <div class="selector-grp">
+      <label>ACTIVE POWERDROP EVENT</label>
+      <select id="eventSelect"></select>
+    </div>
+    
+    <div class="action-row">
+      <button class="btn-primary" onclick="pickWinners()">🎉 Pick Winners</button>
+      <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
 
-<div class="small">Select PowerDrop Event</div>
+  <div class="tables-grid">
+    
+    <div class="card-table participant-card">
+      <div class="card-title">Event Participants</div>
+      <div class="table-wrapper ParticipantWrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>USER NAME</th>
+              <th>USDT ADDRESS</th>
+              <th>JOINED AT</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
 
-<select id="eventSelect"></select>
+    <div class="card-table winners-card">
+      <div class="card-title">Selected Winners 🏆</div>
+      <div class="table-wrapper WinnerWrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>WINNER NAME</th>
+              <th>USDT ADDRESS</th>
+            </tr>
+          </thead>
+          <tbody id="winnerTable"></tbody>
+        </table>
+      </div>
+    </div>
 
-<div class="row">
-
-<button onclick="pickWinners()">Pick Winners</button>
-
-<button onclick="exportCSV()">Export Winners CSV</button>
-
-</div>
-
-</div>
-
-<div class="card">
-
-<h3>Participants</h3>
-
-<table>
-
-<thead>
-<tr>
-<th>UID</th>
-<th>USDT Address</th>
-<th>Joined</th>
-</tr>
-</thead>
-
-<tbody id="tableBody"></tbody>
-
-</table>
-
-</div>
-
-<div class="card">
-
-<h3>Selected Winners</h3>
-
-<table>
-
-<thead>
-<tr>
-<th>UID</th>
-<th>USDT Address</th>
-</tr>
-</thead>
-
-<tbody id="winnerTable"></tbody>
-
-</table>
-
-</div>
+  </div>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+// Firebase Config (Safely Kept)
 const firebaseConfig = {
-
-apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-authDomain: "onchyra.firebaseapp.com",
-projectId: "onchyra",
-storageBucket: "onchyra.firebasestorage.app",
-messagingSenderId: "441822770982",
-appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
-
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra",
+  storageBucket: "onchyra.firebasestorage.app",
+  messagingSenderId: "441822770982",
+  appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
-
 const auth = getAuth(app);
 
-const eventSelect=document.getElementById("eventSelect");
-const tableBody=document.getElementById("tableBody");
-const winnerTable=document.getElementById("winnerTable");
+const eventSelect = document.getElementById("eventSelect");
+const tableBody = document.getElementById("tableBody");
+const winnerTable = document.getElementById("winnerTable");
+const totalCountEl = document.getElementById("totalCount");
+const todayCountEl = document.getElementById("todayCount");
 
-let participants=[];
-let winners=[];
+let participants = [];
+let winners = [];
 
-/* ADMIN LOGIN CHECK */
-
-onAuthStateChanged(auth,(user)=>{
-
-if(!user){
-
-window.location="admin-login.html";
-
-}
-
+/* 🔒 ADMIN LOGIN CHECK */
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location = "admin-login.html"; // Ensure this page exists!
+  }
 });
 
-/* LOAD POWERDROPS */
-
-async function loadEvents(){
-
-const snap=await getDocs(collection(db,"powerdrops"));
-
-snap.forEach(doc=>{
-
-const data=doc.data();
-
-const option=document.createElement("option");
-
-option.value=doc.id;
-option.textContent=data.title;
-
-eventSelect.appendChild(option);
-
-});
-
-loadParticipants(eventSelect.value);
-
+/* 🚀 LOAD POWERDROP EVENTS */
+async function loadEvents() {
+  const snap = await getDocs(collection(db, "powerdrops"));
+  snap.forEach(doc => {
+    const data = doc.data();
+    const option = document.createElement("option");
+    option.value = doc.id;
+    option.textContent = data.title;
+    eventSelect.appendChild(option);
+  });
+  if(eventSelect.value) loadParticipants(eventSelect.value);
 }
-
 loadEvents();
 
-/* EVENT CHANGE */
-
-eventSelect.addEventListener("change",()=>{
-
-loadParticipants(eventSelect.value);
-
+/* EVENT CHANGE LISTENER */
+eventSelect.addEventListener("change", () => {
+  loadParticipants(eventSelect.value);
 });
 
-/* LOAD PARTICIPANTS */
-
-async function loadParticipants(eventId){
-
-participants=[];
-
-tableBody.innerHTML="";
-
-const ref=collection(db,"powerdrops",eventId,"participants");
-
-const snap=await getDocs(ref);
-
-snap.forEach(doc=>{
-
-const d=doc.data();
-
-participants.push(d);
-
-tableBody.innerHTML+=`
-
-<tr>
-
-<td>${d.uid}</td>
-
-<td>${d.address}</td>
-
-<td>${new Date(d.joinedAt.seconds*1000).toLocaleString()}</td>
-
-</tr>
-
-`;
-
-});
-
+/* Fetch Real User Name from Firebase (Uses UID to find User Doc) */
+async function getUserName(uid) {
+    try {
+        const userDoc = await getDoc(doc(db, "users", uid)); // Assumes your users are in a "users" collection
+        if (userDoc.exists()) {
+            return userDoc.data().name || "Unknown User"; // Adjust based on your user doc field
+        } else {
+            return "User Not Found";
+        }
+    } catch (error) {
+        return "Error Loading Name";
+    }
 }
 
-/* PICK RANDOM WINNERS */
+/* 👥 LOAD PARTICIPANTS & UPDATE STATS */
+async function loadParticipants(eventId) {
+  participants = [];
+  tableBody.innerHTML = "<tr><td colspan='3'>Loading participants...</td></tr>";
+  totalCountEl.textContent = "0";
+  todayCountEl.textContent = "0";
 
-window.pickWinners = ()=>{
+  let todayCounter = 0;
+  const todayDate = new Date().toDateString();
 
-const winnersCount = prompt("Enter number of winners");
+  const ref = collection(db, "powerdrops", eventId, "participants");
+  const snap = await getDocs(ref);
+  
+  // Update Total Count
+  totalCountEl.textContent = snap.size; 
 
-if(!winnersCount) return;
+  let participantHTML = "";
+  
+  for (const docSnap of snap.docs) {
+      const d = docSnap.data();
+      const joinedDateObj = new Date(d.joinedAt.seconds * 1000);
+      
+      // Update Today Count
+      if(joinedDateObj.toDateString() === todayDate) {
+          todayCounter++;
+      }
+      
+      // 2nd Add: Fetch Name instead of UID
+      const userName = await getUserName(d.uid); 
+      
+      const participantData = {
+          name: userName,
+          address: d.address,
+          joinedStr: joinedDateObj.toLocaleString()
+      };
+      
+      participants.push(participantData);
 
-winners=[];
+      participantHTML += `
+          <tr>
+            <td class="name-cell">${participantData.name}</td>
+            <td class="addy">${participantData.address}</td>
+            <td>${participantData.joinedStr}</td>
+          </tr>
+      `;
+  }
 
-let shuffled=[...participants].sort(()=>0.5-Math.random());
-
-winners=shuffled.slice(0,winnersCount);
-
-winnerTable.innerHTML="";
-
-winners.forEach(w=>{
-
-winnerTable.innerHTML+=`
-
-<tr>
-
-<td>${w.uid}</td>
-
-<td>${w.address}</td>
-
-</tr>
-
-`;
-
-});
-
+  // Update DOM with full list and final today count
+  tableBody.innerHTML = participantHTML;
+  todayCountEl.textContent = todayCounter;
 }
 
-/* EXPORT CSV */
+/* 🎉 PICK RANDOM WINNERS */
+window.pickWinners = () => {
+  if (participants.length === 0) return alert("Pehle participants load karo!");
+  const winnersCount = prompt("Number of winners kitne pick karein?");
+  if (!winnersCount || winnersCount <= 0) return;
 
-window.exportCSV = ()=>{
+  winners = [];
+  // Shuffle all participants
+  let shuffled = [...participants].sort(() => 0.5 - Math.random());
+  
+  // Pick requested number of winners
+  winners = shuffled.slice(0, winnersCount);
 
-if(winners.length===0){
-
-alert("Pick winners first");
-
-return;
-
+  winnerTable.innerHTML = "";
+  winners.forEach(w => {
+    winnerTable.innerHTML += `
+        <tr>
+          <td class="name-cell">${w.name}</td>
+          <td class="addy">${w.address}</td>
+        </tr>
+    `;
+  });
 }
 
-let csv="UID,Address\n";
-
-winners.forEach(w=>{
-
-csv+=`${w.uid},${w.address}\n`;
-
-});
-
-const blob=new Blob([csv],{type:"text/csv"});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="powerdrop-winners.csv";
-
-a.click();
-
+/* 📥 EXPORT WINNERS CSV */
+window.exportCSV = () => {
+  if (winners.length === 0) return alert("Winners pick karo pehle!");
+  let csv = "Winner Name,USDT Address\n";
+  winners.forEach(w => {
+    csv += `${w.name},${w.address}\n`;
+  });
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `onchyra-winners-${new Date().toLocaleDateString()}.csv`;
+  a.click();
 }
 
 </script>
-
 </body>
 </html>
