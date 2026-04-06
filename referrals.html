@@ -18,13 +18,13 @@
         .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 15px; margin-bottom: 20px; text-align: center;}
         .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
 
-        /* MAIN CARDS */
+        /* CARDS */
         .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;}
         .lvl-info h4 { font-size: 14px; color: #fff; }
         .lvl-info p { font-size: 10px; color: #10b981; }
 
-        /* FILTER DROPDOWN */
+        /* FILTER */
         .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
 
         /* HISTORY AREA */
@@ -35,40 +35,46 @@
         .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
         
         .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
-        #loadMoreBtn { width: 100%; padding: 15px; background: transparent; border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center;}
+        
+        /* NEXT PAGE BUTTON (Highlight Kiya Hai) */
+        #loadMoreBtn { 
+            width: 100%; padding: 18px; background: rgba(167,139,250,0.1); 
+            border: none; color: #a78bfa; font-weight: 800; font-size: 14px; 
+            cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.2);
+        }
     </style>
 </head>
 <body>
 
 <div class="nav">
     <a href="dashboard.html" style="color:white; text-decoration:none; font-size:24px;">←</a>
-    <div class="logo">NETWORK</div>
+    <div class="logo">ONCHYRA</div>
     <div style="width:24px;"></div>
 </div>
 
 <div class="code-hero">
-    <span style="font-size:10px; opacity:0.5;">INVITE CODE</span>
+    <span style="font-size:10px; opacity:0.5;">YOUR INVITE CODE</span>
     <div class="big-code" id="bigCode">...</div>
-    <button class="btn-copy" onclick="copyLink()">COPY LINK</button>
+    <button class="btn-copy" onclick="copyLink()">COPY INVITE LINK</button>
 </div>
 
 <div class="main-stats">
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">TOTAL EARNINGS</span>
+    <span style="font-size:10px; opacity:0.4;">TOTAL NETWORK REVENUE</span>
 </div>
 
 <div class="level-list">
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" class="lvl-info">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" class="lvl-info">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" class="lvl-info">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
 </div>
 
 <select class="select-box" id="lvlFilter" onchange="resetAndLoad()">
-    <option value="1">Sort by: Level 1</option>
-    <option value="2">Sort by: Level 2</option>
-    <option value="3">Sort by: Level 3</option>
-    <option value="4">Sort by: Level 4</option>
-    <option value="5">Sort by: Level 5</option>
+    <option value="1">Sort by: Level 1 (Vanguard)</option>
+    <option value="2">Sort by: Level 2 (Guardians)</option>
+    <option value="3">Sort by: Level 3 (Seekers)</option>
+    <option value="4">Sort by: Level 4 (Oracles)</option>
+    <option value="5">Sort by: Level 5 (Phantoms)</option>
 </select>
 
 <div class="history-card">
@@ -102,21 +108,23 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location = "login.html"; return; }
     
     const userSnap = await getDoc(doc(db, "users", user.uid));
-    const d = userSnap.data();
-    myCode = d.referralCode;
-    document.getElementById("bigCode").innerText = myCode;
+    if (userSnap.exists()) {
+        const d = userSnap.data();
+        myCode = d.referralCode;
+        document.getElementById("bigCode").innerText = myCode;
 
-    // Counts from your specific fields
-    const l1 = d.refLevel1 || 0;
-    const l2 = d.refLevel2 || 0;
-    const l3 = d.refLevel3 || 0;
-    
-    document.getElementById("totalEarn").innerText = ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
-    document.getElementById("c1").innerText = l1; document.getElementById("eb1").innerText = (l1*0.25).toFixed(2) + " ONC";
-    document.getElementById("c2").innerText = l2; document.getElementById("eb2").innerText = (l2*0.10).toFixed(2) + " ONC";
-    document.getElementById("c3").innerText = l3; document.getElementById("eb3").innerText = (l3*0.05).toFixed(2) + " ONC";
+        // Counts based on your refLevel fields
+        const l1 = d.refLevel1 || 0;
+        const l2 = d.refLevel2 || 0;
+        const l3 = d.refLevel3 || 0;
+        
+        document.getElementById("totalEarn").innerText = ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
+        document.getElementById("c1").innerText = l1; document.getElementById("eb1").innerText = (l1*0.25).toFixed(2) + " ONC";
+        document.getElementById("c2").innerText = l2; document.getElementById("eb2").innerText = (l2*0.10).toFixed(2) + " ONC";
+        document.getElementById("c3").innerText = l3; document.getElementById("eb3").innerText = (l3*0.05).toFixed(2) + " ONC";
 
-    resetAndLoad();
+        resetAndLoad();
+    }
 });
 
 window.resetAndLoad = () => {
@@ -129,41 +137,57 @@ window.loadData = async () => {
     const lvl = parseInt(document.getElementById("lvlFilter").value);
     const container = document.getElementById("history");
     const btn = document.getElementById("loadMoreBtn");
+    
+    // Loading indicator
+    if (!lastDoc) container.innerHTML = "<p style='padding:20px; text-align:center; opacity:0.5;'>Searching network...</p>";
     btn.style.display = "none";
 
     try {
-        // Bhai, yahan change hai:
-        // L1 check karega 'referredBy'
-        // L2 check karega 'referredByL1' etc.
+        // Bhai, Level check logic:
         let field = (lvl === 1) ? "referredBy" : "referredByL" + (lvl - 1);
         
         let q = query(collection(db, "users"), where(field, "==", myCode), limit(LIMIT));
+        
         if (lastDoc) q = query(q, startAfter(lastDoc));
 
         const snap = await getDocs(q);
         
         if (snap.empty && !lastDoc) {
-            container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3;'>No members found in this layer.</p>";
+            container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">Level ${lvl} currently has no active nodes.</p>`;
             return;
         }
+
+        if (!lastDoc) container.innerHTML = ""; // Clear loading
 
         snap.forEach(s => {
             const u = s.data();
             const div = document.createElement("div");
             div.className = "history-item";
-            div.innerHTML = `<div><span class="h-name">${u.name || 'Anonymous'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl}</div>`;
+            div.innerHTML = `
+                <div>
+                    <span class="h-name">${u.name || 'Anonymous Node'}</span>
+                    <span class="h-email">${u.email || 'Private Email'}</span>
+                </div>
+                <div class="lvl-tag">LEVEL ${lvl}</div>
+            `;
             container.appendChild(div);
             lastDoc = s;
         });
 
-        if (snap.docs.length === LIMIT) btn.style.display = "block";
-    } catch(e) { console.error(e); }
+        // Agar users LIMIT ke barabar hain, toh next page button dikhao
+        if (snap.docs.length === LIMIT) {
+            btn.style.display = "block";
+        }
+    } catch(e) { 
+        console.error(e);
+        container.innerHTML = "<p style='padding:20px; text-align:center; color:#f87171;'>Connection error. Please refresh.</p>";
+    }
 };
 
 window.copyLink = () => {
     const link = window.location.origin + "/register.html?ref=" + myCode;
     navigator.clipboard.writeText(link);
-    alert("Copied! 🚀");
+    alert("Invite Link Copied! 🚀");
 }
 </script>
 
