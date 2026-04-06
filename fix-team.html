@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Fixer — ONCHYRA</title>
+    <style>
+        body { font-family: sans-serif; background: #070816; color: white; padding: 20px; text-align: center; }
+        .box { background: #111; border: 1px solid #333; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; }
+        #status { text-align: left; height: 250px; overflow-y: auto; background: #000; padding: 10px; margin: 15px 0; font-family: monospace; font-size: 11px; border: 1px solid #444; color: #00ff00; }
+        button { background: #ff4757; padding: 15px; width: 100%; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3>Team Count Fixer</h3>
+        <p style="font-size: 12px; opacity: 0.7;">Ye script sabki extra team ko reset karke actual referral count set kar degi.</p>
+        <div id="status">Ready to fix data...</div>
+        <button id="runBtn" onclick="fixTeamCounts()">RECALCULATE ALL TEAMS</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const log = (m) => { const s = document.getElementById("status"); s.innerHTML += `<div>> ${m}</div>`; s.scrollTop = s.scrollHeight; };
+
+    window.fixTeamCounts = async function() {
+        const btn = document.getElementById("runBtn");
+        if(!confirm("Are you sure? This will reset and recount all team members.")) return;
+
+        btn.disabled = true;
+        log("Step 1: Resetting everyone to 0...");
+
+        try {
+            const snap = await getDocs(collection(db, "users"));
+            const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // 1. Pehle Sabka Team Size Zero kar do
+            for (const u of allUsers) {
+                await updateDoc(doc(db, "users", u.id), {
+                    referrals: 0,
+                    refLevel1: 0,
+                    refLevel2: 0,
+                    refLevel3: 0
+                });
+            }
+            log("Reset complete. Recalculating actual structure...");
+
+            // 2. Ab user-by-user referral check karo
+            for (const u of allUsers) {
+                const refBy = u.referredBy;
+                if (refBy) {
+                    log(`Processing referral for: ${u.email}`);
+                    
+                    // Find Level 1
+                    const l1 = allUsers.find(user => user.referralCode === refBy);
+                    if (l1) {
+                        await updateDoc(doc(db, "users", l1.id), {
+                            referrals: increment(1),
+                            refLevel1: increment(1)
+                        });
+
+                        // Find Level 2
+                        if (l1.referredBy) {
+                            const l2 = allUsers.find(user => user.referralCode === l1.referredBy);
+                            if (l2) {
+                                await updateDoc(doc(db, "users", l2.id), {
+                                    refLevel2: increment(1)
+                                });
+
+                                // Find Level 3
+                                if (l2.referredBy) {
+                                    const l3 = allUsers.find(user => user.referralCode === l2.referredBy);
+                                    if (l3) {
+                                        await updateDoc(doc(db, "users", l3.id), {
+                                            refLevel3: increment(1)
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Thoda gap taaki mobile hang na ho
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            log("--- SUCCESS! All Teams Corrected ---");
+            alert("Done! Everyone's team size is now accurate.");
+        } catch (e) {
+            log("Error: " + e.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
