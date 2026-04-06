@@ -8,63 +8,57 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
-        .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-        .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
+        .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa; text-align:center; margin-bottom:20px;}
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
-        .big-code { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
-        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 15px; margin-bottom: 20px; text-align: center;}
+        .big-code { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; color: #a78bfa; letter-spacing: 3px; margin: 10px 0; display:block; }
+        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;}
         .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
-        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;}
-        .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
-        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 100px;}
-        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .h-name { font-weight: 600; font-size: 14px; color: #fff; display: block;}
+        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;}
+        .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px; outline: none; font-weight:600;}
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); min-height: 100px; overflow:hidden;}
+        .history-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .h-name { font-weight: 600; font-size: 14px; color: #fff; display:block;}
         .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
-        .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
-        .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
-        #loadMoreBtn { width: 100%; padding: 15px; background: transparent; border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center;}
+        .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); font-weight:700;}
+        .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; }
+        #status-msg { text-align:center; padding:20px; font-size:12px; opacity:0.5; display:none; }
     </style>
 </head>
 <body>
 
-<div class="nav">
-    <a href="dashboard.html" style="color:white; text-decoration:none; font-size:24px;">←</a>
-    <div class="logo">ONCHYRA</div>
-    <div style="width:24px;"></div>
-</div>
+<div class="logo">ONCHYRA NETWORK</div>
 
 <div class="code-hero">
-    <span style="font-size:10px; opacity:0.5;">INVITE CODE</span>
     <div class="big-code" id="bigCode">...</div>
-    <button class="btn-copy" onclick="copyLink()">COPY LINK</button>
+    <button class="btn-copy" onclick="copyLink()">COPY INVITE LINK</button>
 </div>
 
 <div class="main-stats">
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">TOTAL NETWORK BALANCE</span>
+    <span style="font-size:10px; opacity:0.4;">TOTAL EARNINGS</span>
 </div>
 
-<div class="level-list">
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" style="font-weight:700; color:#60a5fa;">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" style="font-weight:700; color:#60a5fa;">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" style="font-weight:700; color:#60a5fa;">0</div></div>
+<div id="levels">
+    <div class="lvl-card"><div><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" style="font-weight:700;">0</div></div>
+    <div class="lvl-card"><div><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" style="font-weight:700;">0</div></div>
+    <div class="lvl-card"><div><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" style="font-weight:700;">0</div></div>
 </div>
 
-<select class="select-box" id="lvlFilter" onchange="resetAndLoad()">
-    <option value="1">Details: Level 1 (refLevel1)</option>
-    <option value="2">Details: Level 2 (refLevel2)</option>
-    <option value="3">Details: Level 3 (refLevel3)</option>
+<select class="select-box" id="lvlFilter" onchange="renderDetails()">
+    <option value="1">Show Details: Level 1</option>
+    <option value="2">Show Details: Level 2</option>
+    <option value="3">Show Details: Level 3</option>
 </select>
 
 <div class="history-card">
+    <div id="status-msg">Fetching nodes...</div>
     <div id="history"></div>
-    <div id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, getDocs, query, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -79,83 +73,96 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let myCode = "";
-let lastDoc = null;
-const PAGE_LIMIT = 10;
+let myRefCode = "";
+let dataStore = { 1: [], 2: [], 3: [] };
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists()) {
-        const d = snap.data();
-        myCode = d.referralCode;
-        document.getElementById("bigCode").innerText = myCode;
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const userData = userDoc.data();
+    myRefCode = userData.referralCode;
+    document.getElementById("bigCode").innerText = myRefCode;
 
-        // Balance calculation using your specific logic
-        const c1 = d.refLevel1Count || 0; // Agar count alag field mein hai
-        const c2 = d.refLevel2Count || 0;
-        const c3 = d.refLevel3Count || 0;
+    // Load L1-L3 Counts directly from your refLevel fields for the cards
+    const l1_count = userData.refLevel1 || 0;
+    const l2_count = userData.refLevel2 || 0;
+    const l3_count = userData.refLevel3 || 0;
 
-        // Agar counts nahi hain, toh hum manually updateUI mein handle karenge niche
-        resetAndLoad();
-    }
+    document.getElementById("c1").innerText = l1_count;
+    document.getElementById("c2").innerText = l2_count;
+    document.getElementById("c3").innerText = l3_count;
+    document.getElementById("eb1").innerText = (l1_count * 0.25).toFixed(2) + " ONC";
+    document.getElementById("eb2").innerText = (l2_count * 0.10).toFixed(2) + " ONC";
+    document.getElementById("eb3").innerText = (l3_count * 0.05).toFixed(2) + " ONC";
+    document.getElementById("totalEarn").innerText = ((l1_count*0.25)+(l2_count*0.10)+(l3_count*0.05)).toFixed(2) + " ONC";
+
+    // START FETCHING DETAILS
+    fetchAllLevels();
 });
 
-window.resetAndLoad = () => {
-    document.getElementById("history").innerHTML = "";
-    lastDoc = null;
-    loadData();
-};
+async function fetchAllLevels() {
+    document.getElementById("status-msg").style.display = "block";
+    
+    // 1. Fetch Level 1 (Directs)
+    const q1 = query(collection(db, "users"), where("referredBy", "==", myRefCode));
+    const s1 = await getDocs(q1);
+    s1.forEach(d => dataStore[1].push(d.data()));
+    renderDetails(); // Show L1 immediately
 
-window.loadData = async () => {
-    const lvl = parseInt(document.getElementById("lvlFilter").value);
+    // 2. Fetch Level 2 (Based on L1 codes)
+    const l1Codes = dataStore[1].map(u => u.referralCode).filter(c => c);
+    if(l1Codes.length > 0) {
+        // Firebase limits 'in' query to 10-30 items
+        for (let i = 0; i < l1Codes.length; i += 10) {
+            const chunk = l1Codes.slice(i, i + 10);
+            const q2 = query(collection(db, "users"), where("referredBy", "in", chunk));
+            const s2 = await getDocs(q2);
+            s2.forEach(d => dataStore[2].push(d.data()));
+        }
+    }
+
+    // 3. Fetch Level 3 (Based on L2 codes)
+    const l2Codes = dataStore[2].map(u => u.referralCode).filter(c => c);
+    if(l2Codes.length > 0) {
+        for (let i = 0; i < l2Codes.length; i += 10) {
+            const chunk = l2Codes.slice(i, i + 10);
+            const q3 = query(collection(db, "users"), where("referredBy", "in", chunk));
+            const s3 = await getDocs(q3);
+            s3.forEach(d => dataStore[3].push(d.data()));
+        }
+    }
+    
+    document.getElementById("status-msg").style.display = "none";
+}
+
+window.renderDetails = () => {
+    const lvl = document.getElementById("lvlFilter").value;
     const container = document.getElementById("history");
-    const btn = document.getElementById("loadMoreBtn");
-    btn.style.display = "none";
+    container.innerHTML = "";
+    
+    if(dataStore[lvl].length === 0) {
+        container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">No details found for Level ${lvl}.</p>`;
+        return;
+    }
 
-    try {
-        // BHAI YAHAN HAI FIX: Field names exactly refLevel1, refLevel2, refLevel3
-        let fieldName = "refLevel" + lvl;
-        
-        let q = query(collection(db, "users"), where(fieldName, "==", myCode), limit(PAGE_LIMIT));
-        
-        if (lastDoc) q = query(q, startAfter(lastDoc));
-
-        const snap = await getDocs(q);
-        
-        if (snap.empty && !lastDoc) {
-            container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3;'>No users found in this level.</p>";
-            // Update Card Counts if 0
-            document.getElementById("c"+lvl).innerText = "0";
-            document.getElementById("eb"+lvl).innerText = "0.00 ONC";
-            return;
-        }
-
-        // Card update (Approx logic based on results)
-        if(!lastDoc) {
-             document.getElementById("c"+lvl).innerText = snap.size;
-             let rate = lvl===1 ? 0.25 : (lvl===2 ? 0.10 : 0.05);
-             document.getElementById("eb"+lvl).innerText = (snap.size * rate).toFixed(2) + " ONC";
-        }
-
-        snap.forEach(s => {
-            const u = s.data();
-            const div = document.createElement("div");
-            div.className = "history-item";
-            div.innerHTML = `<div><span class="h-name">${u.name || 'User'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl}</div>`;
-            container.appendChild(div);
-            lastDoc = s;
-        });
-
-        if (snap.docs.length === PAGE_LIMIT) btn.style.display = "block";
-    } catch(e) { console.error("Error:", e); }
+    dataStore[lvl].forEach(u => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+            <div>
+                <span class="h-name">${u.name || 'Anonymous'}</span>
+                <span class="h-email">${u.email || 'No Email'}</span>
+            </div>
+            <div class="lvl-tag">LEVEL ${lvl}</div>
+        `;
+        container.appendChild(div);
+    });
 };
 
 window.copyLink = () => {
-    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myCode);
+    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myRefCode);
     alert("Copied! 🚀");
 }
 </script>
 </body>
-    </html>
-    
+</html>
