@@ -1,251 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:50px;}
+        
+        .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-top:10px;}
+        .back-btn{color:#a78bfa; text-decoration:none; font-size:28px; font-weight:700;}
+        .title{font-family:'Space Grotesk';font-size:18px;font-weight:700;}
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        .profile-header { text-align: center; margin-bottom: 25px; }
+        .avatar-wrapper {
+            width: 85px; height: 85px; border-radius: 50%;
+            background: linear-gradient(45deg, #a78bfa, #6366f1);
+            margin: 0 auto 10px; padding: 3px;
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+        .avatar {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: #0a0b1e; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 700; color: #a78bfa;
+        }
 
-<title>Profile — ONCHYRA</title>
+        .rank-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 15px;
+            background: rgba(167, 139, 250, 0.1); border: 1px solid rgba(167, 139, 250, 0.3);
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+        .name-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; }
+        .user-name { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 700; border: none; background: transparent; color: white; text-align: center; width: auto; max-width: 200px; outline: none;}
+        .edit-icon { cursor: pointer; opacity: 0.5; font-size: 14px; color: #a78bfa; }
 
-<style>
+        .joined-at { font-size: 10px; opacity: 0.4; letter-spacing: 1px; }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 18px; text-align: center; }
+        .stat-val { display: block; font-size: 16px; font-weight: 700; color: #10b981; font-family: 'Space Grotesk'; }
+        .stat-label { font-size: 9px; opacity: 0.5; text-transform: uppercase; }
 
-body{
-font-family:Inter;
-background:#070816;
-color:white;
-padding:20px;
-}
+        .info-card { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.04); border-radius: 22px; padding: 5px 20px; margin-bottom: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .info-row:last-child { border: none; }
+        .info-label { font-size: 12px; opacity: 0.5; }
+        .info-value { font-size: 12px; font-weight: 600; color: #fff; }
 
-/* glow background */
-
-body::before{
-content:"";
-position:fixed;
-inset:0;
-background:
-radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
-radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-z-index:-1;
-}
-
-/* header */
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.logo{
-font-family:Manrope;
-font-size:22px;
-background:linear-gradient(90deg,#a78bfa,#60a5fa);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-.back{
-color:#a78bfa;
-text-decoration:none;
-}
-
-/* card */
-
-.card{
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-border-radius:18px;
-padding:25px;
-text-align:center;
-}
-
-/* avatar */
-
-.avatar{
-width:100px;
-height:100px;
-border-radius:50%;
-background:linear-gradient(135deg,#6d28d9,#2563eb);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:40px;
-font-weight:700;
-margin:auto;
-margin-bottom:15px;
-}
-
-/* inputs */
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:10px;
-border:none;
-background:rgba(255,255,255,0.08);
-color:white;
-}
-
-/* balance */
-
-.balance{
-font-size:24px;
-font-weight:700;
-margin:15px 0;
-}
-
-/* buttons */
-
-button{
-width:100%;
-padding:12px;
-margin-top:12px;
-border:none;
-border-radius:12px;
-background:linear-gradient(135deg,#a78bfa,#60a5fa);
-color:#070816;
-font-weight:700;
-cursor:pointer;
-}
-
-.refbox{
-margin-top:15px;
-font-size:14px;
-opacity:0.9;
-word-break:break-all;
-}
-
-</style>
-
+        .action-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .save-btn { background: #10b981; color: #05060f; display: none; }
+        .copy-btn { background: #a78bfa; color: #05060f; }
+        .wa-btn { background: #25d366; color: white; }
+        .logout-btn { color: #ef4444; font-size: 12px; margin-top: 10px; opacity: 0.7; border: none; background: transparent; width: 100%; cursor: pointer;}
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-<a class="back" href="dashboard.html">← Back</a>
-<div class="logo">ONCHYRA</div>
+<div class="nav">
+    <a href="dashboard.html" class="back-btn">←</a>
+    <div class="title">MY NODE</div>
+    <div style="width:30px;"></div>
 </div>
 
-<div class="card">
-
-<div class="avatar" id="avatar">U</div>
-
-<h3 id="displayName">User</h3>
-
-<div class="balance" id="balance">0 ONC</div>
-
-<input id="nameInput" placeholder="Change Name">
-
-<input id="emailInput" disabled>
-
-<button onclick="saveName()">Save Name</button>
-
-<div class="refbox" id="refLink">Loading referral...</div>
-
-<button onclick="copyLink()">Copy Referral Link</button>
-
+<div class="profile-header">
+    <div class="avatar-wrapper"><div class="avatar" id="initials">U</div></div>
+    <div id="rankBadge" class="rank-badge">Loading Rank...</div>
+    <div class="name-container">
+        <input type="text" id="userNameInput" class="user-name" value="Loading..." readonly>
+        <span class="edit-icon" onclick="enableEdit()">✎</span>
+    </div>
+    <div class="joined-at" id="joinedDate">--/--/--</div>
 </div>
+
+<div class="stats-grid">
+    <div class="stat-card"><span class="stat-val" id="totalTeam">0</span><span class="stat-label">Total Team</span></div>
+    <div class="stat-card"><span class="stat-val" id="totalEarn">0.00 ONC</span><span class="stat-label">TOTAL ONC</span></div>
+</div>
+
+<div class="info-card">
+    <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="dispEmail">...</span></div>
+    <div class="info-row"><span class="info-label">Ref Code</span><span class="info-value" id="dispRef" style="color:#a78bfa;">...</span></div>
+</div>
+
+<button id="saveBtn" class="action-btn save-btn" onclick="saveName()">SAVE NEW NAME</button>
+<button class="action-btn copy-btn" onclick="copyLink()">COPY INVITE LINK</button>
+
+<a href="https://chat.whatsapp.com/H0fPOVjfC47Fx7DQ446jqm" target="_blank" class="action-btn wa-btn">
+    JOIN WHATSAPP GROUP 💬
+</a>
+
+<button class="logout-btn" onclick="logout()">LOGOUT ACCOUNT</button>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-getFirestore,
-doc,
-getDoc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig={
-
-apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-authDomain:"onchyra.firebaseapp.com",
-projectId:"onchyra",
-storageBucket:"onchyra.firebasestorage.app",
-messagingSenderId:"441822770982",
-appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
-
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-let uid;
+let currentUid = "";
+let myRefCode = "";
 
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "login.html"; return; }
+    currentUid = user.uid;
 
-if(!user){
-window.location="login.html";
-return;
-}
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+        const d = userDoc.data();
+        myRefCode = d.referralCode;
 
-uid=user.uid;
+        document.getElementById("userNameInput").value = d.name || "User Name";
+        document.getElementById("dispEmail").innerText = d.email;
+        document.getElementById("dispRef").innerText = myRefCode;
+        document.getElementById("initials").innerText = (d.name || "U").charAt(0).toUpperCase();
 
-const snap=await getDoc(doc(db,"users",uid));
-const data=snap.data();
+        if(d.createdAt) {
+            const dateObj = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+            document.getElementById("joinedDate").innerText = `Joined: ${String(dateObj.getDate()).padStart(2,'0')}/${String(dateObj.getMonth()+1).padStart(2,'0')}/${String(dateObj.getFullYear()).slice(-2)}`;
+        }
 
-document.getElementById("displayName").innerText=data.name;
+        const l1 = d.refLevel1 || 0;
+        const l2 = d.refLevel2 || 0;
+        const l3 = d.refLevel3 || 0;
+        const total = l1 + l2 + l3;
+        
+        document.getElementById("totalTeam").innerText = total;
+        document.getElementById("totalEarn").innerText = ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
 
-document.getElementById("avatar").innerText=data.name.charAt(0).toUpperCase();
-
-document.getElementById("nameInput").value=data.name;
-
-document.getElementById("emailInput").value=data.email;
-
-document.getElementById("balance").innerText=(Number(data.balance)||0).toFixed(2)+" ONC";
-
-const link=window.location.origin+"/register.html?ref="+data.referralCode;
-
-document.getElementById("refLink").innerText=link;
-
+        let rankText = "ROOKIE 🛡️";
+        let rankColor = "#a78bfa";
+        if(total >= 500) { rankText = "IMMORTAL 👑"; rankColor = "#f43f5e"; }
+        else if(total >= 300) { rankText = "LEGEND 🔥"; rankColor = "#f59e0b"; }
+        else if(total >= 200) { rankText = "MASTER 🏆"; rankColor = "#10b981"; }
+        else if(total >= 100) { rankText = "ELITE ⚔️"; rankColor = "#60a5fa"; }
+        
+        const rBadge = document.getElementById("rankBadge");
+        rBadge.innerText = rankText;
+        rBadge.style.color = rankColor;
+        rBadge.style.borderColor = rankColor + "55";
+    }
 });
 
-window.saveName=async function(){
+window.enableEdit = () => {
+    const input = document.getElementById("userNameInput");
+    input.readOnly = false;
+    input.focus();
+    input.style.borderBottom = "1px solid #a78bfa";
+    document.getElementById("saveBtn").style.display = "block";
+};
 
-const newName=document.getElementById("nameInput").value;
+window.saveName = async () => {
+    const newName = document.getElementById("userNameInput").value.trim();
+    if(newName === "") return;
+    try {
+        await updateDoc(doc(db, "users", currentUid), { name: newName });
+        alert("Name Updated! ✅");
+        location.reload();
+    } catch (e) { alert("Error updating name!"); }
+};
 
-await updateDoc(doc(db,"users",uid),{
+window.copyLink = () => {
+    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myRefCode);
+    alert("Referral link copied! 🚀");
+};
 
-name:newName
-
-});
-
-document.getElementById("displayName").innerText=newName;
-
-document.getElementById("avatar").innerText=newName.charAt(0).toUpperCase();
-
-alert("Name updated");
-
-}
-
-window.copyLink=function(){
-
-const link=document.getElementById("refLink").innerText;
-
-navigator.clipboard.writeText(link);
-
-alert("Referral link copied");
-
-}
-
+window.logout = () => { if(confirm("Logout?")) signOut(auth).then(() => window.location.href="login.html"); };
 </script>
-
 </body>
-</html>
+      </html>
+      
