@@ -9,39 +9,33 @@
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
         
-        /* HEADER */
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
         .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
 
-        /* CODE BOX */
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
         .big-code { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
         
-        /* MAIN REVENUE */
         .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 15px; margin-bottom: 20px; text-align: center;}
         .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
 
-        /* CARDS */
+        /* MAIN CARDS */
         .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;}
-        .lvl-info h4 { font-size: 14px; color: #fff; margin-bottom: 2px;}
-        .lvl-info p { font-size: 10px; color: #10b981; font-weight: 600; }
-        .lvl-count { font-weight: 700; color: #60a5fa; font-size: 16px; text-align: right;}
-        .lvl-count span { display: block; font-size: 9px; opacity: 0.4; color: white; }
+        .lvl-info h4 { font-size: 14px; color: #fff; }
+        .lvl-info p { font-size: 10px; color: #10b981; }
 
         /* FILTER DROPDOWN */
         .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
 
-        /* HISTORY LIST */
+        /* HISTORY AREA */
         .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 100px;}
         .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .h-info { display: flex; flex-direction: column; gap: 2px; }
-        .h-name { font-weight: 600; font-size: 14px; color: #fff; }
+        .h-name { font-weight: 600; font-size: 14px; color: #fff; display: block;}
         .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
         .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
         
         .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
-        #loadMoreBtn { width: 100%; padding: 15px; background: transparent; border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; }
+        #loadMoreBtn { width: 100%; padding: 15px; background: transparent; border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center;}
     </style>
 </head>
 <body>
@@ -53,7 +47,7 @@
 </div>
 
 <div class="code-hero">
-    <span style="font-size:10px; opacity:0.5;">INVITATION CODE</span>
+    <span style="font-size:10px; opacity:0.5;">INVITE CODE</span>
     <div class="big-code" id="bigCode">...</div>
     <button class="btn-copy" onclick="copyLink()">COPY LINK</button>
 </div>
@@ -64,31 +58,22 @@
 </div>
 
 <div class="level-list">
-    <div class="lvl-card">
-        <div class="lvl-info"><h4>Vanguard (L1)</h4><p id="eb1">0.00 ONC</p></div>
-        <div class="lvl-count"><span id="c1">0</span><span>Users</span></div>
-    </div>
-    <div class="lvl-card">
-        <div class="lvl-info"><h4>Guardians (L2)</h4><p id="eb2">0.00 ONC</p></div>
-        <div class="lvl-count"><span id="c2">0</span><span>Users</span></div>
-    </div>
-    <div class="lvl-card">
-        <div class="lvl-info"><h4>Seekers (L3)</h4><p id="eb3">0.00 ONC</p></div>
-        <div class="lvl-count"><span id="c3">0</span><span>Users</span></div>
-    </div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" class="lvl-info">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" class="lvl-info">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" class="lvl-info">0</div></div>
 </div>
 
 <select class="select-box" id="lvlFilter" onchange="resetAndLoad()">
-    <option value="1">Sort: Level 1 Members</option>
-    <option value="2">Sort: Level 2 Members</option>
-    <option value="3">Sort: Level 3 Members</option>
-    <option value="4">Sort: Level 4 Members</option>
-    <option value="5">Sort: Level 5 Members</option>
+    <option value="1">Sort by: Level 1</option>
+    <option value="2">Sort by: Level 2</option>
+    <option value="3">Sort by: Level 3</option>
+    <option value="4">Sort by: Level 4</option>
+    <option value="5">Sort by: Level 5</option>
 </select>
 
 <div class="history-card">
     <div id="history"></div>
-    <button id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</button>
+    <div id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</div>
 </div>
 
 <script type="module">
@@ -109,32 +94,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let myRefCode = "";
+let myCode = "";
 let lastDoc = null;
-const PAGE_SIZE = 10;
-const tags = ["", "L1", "L2", "L3", "L4", "L5"];
+const LIMIT = 10;
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location = "login.html"; return; }
     
     const userSnap = await getDoc(doc(db, "users", user.uid));
     const d = userSnap.data();
-    myRefCode = d.referralCode;
-    document.getElementById("bigCode").innerText = myRefCode;
+    myCode = d.referralCode;
+    document.getElementById("bigCode").innerText = myCode;
 
-    // Calc Earnings
-    const c1 = d.refLevel1 || 0;
-    const c2 = d.refLevel2 || 0;
-    const c3 = d.refLevel3 || 0;
+    // Counts from your specific fields
+    const l1 = d.refLevel1 || 0;
+    const l2 = d.refLevel2 || 0;
+    const l3 = d.refLevel3 || 0;
     
-    const e1 = c1 * 0.25;
-    const e2 = c2 * 0.10;
-    const e3 = c3 * 0.05;
-
-    document.getElementById("totalEarn").innerText = (e1+e2+e3).toFixed(2) + " ONC";
-    document.getElementById("c1").innerText = c1; document.getElementById("eb1").innerText = e1.toFixed(2) + " ONC";
-    document.getElementById("c2").innerText = c2; document.getElementById("eb2").innerText = e2.toFixed(2) + " ONC";
-    document.getElementById("c3").innerText = c3; document.getElementById("eb3").innerText = e3.toFixed(2) + " ONC";
+    document.getElementById("totalEarn").innerText = ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
+    document.getElementById("c1").innerText = l1; document.getElementById("eb1").innerText = (l1*0.25).toFixed(2) + " ONC";
+    document.getElementById("c2").innerText = l2; document.getElementById("eb2").innerText = (l2*0.10).toFixed(2) + " ONC";
+    document.getElementById("c3").innerText = l3; document.getElementById("eb3").innerText = (l3*0.05).toFixed(2) + " ONC";
 
     resetAndLoad();
 });
@@ -152,48 +132,36 @@ window.loadData = async () => {
     btn.style.display = "none";
 
     try {
-        // Bhai, 'referredByL0' jaisa kuch nahi hota, L1 ke liye 'referredBy' field hai
-        let field = lvl === 1 ? "referredBy" : "referredByL" + (lvl - 1);
+        // Bhai, yahan change hai:
+        // L1 check karega 'referredBy'
+        // L2 check karega 'referredByL1' etc.
+        let field = (lvl === 1) ? "referredBy" : "referredByL" + (lvl - 1);
         
-        let q = query(collection(db, "users"), where(field, "==", myRefCode), limit(PAGE_SIZE));
-        
-        if (lastDoc) {
-            q = query(q, startAfter(lastDoc));
-        }
+        let q = query(collection(db, "users"), where(field, "==", myCode), limit(LIMIT));
+        if (lastDoc) q = query(q, startAfter(lastDoc));
 
         const snap = await getDocs(q);
         
         if (snap.empty && !lastDoc) {
-            container.innerHTML = "<p style='padding:40px; text-align:center; opacity:0.3; font-size:12px;'>No users found in Level " + lvl + "</p>";
+            container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3;'>No members found in this layer.</p>";
             return;
         }
 
-        snap.forEach(docSnap => {
-            const u = docSnap.data();
+        snap.forEach(s => {
+            const u = s.data();
             const div = document.createElement("div");
             div.className = "history-item";
-            div.innerHTML = `
-                <div class="h-info">
-                    <span class="h-name">${u.name || 'Anonymous'}</span>
-                    <span class="h-email">${u.email || 'No Email'}</span>
-                </div>
-                <div class="lvl-tag">${tags[lvl]} Member</div>
-            `;
+            div.innerHTML = `<div><span class="h-name">${u.name || 'Anonymous'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl}</div>`;
             container.appendChild(div);
-            lastDoc = docSnap;
+            lastDoc = s;
         });
 
-        if (snap.docs.length === PAGE_SIZE) {
-            btn.style.display = "block";
-        }
-    } catch(e) {
-        console.error("Query Error:", e);
-        container.innerHTML = "<p style='padding:20px; text-align:center; color:red;'>Sync Error. Check Database Fields.</p>";
-    }
+        if (snap.docs.length === LIMIT) btn.style.display = "block";
+    } catch(e) { console.error(e); }
 };
 
 window.copyLink = () => {
-    const link = window.location.origin + "/register.html?ref=" + myRefCode;
+    const link = window.location.origin + "/register.html?ref=" + myCode;
     navigator.clipboard.writeText(link);
     alert("Copied! 🚀");
 }
