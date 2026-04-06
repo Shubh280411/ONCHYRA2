@@ -3,140 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Referral Center — ONCHYRA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <title>Network Hub — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Inter;background:#070816;color:white;padding:20px;padding-bottom:100px;}
-        .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-        .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
         
-        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:22px;margin-bottom:20px;position:relative;overflow:hidden;}
+        .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px; padding: 5px;}
+        .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
+
+        /* BIG REFERRAL CODE BOX */
+        .code-hero { 
+            background: linear-gradient(145deg, #1e1b4b, #0a0b1e); 
+            border: 2px solid rgba(167,139,250,0.3); 
+            border-radius: 28px; padding: 30px 20px; 
+            text-align: center; margin-bottom: 20px;
+        }
+        .code-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px; display: block; }
+        .big-code { 
+            font-family: 'Space Grotesk'; font-size: 40px; font-weight: 800; 
+            color: #a78bfa; letter-spacing: 5px; display: block;
+            text-shadow: 0 0 20px rgba(167,139,250,0.4);
+        }
         
-        /* GLOW EFFECT */
-        .card::after { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%); z-index: 0; pointer-events: none; }
+        .main-stats { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); 
+            border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;
+        }
+        .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; margin:5px 0;}
 
-        .code-box { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px dashed #a78bfa; margin: 15px 0; position: relative; z-index: 1; }
-        .code{font-size:28px;font-weight:800;letter-spacing:5px;text-align:center;color:#a78bfa;text-shadow:0 0 15px rgba(167,139,250,0.5);}
-        
-        button{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#070816;font-weight:800;cursor:pointer;transition: 0.3s; z-index: 1; position: relative;}
-        button:active { transform: scale(0.98); }
+        /* MAIN DASHBOARD: ONLY 3 EARNING LEVELS */
+        .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        .lvl-card { 
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); 
+            padding: 16px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .lvl-info h4 { font-family: 'Space Grotesk'; font-size: 15px; color: #fff; }
+        .lvl-info span { font-size: 10px; opacity: 0.4; }
+        .lvl-stats { text-align: right; }
+        .lvl-count { display: block; font-weight: 700; color: #60a5fa; font-size: 14px; }
+        .lvl-earn { font-size: 12px; color: #10b981; font-weight: 700; }
 
-        /* REWARD SCENE TABLE */
-        .scene-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; text-align: left; }
-        .scene-table th { opacity: 0.5; font-weight: 400; padding-bottom: 8px; }
-        .scene-table td { padding: 8px 0; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .perc { color: #10b981; }
+        /* FILTER DROPDOWN (5 LEVELS HERE) */
+        .select-box {
+            width: 100%; background: #111224; border: 1px solid rgba(167,139,250,0.5); color: white;
+            padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 15px center; background-size: 18px;
+        }
 
-        /* EARNINGS CARDS */
-        .earn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .earn-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
-        .earn-box span { font-size: 11px; opacity: 0.6; display: block; }
-        .earn-box b { font-size: 16px; color: #fbbf24; }
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); min-height: 100px; }
+        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .h-name { font-weight: 600; font-size: 14px; }
+        .lvl-tag { font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
 
-        /* LEVELS STATS */
-        .level-stat { margin-top: 15px; }
-        .lvl-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
-        .lvl-1 { border-left-color: #10b981; }
-        .lvl-2 { border-left-color: #3b82f6; }
-        .lvl-3 { border-left-color: #8b5cf6; }
-        .lvl-info div { font-size: 14px; font-weight: 700; }
-        .lvl-info span { font-size: 11px; opacity: 0.5; }
-        .lvl-amt { font-weight: 700; color: #60a5fa; }
-
-        /* HISTORY */
-        .history-item{padding:15px;border-bottom:1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;}
-        .h-info .name { font-weight: 600; font-size: 14px; }
-        .h-info .email { font-size: 11px; color: #60a5fa; }
-        .lvl-badge { font-size: 9px; padding: 3px 7px; border-radius: 5px; background: rgba(255,255,255,0.1); font-weight: 800; }
+        .btn-action { width: 100%; padding: 16px; border-radius: 16px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="nav">
-    <a href="dashboard.html" style="color:white; text-decoration:none; font-size:20px;">←</a>
+    <a href="dashboard.html" style="color:white; text-decoration:none; font-size:24px;">←</a>
     <div class="logo">ONCHYRA</div>
-    <div style="width:20px;"></div>
+    <div style="width:24px;"></div>
 </div>
 
-<div class="card">
-    <h3 style="font-family:Manrope; font-size:18px;">Referral Program</h3>
-    <p style="font-size:12px; opacity:0.6; margin-top:5px;">Share your link and earn up to 3 levels.</p>
-    
-    <div class="code-box">
-        <div id="refCode" class="code">LOADING...</div>
-    </div>
-    
-    <button onclick="copyLink()">COPY INVITE LINK</button>
-
-    <table class="scene-table">
-        <tr>
-            <th>Level</th>
-            <th>Relationship</th>
-            <th>Reward</th>
-        </tr>
-        <tr>
-            <td>Level 1</td>
-            <td>Direct Invite</td>
-            <td class="perc">+0.25 ONC</td>
-        </tr>
-        <tr>
-            <td>Level 2</td>
-            <td>Friend of Friend</td>
-            <td class="perc">+0.10 ONC</td>
-        </tr>
-        <tr>
-            <td>Level 3</td>
-            <td>Global Network</td>
-            <td class="perc">+0.05 ONC</td>
-        </tr>
-    </table>
+<div class="code-hero">
+    <span class="code-label">Network Invite ID</span>
+    <div class="big-code" id="bigCode">SCANNING</div>
+    <button class="btn-action" style="margin-top:20px; background: rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2);" onclick="copyLink()">COPY LINK</button>
 </div>
 
-<div class="earn-grid">
-    <div class="earn-box" style="grid-column: span 2; background: linear-gradient(to right, #1e1b4b, #070816);">
-        <span>Total Referral Revenue</span>
-        <b id="totalEarn" style="font-size:22px; color:#a78bfa;">0.00 ONC</b>
+<div class="main-stats">
+    <span style="font-size:11px; opacity:0.5; text-transform:uppercase;">Network Revenue</span>
+    <div class="total-rev" id="totalEarn">0.00 ONC</div>
+</div>
+
+<div class="level-list">
+    <div class="lvl-card">
+        <div class="lvl-info"><h4>Vanguard (L1)</h4><span>Direct Invites</span></div>
+        <div class="lvl-stats"><span class="lvl-count" id="c1">0</span><span class="lvl-earn" id="e1">+0.00</span></div>
     </div>
-    <div class="earn-box">
-        <span>Total Team</span>
-        <b id="totalTeam">0 Members</b>
+    <div class="lvl-card">
+        <div class="lvl-info"><h4>Guardians (L2)</h4><span>Expansion</span></div>
+        <div class="lvl-stats"><span class="lvl-count" id="c2">0</span><span class="lvl-earn" id="e2">+0.00</span></div>
     </div>
-    <div class="earn-box">
-        <span>Commission Rate</span>
-        <b style="color:#10b981;">Unlimited</b>
+    <div class="lvl-card">
+        <div class="lvl-info"><h4>Seekers (L3)</h4><span>Global</span></div>
+        <div class="lvl-stats"><span class="lvl-count" id="c3">0</span><span class="lvl-earn" id="e3">+0.00</span></div>
     </div>
 </div>
 
-<div class="level-stat">
-    <div class="lvl-row lvl-1">
-        <div class="lvl-info">
-            <div>Level 1 (Direct)</div>
-            <span id="l1Count">0 active users</span>
-        </div>
-        <div class="lvl-amt" id="l1Earn">0.00</div>
-    </div>
-    <div class="lvl-row lvl-2">
-        <div class="lvl-info">
-            <div>Level 2 (Indirect)</div>
-            <span id="l2Count">0 active users</span>
-        </div>
-        <div class="lvl-amt" id="l2Earn">0.00</div>
-    </div>
-    <div class="lvl-row lvl-3">
-        <div class="lvl-info">
-            <div>Level 3 (Network)</div>
-            <span id="l3Count">0 active users</span>
-        </div>
-        <div class="lvl-amt" id="l3Earn">0.00</div>
-    </div>
-</div>
+<select class="select-box" id="lvlFilter" onchange="filterData()">
+    <option value="1">Sort by: Vanguard (L1)</option>
+    <option value="2">Sort by: Guardians (L2)</option>
+    <option value="3">Sort by: Seekers (L3)</option>
+    <option value="4">Sort by: Oracles (L4)</option>
+    <option value="5">Sort by: Phantoms (L5)</option>
+</select>
 
-<div class="card" style="margin-top:10px;">
-    <h3 style="font-size:16px; margin-bottom:15px;">Recent Team Activity</h3>
-    <div id="history">
-        <p style="font-size:12px; opacity:0.5; text-align:center;">Scanning your network...</p>
-    </div>
+<div class="history-card" id="history">
+    <p style="padding:30px; text-align:center; opacity:0.3; font-size:12px;">Connecting to network layers...</p>
 </div>
 
 <script type="module">
@@ -157,68 +124,71 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+let userRef = "";
+const tags = ["", "VANGUARD", "GUARDIAN", "SEEKER", "ORACLE", "PHANTOM"];
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location = "login.html"; return; }
     
     const snap = await getDoc(doc(db, "users", user.uid));
-    const userData = snap.data();
+    const d = snap.data();
+    userRef = d.referralCode;
+    document.getElementById("bigCode").innerText = userRef;
 
-    // Stats Calculation
-    const c1 = userData.refLevel1 || 0;
-    const c2 = userData.refLevel2 || 0;
-    const c3 = userData.refLevel3 || 0;
+    // Calculation for top 3 only
+    const l1 = d.refLevel1 || 0;
+    const l2 = d.refLevel2 || 0;
+    const l3 = d.refLevel3 || 0;
 
-    const e1 = c1 * 0.25;
-    const e2 = c2 * 0.10;
-    const e3 = c3 * 0.05;
-    const total = e1 + e2 + e3;
+    const e1 = l1 * 0.25;
+    const e2 = l2 * 0.10;
+    const e3 = l3 * 0.05;
 
-    // Update UI
-    document.getElementById("refCode").innerText = userData.referralCode;
-    document.getElementById("totalEarn").innerText = total.toFixed(2) + " ONC";
-    document.getElementById("totalTeam").innerText = (c1 + c2 + c3) + " Members";
-    
-    document.getElementById("l1Count").innerText = c1 + " members";
-    document.getElementById("l2Count").innerText = c2 + " members";
-    document.getElementById("l3Count").innerText = c3 + " members";
-    
-    document.getElementById("l1Earn").innerText = "+" + e1.toFixed(2);
-    document.getElementById("l2Earn").innerText = "+" + e2.toFixed(2);
-    document.getElementById("l3Earn").innerText = "+" + e3.toFixed(2);
+    document.getElementById("totalEarn").innerText = (e1 + e2 + e3).toFixed(2) + " ONC";
+    document.getElementById("c1").innerText = l1;
+    document.getElementById("e1").innerText = "+" + e1.toFixed(2);
+    document.getElementById("c2").innerText = l2;
+    document.getElementById("e2").innerText = "+" + e2.toFixed(2);
+    document.getElementById("c3").innerText = l3;
+    document.getElementById("e3").innerText = "+" + e3.toFixed(2);
 
-    loadHistory(userData.referralCode);
-    window.myCode = userData.referralCode;
+    loadData(1); // Default Level 1 history
 });
 
-async function loadHistory(code) {
+window.filterData = () => {
+    const val = document.getElementById("lvlFilter").value;
+    loadData(parseInt(val));
+};
+
+async function loadData(lvl) {
     const container = document.getElementById("history");
+    container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3;'>Opening Layer L" + lvl + "...</p>";
+    
     try {
-        const q = query(collection(db, "users"), where("referredBy", "==", code), limit(10));
+        let field = lvl === 1 ? "referredBy" : "referredByL" + (lvl - 1);
+        const q = query(collection(db, "users"), where(field, "==", userRef), limit(15));
         const snap = await getDocs(q);
         
         if(snap.empty) {
-            container.innerHTML = "<p style='font-size:12px; opacity:0.5; text-align:center;'>No team members yet.</p>";
+            container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3; font-size:12px;'>Node layer empty.</p>";
             return;
         }
 
         let html = "";
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
+        snap.forEach(s => {
+            const data = s.data();
             html += `
             <div class="history-item">
-                <div class="h-info">
-                    <div class="name">${d.name}</div>
-                    <div class="email">${d.email}</div>
-                </div>
-                <div class="lvl-badge" style="color:#10b981; border: 1px solid #10b981;">L1 DIRECT</div>
+                <div class="h-name">${data.name}</div>
+                <div class="lvl-tag">${tags[lvl]}</div>
             </div>`;
         });
         container.innerHTML = html;
-    } catch(e) { container.innerHTML = "Load error."; }
+    } catch(e) { container.innerHTML = "Access Error."; }
 }
 
 window.copyLink = () => {
-    const link = window.location.origin + "/register.html?ref=" + window.myCode;
+    const link = window.location.origin + "/register.html?ref=" + userRef;
     navigator.clipboard.writeText(link);
     alert("Invite Link Copied! 🚀");
 }
