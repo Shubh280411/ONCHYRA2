@@ -3,94 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Referrals — ONCHYRA</title>
+    <title>Referral Center — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Inter;background:#070816;color:white;padding:20px;}
+        body{font-family:Inter;background:#070816;color:white;padding:20px;padding-bottom:100px;}
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
         .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
         
-        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:22px;margin-bottom:20px;}
-        .code{font-size:32px;font-weight:700;letter-spacing:4px;text-align:center;margin:10px 0;color:#a78bfa;text-shadow:0 0 15px #a78bfa;}
+        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:22px;margin-bottom:20px;position:relative;overflow:hidden;}
         
-        button{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#070816;font-weight:700;cursor:pointer;margin-top:10px;}
-        
-        /* EARNINGS BOX */
-        .earning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .earn-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .earn-box span { display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px; }
-        .earn-box b { font-size: 18px; color: #60a5fa; }
+        /* GLOW EFFECT */
+        .card::after { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%); z-index: 0; pointer-events: none; }
 
-        /* STATS */
-        .stat{display:flex;justify-content:space-between;padding:14px;border-radius:10px;margin-top:10px;font-weight:600;font-size: 14px;}
-        .total{background:#1b1b3a; border-left: 4px solid #a78bfa;}
-        .l1{background:#064e3b; border-left: 4px solid #10b981;}
-        .l2{background:#1e3a8a; border-left: 4px solid #3b82f6;}
-        .l3{background:#4c1d95; border-left: 4px solid #8b5cf6;}
-        .amount { color: #fbbf24; }
+        .code-box { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px dashed #a78bfa; margin: 15px 0; position: relative; z-index: 1; }
+        .code{font-size:28px;font-weight:800;letter-spacing:5px;text-align:center;color:#a78bfa;text-shadow:0 0 15px rgba(167,139,250,0.5);}
+        
+        button{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#070816;font-weight:800;cursor:pointer;transition: 0.3s; z-index: 1; position: relative;}
+        button:active { transform: scale(0.98); }
+
+        /* REWARD SCENE TABLE */
+        .scene-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; text-align: left; }
+        .scene-table th { opacity: 0.5; font-weight: 400; padding-bottom: 8px; }
+        .scene-table td { padding: 8px 0; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .perc { color: #10b981; }
+
+        /* EARNINGS CARDS */
+        .earn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .earn-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        .earn-box span { font-size: 11px; opacity: 0.6; display: block; }
+        .earn-box b { font-size: 16px; color: #fbbf24; }
+
+        /* LEVELS STATS */
+        .level-stat { margin-top: 15px; }
+        .lvl-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
+        .lvl-1 { border-left-color: #10b981; }
+        .lvl-2 { border-left-color: #3b82f6; }
+        .lvl-3 { border-left-color: #8b5cf6; }
+        .lvl-info div { font-size: 14px; font-weight: 700; }
+        .lvl-info span { font-size: 11px; opacity: 0.5; }
+        .lvl-amt { font-weight: 700; color: #60a5fa; }
 
         /* HISTORY */
-        .history-item{padding:15px;border-bottom:1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;}
-        .name{font-weight:600; font-size: 15px;}
-        .email{font-size:12px;color:#60a5fa}
-        .level-tag { font-size: 10px; padding: 3px 8px; border-radius: 20px; background: rgba(255,255,255,0.1); font-weight: 700; text-transform: uppercase; }
+        .history-item{padding:15px;border-bottom:1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;}
+        .h-info .name { font-weight: 600; font-size: 14px; }
+        .h-info .email { font-size: 11px; color: #60a5fa; }
+        .lvl-badge { font-size: 9px; padding: 3px 7px; border-radius: 5px; background: rgba(255,255,255,0.1); font-weight: 800; }
     </style>
 </head>
-
 <body>
 
 <div class="nav">
-    <a href="dashboard.html" style="color: white; text-decoration: none;">← Back</a>
+    <a href="dashboard.html" style="color:white; text-decoration:none; font-size:20px;">←</a>
     <div class="logo">ONCHYRA</div>
+    <div style="width:20px;"></div>
 </div>
 
 <div class="card">
-    <h2>Invite Friends</h2>
-    <div id="refCode" class="code">...</div>
-    <button onclick="copyLink()">Copy Invite Link</button>
-
-    <div class="earning-grid">
-        <div class="earn-box" style="grid-column: span 2; border-color: #a78bfa;">
-            <span>Total Referral Earning</span>
-            <b id="totalEarn">0.00 ONC</b>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Team Analytics</h2>
+    <h3 style="font-family:Manrope; font-size:18px;">Referral Program</h3>
+    <p style="font-size:12px; opacity:0.6; margin-top:5px;">Share your link and earn up to 3 levels.</p>
     
-    <div class="stat total">
-        <span>Total Team Size</span>
-        <span id="totalRef">0 Members</span>
+    <div class="code-box">
+        <div id="refCode" class="code">LOADING...</div>
     </div>
+    
+    <button onclick="copyLink()">COPY INVITE LINK</button>
 
-    <div class="stat l1">
-        <div>L1: Direct (<span id="l1Count">0</span>)</div>
-        <span class="amount" id="l1Earn">0.00 ONC</span>
+    <table class="scene-table">
+        <tr>
+            <th>Level</th>
+            <th>Relationship</th>
+            <th>Reward</th>
+        </tr>
+        <tr>
+            <td>Level 1</td>
+            <td>Direct Invite</td>
+            <td class="perc">+0.25 ONC</td>
+        </tr>
+        <tr>
+            <td>Level 2</td>
+            <td>Friend of Friend</td>
+            <td class="perc">+0.10 ONC</td>
+        </tr>
+        <tr>
+            <td>Level 3</td>
+            <td>Global Network</td>
+            <td class="perc">+0.05 ONC</td>
+        </tr>
+    </table>
+</div>
+
+<div class="earn-grid">
+    <div class="earn-box" style="grid-column: span 2; background: linear-gradient(to right, #1e1b4b, #070816);">
+        <span>Total Referral Revenue</span>
+        <b id="totalEarn" style="font-size:22px; color:#a78bfa;">0.00 ONC</b>
     </div>
-
-    <div class="stat l2">
-        <div>L2: Indirect (<span id="l2Count">0</span>)</div>
-        <span class="amount" id="l2Earn">0.00 ONC</span>
+    <div class="earn-box">
+        <span>Total Team</span>
+        <b id="totalTeam">0 Members</b>
     </div>
-
-    <div class="stat l3">
-        <div>L3: Indirect (<span id="l3Count">0</span>)</div>
-        <span class="amount" id="l3Earn">0.00 ONC</span>
+    <div class="earn-box">
+        <span>Commission Rate</span>
+        <b style="color:#10b981;">Unlimited</b>
     </div>
 </div>
 
-<div class="card">
-    <h2>Level 1 Members</h2>
-    <div id="history">Loading...</div>
+<div class="level-stat">
+    <div class="lvl-row lvl-1">
+        <div class="lvl-info">
+            <div>Level 1 (Direct)</div>
+            <span id="l1Count">0 active users</span>
+        </div>
+        <div class="lvl-amt" id="l1Earn">0.00</div>
+    </div>
+    <div class="lvl-row lvl-2">
+        <div class="lvl-info">
+            <div>Level 2 (Indirect)</div>
+            <span id="l2Count">0 active users</span>
+        </div>
+        <div class="lvl-amt" id="l2Earn">0.00</div>
+    </div>
+    <div class="lvl-row lvl-3">
+        <div class="lvl-info">
+            <div>Level 3 (Network)</div>
+            <span id="l3Count">0 active users</span>
+        </div>
+        <div class="lvl-amt" id="l3Earn">0.00</div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:10px;">
+    <h3 style="font-size:16px; margin-bottom:15px;">Recent Team Activity</h3>
+    <div id="history">
+        <p style="font-size:12px; opacity:0.5; text-align:center;">Scanning your network...</p>
+    </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -111,70 +163,64 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDoc(doc(db, "users", user.uid));
     const userData = snap.data();
 
-    // 1. Calculations
+    // Stats Calculation
     const c1 = userData.refLevel1 || 0;
     const c2 = userData.refLevel2 || 0;
     const c3 = userData.refLevel3 || 0;
 
-    const e1 = (c1 * 0.25);
-    const e2 = (c2 * 0.10);
-    const e3 = (c3 * 0.05);
-    const totalEarnings = e1 + e2 + e3;
+    const e1 = c1 * 0.25;
+    const e2 = c2 * 0.10;
+    const e3 = c3 * 0.05;
+    const total = e1 + e2 + e3;
 
-    // 2. Set UI
+    // Update UI
     document.getElementById("refCode").innerText = userData.referralCode;
-    document.getElementById("l1Count").innerText = c1;
-    document.getElementById("l2Count").innerText = c2;
-    document.getElementById("l3Count").innerText = c3;
-    document.getElementById("totalRef").innerText = (c1 + c2 + c3) + " Members";
+    document.getElementById("totalEarn").innerText = total.toFixed(2) + " ONC";
+    document.getElementById("totalTeam").innerText = (c1 + c2 + c3) + " Members";
+    
+    document.getElementById("l1Count").innerText = c1 + " members";
+    document.getElementById("l2Count").innerText = c2 + " members";
+    document.getElementById("l3Count").innerText = c3 + " members";
+    
+    document.getElementById("l1Earn").innerText = "+" + e1.toFixed(2);
+    document.getElementById("l2Earn").innerText = "+" + e2.toFixed(2);
+    document.getElementById("l3Earn").innerText = "+" + e3.toFixed(2);
 
-    document.getElementById("l1Earn").innerText = e1.toFixed(2) + " ONC";
-    document.getElementById("l2Earn").innerText = e2.toFixed(2) + " ONC";
-    document.getElementById("l3Earn").innerText = e3.toFixed(2) + " ONC";
-    document.getElementById("totalEarn").innerText = totalEarnings.toFixed(2) + " ONC";
-
-    // 3. Load Direct Referrals (L1)
-    loadL1History(userData.referralCode);
-
-    window.userData = userData; // For Copy Link
+    loadHistory(userData.referralCode);
+    window.myCode = userData.referralCode;
 });
 
-async function loadL1History(myCode) {
+async function loadHistory(code) {
     const container = document.getElementById("history");
     try {
-        const q = query(collection(db, "users"), where("referredBy", "==", myCode));
+        const q = query(collection(db, "users"), where("referredBy", "==", code), limit(10));
         const snap = await getDocs(q);
         
-        let html = "";
         if(snap.empty) {
-            container.innerHTML = "<p style='opacity:0.5; font-size:13px;'>No direct referrals found.</p>";
+            container.innerHTML = "<p style='font-size:12px; opacity:0.5; text-align:center;'>No team members yet.</p>";
             return;
         }
 
+        let html = "";
         snap.forEach(docSnap => {
             const d = docSnap.data();
-            let date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString() : "--";
-            
             html += `
             <div class="history-item">
-                <div>
+                <div class="h-info">
                     <div class="name">${d.name}</div>
                     <div class="email">${d.email}</div>
-                    <div class="date" style="font-size:11px; opacity:0.5;">Joined: ${date}</div>
                 </div>
-                <div class="level-tag" style="background:#064e3b; color:#10b981;">Level 1</div>
+                <div class="lvl-badge" style="color:#10b981; border: 1px solid #10b981;">L1 DIRECT</div>
             </div>`;
         });
         container.innerHTML = html;
-    } catch(err) {
-        container.innerHTML = "Error loading history";
-    }
+    } catch(e) { container.innerHTML = "Load error."; }
 }
 
 window.copyLink = () => {
-    const link = window.location.origin + "/register.html?ref=" + window.userData.referralCode;
+    const link = window.location.origin + "/register.html?ref=" + window.myCode;
     navigator.clipboard.writeText(link);
-    alert("Invite link copied!");
+    alert("Invite Link Copied! 🚀");
 }
 </script>
 
