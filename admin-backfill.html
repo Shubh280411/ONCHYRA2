@@ -1,30 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel — ONCHYRA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"><title>Admin Backfill — ONCHYRA</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #070816; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .admin-card { width: 90%; max-width: 400px; padding: 30px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; text-align: center; }
-        h2 { color: #a78bfa; margin-bottom: 10px; }
-        p { opacity: 0.7; font-size: 0.9rem; margin-bottom: 25px; }
-        .status-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-family: monospace; font-size: 0.8rem; height: 100px; overflow-y: auto; text-align: left; border: 1px solid #333; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(135deg, #a78bfa, #60a5fa); color: #0b0b20; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        body { font-family: sans-serif; background: #070816; color: white; text-align: center; padding-top: 50px; }
+        .box { background: #111; border: 1px solid #333; padding: 20px; width: 350px; margin: auto; border-radius: 15px; }
+        #status { text-align: left; height: 150px; overflow-y: auto; background: #000; padding: 10px; margin: 10px 0; font-size: 12px; }
+        button { background: #a78bfa; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="admin-card">
-    <h2>Admin Backfill</h2>
-    <p>Distribute rewards to all existing users based on the 3-level referral system.</p>
-    
-    <div class="status-box" id="statusBox">System Ready...</div>
-    
-    <button id="runBtn" onclick="runBackfill()">Run Reward Script</button>
-</div>
+    <div class="box">
+        <h3>Admin Backfill</h3>
+        <div id="status">Ready to scan...</div>
+        <button id="runBtn" onclick="run()">Process 52 Users</button>
+    </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -42,93 +32,47 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const log = (msg) => {
-        const box = document.getElementById("statusBox");
-        box.innerHTML += `<div>> ${msg}</div>`;
-        box.scrollTop = box.scrollHeight;
-    };
+    window.run = async function() {
+        const log = (m) => document.getElementById("status").innerHTML += `<div>> ${m}</div>`;
+        document.getElementById("runBtn").disabled = true;
+        log("Fetching all users...");
 
-    window.runBackfill = async function() {
-        const btn = document.getElementById("runBtn");
-        if(!confirm("Are you sure you want to distribute rewards to all processed users?")) return;
+        const snap = await getDocs(collection(db, "users"));
+        let count = 0;
 
-        btn.disabled = true;
-        log("Starting Backfill...");
+        for (const userDoc of snap.docs) {
+            const data = userDoc.data();
+            if (data.rewardProcessed === true) continue;
 
-        try {
-            // 1. Un users ko uthao jinka reward abhi tak process nahi hua
-            const q = query(collection(db, "users"), where("rewardProcessed", "!=", true));
-            const snap = await getDocs(q);
-
-            if(snap.empty) {
-                log("No pending users found!");
-                btn.disabled = false;
-                return;
-            }
-
-            log(`Found ${snap.size} users. Processing...`);
-
-            for (const userDoc of snap.docs) {
-                const userData = userDoc.data();
-                const refBy = userData.referredBy;
-
-                if (refBy) {
-                    log(`User ${userData.email} referred by ${refBy}`);
-
-                    // --- LEVEL 1 ---
-                    const q1 = query(collection(db, "users"), where("referralCode", "==", refBy));
-                    const s1 = await getDocs(q1);
-                    if (!s1.empty) {
-                        const l1 = s1.docs[0];
-                        await updateDoc(doc(db, "users", l1.id), {
-                            balance: increment(0.25),
-                            refLevel1: increment(1)
-                        });
-                        log("  - Level 1 Reward Sent (+0.25)");
-
-                        // --- LEVEL 2 ---
-                        const l1Data = l1.data();
-                        if (l1Data.referredBy) {
-                            const q2 = query(collection(db, "users"), where("referralCode", "==", l1Data.referredBy));
-                            const s2 = await getDocs(q2);
-                            if (!s2.empty) {
-                                const l2 = s2.docs[0];
-                                await updateDoc(doc(db, "users", l2.id), {
-                                    balance: increment(0.10),
-                                    refLevel2: increment(1)
-                                });
-                                log("  - Level 2 Reward Sent (+0.10)");
-
-                                // --- LEVEL 3 ---
-                                const l2Data = l2.data();
-                                if (l2Data.referredBy) {
-                                    const q3 = query(collection(db, "users"), where("referralCode", "==", l2Data.referredBy));
-                                    const s3 = await getDocs(q3);
-                                    if (!s3.empty) {
-                                        await updateDoc(doc(db, "users", s3.docs[0].id), {
-                                            balance: increment(0.05),
-                                            refLevel3: increment(1)
-                                        });
-                                        log("  - Level 3 Reward Sent (+0.05)");
-                                    }
-                                }
+            if (data.referredBy) {
+                log(`Processing rewards for referral by: ${data.email}`);
+                const q1 = query(collection(db, "users"), where("referralCode", "==", data.referredBy));
+                const s1 = await getDocs(q1);
+                if (!s1.empty) {
+                    await updateDoc(doc(db, "users", s1.docs[0].id), { balance: increment(0.25), refLevel1: increment(1) });
+                    
+                    const l1Data = s1.docs[0].data();
+                    if (l1Data.referredBy) {
+                        const q2 = query(collection(db, "users"), where("referralCode", "==", l1Data.referredBy));
+                        const s2 = await getDocs(q2);
+                        if (!s2.empty) {
+                            await updateDoc(doc(db, "users", s2.docs[0].id), { balance: increment(0.10), refLevel2: increment(1) });
+                            
+                            const l2Data = s2.docs[0].data();
+                            if (l2Data.referredBy) {
+                                const q3 = query(collection(db, "users"), where("referralCode", "==", l2Data.referredBy));
+                                const s3 = await getDocs(q3);
+                                if (!s3.empty) await updateDoc(doc(db, "users", s3.docs[0].id), { balance: increment(0.05), refLevel3: increment(1) });
                             }
                         }
                     }
                 }
-                // Mark user as processed
-                await updateDoc(doc(db, "users", userDoc.id), { rewardProcessed: true });
             }
-
-            log("--- ALL USERS PROCESSED SUCCESSFULLY ---");
-            alert("Success! All rewards have been distributed.");
-
-        } catch (err) {
-            log("ERROR: " + err.message);
-            console.error(err);
-        } finally {
-            btn.disabled = false;
+            await updateDoc(doc(db, "users", userDoc.id), { rewardProcessed: true });
+            count++;
         }
+        log(`Done! ${count} users updated.`);
+        alert("All users processed!");
     }
 </script>
 </body>
