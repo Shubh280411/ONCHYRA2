@@ -2,84 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Network Hub — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
+        body{font-family:Inter, sans-serif;background:#05060f;color:white;padding:15px;padding-bottom:100px; -webkit-tap-highlight-color:transparent;}
         
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
         .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
 
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
-        .big-code { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
+        .big-code { font-family: 'Space Grotesk'; font-size: 38px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
         
-        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 15px; margin-bottom: 20px; text-align: center;}
-        .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
+        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;}
+        .total-rev{font-size:30px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
 
-        /* CARDS */
+        /* CARDS WITH BALANCE */
         .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;}
-        .lvl-info h4 { font-size: 14px; color: #fff; }
-        .lvl-info p { font-size: 10px; color: #10b981; }
+        .lvl-card { 
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); 
+            padding: 18px 20px; border-radius: 22px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .lvl-info h4 { font-size: 15px; color: #fff; margin-bottom: 2px;}
+        .lvl-info p { font-size: 10px; color: #10b981; font-weight: 600; }
+        .lvl-count { font-weight: 700; color: #60a5fa; font-size: 18px; text-align: right;}
+        .lvl-count span { display: block; font-size: 9px; opacity: 0.4; color: white; }
 
-        /* FILTER */
+        /* FILTER DROPDOWN */
         .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
 
-        /* HISTORY AREA */
-        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 100px;}
-        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .h-name { font-weight: 600; font-size: 14px; color: #fff; display: block;}
-        .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
+        /* HISTORY AREA - fixed min-height for smooth feel */
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 150px; }
+        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.3s;}
+        .h-info { display: flex; flex-direction: column; gap: 3px; }
+        .h-name { font-weight: 600; font-size: 14px; color: #fff; }
+        .h-email { font-size: 11px; color: #a78bfa; opacity: 0.6; }
         .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
         
         .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
+        #loadMoreBtn { width: 100%; padding: 15px; background: rgba(255,255,255,0.02); border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.1); }
         
-        /* NEXT PAGE BUTTON (Highlight Kiya Hai) */
-        #loadMoreBtn { 
-            width: 100%; padding: 18px; background: rgba(167,139,250,0.1); 
-            border: none; color: #a78bfa; font-weight: 800; font-size: 14px; 
-            cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.2);
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="nav">
     <a href="dashboard.html" style="color:white; text-decoration:none; font-size:24px;">←</a>
-    <div class="logo">ONCHYRA</div>
+    <div class="logo">NETWORK</div>
     <div style="width:24px;"></div>
 </div>
 
 <div class="code-hero">
-    <span style="font-size:10px; opacity:0.5;">YOUR INVITE CODE</span>
+    <span style="font-size:10px; opacity:0.5; letter-spacing:1px; display:block; margin-bottom:8px;">MY REFERRAL ID</span>
     <div class="big-code" id="bigCode">...</div>
     <button class="btn-copy" onclick="copyLink()">COPY INVITE LINK</button>
 </div>
 
 <div class="main-stats">
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">TOTAL NETWORK REVENUE</span>
+    <span style="font-size:10px; opacity:0.4;">COMBINED NETWORK PROFIT</span>
 </div>
 
 <div class="level-list">
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" class="lvl-info" style="font-weight:700; color:#60a5fa;">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Vanguard (L1)</h4><p id="eb1">Earnings: 0.00</p></div><div class="lvl-count"><span id="c1">0</span><span>Nodes</span></div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Guardians (L2)</h4><p id="eb2">Earnings: 0.00</p></div><div class="lvl-count"><span id="c2">0</span><span>Nodes</span></div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Seekers (L3)</h4><p id="eb3">Earnings: 0.00</p></div><div class="lvl-count"><span id="c3">0</span><span>Nodes</span></div></div>
 </div>
 
 <select class="select-box" id="lvlFilter" onchange="resetAndLoad()">
-    <option value="1">Sort by: Level 1 (Vanguard)</option>
-    <option value="2">Sort by: Level 2 (Guardians)</option>
-    <option value="3">Sort by: Level 3 (Seekers)</option>
-    <option value="4">Sort by: Level 4 (Oracles)</option>
-    <option value="5">Sort by: Level 5 (Phantoms)</option>
+    <option value="1">Sort by: Vanguard (Level 1)</option>
+    <option value="2">Sort by: Guardians (Level 2)</option>
+    <option value="3">Sort by: Seekers (Level 3)</option>
 </select>
 
 <div class="history-card">
     <div id="history"></div>
-    <div id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</div>
+    <button id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</button>
 </div>
 
 <script type="module">
@@ -103,25 +103,39 @@ const db = getFirestore(app);
 let myCode = "";
 let lastDoc = null;
 const LIMIT = 10;
+const tags = ["", "L1 DIRECT", "L2 GUARDIAN", "L3 SEEKER"];
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location = "login.html"; return; }
     
-    const userSnap = await getDoc(doc(db, "users", user.uid));
-    if (userSnap.exists()) {
-        const d = userSnap.data();
+    const snapRef = doc(db, "users", user.uid);
+    const snap = await getDoc(snapRef);
+    if (snap.exists()) {
+        const d = snap.data();
         myCode = d.referralCode;
         document.getElementById("bigCode").innerText = myCode;
 
-        // Counts based on your refLevel fields
-        const l1 = d.refLevel1 || 0;
-        const l2 = d.refLevel2 || 0;
-        const l3 = d.refLevel3 || 0;
+        // Count logic based on your refLevel fields
+        const l1c = d.refLevel1 || 0;
+        const l2c = d.refLevel2 || 0;
+        const l3c = d.refLevel3 || 0;
         
-        document.getElementById("totalEarn").innerText = ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
-        document.getElementById("c1").innerText = l1; document.getElementById("eb1").innerText = (l1*0.25).toFixed(2) + " ONC";
-        document.getElementById("c2").innerText = l2; document.getElementById("eb2").innerText = (l2*0.10).toFixed(2) + " ONC";
-        document.getElementById("c3").innerText = l3; document.getElementById("eb3").innerText = (l3*0.05).toFixed(2) + " ONC";
+        // Earnings Calculation
+        const e1 = l1c * 0.25;
+        const e2 = l2c * 0.10;
+        const e3 = l3c * 0.05;
+
+        // Update UI Balance
+        document.getElementById("totalEarn").innerText = (e1 + e2 + e3).toFixed(2) + " ONC";
+        
+        document.getElementById("c1").innerText = l1c;
+        document.getElementById("eb1").innerText = `Earnings: ${e1.toFixed(2)}`;
+        
+        document.getElementById("c2").innerText = l2c;
+        document.getElementById("eb2").innerText = `Earnings: ${e2.toFixed(2)}`;
+        
+        document.getElementById("c3").innerText = l3c;
+        document.getElementById("eb3").innerText = `Earnings: ${e3.toFixed(2)}`;
 
         resetAndLoad();
     }
@@ -137,16 +151,16 @@ window.loadData = async () => {
     const lvl = parseInt(document.getElementById("lvlFilter").value);
     const container = document.getElementById("history");
     const btn = document.getElementById("loadMoreBtn");
-    
-    // Loading indicator
-    if (!lastDoc) container.innerHTML = "<p style='padding:20px; text-align:center; opacity:0.5;'>Searching network...</p>";
     btn.style.display = "none";
+    
+    if (!lastDoc) container.innerHTML = "<p style='padding:40px; text-align:center; opacity:0.3; font-size:12px;'>Fetching network layer...</p>";
 
     try {
-        // Bhai, Level check logic:
-        let field = (lvl === 1) ? "referredBy" : "referredByL" + (lvl - 1);
+        // Bhai, yahan query fix hai taaki details khule:
+        // Level 1 dekhega 'referredBy', Level 2 dekhega 'referredByL1', L3 dekhega 'referredByL2'.
+        let fieldName = (lvl === 1) ? "referredBy" : "referredByL" + (lvl - 1);
         
-        let q = query(collection(db, "users"), where(field, "==", myCode), limit(LIMIT));
+        let q = query(collection(db, "users"), where(fieldName, "==", myCode), limit(LIMIT));
         
         if (lastDoc) q = query(q, startAfter(lastDoc));
 
@@ -157,37 +171,33 @@ window.loadData = async () => {
             return;
         }
 
-        if (!lastDoc) container.innerHTML = ""; // Clear loading
+        if (!lastDoc) container.innerHTML = ""; // Clear loader if data found
 
         snap.forEach(s => {
             const u = s.data();
             const div = document.createElement("div");
             div.className = "history-item";
+            // Name aur Email ID details yahan khul rahi hai
             div.innerHTML = `
-                <div>
+                <div class="h-info">
                     <span class="h-name">${u.name || 'Anonymous Node'}</span>
-                    <span class="h-email">${u.email || 'Private Email'}</span>
+                    <span class="h-email">${u.email || 'Email ID: Hidden'}</span>
                 </div>
-                <div class="lvl-tag">LEVEL ${lvl}</div>
+                <div class="lvl-tag">${tags[lvl]}</div>
             `;
             container.appendChild(div);
             lastDoc = s;
         });
 
-        // Agar users LIMIT ke barabar hain, toh next page button dikhao
-        if (snap.docs.length === LIMIT) {
-            btn.style.display = "block";
-        }
-    } catch(e) { 
-        console.error(e);
-        container.innerHTML = "<p style='padding:20px; text-align:center; color:#f87171;'>Connection error. Please refresh.</p>";
-    }
+        if (snap.docs.length === LIMIT) btn.style.display = "block";
+    } catch(e) { console.error(e); }
 };
 
 window.copyLink = () => {
     const link = window.location.origin + "/register.html?ref=" + myCode;
-    navigator.clipboard.writeText(link);
-    alert("Invite Link Copied! 🚀");
+    navigator.clipboard.writeText(link).then(() => {
+        alert("Invite link copied to clipboard! 🚀");
+    });
 }
 </script>
 
