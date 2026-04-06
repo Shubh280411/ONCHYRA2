@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Admin Backfill — ONCHYRA</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Backfill — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #070816; color: white; text-align: center; padding-top: 50px; }
-        .box { background: #111; border: 1px solid #333; padding: 20px; width: 350px; margin: auto; border-radius: 15px; }
-        #status { text-align: left; height: 150px; overflow-y: auto; background: #000; padding: 10px; margin: 10px 0; font-size: 12px; }
-        button { background: #a78bfa; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', sans-serif; background: #070816; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .admin-card { width: 380px; padding: 30px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #a78bfa; margin-bottom: 10px; font-weight: 700; }
+        p { opacity: 0.6; font-size: 0.85rem; margin-bottom: 20px; line-height: 1.4; }
+        #statusBox { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-family: 'Courier New', monospace; font-size: 0.75rem; height: 180px; overflow-y: auto; text-align: left; border: 1px solid #333; color: #60a5fa; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(135deg, #a78bfa, #60a5fa); color: #0b0b20; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        .success-msg { color: #10b981; font-weight: bold; }
+        .error-msg { color: #ef4444; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>Admin Backfill</h3>
-        <div id="status">Ready to scan...</div>
-        <button id="runBtn" onclick="run()">Process 52 Users</button>
-    </div>
+
+<div class="admin-card">
+    <h2>Admin Backfill</h2>
+    <p>Distribute rewards (0.25, 0.10, 0.05) to all 52 existing users based on referral chains.</p>
+    
+    <div id="statusBox">System Ready... Waiting for action.</div>
+    
+    <button id="runBtn" onclick="startBackfill()">Run Reward Engine</button>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, updateDoc, query, where, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // --- TERI FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
         authDomain: "onchyra.firebaseapp.com",
@@ -32,47 +47,118 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    window.run = async function() {
-        const log = (m) => document.getElementById("status").innerHTML += `<div>> ${m}</div>`;
-        document.getElementById("runBtn").disabled = true;
-        log("Fetching all users...");
+    // Sleep function taaki execution stuck na ho (500ms delay)
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        const snap = await getDocs(collection(db, "users"));
-        let count = 0;
+    const log = (msg, type = '') => {
+        const box = document.getElementById("statusBox");
+        const div = document.createElement("div");
+        div.className = `log-entry ${type}`;
+        div.innerHTML = `> ${msg}`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    };
 
-        for (const userDoc of snap.docs) {
-            const data = userDoc.data();
-            if (data.rewardProcessed === true) continue;
+    window.startBackfill = async function() {
+        const btn = document.getElementById("runBtn");
+        if(!confirm("Are you sure? This will update balances for all users who haven't been rewarded yet.")) return;
 
-            if (data.referredBy) {
-                log(`Processing rewards for referral by: ${data.email}`);
-                const q1 = query(collection(db, "users"), where("referralCode", "==", data.referredBy));
-                const s1 = await getDocs(q1);
-                if (!s1.empty) {
-                    await updateDoc(doc(db, "users", s1.docs[0].id), { balance: increment(0.25), refLevel1: increment(1) });
+        btn.disabled = true;
+        log("Initiating scan...", "success-msg");
+
+        try {
+            // Step 1: Saare users ko ek saath uthao
+            const userSnap = await getDocs(collection(db, "users"));
+            log(`Found total ${userSnap.size} users. Starting calculation...`);
+
+            let processedCount = 0;
+
+            // Step 2: Loop through each user
+            for (const userDoc of userSnap.docs) {
+                const userData = userDoc.data();
+
+                // Skip if already processed
+                if (userData.rewardProcessed === true) {
+                    continue;
+                }
+
+                const referredBy = userData.referredBy;
+                
+                if (referredBy) {
+                    log(`Processing: ${userData.email}`);
+
+                    // --- LEVEL 1 REWARD ---
+                    const q1 = query(collection(db, "users"), where("referralCode", "==", referredBy));
+                    const s1 = await getDocs(q1);
                     
-                    const l1Data = s1.docs[0].data();
-                    if (l1Data.referredBy) {
-                        const q2 = query(collection(db, "users"), where("referralCode", "==", l1Data.referredBy));
-                        const s2 = await getDocs(q2);
-                        if (!s2.empty) {
-                            await updateDoc(doc(db, "users", s2.docs[0].id), { balance: increment(0.10), refLevel2: increment(1) });
-                            
-                            const l2Data = s2.docs[0].data();
-                            if (l2Data.referredBy) {
-                                const q3 = query(collection(db, "users"), where("referralCode", "==", l2Data.referredBy));
-                                const s3 = await getDocs(q3);
-                                if (!s3.empty) await updateDoc(doc(db, "users", s3.docs[0].id), { balance: increment(0.05), refLevel3: increment(1) });
+                    if (!s1.empty) {
+                        const l1Doc = s1.docs[0];
+                        const l1Data = l1Doc.data();
+                        
+                        await updateDoc(doc(db, "users", l1Doc.id), {
+                            balance: increment(0.25),
+                            refLevel1: increment(1)
+                        });
+                        log("  - Level 1 (+0.25) added.");
+
+                        // --- LEVEL 2 REWARD ---
+                        if (l1Data.referredBy) {
+                            const q2 = query(collection(db, "users"), where("referralCode", "==", l1Data.referredBy));
+                            const s2 = await getDocs(q2);
+                            if (!s2.empty) {
+                                const l2Doc = s2.docs[0];
+                                const l2Data = l2Doc.data();
+                                await updateDoc(doc(db, "users", l2Doc.id), {
+                                    balance: increment(0.10),
+                                    refLevel2: increment(1)
+                                });
+                                log("  - Level 2 (+0.10) added.");
+
+                                // --- LEVEL 3 REWARD ---
+                                if (l2Data.referredBy) {
+                                    const q3 = query(collection(db, "users"), where("referralCode", "==", l2Data.referredBy));
+                                    const s3 = await getDocs(q3);
+                                    if (!s3.empty) {
+                                        await updateDoc(doc(db, "users", s3.docs[0].id), {
+                                            balance: increment(0.05),
+                                            refLevel3: increment(1)
+                                        });
+                                        log("  - Level 3 (+0.05) added.");
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+                // Step 3: Mark current user as processed so they don't get double rewards
+                await updateDoc(doc(db, "users", userDoc.id), { 
+                    rewardProcessed: true 
+                });
+                
+                processedCount++;
+                log(`${userData.email} marked as done.`);
+
+                // Step 4: Small delay to prevent Firebase Rate Limiting
+                await sleep(500); 
             }
-            await updateDoc(doc(db, "users", userDoc.id), { rewardProcessed: true });
-            count++;
+
+            log(`--- PROCESS COMPLETE ---`, "success-msg");
+            log(`${processedCount} Users were processed.`, "success-msg");
+            alert("Success! All pending rewards have been distributed.");
+
+        } catch (error) {
+            log(`CRITICAL ERROR: ${error.message}`, "error-msg");
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Re-Run Scan";
         }
-        log(`Done! ${count} users updated.`);
-        alert("All users processed!");
+    };
+</script>
+
+</body>
+</html>
     }
 </script>
 </body>
