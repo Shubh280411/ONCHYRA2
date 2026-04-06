@@ -61,9 +61,10 @@
             transition: 0.3s;
         }
         button:disabled {
-            background: #444;
-            color: #888;
+            background: #444 !important;
+            color: #888 !important;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .link { margin-top:14px; font-size:0.9rem; opacity:0.85; }
         .link a { color:#a78bfa; text-decoration:none; cursor:pointer; }
@@ -86,7 +87,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -101,6 +102,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Auto-fill referral from URL (?ref=CODE)
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
@@ -117,71 +119,97 @@
         const name = document.getElementById("name").value.trim();
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
-        const referral = document.getElementById("referral").value.trim();
+        const referralInput = document.getElementById("referral").value.trim().toUpperCase();
 
         if(!name || !email || !password){
-            alert("Please fill all fields!");
+            alert("Please fill in all the details!");
             return;
         }
 
-        // 1. Disable Button Immediately
+        // --- BUTTON LOADING STATE ---
         btn.disabled = true;
-        btn.innerText = "Processing...";
+        btn.innerText = "Creating Account...";
 
         try {
-            /* 2. DEVICE CHECK (ANTI-CHEAT) */
+            // 1. Anti-Cheat: Max 3 accounts per device
             const deviceQuery = query(collection(db,"users"), where("deviceId","==",deviceId));
             const deviceSnap = await getDocs(deviceQuery);
             if(deviceSnap.size >= 3){
-                throw new Error("Device limit reached (Max: 3 accounts)");
+                throw new Error("Device limit reached! You can only create 3 accounts per device.");
             }
 
-            /* 3. CREATE AUTH */
+            // 2. Firebase Auth
             const userCred = await createUserWithEmailAndPassword(auth, email, password);
             const uid = userCred.user.uid;
             const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
-            let referredBy = null;
 
-            /* 4. REFERRAL SYSTEM */
-            if(referral){
-                const q = query(collection(db,"users"), where("referralCode","==",referral));
-                const snap = await getDocs(q);
-                if(!snap.empty){
-                    const l1Doc = snap.docs[0];
+            let finalReferredBy = null;
+
+            // 3. AUTO REFERRAL REWARDS (L1, L2, L3)
+            if(referralInput){
+                const q1 = query(collection(db,"users"), where("referralCode","==",referralInput));
+                const snap1 = await getDocs(q1);
+
+                if(!snap1.empty){
+                    const l1Doc = snap1.docs[0];
                     const l1Data = l1Doc.data();
-                    
-                    // Update Level 1
-                    await updateDoc(doc(db,"users",l1Doc.id), {
-                        referrals: (l1Data.referrals||0)+1,
-                        refLevel1: (l1Data.refLevel1||0)+1
+                    finalReferredBy = referralInput;
+
+                    // LEVEL 1: Reward +0.25 ONC
+                    await updateDoc(doc(db,"users", l1Doc.id), {
+                        balance: increment(0.25),
+                        referrals: increment(1),
+                        refLevel1: increment(1)
                     });
 
-                    // Level 2 Logic (Optional Chain)
+                    // LEVEL 2: Reward +0.10 ONC
                     if(l1Data.referredBy){
                         const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
                         const snap2 = await getDocs(q2);
-                        if(!snap2.empty) {
-                            await updateDoc(doc(db,"users",snap2.docs[0].id), {
-                                refLevel2: (snap2.docs[0].data().refLevel2||0)+1
+                        if(!snap2.empty){
+                            const l2Doc = snap2.docs[0];
+                            const l2Data = l2Doc.data();
+                            await updateDoc(doc(db,"users", l2Doc.id), {
+                                balance: increment(0.10),
+                                refLevel2: increment(1)
                             });
+
+                            // LEVEL 3: Reward +0.05 ONC
+                            if(l2Data.referredBy){
+                                const q3 = query(collection(db,"users"), where("referralCode","==",l2Data.referredBy));
+                                const snap3 = await getDocs(q3);
+                                if(!snap3.empty){
+                                    await updateDoc(doc(db,"users", snap3.docs[0].id), {
+                                        balance: increment(0.05),
+                                        refLevel3: increment(1)
+                                    });
+                                }
+                            }
                         }
                     }
-                    referredBy = referral;
                 }
             }
 
-            /* 5. CREATE SINGLE DOC (FIXED) */
-            // Using 'uid' as the document name ensures NO DUPLICATES
-            await setDoc(doc(db,"users",uid), {
-                name, email, uid, balance:0, deviceId, 
-                banned:false, referrals:0, refLevel1:0, 
-                refLevel2:0, refLevel3:0, referralCode: myRefCode,
-                referredBy, totalClaimed:0, lastClaim:0, 
+            // 4. Save User Data
+            await setDoc(doc(db, "users", uid), {
+                name, 
+                email, 
+                uid, 
+                deviceId,
+                balance: 0,
+                referralCode: myRefCode,
+                referredBy: finalReferredBy,
+                referrals: 0,
+                refLevel1: 0,
+                refLevel2: 0,
+                refLevel3: 0,
+                rewardProcessed: true, // For backfill logic
+                banned: false,
                 createdAt: serverTimestamp()
             });
 
-            alert("Registration Successful!");
-            window.location.href="dashboard.html";
+            alert("Registration Successful! Welcome to ONCHYRA.");
+            window.location.href = "dashboard.html";
 
         } catch(err) {
             alert(err.message);
