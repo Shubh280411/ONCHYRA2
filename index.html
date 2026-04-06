@@ -2,470 +2,157 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="shortcut icon" href="favicon.ico">
-
-    <title>ONCHYRA | Phase 2 - Mining Ecosystem</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;500;700&family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONCHYRA — The Next-Gen Mining Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 
     <style>
-        :root {
-            --primary: #a78bfa;
-            --secondary: #60a5fa;
-            --bg: #070816;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
-        }
+        :root { --p: #a78bfa; --bg: #05060f; --success: #10b981; --gold: #fbbf24; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: white; overflow-x: hidden; line-height: 1.5; }
 
-        /* --- TIMER OVERLAY STYLES --- */
-        #launch-overlay {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at center, #0f1126 0%, #020205 100%);
-            z-index: 100000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            transition: opacity 1s ease, visibility 1s ease;
-        }
+        .glow { position: fixed; width: 300px; height: 300px; background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%); z-index: -1; filter: blur(50px); top: -50px; right: -50px; }
 
-        .overlay-content {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--border);
-            padding: clamp(30px, 5vw, 60px) 20px;
-            border-radius: 40px;
-            text-align: center;
-            width: 100%;
-            max-width: 750px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 6%; position: fixed; width: 100%; top: 0; z-index: 1000; transition: 0.3s; }
+        nav.scrolled { background: rgba(5, 6, 15, 0.95); backdrop-filter: blur(15px); padding: 15px 6%; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .logo { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+        .logo span { color: var(--p); }
+        .login-btn { color: white; text-decoration: none; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 50px; }
 
-        .timer-logo { width: clamp(80px, 12vw, 110px); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary)); }
+        .hero { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 8% 20px; }
+        .live-badge { display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); padding: 6px 15px; border-radius: 50px; border: 1px solid var(--success); color: var(--success); font-size: 11px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .timer-h1 { 
-            font-family: 'Syncopate', sans-serif; 
-            font-size: clamp(1.5rem, 4vw, 2.5rem); 
-            letter-spacing: 8px; 
-            margin-bottom: 10px; 
-            color: white; 
-            text-transform: uppercase;
-        }
+        h1 { font-family: 'Space Grotesk'; font-size: clamp(40px, 12vw, 85px); line-height: 0.9; font-weight: 700; margin-bottom: 20px; letter-spacing: -3px; }
+        h1 b { background: linear-gradient(135deg, #fff, var(--p)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 17px; opacity: 0.6; max-width: 450px; margin-bottom: 40px; font-weight: 300; }
 
-        #typewriter {
-            font-family: 'Space Grotesk', sans-serif;
-            color: var(--primary);
-            font-size: clamp(10px, 2.5vw, 14px);
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            margin-bottom: 40px;
-            height: 20px;
-            font-weight: 500;
-        }
+        .btn-group { display: flex; flex-direction: column; width: 100%; max-width: 320px; gap: 12px; }
+        .btn { padding: 18px; border-radius: 18px; font-weight: 700; text-decoration: none; font-size: 14px; text-transform: uppercase; text-align: center; transition: 0.3s; letter-spacing: 1px; }
+        .btn-p { background: white; color: black; box-shadow: 0 10px 30px rgba(167, 139, 250, 0.2); }
+        .btn-s { border: 1px solid rgba(255,255,255,0.15); color: white; background: rgba(255,255,255,0.02); }
 
-        .countdown-grid { 
-            display: flex; 
-            gap: clamp(10px, 2.5vw, 20px); 
-            justify-content: center; 
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
+        /* Roadmap Checklist Section */
+        .roadmap-sec { padding: 60px 6% 100px; }
+        .section-h { text-align: center; font-family: 'Space Grotesk'; font-size: 34px; margin-bottom: 40px; letter-spacing: -1px; }
+        .tracker { display: flex; flex-direction: column; gap: 20px; max-width: 550px; margin: 0 auto; }
+        .phase-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 30px; border-radius: 30px; position: relative; }
+        
+        .phase-box.done { border-color: var(--success); background: rgba(16, 185, 129, 0.03); }
+        .phase-box.active { border-color: var(--p); background: rgba(167, 139, 250, 0.05); }
+        .phase-box.highlight { border-color: var(--gold); background: rgba(251, 191, 36, 0.04); }
 
-        .time-box { 
-            background: rgba(255, 255, 255, 0.03); 
-            width: clamp(70px, 18vw, 100px); 
-            height: clamp(80px, 22vw, 110px); 
-            border-radius: 15px; 
-            font-size: clamp(1.8rem, 5vw, 3rem); 
-            font-weight: 800; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-            border: 1px solid var(--border); 
-            position: relative;
-        }
+        .status-label { position: absolute; right: 25px; top: 25px; font-size: 9px; font-weight: 900; letter-spacing: 1px; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+        .phase-num { font-size: 11px; font-weight: 800; color: var(--p); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .phase-box h3 { font-family: 'Space Grotesk'; font-size: 22px; margin-bottom: 12px; }
+        
+        .checklist { list-style: none; }
+        .checklist li { font-size: 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .checklist li.check::before { content: "✅"; font-size: 12px; }
+        .checklist li.load::before { content: "⏳"; font-size: 12px; }
+        .checklist li.wait::before { content: "○"; font-weight: bold; opacity: 0.5; }
+        .checklist li.star::before { content: "⭐"; font-size: 12px; }
 
-        .time-box span { line-height: 1; }
-        .time-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 8px; font-weight: 700; }
-
-        .pulse-anim { animation: pulse 0.5s ease; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); color: var(--primary); } 100% { transform: scale(1); } }
-
-        /* --- ORIGINAL SITE STYLES --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; line-height: 1.6; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 15% 20%, rgba(109, 40, 217, 0.2), transparent 35%), radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.2), transparent 35%); z-index: -1; }
-        .container { max-width: 1100px; margin: auto; padding: 0 24px; }
-        .hero { text-align: center; padding: 120px 0 60px; }
-        .phase-badge { display: inline-block; padding: 6px 16px; background: rgba(167, 139, 250, 0.1); border: 1px solid var(--primary); border-radius: 20px; color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .hero h1 { font-family: 'Manrope', sans-serif; font-size: clamp(3rem, 8vw, 4.5rem); font-weight: 800; letter-spacing: -2px; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
-        .hero p { font-size: 1.2rem; opacity: 0.8; max-width: 600px; margin: 0 auto 40px; }
-        .buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .btn { padding: 16px 32px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #070816; border: none; }
-        .btn-secondary { background: transparent; color: white; border: 1px solid var(--border); }
-        .btn:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(167, 139, 250, 0.3); }
-        .section { padding: 100px 0 40px; text-align: center; }
-        .section h2 { font-family: 'Manrope', sans-serif; font-size: 2.5rem; margin-bottom: 24px; }
-        .section-desc { max-width: 700px; margin: 0 auto 60px; opacity: 0.7; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .feature-card { padding: 40px; border-radius: 24px; background: var(--card-bg); border: 1px solid var(--border); text-align: left; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-        .feature-card:hover { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); transform: translateY(-8px); }
-        .feature-card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--primary); }
-        .roadmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .phase { padding: 30px; border-radius: 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); text-align: left; position: relative; }
-        .phase.active { border-color: var(--primary); background: rgba(167, 139, 250, 0.05); }
-        .phase.active::after { content: "CURRENT"; position: absolute; top: 10px; right: 15px; font-size: 10px; color: var(--primary); font-weight: 900; }
-        footer { margin-top: 100px; padding: 60px 0; border-top: 1px solid var(--border); text-align: center; }
-        .social-link { display: inline-flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-weight: 600; margin-top: 20px; padding: 10px 20px; background: var(--card-bg); border-radius: 30px; transition: 0.3s; }
-        .social-link:hover { background: var(--primary); color: #070816; }
-
+        footer { padding: 40px 6%; text-align: center; opacity: 0.3; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-
 <body>
 
-    <div id="launch-overlay">
-        <div class="overlay-content">
-            <img src="logo.png" alt="ONCHYRA LOGO" class="timer-logo">
-            <h1 class="timer-h1">ONCHYRA</h1>
-            <div id="typewriter"></div>
+    <div class="glow"></div>
 
-            <div class="countdown-grid">
-                <div class="time-box"><span id="days">00</span><div class="time-label">Days</div></div>
-                <div class="time-box"><span id="hours">00</span><div class="time-label">Hours</div></div>
-                <div class="time-box"><span id="minutes">00</span><div class="time-label">Mins</div></div>
-                <div class="time-box"><span id="seconds">00</span><div class="time-label">Secs</div></div>
-            </div>
-            <p style="opacity: 0.3; font-size: 10px; letter-spacing: 2px;">GLOBAL MAINNET DEPLOYMENT // 26.03.2026</p>
+    <nav id="navbar">
+        <div class="logo">ONCHY<span>RA</span></div>
+        <a href="login.html" class="login-btn">LOGIN</a>
+    </nav>
+
+    <section class="hero">
+        <div class="live-badge">Phase 2: Active</div>
+        <h1 data-aos="fade-up"><b>BUILD.</b> <br> MINE. EARN.</h1>
+        <p data-aos="fade-up" data-aos-delay="100">Simple, secure, and mobile-first mining protocol. Start building your ONC balance today with Onchyra.</p>
+        
+        <div class="btn-group" data-aos="fade-up" data-aos-delay="200">
+            <a href="register.html" class="btn btn-p">START MINING NOW</a>
+            <a href="whitepaper.html" class="btn btn-s">READ DOCUMENTATION</a>
         </div>
-    </div>
+    </section>
 
-    <div class="container">
-        <header class="hero">
-            <div class="phase-badge">Phase 2: Execution</div>
-            <h1>ONCHYRA</h1>
-            <p>The waiting list is over. Welcome to the official mining phase of the ONCHYRA network.</p>
-            <div class="buttons">
-                <a href="login.html" class="btn btn-primary">🚀 Start Mining</a>
-                <a href="whitepaper.html" class="btn btn-secondary">📄 Documentation</a>
+    <section class="roadmap-sec">
+        <h2 class="section-h" data-aos="fade-up">Evolution Roadmap</h2>
+        
+        <div class="tracker">
+            
+            <div class="phase-box done" data-aos="fade-up">
+                <span class="status-label" style="color: var(--success);">COMPLETED</span>
+                <span class="phase-num">Phase 1: Genesis</span>
+                <h3>Foundation Build</h3>
+                <ul class="checklist">
+                    <li class="check">Core Network Architecture Setup</li>
+                    <li class="check">Community Growth & Group Launch</li>
+                    <li class="check">Node Stability Testing (0.10 Hz)</li>
+                </ul>
             </div>
-        </header>
 
-        <section class="section">
-            <h2>The Phase 2 Vision</h2>
-            <p class="section-desc">
-                After a successful Phase 1 community build, we are moving into the active ecosystem phase. 
-                Now, users can participate directly in the network through our secure mining portal.
-            </p>
-        </section>
-
-        <section class="section">
-            <h2>Ecosystem Features</h2>
-            <div class="features">
-                <div class="feature-card">
-                    <h3>Direct Mining</h3>
-                    <p>Access your dashboard to claim your daily ONC tokens. Consistency is key to growing your network power.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>User Dashboard</h3>
-                    <p>Track your balance, mining streaks, and community standing in real-time with our updated interface.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Secure Infrastructure</h3>
-                    <p>Phase 2 brings enhanced security to ensure every participant's data and rewards are protected.</p>
-                </div>
+            <div class="phase-box active" data-aos="fade-up">
+                <span class="status-label" style="color: var(--p);">ACTIVE NOW</span>
+                <span class="phase-num">Phase 2: Launch & Utility</span>
+                <h3>P2P & Mining Activation</h3>
+                <ul class="checklist">
+                    <li class="check">Official Web-Mining Platform Live</li>
+                    <li class="check">3-Level Referral Reward System</li>
+                    <li class="load">P2P Transfer Protocol (Deploying)</li>
+                    <li class="load">Internal Asset Management</li>
+                </ul>
             </div>
-        </section>
 
-        <section class="section">
-            <h2>The Roadmap</h2>
-            <div class="roadmap-grid">
-                <div class="phase">
-                    <strong>Phase 1</strong>
-                    <p>Early community formation and email collection (Completed).</p>
-                </div>
-                <div class="phase active">
-                    <strong>Phase 2</strong>
-                    <p>Official mining portal, dashboard launch, and network participation.</p>
-                </div>
-                <div class="phase">
-                    <strong>Phase 3</strong>
-                    <p>Referral rewards, expanded tasks, and ecosystem utilities.</p>
-                </div>
+            <div class="phase-box highlight" data-aos="fade-up">
+                <span class="status-label" style="color: var(--gold);">UPCOMING</span>
+                <span class="phase-num" style="color: var(--gold);">Phase 3: Investment</span>
+                <h3>Official Token Presale</h3>
+                <ul class="checklist">
+                    <li class="star" style="color: var(--gold); font-weight: bold;">Initial Coin Offering (ICO) Live</li>
+                    <li class="wait">Tiered Round Distribution</li>
+                    <li class="wait">Strategic Marketing Surge</li>
+                    <li class="wait">Liquidity Locking Protocol</li>
+                </ul>
             </div>
-        </section>
 
-        <footer>
-            <p>&copy; 2026 ONCHYRA NETWORK</p>
-            <a href="https://www.instagram.com/onc.network" target="_blank" class="social-link">
-                <span>Follow on Instagram</span>
-            </a>
-        </footer>
-    </div>
+            <div class="phase-box" data-aos="fade-up" style="opacity: 0.7;">
+                <span class="status-label">FUTURE</span>
+                <span class="phase-num">Phase 4: Marketplace</span>
+                <h3>Ecosystem Utility</h3>
+                <ul class="checklist">
+                    <li class="wait">ONC Merchant Integration</li>
+                    <li class="wait">Mining Booster Store Launch</li>
+                    <li class="wait">Sovereign Governance Beta</li>
+                </ul>
+            </div>
 
+            <div class="phase-box" data-aos="fade-up" style="opacity: 0.5;">
+                <span class="status-label">FINAL GOAL</span>
+                <span class="phase-num">Phase 5: Global</span>
+                <h3>Mainnet & Exchange</h3>
+                <ul class="checklist">
+                    <li class="wait">DEX & CEX Public Listings</li>
+                    <li class="wait">Full Mainnet Transition</li>
+                    <li class="wait">Yield & Staking Rewards</li>
+                </ul>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 ONCHYRA NETWORK <br> Transparent Mining Solutions.</p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        // TYPEWRITER
-        const tagText = "Mine The Future";
-        let charIdx = 0;
-        function typeEffect() {
-            if (charIdx < tagText.length) {
-                document.getElementById("typewriter").innerHTML += tagText.charAt(charIdx);
-                charIdx++;
-                setTimeout(typeEffect, 100);
-            }
-        }
-
-        // COUNTDOWN
-        const targetDate = new Date("March 26, 2026 18:15:00").getTime();
-
-        function updateTimer() {
-            const now = new Date().getTime();
-            const gap = targetDate - now;
-
-            if (gap <= 0) {
-                const over = document.getElementById("launch-overlay");
-                over.style.opacity = "0";
-                setTimeout(() => over.style.display = "none", 1000);
-                return;
-            }
-
-            const d = Math.floor(gap / (1000 * 60 * 60 * 24));
-            const h = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((gap % (1000 * 60)) / 1000);
-
-            setVal("days", d);
-            setVal("hours", h);
-            setVal("minutes", m);
-            setVal("seconds", s);
-        }
-
-        function setVal(id, val) {
-            const el = document.getElementById(id);
-            const stringVal = val.toString().padStart(2, '0');
-            if (el.innerText !== stringVal) {
-                el.innerText = stringVal;
-                el.parentElement.classList.add('pulse-anim');
-                setTimeout(() => el.parentElement.classList.remove('pulse-anim'), 500);
-            }
-        }
-
-        window.onload = () => {
-            typeEffect();
-            updateTimer();
-            setInterval(updateTimer, 1000);
+        AOS.init({ duration: 800, once: true });
+        window.onscroll = function() {
+            var nav = document.getElementById('navbar');
+            if (window.pageYOffset > 30) nav.classList.add("scrolled");
+            else nav.classList.remove("scrolled");
         };
     </script>
-
-</body>
-</html>
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #070816;
-            border: none;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: 1px solid var(--border);
-        }
-
-        .btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.3);
-        }
-
-        /* SECTIONS */
-        .section { padding: 100px 0 40px; text-align: center; }
-
-        .section h2 {
-            font-family: 'Manrope', sans-serif;
-            font-size: 2.5rem;
-            margin-bottom: 24px;
-        }
-
-        .section-desc {
-            max-width: 700px;
-            margin: 0 auto 60px;
-            opacity: 0.7;
-        }
-
-        /* FEATURES GRID */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .feature-card {
-            padding: 40px;
-            border-radius: 24px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            text-align: left;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .feature-card:hover {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-8px);
-        }
-
-        .feature-card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--primary); }
-
-        /* ROADMAP */
-        .roadmap-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .phase {
-            padding: 30px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            text-align: left;
-            position: relative;
-        }
-
-        .phase.active {
-            border-color: var(--primary);
-            background: rgba(167, 139, 250, 0.05);
-        }
-
-        .phase.active::after {
-            content: "CURRENT";
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 10px;
-            color: var(--primary);
-            font-weight: 900;
-        }
-
-        /* FOOTER */
-        footer {
-            margin-top: 100px;
-            padding: 60px 0;
-            border-top: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .social-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: var(--card-bg);
-            border-radius: 30px;
-            transition: 0.3s;
-        }
-
-        .social-link:hover { background: var(--primary); color: #070816; }
-
-    </style>
-</head>
-
-<body>
-
-    <div class="container">
-        <header class="hero">
-            <div class="phase-badge">Phase 2: Execution</div>
-            <h1>ONCHYRA</h1>
-            <p>The waiting list is over. Welcome to the official mining phase of the ONCHYRA network.</p>
-            <div class="buttons">
-                <a href="login.html" class="btn btn-primary">🚀 Start Mining</a>
-                <a href="whitepaper.html" class="btn btn-secondary">📄 Documentation</a>
-            </div>
-        </header>
-
-        <section class="section">
-            <h2>The Phase 2 Vision</h2>
-            <p class="section-desc">
-                After a successful Phase 1 community build, we are moving into the active ecosystem phase. 
-                Now, users can participate directly in the network through our secure mining portal.
-            </p>
-        </section>
-
-        <section class="section">
-            <h2>Ecosystem Features</h2>
-            <div class="features">
-                <div class="feature-card">
-                    <h3>Direct Mining</h3>
-                    <p>Access your dashboard to claim your daily ONC tokens. Consistency is key to growing your network power.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>User Dashboard</h3>
-                    <p>Track your balance, mining streaks, and community standing in real-time with our updated interface.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Secure Infrastructure</h3>
-                    <p>Phase 2 brings enhanced security to ensure every participant's data and rewards are protected.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>The Roadmap</h2>
-            <div class="roadmap-grid">
-                <div class="phase">
-                    <strong>Phase 1</strong>
-                    <p>Early community formation and email collection (Completed).</p>
-                </div>
-                <div class="phase active">
-                    <strong>Phase 2</strong>
-                    <p>Official mining portal, dashboard launch, and network participation.</p>
-                </div>
-                <div class="phase">
-                    <strong>Phase 3</strong>
-                    <p>Referral rewards, expanded tasks, and ecosystem utilities.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>FAQ</h2>
-            <div class="features">
-                <div class="feature-card">
-                    <h3>Can I still join?</h3>
-                    <p>Yes, Phase 2 is open for all new and existing members to start their mining journey.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>What happened to Phase 1?</h3>
-                    <p>Phase 1 was our foundation period. All early supporters are now prioritized for Phase 2 access.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>How much can I mine?</h3>
-                    <p>Currently, the standard rate is 0.10 ONC per daily claim to maintain a healthy ecosystem supply.</p>
-                </div>
-            </div>
-        </section>
-
-        <footer>
-            <p>&copy; 2026 ONCHYRA NETWORK</p>
-            <a href="https://www.instagram.com/onc.network" target="_blank" class="social-link">
-                <span>Follow on Instagram</span>
-            </a>
-        </footer>
-    </div>
-
 </body>
 </html>
