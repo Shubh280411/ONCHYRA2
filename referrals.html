@@ -8,25 +8,42 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
-        .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa; text-align:center; margin-bottom:20px;}
+        
+        /* HEADER & BACK BUTTON */
+        .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .back-btn{background:rgba(255,255,255,0.1); color:white; text-decoration:none; padding:8px 15px; border-radius:12px; font-size:14px; font-weight:600; border:1px solid rgba(255,255,255,0.1);}
+        .logo{font-family:'Space Grotesk';font-size:18px;font-weight:800;color:#a78bfa;}
+
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
         .big-code { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; color: #a78bfa; letter-spacing: 3px; margin: 10px 0; display:block; }
+        
         .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;}
         .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
+
         .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;}
+        
         .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px; outline: none; font-weight:600;}
-        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); min-height: 100px; overflow:hidden;}
+
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow:hidden; margin-bottom:20px;}
         .history-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
         .h-name { font-weight: 600; font-size: 14px; color: #fff; display:block;}
         .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
         .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); font-weight:700;}
+
+        /* BUTTONS */
         .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; }
-        #status-msg { text-align:center; padding:20px; font-size:12px; opacity:0.5; display:none; }
+        .load-more { width: 100%; padding: 15px; background: rgba(167,139,250,0.1); border: none; color: #a78bfa; font-weight: 700; cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.2);}
+        
+        #status-msg { text-align:center; padding:20px; font-size:12px; opacity:0.5; }
     </style>
 </head>
 <body>
 
-<div class="logo">ONCHYRA NETWORK</div>
+<div class="nav">
+    <a href="dashboard.html" class="back-btn">← Dashboard</a>
+    <div class="logo">ONCHYRA</div>
+    <div style="width:70px;"></div>
+</div>
 
 <div class="code-hero">
     <div class="big-code" id="bigCode">...</div>
@@ -35,7 +52,7 @@
 
 <div class="main-stats">
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">TOTAL EARNINGS</span>
+    <span style="font-size:10px; opacity:0.4;">NETWORK REVENUE</span>
 </div>
 
 <div id="levels">
@@ -44,15 +61,16 @@
     <div class="lvl-card"><div><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" style="font-weight:700;">0</div></div>
 </div>
 
-<select class="select-box" id="lvlFilter" onchange="renderDetails()">
+<select class="select-box" id="lvlFilter" onchange="resetAndRender()">
     <option value="1">Show Details: Level 1</option>
     <option value="2">Show Details: Level 2</option>
     <option value="3">Show Details: Level 3</option>
 </select>
 
 <div class="history-card">
-    <div id="status-msg">Fetching nodes...</div>
     <div id="history"></div>
+    <div id="status-msg">Loading nodes...</div>
+    <button id="loadMoreBtn" class="load-more" onclick="renderNextPage()">LOAD MORE MEMBERS +</button>
 </div>
 
 <script type="module">
@@ -75,6 +93,8 @@ const db = getFirestore(app);
 
 let myRefCode = "";
 let dataStore = { 1: [], 2: [], 3: [] };
+let currentPageSize = { 1: 10, 2: 10, 3: 10 }; // Page Limit per level
+const PAGE_INCREMENT = 10;
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -83,36 +103,32 @@ onAuthStateChanged(auth, async (user) => {
     myRefCode = userData.referralCode;
     document.getElementById("bigCode").innerText = myRefCode;
 
-    // Load L1-L3 Counts directly from your refLevel fields for the cards
-    const l1_count = userData.refLevel1 || 0;
-    const l2_count = userData.refLevel2 || 0;
-    const l3_count = userData.refLevel3 || 0;
+    // Direct card counts from your DB fields
+    const l1_c = userData.refLevel1 || 0;
+    const l2_c = userData.refLevel2 || 0;
+    const l3_c = userData.refLevel3 || 0;
 
-    document.getElementById("c1").innerText = l1_count;
-    document.getElementById("c2").innerText = l2_count;
-    document.getElementById("c3").innerText = l3_count;
-    document.getElementById("eb1").innerText = (l1_count * 0.25).toFixed(2) + " ONC";
-    document.getElementById("eb2").innerText = (l2_count * 0.10).toFixed(2) + " ONC";
-    document.getElementById("eb3").innerText = (l3_count * 0.05).toFixed(2) + " ONC";
-    document.getElementById("totalEarn").innerText = ((l1_count*0.25)+(l2_count*0.10)+(l3_count*0.05)).toFixed(2) + " ONC";
+    document.getElementById("c1").innerText = l1_c;
+    document.getElementById("c2").innerText = l2_c;
+    document.getElementById("c3").innerText = l3_c;
+    document.getElementById("eb1").innerText = (l1_c * 0.25).toFixed(2) + " ONC";
+    document.getElementById("eb2").innerText = (l2_c * 0.10).toFixed(2) + " ONC";
+    document.getElementById("eb3").innerText = (l3_c * 0.05).toFixed(2) + " ONC";
+    document.getElementById("totalEarn").innerText = ((l1_c*0.25)+(l2_c*0.10)+(l3_c*0.05)).toFixed(2) + " ONC";
 
-    // START FETCHING DETAILS
     fetchAllLevels();
 });
 
 async function fetchAllLevels() {
-    document.getElementById("status-msg").style.display = "block";
-    
-    // 1. Fetch Level 1 (Directs)
+    // 1. Fetch L1
     const q1 = query(collection(db, "users"), where("referredBy", "==", myRefCode));
     const s1 = await getDocs(q1);
     s1.forEach(d => dataStore[1].push(d.data()));
-    renderDetails(); // Show L1 immediately
+    resetAndRender();
 
-    // 2. Fetch Level 2 (Based on L1 codes)
+    // 2. Fetch L2 (Chain logic)
     const l1Codes = dataStore[1].map(u => u.referralCode).filter(c => c);
     if(l1Codes.length > 0) {
-        // Firebase limits 'in' query to 10-30 items
         for (let i = 0; i < l1Codes.length; i += 10) {
             const chunk = l1Codes.slice(i, i + 10);
             const q2 = query(collection(db, "users"), where("referredBy", "in", chunk));
@@ -121,7 +137,7 @@ async function fetchAllLevels() {
         }
     }
 
-    // 3. Fetch Level 3 (Based on L2 codes)
+    // 3. Fetch L3 (Chain logic)
     const l2Codes = dataStore[2].map(u => u.referralCode).filter(c => c);
     if(l2Codes.length > 0) {
         for (let i = 0; i < l2Codes.length; i += 10) {
@@ -131,37 +147,54 @@ async function fetchAllLevels() {
             s3.forEach(d => dataStore[3].push(d.data()));
         }
     }
-    
     document.getElementById("status-msg").style.display = "none";
 }
+
+window.resetAndRender = () => {
+    const lvl = document.getElementById("lvlFilter").value;
+    currentPageSize[lvl] = 10; // Reset to first 10
+    renderDetails();
+};
+
+window.renderNextPage = () => {
+    const lvl = document.getElementById("lvlFilter").value;
+    currentPageSize[lvl] += PAGE_INCREMENT; // Show next 10
+    renderDetails();
+};
 
 window.renderDetails = () => {
     const lvl = document.getElementById("lvlFilter").value;
     const container = document.getElementById("history");
+    const loadBtn = document.getElementById("loadMoreBtn");
     container.innerHTML = "";
     
-    if(dataStore[lvl].length === 0) {
-        container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">No details found for Level ${lvl}.</p>`;
+    const fullList = dataStore[lvl];
+    const visibleList = fullList.slice(0, currentPageSize[lvl]);
+
+    if(fullList.length === 0) {
+        container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">No members in Level ${lvl}.</p>`;
+        loadBtn.style.display = "none";
         return;
     }
 
-    dataStore[lvl].forEach(u => {
+    visibleList.forEach(u => {
         const div = document.createElement("div");
         div.className = "history-item";
-        div.innerHTML = `
-            <div>
-                <span class="h-name">${u.name || 'Anonymous'}</span>
-                <span class="h-email">${u.email || 'No Email'}</span>
-            </div>
-            <div class="lvl-tag">LEVEL ${lvl}</div>
-        `;
+        div.innerHTML = `<div><span class="h-name">${u.name || 'User'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl} Member</div>`;
         container.appendChild(div);
     });
+
+    // Show button only if there are more members to show
+    if (fullList.length > visibleList.length) {
+        loadBtn.style.display = "block";
+    } else {
+        loadBtn.style.display = "none";
+    }
 };
 
 window.copyLink = () => {
     navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myRefCode);
-    alert("Copied! 🚀");
+    alert("Referral link copied! 🚀");
 }
 </script>
 </body>
