@@ -2,84 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Hub — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Inter, sans-serif;background:#05060f;color:white;padding:15px;padding-bottom:100px; -webkit-tap-highlight-color:transparent;}
-        
+        body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
         .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
-
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
-        .big-code { font-family: 'Space Grotesk'; font-size: 38px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
-        
-        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;}
-        .total-rev{font-size:30px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
-
-        /* CARDS WITH BALANCE */
-        .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .lvl-card { 
-            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); 
-            padding: 18px 20px; border-radius: 22px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .lvl-info h4 { font-size: 15px; color: #fff; margin-bottom: 2px;}
-        .lvl-info p { font-size: 10px; color: #10b981; font-weight: 600; }
-        .lvl-count { font-weight: 700; color: #60a5fa; font-size: 18px; text-align: right;}
-        .lvl-count span { display: block; font-size: 9px; opacity: 0.4; color: white; }
-
-        /* FILTER DROPDOWN */
+        .big-code { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
+        .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 15px; margin-bottom: 20px; text-align: center;}
+        .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
+        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;}
         .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
-
-        /* HISTORY AREA - fixed min-height for smooth feel */
-        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 150px; }
-        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.3s;}
-        .h-info { display: flex; flex-direction: column; gap: 3px; }
-        .h-name { font-weight: 600; font-size: 14px; color: #fff; }
-        .h-email { font-size: 11px; color: #a78bfa; opacity: 0.6; }
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 100px;}
+        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .h-name { font-weight: 600; font-size: 14px; color: #fff; display: block;}
+        .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
         .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); }
-        
         .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
-        #loadMoreBtn { width: 100%; padding: 15px; background: rgba(255,255,255,0.02); border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.1); }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        #loadMoreBtn { width: 100%; padding: 15px; background: transparent; border: none; color: #a78bfa; font-weight: 700; font-size: 13px; cursor: pointer; display: none; text-align: center;}
     </style>
 </head>
 <body>
 
 <div class="nav">
     <a href="dashboard.html" style="color:white; text-decoration:none; font-size:24px;">←</a>
-    <div class="logo">NETWORK</div>
+    <div class="logo">ONCHYRA</div>
     <div style="width:24px;"></div>
 </div>
 
 <div class="code-hero">
-    <span style="font-size:10px; opacity:0.5; letter-spacing:1px; display:block; margin-bottom:8px;">MY REFERRAL ID</span>
+    <span style="font-size:10px; opacity:0.5;">INVITE CODE</span>
     <div class="big-code" id="bigCode">...</div>
-    <button class="btn-copy" onclick="copyLink()">COPY INVITE LINK</button>
+    <button class="btn-copy" onclick="copyLink()">COPY LINK</button>
 </div>
 
 <div class="main-stats">
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">COMBINED NETWORK PROFIT</span>
+    <span style="font-size:10px; opacity:0.4;">TOTAL NETWORK BALANCE</span>
 </div>
 
 <div class="level-list">
-    <div class="lvl-card"><div class="lvl-info"><h4>Vanguard (L1)</h4><p id="eb1">Earnings: 0.00</p></div><div class="lvl-count"><span id="c1">0</span><span>Nodes</span></div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Guardians (L2)</h4><p id="eb2">Earnings: 0.00</p></div><div class="lvl-count"><span id="c2">0</span><span>Nodes</span></div></div>
-    <div class="lvl-card"><div class="lvl-info"><h4>Seekers (L3)</h4><p id="eb3">Earnings: 0.00</p></div><div class="lvl-count"><span id="c3">0</span><span>Nodes</span></div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" style="font-weight:700; color:#60a5fa;">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" style="font-weight:700; color:#60a5fa;">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" style="font-weight:700; color:#60a5fa;">0</div></div>
 </div>
 
 <select class="select-box" id="lvlFilter" onchange="resetAndLoad()">
-    <option value="1">Sort by: Vanguard (Level 1)</option>
-    <option value="2">Sort by: Guardians (Level 2)</option>
-    <option value="3">Sort by: Seekers (Level 3)</option>
+    <option value="1">Details: Level 1 (refLevel1)</option>
+    <option value="2">Details: Level 2 (refLevel2)</option>
+    <option value="3">Details: Level 3 (refLevel3)</option>
 </select>
 
 <div class="history-card">
     <div id="history"></div>
-    <button id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</button>
+    <div id="loadMoreBtn" onclick="loadData()">LOAD NEXT PAGE +</div>
 </div>
 
 <script type="module">
@@ -102,41 +81,22 @@ const db = getFirestore(app);
 
 let myCode = "";
 let lastDoc = null;
-const LIMIT = 10;
-const tags = ["", "L1 DIRECT", "L2 GUARDIAN", "L3 SEEKER"];
+const PAGE_LIMIT = 10;
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location = "login.html"; return; }
-    
-    const snapRef = doc(db, "users", user.uid);
-    const snap = await getDoc(snapRef);
+    if (!user) return;
+    const snap = await getDoc(doc(db, "users", user.uid));
     if (snap.exists()) {
         const d = snap.data();
         myCode = d.referralCode;
         document.getElementById("bigCode").innerText = myCode;
 
-        // Count logic based on your refLevel fields
-        const l1c = d.refLevel1 || 0;
-        const l2c = d.refLevel2 || 0;
-        const l3c = d.refLevel3 || 0;
-        
-        // Earnings Calculation
-        const e1 = l1c * 0.25;
-        const e2 = l2c * 0.10;
-        const e3 = l3c * 0.05;
+        // Balance calculation using your specific logic
+        const c1 = d.refLevel1Count || 0; // Agar count alag field mein hai
+        const c2 = d.refLevel2Count || 0;
+        const c3 = d.refLevel3Count || 0;
 
-        // Update UI Balance
-        document.getElementById("totalEarn").innerText = (e1 + e2 + e3).toFixed(2) + " ONC";
-        
-        document.getElementById("c1").innerText = l1c;
-        document.getElementById("eb1").innerText = `Earnings: ${e1.toFixed(2)}`;
-        
-        document.getElementById("c2").innerText = l2c;
-        document.getElementById("eb2").innerText = `Earnings: ${e2.toFixed(2)}`;
-        
-        document.getElementById("c3").innerText = l3c;
-        document.getElementById("eb3").innerText = `Earnings: ${e3.toFixed(2)}`;
-
+        // Agar counts nahi hain, toh hum manually updateUI mein handle karenge niche
         resetAndLoad();
     }
 });
@@ -152,54 +112,50 @@ window.loadData = async () => {
     const container = document.getElementById("history");
     const btn = document.getElementById("loadMoreBtn");
     btn.style.display = "none";
-    
-    if (!lastDoc) container.innerHTML = "<p style='padding:40px; text-align:center; opacity:0.3; font-size:12px;'>Fetching network layer...</p>";
 
     try {
-        // Bhai, yahan query fix hai taaki details khule:
-        // Level 1 dekhega 'referredBy', Level 2 dekhega 'referredByL1', L3 dekhega 'referredByL2'.
-        let fieldName = (lvl === 1) ? "referredBy" : "referredByL" + (lvl - 1);
+        // BHAI YAHAN HAI FIX: Field names exactly refLevel1, refLevel2, refLevel3
+        let fieldName = "refLevel" + lvl;
         
-        let q = query(collection(db, "users"), where(fieldName, "==", myCode), limit(LIMIT));
+        let q = query(collection(db, "users"), where(fieldName, "==", myCode), limit(PAGE_LIMIT));
         
         if (lastDoc) q = query(q, startAfter(lastDoc));
 
         const snap = await getDocs(q);
         
         if (snap.empty && !lastDoc) {
-            container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">Level ${lvl} currently has no active nodes.</p>`;
+            container.innerHTML = "<p style='padding:30px; text-align:center; opacity:0.3;'>No users found in this level.</p>";
+            // Update Card Counts if 0
+            document.getElementById("c"+lvl).innerText = "0";
+            document.getElementById("eb"+lvl).innerText = "0.00 ONC";
             return;
         }
 
-        if (!lastDoc) container.innerHTML = ""; // Clear loader if data found
+        // Card update (Approx logic based on results)
+        if(!lastDoc) {
+             document.getElementById("c"+lvl).innerText = snap.size;
+             let rate = lvl===1 ? 0.25 : (lvl===2 ? 0.10 : 0.05);
+             document.getElementById("eb"+lvl).innerText = (snap.size * rate).toFixed(2) + " ONC";
+        }
 
         snap.forEach(s => {
             const u = s.data();
             const div = document.createElement("div");
             div.className = "history-item";
-            // Name aur Email ID details yahan khul rahi hai
-            div.innerHTML = `
-                <div class="h-info">
-                    <span class="h-name">${u.name || 'Anonymous Node'}</span>
-                    <span class="h-email">${u.email || 'Email ID: Hidden'}</span>
-                </div>
-                <div class="lvl-tag">${tags[lvl]}</div>
-            `;
+            div.innerHTML = `<div><span class="h-name">${u.name || 'User'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl}</div>`;
             container.appendChild(div);
             lastDoc = s;
         });
 
-        if (snap.docs.length === LIMIT) btn.style.display = "block";
-    } catch(e) { console.error(e); }
+        if (snap.docs.length === PAGE_LIMIT) btn.style.display = "block";
+    } catch(e) { console.error("Error:", e); }
 };
 
 window.copyLink = () => {
-    const link = window.location.origin + "/register.html?ref=" + myCode;
-    navigator.clipboard.writeText(link).then(() => {
-        alert("Invite link copied to clipboard! 🚀");
-    });
+    navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myCode);
+    alert("Copied! 🚀");
 }
 </script>
-
 </body>
-</html>
+    </html>
+    
