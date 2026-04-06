@@ -9,40 +9,42 @@
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Inter;background:#05060f;color:white;padding:15px;padding-bottom:100px;}
         
-        /* HEADER & BACK BUTTON */
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-        .back-btn{background:rgba(255,255,255,0.1); color:white; text-decoration:none; padding:8px 15px; border-radius:12px; font-size:14px; font-weight:600; border:1px solid rgba(255,255,255,0.1);}
-        .logo{font-family:'Space Grotesk';font-size:18px;font-weight:800;color:#a78bfa;}
+        .back-btn{color:#a78bfa; text-decoration:none; font-size:28px; font-weight:700; padding: 5px 10px;}
+        .logo{font-family:'Space Grotesk';font-size:20px;font-weight:800;color:#a78bfa;}
 
         .code-hero { background: linear-gradient(145deg, #1e1b4b, #0a0b1e); border: 2px solid rgba(167,139,250,0.3); border-radius: 28px; padding: 25px; text-align: center; margin-bottom: 20px;}
-        .big-code { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; color: #a78bfa; letter-spacing: 3px; margin: 10px 0; display:block; }
+        .big-code { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; color: #a78bfa; letter-spacing: 5px; margin: 10px 0; display:block; }
         
         .main-stats { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center;}
-        .total-rev{font-size:28px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700;}
+        .total-team-count { font-size: 36px; font-family: 'Space Grotesk'; color: #fff; font-weight: 800; }
+        .total-rev{font-size:18px; font-family:'Space Grotesk'; color:#10b981; font-weight: 700; margin-top: 5px;}
 
-        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;}
+        .level-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .lvl-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 18px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;}
+        .lvl-info h4 { font-size: 14px; color: #fff; }
+        .lvl-info p { font-size: 10px; color: #10b981; font-weight: 600;}
+        .lvl-count { font-weight: 800; color: #60a5fa; font-size: 18px;}
+
+        .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; font-weight: 600; appearance: none; outline: none; margin-bottom: 15px; }
+
+        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;}
+        .history-item { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
+        .h-name { font-weight: 600; font-size: 14px; color: #fff; display: block;}
+        .h-meta { font-size: 10px; color: #a78bfa; opacity: 0.6; margin-top: 4px; font-family: 'Inter'; display: flex; gap: 10px;}
+        .team-badge { background: #10b98122; color: #10b981; padding: 2px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #10b98144;}
+        .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; font-weight: 800; border: 1px solid rgba(167,139,250,0.2); text-transform: uppercase;}
         
-        .select-box { width: 100%; background: #111224; border: 1px solid #a78bfa; color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px; outline: none; font-weight:600;}
-
-        .history-card { background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); overflow:hidden; margin-bottom:20px;}
-        .history-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .h-name { font-weight: 600; font-size: 14px; color: #fff; display:block;}
-        .h-email { font-size: 11px; color: #a78bfa; opacity: 0.7; }
-        .lvl-tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); font-weight:700;}
-
-        /* BUTTONS */
-        .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; }
-        .load-more { width: 100%; padding: 15px; background: rgba(167,139,250,0.1); border: none; color: #a78bfa; font-weight: 700; cursor: pointer; display: none; text-align: center; border-top: 1px solid rgba(167,139,250,0.2);}
-        
-        #status-msg { text-align:center; padding:20px; font-size:12px; opacity:0.5; }
+        .btn-copy { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #a78bfa; color: #05060f; font-weight: 800; cursor: pointer; margin-top: 10px;}
+        #loadMoreBtn { width: 100%; padding: 18px; background: rgba(167,139,250,0.05); border: none; color: #a78bfa; font-weight: 800; cursor: pointer; display: none; text-align: center;}
     </style>
 </head>
 <body>
 
 <div class="nav">
-    <a href="dashboard.html" class="back-btn">← Dashboard</a>
-    <div class="logo">ONCHYRA</div>
-    <div style="width:70px;"></div>
+    <a href="dashboard.html" class="back-btn">←</a>
+    <div class="logo">NETWORK HUB</div>
+    <div style="width:40px;"></div>
 </div>
 
 <div class="code-hero">
@@ -51,26 +53,26 @@
 </div>
 
 <div class="main-stats">
+    <div class="total-team-count" id="totalTeam">0</div>
+    <span style="font-size:10px; opacity:0.4; letter-spacing:1px;">TOTAL NETWORK NODES</span>
     <div class="total-rev" id="totalEarn">0.00 ONC</div>
-    <span style="font-size:10px; opacity:0.4;">NETWORK REVENUE</span>
 </div>
 
-<div id="levels">
-    <div class="lvl-card"><div><h4>Level 1</h4><p id="eb1">0.00 ONC</p></div><div id="c1" style="font-weight:700;">0</div></div>
-    <div class="lvl-card"><div><h4>Level 2</h4><p id="eb2">0.00 ONC</p></div><div id="c2" style="font-weight:700;">0</div></div>
-    <div class="lvl-card"><div><h4>Level 3</h4><p id="eb3">0.00 ONC</p></div><div id="c3" style="font-weight:700;">0</div></div>
+<div class="level-list">
+    <div class="lvl-card"><div class="lvl-info"><h4>Vanguard (L1)</h4><p id="eb1">0.00 ONC</p></div><div id="c1" class="lvl-count">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Guardians (L2)</h4><p id="eb2">0.00 ONC</p></div><div id="c2" class="lvl-count">0</div></div>
+    <div class="lvl-card"><div class="lvl-info"><h4>Seekers (L3)</h4><p id="eb3">0.00 ONC</p></div><div id="c3" class="lvl-count">0</div></div>
 </div>
 
 <select class="select-box" id="lvlFilter" onchange="resetAndRender()">
-    <option value="1">Show Details: Level 1</option>
-    <option value="2">Show Details: Level 2</option>
-    <option value="3">Show Details: Level 3</option>
+    <option value="1">Sort by: Vanguard (L1)</option>
+    <option value="2">Sort by: Guardians (L2)</option>
+    <option value="3">Sort by: Seekers (L3)</option>
 </select>
 
 <div class="history-card">
     <div id="history"></div>
-    <div id="status-msg">Loading nodes...</div>
-    <button id="loadMoreBtn" class="load-more" onclick="renderNextPage()">LOAD MORE MEMBERS +</button>
+    <button id="loadMoreBtn" onclick="renderNextPage()">LOAD MORE MEMBERS +</button>
 </div>
 
 <script type="module">
@@ -93,72 +95,63 @@ const db = getFirestore(app);
 
 let myRefCode = "";
 let dataStore = { 1: [], 2: [], 3: [] };
-let currentPageSize = { 1: 10, 2: 10, 3: 10 }; // Page Limit per level
-const PAGE_INCREMENT = 10;
+let currentPageSize = { 1: 10, 2: 10, 3: 10 };
+const teamNames = ["", "Vanguard", "Guardian", "Seeker"];
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
     const userDoc = await getDoc(doc(db, "users", user.uid));
-    const userData = userDoc.data();
-    myRefCode = userData.referralCode;
+    const d = userDoc.data();
+    myRefCode = d.referralCode;
     document.getElementById("bigCode").innerText = myRefCode;
 
-    // Direct card counts from your DB fields
-    const l1_c = userData.refLevel1 || 0;
-    const l2_c = userData.refLevel2 || 0;
-    const l3_c = userData.refLevel3 || 0;
+    const l1 = d.refLevel1 || 0;
+    const l2 = d.refLevel2 || 0;
+    const l3 = d.refLevel3 || 0;
 
-    document.getElementById("c1").innerText = l1_c;
-    document.getElementById("c2").innerText = l2_c;
-    document.getElementById("c3").innerText = l3_c;
-    document.getElementById("eb1").innerText = (l1_c * 0.25).toFixed(2) + " ONC";
-    document.getElementById("eb2").innerText = (l2_c * 0.10).toFixed(2) + " ONC";
-    document.getElementById("eb3").innerText = (l3_c * 0.05).toFixed(2) + " ONC";
-    document.getElementById("totalEarn").innerText = ((l1_c*0.25)+(l2_c*0.10)+(l3_c*0.05)).toFixed(2) + " ONC";
+    document.getElementById("totalTeam").innerText = l1 + l2 + l3;
+    document.getElementById("c1").innerText = l1;
+    document.getElementById("c2").innerText = l2;
+    document.getElementById("c3").innerText = l3;
+    document.getElementById("eb1").innerText = (l1 * 0.25).toFixed(2) + " ONC";
+    document.getElementById("eb2").innerText = (l2 * 0.10).toFixed(2) + " ONC";
+    document.getElementById("eb3").innerText = (l3 * 0.05).toFixed(2) + " ONC";
+    document.getElementById("totalEarn").innerText = "Network Profit: " + ((l1*0.25)+(l2*0.10)+(l3*0.05)).toFixed(2) + " ONC";
 
-    fetchAllLevels();
+    fetchAll();
 });
 
-async function fetchAllLevels() {
-    // 1. Fetch L1
-    const q1 = query(collection(db, "users"), where("referredBy", "==", myRefCode));
-    const s1 = await getDocs(q1);
+async function fetchAll() {
+    // Fetch all levels using chain logic
+    const s1 = await getDocs(query(collection(db, "users"), where("referredBy", "==", myRefCode)));
     s1.forEach(d => dataStore[1].push(d.data()));
     resetAndRender();
 
-    // 2. Fetch L2 (Chain logic)
     const l1Codes = dataStore[1].map(u => u.referralCode).filter(c => c);
     if(l1Codes.length > 0) {
         for (let i = 0; i < l1Codes.length; i += 10) {
-            const chunk = l1Codes.slice(i, i + 10);
-            const q2 = query(collection(db, "users"), where("referredBy", "in", chunk));
-            const s2 = await getDocs(q2);
+            const s2 = await getDocs(query(collection(db, "users"), where("referredBy", "in", l1Codes.slice(i, i+10))));
             s2.forEach(d => dataStore[2].push(d.data()));
         }
     }
-
-    // 3. Fetch L3 (Chain logic)
     const l2Codes = dataStore[2].map(u => u.referralCode).filter(c => c);
     if(l2Codes.length > 0) {
         for (let i = 0; i < l2Codes.length; i += 10) {
-            const chunk = l2Codes.slice(i, i + 10);
-            const q3 = query(collection(db, "users"), where("referredBy", "in", chunk));
-            const s3 = await getDocs(q3);
+            const s3 = await getDocs(query(collection(db, "users"), where("referredBy", "in", l2Codes.slice(i, i+10))));
             s3.forEach(d => dataStore[3].push(d.data()));
         }
     }
-    document.getElementById("status-msg").style.display = "none";
 }
 
 window.resetAndRender = () => {
     const lvl = document.getElementById("lvlFilter").value;
-    currentPageSize[lvl] = 10; // Reset to first 10
+    currentPageSize[lvl] = 10;
     renderDetails();
 };
 
 window.renderNextPage = () => {
     const lvl = document.getElementById("lvlFilter").value;
-    currentPageSize[lvl] += PAGE_INCREMENT; // Show next 10
+    currentPageSize[lvl] += 10;
     renderDetails();
 };
 
@@ -172,29 +165,43 @@ window.renderDetails = () => {
     const visibleList = fullList.slice(0, currentPageSize[lvl]);
 
     if(fullList.length === 0) {
-        container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">No members in Level ${lvl}.</p>`;
+        container.innerHTML = `<p style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">Empty network layer.</p>`;
         loadBtn.style.display = "none";
         return;
     }
 
     visibleList.forEach(u => {
+        // Full Date Logic dd/mm/yy
+        let joinDate = "N/A";
+        if(u.createdAt) {
+            const d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+            joinDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+        }
+
+        // BHAI YAHAN US BANDE KI TOTAL TEAM SUM HO RAHI HAI (L1+L2+L3)
+        const memberTotalTeam = (u.refLevel1 || 0) + (u.refLevel2 || 0) + (u.refLevel3 || 0);
+
         const div = document.createElement("div");
         div.className = "history-item";
-        div.innerHTML = `<div><span class="h-name">${u.name || 'User'}</span><span class="h-email">${u.email || 'No Email'}</span></div><div class="lvl-tag">L${lvl} Member</div>`;
+        div.innerHTML = `
+            <div>
+                <span class="h-name">${u.name || 'User'}</span>
+                <div class="h-meta">
+                    <span>Date: ${joinDate}</span>
+                    <span>Team: <b class="team-badge">${memberTotalTeam}</b></span>
+                </div>
+            </div>
+            <div class="lvl-tag">${teamNames[lvl]}</div>
+        `;
         container.appendChild(div);
     });
 
-    // Show button only if there are more members to show
-    if (fullList.length > visibleList.length) {
-        loadBtn.style.display = "block";
-    } else {
-        loadBtn.style.display = "none";
-    }
+    loadBtn.style.display = (fullList.length > visibleList.length) ? "block" : "none";
 };
 
 window.copyLink = () => {
     navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + myRefCode);
-    alert("Referral link copied! 🚀");
+    alert("Copied! 🚀");
 }
 </script>
 </body>
