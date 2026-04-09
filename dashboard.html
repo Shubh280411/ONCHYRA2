@@ -10,137 +10,134 @@
             --primary: #a78bfa;
             --secondary: #60a5fa;
             --bg: #03040a;
-            --card: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.08);
-            --text-muted: rgba(255, 255, 255, 0.6);
+            --card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.1);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 15px; overflow-x: hidden; }
 
-        /* BG ANIMATION */
-        body::before {
-            content: ""; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at 10% 20%, rgba(109, 40, 217, 0.1), transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.1), transparent 40%);
-            z-index: -2; animation: bgMove 20s linear infinite;
-        }
-        @keyframes bgMove { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* LOADING SCREEN */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--border); border-top: 3px solid var(--primary); animation: spin 1s linear infinite; }
+        /* 5-SEC SMART LOADER */
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
+        .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* NAV & MENU */
-        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 20px; border: 1px solid var(--border); backdrop-filter: blur(10px); }
-        .logo { font-family: 'Space Grotesk'; font-size: 19px; font-weight: 800; letter-spacing: 1px; color: white; }
-        .nav-icons { display: flex; align-items: center; gap: 15px; }
-        .p-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #000; font-size: 18px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); }
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
         
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 900; backdrop-filter: blur(5px); }
-        .menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: rgba(10, 11, 25, 0.98); backdrop-filter: blur(20px); padding: 50px 25px; transition: 0.4s; z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 18px; }
-        .menu a { color: white; text-decoration: none; font-size: 16px; font-weight: 600; opacity: 0.7; padding: 10px 15px; border-radius: 12px; transition: 0.3s; }
-        .menu a:hover { opacity: 1; background: rgba(167, 139, 250, 0.1); color: var(--primary); }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
+        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
+        .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
         /* CARDS */
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin-bottom: 18px; backdrop-filter: blur(10px); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
         
-        /* COIN 3D */
+        /* STREAK BADGE */
+        .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
+
+        /* COIN & PARTICLES */
         .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 10px auto; perspective: 1000px; }
-        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 30px rgba(167, 139, 250, 0.4); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; }
+        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; position: relative; z-index: 2; }
+        .particle { position: absolute; width: 3px; height: 3px; background: var(--primary); border-radius: 50%; opacity: 0; animation: rise 3s infinite linear; }
+        @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-50px) scale(0); opacity: 0; } }
         @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
 
-        #balance { text-align: center; font-family: 'Space Grotesk'; font-size: 34px; font-weight: 800; margin-top: 5px; color: #fff; }
+        /* RANK TAGS */
+        .rank-tag { font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px; vertical-align: middle; }
 
-        /* PROGRESS & BUTTON */
-        .progress-container { background: #0f1021; height: 10px; border-radius: 20px; margin: 15px 0; border: 1px solid var(--border); overflow: hidden; }
-        #progressBar { height: 100%; width: 0%; background: var(--primary); transition: 1s; }
-        button { width: 100%; padding: 16px; border: none; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 800; cursor: pointer; font-size: 14px; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        /* HOLDERS LIST */
+        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; cursor: pointer; }
+        .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
+        .rank-1 { background: #ffd700; color: #000; box-shadow: 0 0 10px #ffd700; }
+        .rank-2 { background: #c0c0c0; color: #000; box-shadow: 0 0 10px #c0c0c0; }
+        .rank-3 { background: #cd7f32; color: #000; box-shadow: 0 0 10px #cd7f32; }
 
-        /* MINI LB */
-        .mini-lb-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 6px; border: 1px solid var(--border); }
-        .mini-rank { font-weight: 800; width: 25px; }
-        .mini-name { flex: 1; font-size: 13px; font-weight: 600; margin-left: 5px; }
-        .mini-bal { font-weight: 700; font-size: 13px; color: #10b981; }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 18px; text-align: center; border: 1px solid var(--border); }
-        
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 20px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 14px; font-weight: bold; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; transition: var(--transition); }
+        button:disabled { opacity: 0.2; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <div style="margin-top:15px; font-size:12px; opacity:0.6; letter-spacing:1px;">Syncing Node Data...</div>
+    <div style="margin-top:15px; font-size:10px; opacity:0.5; letter-spacing:2px;">SYNCING NODE...</div>
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
 
 <div class="menu" id="menu">
-    <div class="logo" style="margin-bottom: 20px; color: var(--primary);">ONCHYRA</div>
-    <a href="dashboard.html">📊 Dashboard</a>
-    <a href="referrals.html">👥 Referrals</a>
-    <a href="leaderboard.html">🏆 Leaderboard</a>
-    <a href="powerdrop.html">⚡ Powerdrop</a>
-    <a href="streaks.html">🔥 Streaks</a>
-    <a href="updates.html">🔔 Updates</a>
-    <a href="profile.html">👤 Profile</a>
-    <a onclick="logout()" style="color:#ef4444; margin-top: 20px;">🚪 Logout</a>
+    <div class="logo" style="margin-bottom: 30px; color: var(--primary);">ONCHYRA</div>
+    <a href="dashboard.html" class="menu-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Dashboard</a>
+    <a href="referrals.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> Referrals</a>
+    <a href="leaderboard.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 15l-2 5L2 14l5-2 1-5 5 2 5-2 1 5 5 2-8 6-2-5z"></path></svg> Leaderboard</a>
+    <a href="powerdrop.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Powerdrop</a>
+    <a href="streaks.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 5.5 3 8.5a7 7 0 0 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"></path></svg> Streaks</a>
+    <a href="updates.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg> Updates</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</a>
 </div>
 
 <div class="nav">
-    <div class="nav-icons" onclick="toggleMenu()">
-        <div style="cursor:pointer; font-size:22px;">☰</div>
-    </div>
+    <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
     <div class="logo">ONCHYRA</div>
-    <div class="nav-icons">
-        <div class="p-btn" onclick="window.location='profile.html'">👤</div>
-    </div>
+    <div style="width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location='profile.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
 </div>
 
 <div id="dashboardData" style="display:none;">
+    
     <div class="card" style="text-align:center;">
-        <div style="font-size:13px; opacity:0.8; margin-bottom: 5px;">
-            <span id="greetLabel">Hello</span>, <span id="username" style="color: var(--primary); font-weight:700;">Miner</span>
+        <div class="streak-badge">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            STREAK: <span id="streakCount">0</span>
         </div>
-        <div class="coin-wrapper"><div class="coin">ONC</div></div>
-        <h2 id="balance">0.00</h2>
-        <div style="font-size:10px; opacity:0.5; margin-top:5px; text-transform:uppercase;">Network Balance</div>
+        <div style="font-size:13px; opacity:0.8; margin-top:10px;">
+            <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" class="rank-tag">Rookie</span>
+        </div>
+        <div class="coin-wrapper">
+            <div class="particle" style="left:20%; animation-delay:0s;"></div>
+            <div class="particle" style="left:50%; animation-delay:1s;"></div>
+            <div class="particle" style="left:80%; animation-delay:2s;"></div>
+            <div class="coin">ONC</div>
+        </div>
+        <h2 id="balance" style="font-family:'Space Grotesk'; font-size:38px;">0.00</h2>
     </div>
 
     <div class="card">
-        <h3 style="font-size:15px; font-family: 'Space Grotesk';">Daily Mining Session</h3>
-        <div id="claimStatus" style="font-size:11px; opacity:0.6; margin-top:5px;">Connecting...</div>
-        <div class="progress-container"><div id="progressBar"></div></div>
+        <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
+        <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing Block...</div>
+        <div style="background:#0a0b14; height:8px; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div></div>
         <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
     </div>
 
-    <div class="card" onclick="window.location='leaderboard.html'" style="cursor:pointer;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-            <h3 style="font-size:15px; font-family: 'Space Grotesk';">🏆 Top Nodes</h3>
-            <span style="font-size:11px; color:var(--primary); font-weight: bold;">View All →</span>
+    <div style="margin-bottom: 20px;">
+        <h3 style="font-size:13px; margin: 0 5px 12px 5px; opacity: 0.6; letter-spacing: 1px;">TOP NETWORK NODES</h3>
+        <div id="miniLeaderboard" onclick="window.location='leaderboard.html'"></div>
+    </div>
+
+    <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), transparent);">
+        <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1px; margin-bottom:5px;">LATEST NEWS</div>
+        <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.4;">Fetching network logs...</div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:14px; margin-bottom:10px;">Referral System</h3>
+        <div id="refcode" style="padding:15px; border-radius:14px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:10px; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
+        <button onclick="copyLink()" style="background:var(--card); color:white; border:1px solid var(--border);">COPY INVITE LINK</button>
+    </div>
+
+    <div class="card" style="display:flex; text-align:center; padding: 15px;">
+        <div style="flex:1; border-right: 1px solid var(--border);">
+            <div id="totalUsers" style="font-size:20px; font-weight:800;">0</div>
+            <div style="font-size:9px; opacity:0.5; margin-top:4px;">TOTAL NODES</div>
         </div>
-        <div id="miniLeaderboard"></div>
-    </div>
-
-    <div class="card" onclick="window.location='updates.html'" style="cursor:pointer; border-left: 4px solid var(--secondary);">
-        <div style="font-size:10px; color:var(--secondary); font-weight:800; letter-spacing: 1px;">PROTOCOL UPDATE</div>
-        <div id="updateTitle" style="font-size:13px; margin-top:4px; font-weight:600; opacity: 0.9;">Loading updates...</div>
-    </div>
-
-    <div class="stat-grid">
-        <div class="stat-box"><h2 id="totalUsers" style="font-size:22px;">0</h2><div style="font-size:10px; opacity:0.5; font-weight: bold; margin-top: 2px;">ACTIVE NODES</div></div>
-        <div class="stat-box"><h2 id="totalMined" style="font-size:22px;">0</h2><div style="font-size:10px; opacity:0.5; font-weight: bold; margin-top: 2px;">TOTAL ONC</div></div>
-    </div>
-
-    <div class="card" style="margin-top:18px;">
-        <h3 style="font-size:15px; font-family: 'Space Grotesk';">Node Referral</h3>
-        <div id="refcode" style="background:rgba(0,0,0,0.4); padding:15px; border-radius:12px; text-align:center; color:var(--primary); font-family:monospace; margin:10px 0; font-weight:bold; font-size: 16px; border: 1px dashed var(--border);">...</div>
-        <button onclick="copyLink()" style="background: var(--card); color: white; border: 1px solid var(--border);">COPY INVITE LINK</button>
+        <div style="flex:1;">
+            <div id="totalMined" style="font-size:20px; font-weight:800;">0</div>
+            <div style="font-size:9px; opacity:0.5; margin-top:4px;">CIRCULATION</div>
+        </div>
     </div>
 </div>
 
@@ -164,83 +161,105 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let uid, userData, claimInterval = null;
+let uid, userData;
 
-onAuthStateChanged(auth, (user) => {
+// SMART 5-SEC SYNC
+const showDashboard = () => {
+    document.getElementById('loader').style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "block";
+    }, 500);
+};
+
+setTimeout(showDashboard, 5000);
+
+onAuthStateChanged(auth, async (user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
+    
+    // Parallel Fetching
+    loadPersonalData();
+    loadGlobalData();
+});
+
+async function loadPersonalData() {
     onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
             userData = snap.data();
-            document.getElementById('loader').style.display = "none";
-            document.getElementById('dashboardData').style.display = "block";
             updateUI();
             checkClaim();
         }
     });
-    loadGlobalData();
-});
+}
 
-// GREETING LOGIC ADDED BACK
 function updateUI() {
-    const hr = new Date().getHours();
-    document.getElementById('greetLabel').innerText = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : "Good Evening";
-    
     document.getElementById('username').innerText = userData.name || "Miner";
-    document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
+    const bal = userData.balance || 0;
+    document.getElementById('balance').innerText = bal.toFixed(2);
     document.getElementById('refcode').innerText = userData.referralCode || "---";
+    document.getElementById('streakCount').innerText = userData.streak || "0";
+
+    const tag = document.getElementById('rankTag');
+    if(bal >= 100) { tag.innerText = "Whale"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
+    else if(bal >= 50) { tag.innerText = "Pro"; tag.style.color = "#60a5fa"; tag.style.borderColor = "#60a5fa"; }
+    else { tag.innerText = "Rookie"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
 }
 
 window.claim = async() => {
     const last = Number(userData.lastClaim) || 0;
-    if(Date.now() - last < 86400000) return showToast("Mining in progress!");
+    if(Date.now() - last < 86400000) return;
     try {
-        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now() });
-        showToast("Claimed 0.10 ONC!");
+        await updateDoc(doc(db, "users", uid), { 
+            balance: (userData.balance || 0) + 0.10, 
+            lastClaim: Date.now(),
+            streak: (userData.streak || 0) + 1
+        });
+        showToast("Mined +0.10 ONC");
     } catch(e) { showToast("Sync Error!"); }
 }
 
 function checkClaim() {
-    if(claimInterval) clearInterval(claimInterval);
-    claimInterval = setInterval(() => {
+    setInterval(() => {
         const last = Number(userData.lastClaim) || 0;
         const diff = 86400000 - (Date.now() - last);
         const pBar = document.getElementById('progressBar');
         const btn = document.getElementById('claimBtn');
         const status = document.getElementById('claimStatus');
         if(diff <= 0) {
-            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Node Ready for Mining!";
-            pBar.style.background = "#10b981";
+            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Ready to Mine";
         } else {
             let p = ((86400000 - diff) / 86400000) * 100;
             pBar.style.width = p + "%"; btn.disabled = true;
             let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            status.innerText = `Node busy: ${h}h ${m}m ${s}s left`;
-            pBar.style.background = "var(--primary)";
+            status.innerText = `Mining: ${h}h ${m}m ${s}s`;
         }
     }, 1000);
 }
 
 async function loadGlobalData() {
     try {
-        const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(3));
-        const snap = await getDocs(q);
+        const [uSnap, upSnap, topSnap] = await Promise.all([
+            getDocs(collection(db, "users")),
+            getDocs(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1))),
+            getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)))
+        ]);
+
+        document.getElementById('totalUsers').innerText = uSnap.size;
+        let total = 0; uSnap.forEach(d => total += (d.data().balance || 0));
+        document.getElementById('totalMined').innerText = total.toFixed(0);
+        if(!upSnap.empty) document.getElementById('updateTitle').innerText = upSnap.docs[0].data().title;
+
         let html = "", r = 1;
-        snap.forEach(d => {
-            let e = r==1?"🥇":r==2?"🥈":"🥉";
-            html += `<div class="mini-lb-item"><span class="mini-rank">${e}</span><span class="mini-name">${d.data().name}</span><span class="mini-bal">${(d.data().balance||0).toFixed(2)}</span></div>`;
+        topSnap.forEach(d => {
+            html += `<div class="holder-card">
+                <div class="rank-num rank-${r}">${r}</div>
+                <div style="flex:1;"><div style="font-size:12px; font-weight:700;">${d.data().name}</div></div>
+                <div style="font-weight:800; color:var(--primary); font-size:13px;">${(d.data().balance||0).toFixed(2)}</div>
+            </div>`;
             r++;
         });
         document.getElementById('miniLeaderboard').innerHTML = html;
-
-        const uSnap = await getDocs(collection(db, "users"));
-        document.getElementById('totalUsers').innerText = uSnap.size + "+";
-        let total = 0; uSnap.forEach(d => total += (d.data().balance || 0));
-        document.getElementById('totalMined').innerText = total.toFixed(0);
-
-        const upQ = query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1));
-        const upSnap = await getDocs(upQ);
-        if(!upSnap.empty) upSnap.forEach(d => document.getElementById('updateTitle').innerText = d.data().title);
     } catch(e) {}
 }
 
@@ -250,8 +269,8 @@ window.toggleMenu = () => {
     m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
 };
 window.logout = () => signOut(auth).then(() => window.location="login.html");
-window.copyLink = () => { navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + userData.referralCode); showToast("Invite Link Copied!"); };
+window.copyLink = () => { navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + userData.referralCode); showToast("Link Copied!"); };
 function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 3000); }
 </script>
 </body>
-</html>
+            </html>
