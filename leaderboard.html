@@ -3,56 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard — ONCHYRA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <title>Global Leaderboard — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:Inter, sans-serif;background:#070816;color:white;padding:20px;}
-        body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%), radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);z-index:-1;}
-        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-        .logo{font-family:Manrope;font-size:22px;background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-        .back{color:#a78bfa;text-decoration:none;font-weight:600;}
-        .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;margin-bottom:20px;}
-        .stats{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:600;}
-        .rank-card{text-align:center;padding:20px;border-radius:16px;background:linear-gradient(135deg,#6d28d9,#2563eb);box-shadow:0 0 20px rgba(167,139,250,0.4);}
-        .rank-number{font-size:40px;font-weight:800;margin:10px 0;}
-        .leader-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);transition:0.3s;}
-        .leader-item:hover{background:rgba(255,255,255,0.05);transform:scale(1.02);}
-        .rank-badge{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:18px;}
-        .gold{background:linear-gradient(135deg,#ffd700,#ffb300);box-shadow:0 0 15px #ffd700;}
-        .silver{background:linear-gradient(135deg,#d1d5db,#9ca3af);box-shadow:0 0 15px #c0c0c0;}
-        .bronze{background:linear-gradient(135deg,#cd7f32,#b45309);box-shadow:0 0 15px #cd7f32;}
-        .normal-rank{width:40px;text-align:center;font-weight:700;opacity:0.8;}
-        .player{display:flex;align-items:center;gap:12px;flex:1;}
-        .balance{font-weight:700; text-align: right;}
-        .team-text{font-size: 11px; color: #a78bfa; margin-top: 2px; font-weight: 600;}
+        :root {
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --bg: #05060f;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background Glow */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            background: radial-gradient(circle at 20% 30%, #6d28d933, transparent 40%),
+                        radial-gradient(circle at 80% 70%, #2563eb33, transparent 40%);
+            z-index: -1;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5px; margin-bottom: 10px;
+        }
+        .back-link { color: var(--primary); text-decoration: none; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: white; }
+
+        /* USER RANK CARD (Floating) */
+        .my-rank-card {
+            background: linear-gradient(135deg, #1e1b4b, #0f172a);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .my-rank-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 60%);
+        }
+        .rank-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.6; margin-bottom: 8px; }
+        .rank-val { font-family: 'Space Grotesk'; font-size: 48px; font-weight: 800; color: white; line-height: 1; margin-bottom: 10px;}
+        .bal-val { font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 5px 15px; border-radius: 20px; display: inline-block; }
+
+        /* LEADERBOARD LIST */
+        .list-container {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 20px 10px;
+            backdrop-filter: blur(10px);
+        }
+        .list-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px;
+        }
+        .list-header h3 { font-family: 'Space Grotesk'; font-size: 18px; }
+        .miner-count { font-size: 12px; opacity: 0.5; }
+
+        .leader-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 15px; margin-bottom: 10px; border-radius: 18px;
+            background: rgba(255,255,255,0.02); transition: 0.3s;
+            border: 1px solid transparent;
+        }
+        .leader-item.me { border-color: var(--primary); background: rgba(167, 139, 250, 0.08); }
+        
+        .rank-num { width: 40px; font-weight: 800; font-family: 'Space Grotesk'; font-size: 16px; color: rgba(255,255,255,0.3); }
+        .top-rank { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 20px; }
+        
+        .gold { background: linear-gradient(135deg, #fbbf24, #b45309); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+        .silver { background: linear-gradient(135deg, #94a3b8, #475569); box-shadow: 0 0 15px rgba(148, 163, 184, 0.3); }
+        .bronze { background: linear-gradient(135deg, #d97706, #78350f); box-shadow: 0 0 15px rgba(217, 119, 6, 0.3); }
+
+        .info { flex: 1; margin-left: 10px; }
+        .name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+        .team { font-size: 10px; font-weight: 600; color: var(--primary); text-transform: uppercase; }
+
+        .score { text-align: right; }
+        .onc-val { font-family: 'Space Grotesk'; font-weight: 800; font-size: 16px; color: #fff; }
+        .onc-label { font-size: 9px; opacity: 0.4; font-weight: 700; }
+
+        #loader { text-align: center; padding: 40px; opacity: 0.5; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <a class="back" href="dashboard.html">← Back</a>
+    <a href="dashboard.html" class="back-link">← DASHBOARD</a>
     <div class="logo">ONCHYRA</div>
 </div>
 
-<div class="card stats">
-    <div>Total Miners: <span id="miners">0</span></div>
+<div class="my-rank-card">
+    <div class="rank-title">Global Standing</div>
+    <div class="rank-val" id="yourRank">--</div>
+    <div class="bal-val" id="yourBalance">0.00 ONC</div>
 </div>
 
-<div class="card rank-card">
-    <div>👑 Your Rank</div>
-    <div class="rank-number" id="yourRank">--</div>
-    <div id="yourBalance">0 ONC</div>
-</div>
+<div class="list-container">
+    <div class="list-header">
+        <h3>Top 100 Nodes</h3>
+        <span class="miner-count" id="miners">Counting...</span>
+    </div>
 
-<div class="card">
-    <h3 style="margin-bottom:15px;">Top 100 Miners</h3>
-    <div id="leaderboard">Loading...</div>
+    <div id="leaderboard">
+        <div id="loader">Fetching blockchain data...</div>
+    </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -68,70 +144,66 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let currentUser = null;
-
 onAuthStateChanged(auth, user => {
-    currentUser = user;
-    loadLeaderboard();
+    loadLeaderboard(user);
 });
 
-async function loadLeaderboard() {
+async function loadLeaderboard(currentUser) {
     const container = document.getElementById("leaderboard");
     try {
-        // 🔥 LOGIC: Balance (Desc) -> Referrals (Desc) -> CreatedAt (Asc)
-        const q = query(
-            collection(db, "users"),
-            orderBy("balance", "desc"),
-            orderBy("referrals", "desc"), 
-            orderBy("createdAt", "asc"),
-            limit(100)
-        );
-
+        const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(100));
         const snap = await getDocs(q);
-        document.getElementById("miners").innerText = snap.size;
+        
+        document.getElementById("miners").innerText = snap.size + " Online Nodes";
 
         let html = "";
         let rank = 1;
+        let foundMe = false;
 
-        snap.forEach(doc => {
-            const d = doc.data();
-
-            // 🔥 TEAM LOGIC: L1 + L2 + L3 calculate karke dikha rahe hain
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
             const totalTeam = (d.refLevel1 || 0) + (d.refLevel2 || 0) + (d.refLevel3 || 0);
+            const isMe = currentUser && docSnap.id === currentUser.uid;
 
-            if(currentUser && doc.id === currentUser.uid){
+            if(isMe) {
                 document.getElementById("yourRank").innerText = "#" + rank;
-                document.getElementById("yourBalance").innerText = (Number(d.balance)||0).toFixed(2) + " ONC";
+                document.getElementById("yourBalance").innerText = (d.balance || 0).toFixed(2) + " ONC";
+                foundMe = true;
             }
 
-            let badge = "";
-            if(rank === 1) badge = `<div class="rank-badge gold">🥇</div>`;
-            else if(rank === 2) badge = `<div class="rank-badge silver">🥈</div>`;
-            else if(rank === 3) badge = `<div class="rank-badge bronze">🥉</div>`;
-            else badge = `<div class="normal-rank">${rank}</div>`;
+            let rankDisplay = "";
+            if(rank === 1) rankDisplay = `<div class="top-rank gold">🥇</div>`;
+            else if(rank === 2) rankDisplay = `<div class="top-rank silver">🥈</div>`;
+            else if(rank === 3) rankDisplay = `<div class="top-rank bronze">🥉</div>`;
+            else rankDisplay = `<div class="rank-num">${rank < 10 ? '0'+rank : rank}</div>`;
 
             html += `
-                <div class="leader-item">
-                    <div class="player">
-                        ${badge}
-                        <div>
-                            <div style="font-weight:600;">${d.name || "Miner"}</div>
-                            <div class="team-text">👥 Total Team: ${totalTeam}</div>
-                        </div>
+                <div class="leader-item ${isMe ? 'me' : ''}">
+                    ${rankDisplay}
+                    <div class="info">
+                        <div class="name">${d.name || "Anonymous Miner"}</div>
+                        <div class="team">👥 Team Size: ${totalTeam}</div>
                     </div>
-                    <div class="balance">
-                        <div style="font-size:16px;">${(Number(d.balance)||0).toFixed(2)}</div>
-                        <div style="font-size:9px; opacity:0.5;">ONC</div>
+                    <div class="score">
+                        <div class="onc-val">${(d.balance || 0).toFixed(2)}</div>
+                        <div class="onc-label">ONC</div>
                     </div>
                 </div>
             `;
             rank++;
         });
 
+        if(currentUser && !foundMe) {
+            const myDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if(myDoc.exists()) {
+                document.getElementById("yourRank").innerText = "100+";
+                document.getElementById("yourBalance").innerText = (myDoc.data().balance || 0).toFixed(2) + " ONC";
+            }
+        }
+
         container.innerHTML = html;
     } catch(e) {
-        console.error(e);
-        container.innerHTML = "<div style='text-align:center; padding:20px;'>Updating ranking system... Check back in 5 mins.</div>";
+        container.innerHTML = "<div id='loader'>Leaderboard is being recalibrated...</div>";
     }
 }
 </script>
