@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #a78bfa; 
+            --bg: #03040a; 
+            --card: rgba(255, 255, 255, 0.04); 
+            --border: rgba(255, 255, 255, 0.1); 
+            --accent: #ff4757;
+        }
+        
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+        .card { 
+            background: var(--card); 
+            border-radius: 35px; 
+            padding: 30px; 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            backdrop-filter: blur(25px); 
+            border: 1px solid rgba(167, 139, 250, 0.2); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* RPM METER LOGIC */
+        .meter-container { position: relative; width: 200px; height: 110px; margin: 30px auto 10px; overflow: hidden; }
+        .base-arc { 
+            width: 200px; height: 200px; 
+            border: 12px solid #151515; 
+            border-radius: 50%; 
+            position: absolute; top: 0; left: 0; 
+            border-bottom-color: transparent; 
+            border-left-color: transparent; 
+            transform: rotate(-135deg); 
+        }
+        
+        .needle { 
+            position: absolute; 
+            bottom: 0; 
+            left: calc(50% - 1.5px); 
+            width: 3px; 
+            height: 85px; 
+            background: var(--accent); 
+            border-radius: 4px; 
+            transform-origin: bottom center; 
+            transform: rotate(-90deg); /* Hidden start position */
+            transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 1); 
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+            z-index: 10;
+        }
+        
+        .center-hub { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; background: #000; border: 3px solid var(--accent); border-radius: 50%; z-index: 11; }
+
+        .marks { 
+            display: flex; 
+            justify-content: space-between; 
+            width: 200px; 
+            margin: 0 auto 20px; 
+            font-family: 'Space Grotesk'; 
+            font-size: 11px; 
+            opacity: 0.6; 
+        }
+
+        h1 { font-family: 'Space Grotesk'; font-size: 22px; margin-bottom: 5px; }
+        .badge { display: inline-block; background: rgba(255, 71, 87, 0.1); color: var(--accent); padding: 4px 12px; border-radius: 10px; font-size: 9px; font-weight: 800; border: 1px solid rgba(255, 71, 87, 0.2); text-transform: uppercase; margin-bottom: 15px; transition: 0.3s; }
+        
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 20px; border: 1px solid var(--border); }
+        .val { font-family: 'Space Grotesk'; font-size: 22px; color: var(--primary); display: block; }
+        .label { font-size: 9px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block; }
+
+        .btn { display: block; width: 100%; padding: 16px; border-radius: 15px; background: rgba(255,255,255,0.03); color: white; text-decoration: none; font-weight: 700; border: 1px solid var(--border); transition: 0.3s; font-size: 13px; }
+        .btn:hover { background: rgba(255,255,255,0.07); border-color: var(--primary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="badge" id="statusBadge">Engine Locked</div>
+        <h1>Withdrawal RPM</h1>
+        
+        <div class="meter-container">
+            <div class="base-arc"></div>
+            <div id="needle" class="needle"></div>
+            <div class="center-hub"></div>
+        </div>
+        
+        <div class="marks">
+            <span>0</span>
+            <span style="color: var(--primary); font-weight: bold; letter-spacing: 1px;">NODES</span>
+            <span>200</span>
+        </div>
+
+        <p style="font-size: 11px; opacity: 0.5; line-height: 1.6; padding: 0 10px;">
+            Network warmup phase. Withdrawal unlocks at **200 verified nodes**. Keep the engine running!
+        </p>
+
+        <div class="stats-row">
+            <div>
+                <span class="val" id="currentCount">0</span>
+                <span class="label">Connected</span>
+            </div>
+            <div>
+                <span class="val" id="neededCount">200</span>
+                <span class="label">Remaining</span>
+            </div>
+        </div>
+
+        <a href="dashboard.html" class="btn">BACK TO TERMINAL</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Configuration matching your Dashboard
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+            authDomain: "onchyra.firebaseapp.com",
+            projectId: "onchyra",
+            storageBucket: "onchyra.firebasestorage.app",
+            messagingSenderId: "441822770982",
+            appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Verify User is logged in before fetching
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Session verified. Fetching network stats...");
+                startMeter();
+            } else {
+                console.warn("Unauthorized access. Returning to login.");
+                window.location.href = "login.html";
+            }
+        });
+
+        function startMeter() {
+            const usersRef = collection(db, "users");
+
+            // Real-time listener for the count
+            onSnapshot(usersRef, (snap) => {
+                const count = snap.size;
+                const target = 200;
+                
+                // Update Numeric Displays
+                document.getElementById('currentCount').innerText = count;
+                const remaining = Math.max(target - count, 0);
+                document.getElementById('neededCount').innerText = remaining;
+
+                // Handle Engine Ready state
+                if (count >= target) {
+                    const badge = document.getElementById('statusBadge');
+                    badge.innerText = "Engine Ready";
+                    badge.style.color = "#00ff88";
+                    badge.style.background = "rgba(0, 255, 136, 0.1)";
+                    badge.style.borderColor = "rgba(0, 255, 136, 0.2)";
+                }
+
+                // RPM Logic: 0 users = -90deg, 200 users = 90deg
+                const ratio = Math.min(count / target, 1);
+                const rotation = (ratio * 180) - 90;
+                
+                // Animate Needle
+                setTimeout(() => {
+                    const needle = document.getElementById('needle');
+                    if (needle) {
+                        needle.style.transform = `rotate(${rotation}deg)`;
+                    }
+                }, 500);
+
+            }, (err) => {
+                console.error("Firestore Error:", err.message);
+            });
+        }
+    </script>
+</body>
+</html>
