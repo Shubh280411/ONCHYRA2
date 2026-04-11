@@ -11,113 +11,82 @@
             --bg: #03040a; 
             --card: rgba(255, 255, 255, 0.02); 
             --border: rgba(255, 255, 255, 0.08);
-            --red: #ff3e3e;
-            --yellow: #f1c40f;
-            --green: #00ff88;
+            --red: #ff3e3e; --yellow: #f1c40f; --green: #00ff88;
         }
         
         * { margin:0; padding:0; box-sizing:border-box; }
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
+            font-family: 'Inter', sans-serif; background: var(--bg); 
             background-image: radial-gradient(circle at 50% 20%, #1a123d 0%, #03040a 80%);
-            color: white; min-height: 100vh; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            perspective: 1500px;
-            padding: 20px;
+            color: white; min-height: 100vh; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; perspective: 1500px; padding: 20px;
         }
 
-        /* --- 3D COMING SOON --- */
+        /* 3D TEXT */
         .cs-wrapper { margin-bottom: 50px; transform-style: preserve-3d; }
         .cs-text {
-            font-family: 'Space Grotesk';
-            font-size: clamp(30px, 8vw, 70px);
-            font-weight: 800;
-            letter-spacing: 12px;
-            color: #fff;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease-out;
-            text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
-        }
-        .cs-text::before {
-            content: 'COMING SOON';
-            position: absolute; inset: 0;
-            transform: translateZ(-40px);
-            color: rgba(255, 255, 255, 0.02);
-            -webkit-text-stroke: 1px rgba(167, 139, 250, 0.1);
+            font-family: 'Space Grotesk'; font-size: clamp(30px, 8vw, 70px);
+            font-weight: 800; letter-spacing: 12px; transform-style: preserve-3d;
+            transition: transform 0.1s ease-out; text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
         }
 
-        /* --- CLEAN GAUGE CARD --- */
+        /* CARD */
         .card { 
-            background: var(--card); 
-            border-radius: 40px; 
-            padding: 40px 30px; 
-            width: 100%; max-width: 360px; 
-            text-align: center; 
-            backdrop-filter: blur(25px); 
-            border: 1px solid var(--border);
+            background: var(--card); border-radius: 40px; padding: 40px 30px; 
+            width: 100%; max-width: 360px; text-align: center; 
+            backdrop-filter: blur(25px); border: 1px solid var(--border);
             box-shadow: 0 40px 80px rgba(0,0,0,0.8);
         }
 
-        /* Pure Clean Meter */
+        /* METER BOX */
         .meter-box { 
-            position: relative; 
-            width: 200px; 
-            height: 100px; 
-            margin: 20px auto 40px; 
+            position: relative; width: 220px; height: 110px; margin: 20px auto 30px; 
+            display: flex; align-items: flex-end; justify-content: center;
         }
         
-        .gauge-svg { 
-            width: 100%; height: 100%; 
-            transform: rotate(-180deg);
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+        /* Marking Layer */
+        .markings {
+            position: absolute; inset: -5px;
+            border-radius: 50%;
+            background: repeating-conic-gradient(
+                from 270deg,
+                rgba(255,255,255,0.1) 0deg 1deg,
+                transparent 1deg 18deg
+            );
+            mask: radial-gradient(farthest-side, transparent 85%, black 86%);
+            -webkit-mask: radial-gradient(farthest-side, transparent 85%, black 86%);
+            clip-path: inset(0 0 50% 0); /* Meter ko sirf upper half rakhta hai */
         }
-        .gauge-bg { fill: none; stroke: #111; stroke-width: 8; stroke-linecap: round; }
+
+        .gauge-svg { width: 100%; height: 100%; }
+        .gauge-bg { fill: none; stroke: #111; stroke-width: 10; stroke-linecap: round; }
         .gauge-fill { 
-            fill: none; stroke: var(--red); stroke-width: 10; stroke-linecap: round; 
-            stroke-dasharray: 283; stroke-dashoffset: 283; 
-            transition: stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 1s;
-            filter: drop-shadow(0 0 5px var(--red));
+            fill: none; stroke: var(--red); stroke-width: 12; stroke-linecap: round; 
+            stroke-dasharray: 251.2; stroke-dashoffset: 251.2; 
+            transition: stroke-dashoffset 2s ease-out, stroke 1s;
         }
 
         .needle { 
             position: absolute; bottom: 0; left: calc(50% - 1.5px); 
-            width: 3px; height: 85px; 
-            background: #fff; border-radius: 10px; 
-            transform-origin: bottom center; 
-            transform: rotate(-90deg); 
-            transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 1); 
-            z-index: 10;
+            width: 3px; height: 90px; background: #fff; border-radius: 10px; 
+            transform-origin: bottom center; transform: rotate(-90deg); 
+            transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 1); z-index: 10;
         }
         .needle-hub {
-            position: absolute; bottom: -5px; left: 50%;
-            transform: translateX(-50%);
-            width: 12px; height: 12px;
-            background: #000; border: 2px solid #fff; border-radius: 50%;
-            z-index: 11;
+            position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+            width: 12px; height: 12px; background: #000; border: 2px solid #fff; 
+            border-radius: 50%; z-index: 11;
         }
 
-        /* Data moved below the meter */
-        .data-label { font-size: 10px; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        .total-nodes { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 25px; }
-
+        /* DATA INFO */
+        .total-nodes { font-family: 'Space Grotesk'; font-size: 36px; font-weight: 800; margin-bottom: 25px; }
         .stats-footer { 
-            display: flex; justify-content: space-between; 
-            border-top: 1px solid var(--border); 
-            padding-top: 20px; margin-top: 10px;
+            display: flex; justify-content: space-between; border-top: 1px solid var(--border); 
+            padding-top: 20px;
         }
-        .stat-block { text-align: left; }
-        .stat-block:last-child { text-align: right; }
-        .stat-n { display: block; font-family: 'Space Grotesk'; font-size: 16px; font-weight: 700; color: var(--primary); }
+        .stat-n { display: block; font-family: 'Space Grotesk'; font-size: 18px; font-weight: 700; color: var(--primary); }
         .stat-t { display: block; font-size: 9px; opacity: 0.4; letter-spacing: 1px; }
 
-        .btn-back { 
-            margin-top: 30px; display: inline-block; 
-            color: rgba(255,255,255,0.3); text-decoration: none; 
-            font-size: 11px; font-weight: 600; transition: 0.3s;
-        }
-        .btn-back:hover { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -128,6 +97,7 @@
 
     <div class="card">
         <div class="meter-box">
+            <div class="markings"></div>
             <svg class="gauge-svg" viewBox="0 0 200 100">
                 <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
                 <path id="gaugeFill" class="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" />
@@ -136,21 +106,19 @@
             <div class="needle-hub"></div>
         </div>
 
-        <span class="data-label">Live Network Nodes</span>
+        <div style="font-size: 10px; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;">Live Nodes</div>
         <div class="total-nodes" id="centerCount">0</div>
 
         <div class="stats-footer">
-            <div class="stat-block">
+            <div style="text-align: left;">
                 <span class="stat-n" id="neededCount">200</span>
                 <span class="stat-t">REMAINING</span>
             </div>
-            <div class="stat-block">
+            <div style="text-align: right;">
                 <span class="stat-n">200</span>
                 <span class="stat-t">PHASE 1 GOAL</span>
             </div>
         </div>
-
-        <a href="dashboard.html" class="btn-back">EXIT TERMINAL</a>
     </div>
 
     <script type="module">
@@ -171,7 +139,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- 3D TILT EFFECT ---
+        // 3D TILT
         const tiltText = document.getElementById('tiltText');
         document.addEventListener('mousemove', (e) => {
             let x = (window.innerWidth / 2 - e.pageX) / 15;
@@ -179,7 +147,7 @@
             tiltText.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
         });
 
-        // --- FIREBASE SYNC ---
+        // DATA SYNC
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 onSnapshot(collection(db, "users"), (snap) => {
@@ -187,22 +155,20 @@
                     const target = 200;
                     const ratio = Math.min(count / target, 1);
                     
-                    // Update Numbers
                     document.getElementById('centerCount').innerText = count;
                     document.getElementById('neededCount').innerText = Math.max(target - count, 0);
                     
-                    // Needle & SVG Gauge Animation
+                    // Needle Rotate (-90 to +90)
                     const rotation = (ratio * 180) - 90;
                     document.getElementById('needle').style.transform = `rotate(${rotation}deg)`;
                     
+                    // Fill Arc (251.2 is the length of path)
                     const fill = document.getElementById('gaugeFill');
-                    const dashOffset = 283 - (ratio * 283);
-                    fill.style.strokeDashoffset = dashOffset;
+                    fill.style.strokeDashoffset = 251.2 - (ratio * 251.2);
 
-                    // Dynamic Glow & Color
-                    if(ratio > 0.8) { fill.style.stroke = "var(--green)"; fill.style.filter = "drop-shadow(0 0 8px var(--green))"; }
-                    else if(ratio > 0.4) { fill.style.stroke = "var(--yellow)"; fill.style.filter = "drop-shadow(0 0 8px var(--yellow))"; }
-                    else { fill.style.stroke = "var(--red)"; fill.style.filter = "drop-shadow(0 0 8px var(--red))"; }
+                    if(ratio > 0.8) fill.style.stroke = "var(--green)";
+                    else if(ratio > 0.4) fill.style.stroke = "var(--yellow)";
+                    else fill.style.stroke = "var(--red)";
                 });
             } else { window.location.href = "login.html"; }
         });
