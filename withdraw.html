@@ -9,9 +9,9 @@
         :root { 
             --primary: #a78bfa; 
             --bg: #03040a; 
-            --card: rgba(255, 255, 255, 0.04); 
-            --border: rgba(255, 255, 255, 0.1);
-            --red: #ff4757;
+            --card: rgba(255, 255, 255, 0.02); 
+            --border: rgba(255, 255, 255, 0.08);
+            --red: #ff3e3e;
             --yellow: #f1c40f;
             --green: #00ff88;
         }
@@ -20,103 +20,104 @@
         body { 
             font-family: 'Inter', sans-serif; 
             background: var(--bg); 
-            background-image: radial-gradient(circle at 50% 10%, #150d2b 0%, #03040a 70%);
+            background-image: radial-gradient(circle at 50% 20%, #1a123d 0%, #03040a 80%);
             color: white; min-height: 100vh; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            perspective: 1500px; /* For the 3D text */
-            overflow-x: hidden;
+            perspective: 1500px;
             padding: 20px;
         }
 
-        /* --- 3D COMING SOON (ONLY) --- */
-        .cs-wrapper {
-            margin-bottom: 60px;
-            transform-style: preserve-3d;
-            cursor: default;
-        }
-
+        /* --- 3D COMING SOON --- */
+        .cs-wrapper { margin-bottom: 50px; transform-style: preserve-3d; }
         .cs-text {
             font-family: 'Space Grotesk';
-            font-size: clamp(35px, 9vw, 75px);
+            font-size: clamp(30px, 8vw, 70px);
             font-weight: 800;
-            letter-spacing: 10px;
+            letter-spacing: 12px;
             color: #fff;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
-            text-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+            text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
         }
-
-        /* 3D Layers */
         .cs-text::before {
             content: 'COMING SOON';
             position: absolute; inset: 0;
-            transform: translateZ(-30px);
-            color: rgba(255, 255, 255, 0.03);
-            -webkit-text-stroke: 1px rgba(167, 139, 250, 0.2);
+            transform: translateZ(-40px);
+            color: rgba(255, 255, 255, 0.02);
+            -webkit-text-stroke: 1px rgba(167, 139, 250, 0.1);
         }
 
-        .cs-text::after {
-            content: 'COMING SOON';
-            position: absolute; inset: 0;
-            transform: translateZ(-60px);
-            color: rgba(255, 255, 255, 0.01);
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05);
-        }
-
-        /* --- CLEAN FLAT CARD --- */
+        /* --- CLEAN GAUGE CARD --- */
         .card { 
             background: var(--card); 
-            border-radius: 35px; 
-            padding: 35px; 
-            width: 100%; max-width: 380px; 
+            border-radius: 40px; 
+            padding: 40px 30px; 
+            width: 100%; max-width: 360px; 
             text-align: center; 
-            backdrop-filter: blur(20px); 
+            backdrop-filter: blur(25px); 
             border: 1px solid var(--border);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
         }
 
-        .meter-box { position: relative; width: 220px; height: 120px; margin: 30px auto 10px; }
+        /* Pure Clean Meter */
+        .meter-box { 
+            position: relative; 
+            width: 200px; 
+            height: 100px; 
+            margin: 20px auto 40px; 
+        }
         
-        .meter-center {
-            position: absolute; bottom: 0; left: 50%;
-            transform: translate(-50%, 0);
-            text-align: center;
+        .gauge-svg { 
+            width: 100%; height: 100%; 
+            transform: rotate(-180deg);
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
         }
-        .meter-center .num { font-family: 'Space Grotesk'; font-size: 42px; font-weight: 800; color: #fff; line-height: 1; }
-        .meter-center .label { font-size: 10px; letter-spacing: 3px; opacity: 0.4; text-transform: uppercase; margin-top: 5px; display: block; }
-
-        /* The Gauge Arc */
-        .gauge-svg { width: 220px; height: 110px; transform: rotate(-180deg); }
-        .gauge-bg { fill: none; stroke: #1a1a1a; stroke-width: 12; stroke-linecap: round; }
+        .gauge-bg { fill: none; stroke: #111; stroke-width: 8; stroke-linecap: round; }
         .gauge-fill { 
-            fill: none; stroke: var(--red); stroke-width: 12; stroke-linecap: round; 
-            stroke-dasharray: 314; stroke-dashoffset: 314; 
-            transition: stroke-dashoffset 2s ease-out, stroke 1s; 
+            fill: none; stroke: var(--red); stroke-width: 10; stroke-linecap: round; 
+            stroke-dasharray: 283; stroke-dashoffset: 283; 
+            transition: stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 1s;
+            filter: drop-shadow(0 0 5px var(--red));
         }
 
         .needle { 
-            position: absolute; bottom: 0; left: calc(50% - 2px); 
-            width: 4px; height: 95px; 
+            position: absolute; bottom: 0; left: calc(50% - 1.5px); 
+            width: 3px; height: 85px; 
             background: #fff; border-radius: 10px; 
             transform-origin: bottom center; 
             transform: rotate(-90deg); 
             transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 1); 
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             z-index: 10;
         }
-
-        .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .stat-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 20px; border: 1px solid var(--border); }
-        .stat-label { font-size: 9px; opacity: 0.4; letter-spacing: 1px; margin-bottom: 5px; display: block; }
-        .stat-val { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 700; color: var(--primary); }
-
-        .back-btn { 
-            display: inline-block; margin-top: 25px; color: var(--primary); 
-            text-decoration: none; font-size: 12px; font-weight: 600; 
-            letter-spacing: 1px; transition: 0.3s;
+        .needle-hub {
+            position: absolute; bottom: -5px; left: 50%;
+            transform: translateX(-50%);
+            width: 12px; height: 12px;
+            background: #000; border: 2px solid #fff; border-radius: 50%;
+            z-index: 11;
         }
-        .back-btn:hover { opacity: 0.7; }
+
+        /* Data moved below the meter */
+        .data-label { font-size: 10px; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .total-nodes { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 25px; }
+
+        .stats-footer { 
+            display: flex; justify-content: space-between; 
+            border-top: 1px solid var(--border); 
+            padding-top: 20px; margin-top: 10px;
+        }
+        .stat-block { text-align: left; }
+        .stat-block:last-child { text-align: right; }
+        .stat-n { display: block; font-family: 'Space Grotesk'; font-size: 16px; font-weight: 700; color: var(--primary); }
+        .stat-t { display: block; font-size: 9px; opacity: 0.4; letter-spacing: 1px; }
+
+        .btn-back { 
+            margin-top: 30px; display: inline-block; 
+            color: rgba(255,255,255,0.3); text-decoration: none; 
+            font-size: 11px; font-weight: 600; transition: 0.3s;
+        }
+        .btn-back:hover { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -126,32 +127,30 @@
     </div>
 
     <div class="card">
-        <div style="font-size: 10px; opacity: 0.5; letter-spacing: 2px; font-weight: 600;">WITHDRAWAL ENGINE</div>
-        
         <div class="meter-box">
-            <svg class="gauge-svg">
-                <path class="gauge-bg" d="M 20 110 A 90 90 0 0 1 200 110" />
-                <path id="gaugeFill" class="gauge-fill" d="M 20 110 A 90 90 0 0 1 200 110" />
+            <svg class="gauge-svg" viewBox="0 0 200 100">
+                <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
+                <path id="gaugeFill" class="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" />
             </svg>
             <div id="needle" class="needle"></div>
-            <div class="meter-center">
-                <span class="num" id="centerCount">0</span>
-                <span class="label">Nodes</span>
+            <div class="needle-hub"></div>
+        </div>
+
+        <span class="data-label">Live Network Nodes</span>
+        <div class="total-nodes" id="centerCount">0</div>
+
+        <div class="stats-footer">
+            <div class="stat-block">
+                <span class="stat-n" id="neededCount">200</span>
+                <span class="stat-t">REMAINING</span>
+            </div>
+            <div class="stat-block">
+                <span class="stat-n">200</span>
+                <span class="stat-t">PHASE 1 GOAL</span>
             </div>
         </div>
 
-        <div class="stats-container">
-            <div class="stat-card">
-                <span class="stat-label">REMAINING</span>
-                <span class="stat-val" id="neededCount">200</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">TARGET</span>
-                <span class="stat-val">200</span>
-            </div>
-        </div>
-
-        <a href="dashboard.html" class="back-btn">← BACK TO DASHBOARD</a>
+        <a href="dashboard.html" class="btn-back">EXIT TERMINAL</a>
     </div>
 
     <script type="module">
@@ -172,15 +171,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- 3D TILT FOR TEXT ONLY ---
+        // --- 3D TILT EFFECT ---
         const tiltText = document.getElementById('tiltText');
         document.addEventListener('mousemove', (e) => {
-            let x = (window.innerWidth / 2 - e.pageX) / 12;
-            let y = (window.innerHeight / 2 - e.pageY) / 12;
+            let x = (window.innerWidth / 2 - e.pageX) / 15;
+            let y = (window.innerHeight / 2 - e.pageY) / 15;
             tiltText.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
         });
 
-        // --- FIREBASE LOGIC ---
+        // --- FIREBASE SYNC ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 onSnapshot(collection(db, "users"), (snap) => {
@@ -192,18 +191,18 @@
                     document.getElementById('centerCount').innerText = count;
                     document.getElementById('neededCount').innerText = Math.max(target - count, 0);
                     
-                    // Needle & Gauge Animation
+                    // Needle & SVG Gauge Animation
                     const rotation = (ratio * 180) - 90;
                     document.getElementById('needle').style.transform = `rotate(${rotation}deg)`;
                     
                     const fill = document.getElementById('gaugeFill');
-                    const dashOffset = 314 - (ratio * 314);
+                    const dashOffset = 283 - (ratio * 283);
                     fill.style.strokeDashoffset = dashOffset;
 
-                    // Color Shift
-                    if(ratio > 0.8) fill.style.stroke = "var(--green)";
-                    else if(ratio > 0.4) fill.style.stroke = "var(--yellow)";
-                    else fill.style.stroke = "var(--red)";
+                    // Dynamic Glow & Color
+                    if(ratio > 0.8) { fill.style.stroke = "var(--green)"; fill.style.filter = "drop-shadow(0 0 8px var(--green))"; }
+                    else if(ratio > 0.4) { fill.style.stroke = "var(--yellow)"; fill.style.filter = "drop-shadow(0 0 8px var(--yellow))"; }
+                    else { fill.style.stroke = "var(--red)"; fill.style.filter = "drop-shadow(0 0 8px var(--red))"; }
                 });
             } else { window.location.href = "login.html"; }
         });
