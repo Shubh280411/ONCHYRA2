@@ -18,7 +18,7 @@
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 15px; overflow-x: hidden; }
 
-        /* LOADER */
+        /* 5-SEC SMART LOADER */
         #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
         .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -29,24 +29,21 @@
         
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
         .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        
         .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
         .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
         .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
-        /* PREMIMUM WITHDRAW MENU ITEM */
+        /* --- WITHDRAW BUTTON SPECIAL CSS --- */
         .withdraw-special {
             background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important;
             border-left: 3px solid var(--primary) !important;
-            margin: 10px 0 !important;
             position: relative;
             overflow: hidden;
             color: #fff !important;
         }
         .withdraw-special .icon-box {
-            color: var(--primary);
-            filter: drop-shadow(0 0 5px var(--primary));
             animation: pulseIcon 2s infinite ease-in-out;
+            color: var(--primary);
             display: flex; align-items: center;
         }
         .live-dot {
@@ -54,24 +51,36 @@
             background: #00ff88; border-radius: 50%;
             box-shadow: 0 0 10px #00ff88; animation: blinker 1.5s infinite;
         }
-
         @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         @keyframes blinker { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* ---------------------------------- */
 
-        /* CARDS & COMPONENTS */
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; }
+        /* CARDS */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
+        
+        /* STREAK BADGE */
         .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
+
+        /* COIN & PARTICLES */
         .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 10px auto; perspective: 1000px; }
-        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; }
+        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; position: relative; z-index: 2; }
+        .particle { position: absolute; width: 3px; height: 3px; background: var(--primary); border-radius: 50%; opacity: 0; animation: rise 3s infinite linear; }
+        @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-50px) scale(0); opacity: 0; } }
         @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
+
+        /* RANK TAGS */
+        .rank-tag { font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px; vertical-align: middle; }
+
+        /* HOLDERS LIST */
+        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; cursor: pointer; }
+        .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
+        .rank-1 { background: #ffd700; color: #000; box-shadow: 0 0 10px #ffd700; }
+        .rank-2 { background: #c0c0c0; color: #000; box-shadow: 0 0 10px #c0c0c0; }
+        .rank-3 { background: #cd7f32; color: #000; box-shadow: 0 0 10px #cd7f32; }
 
         button { width: 100%; padding: 16px; border: none; border-radius: 14px; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; transition: var(--transition); }
         button:disabled { opacity: 0.2; }
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
-        
-        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; }
-        .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
-        .rank-1 { background: #ffd700; color: #000; }
     </style>
 </head>
 <body>
@@ -94,7 +103,7 @@
         <div class="icon-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
         </div>
-        <span>Withdraw Your ONCs</span>
+        <span style="flex:1;">Withdraw Your ONCs</span>
         <div class="live-dot"></div>
     </a>
 
@@ -110,30 +119,45 @@
 </div>
 
 <div id="dashboardData" style="display:none;">
+    
     <div class="card" style="text-align:center;">
         <div class="streak-badge">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
             STREAK: <span id="streakCount">0</span>
         </div>
         <div style="font-size:13px; opacity:0.8; margin-top:10px;">
-            <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" style="font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px;">Rookie</span>
+            <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" class="rank-tag">Rookie</span>
         </div>
-        <div class="coin-wrapper"><div class="coin">ONC</div></div>
+        <div class="coin-wrapper">
+            <div class="particle" style="left:20%; animation-delay:0s;"></div>
+            <div class="particle" style="left:50%; animation-delay:1s;"></div>
+            <div class="particle" style="left:80%; animation-delay:2s;"></div>
+            <div class="coin">ONC</div>
+        </div>
         <h2 id="balance" style="font-family:'Space Grotesk'; font-size:38px;">0.00</h2>
     </div>
 
     <div class="card">
         <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
-        <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing...</div>
-        <div style="background:#0a0b14; height:8px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border); overflow:hidden;">
-            <div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div>
-        </div>
+        <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing Block...</div>
+        <div style="background:#0a0b14; height:8px; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div></div>
         <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
     </div>
 
     <div style="margin-bottom: 20px;">
         <h3 style="font-size:13px; margin: 0 5px 12px 5px; opacity: 0.6; letter-spacing: 1px;">TOP NETWORK NODES</h3>
         <div id="miniLeaderboard" onclick="window.location='leaderboard.html'"></div>
+    </div>
+
+    <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), transparent);">
+        <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1px; margin-bottom:5px;">LATEST NEWS</div>
+        <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.4;">Fetching network logs...</div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:14px; margin-bottom:10px;">Referral System</h3>
+        <div id="refcode" style="padding:15px; border-radius:14px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:10px; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
+        <button onclick="copyLink()" style="background:var(--card); color:white; border:1px solid var(--border);">COPY INVITE LINK</button>
     </div>
 
     <div class="card" style="display:flex; text-align:center; padding: 15px;">
@@ -151,107 +175,131 @@
 <div id="toast"><span id="toastText"></span></div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-        authDomain:"onchyra.firebaseapp.com",
-        projectId:"onchyra",
-        storageBucket:"onchyra.firebasestorage.app",
-        messagingSenderId:"441822770982",
-        appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
-    };
+const firebaseConfig = {
+    apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain:"onchyra.firebaseapp.com",
+    projectId:"onchyra",
+    storageBucket:"onchyra.firebasestorage.app",
+    messagingSenderId:"441822770982",
+    appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    let uid, userData;
+let uid, userData;
 
-    const showDashboard = () => {
-        document.getElementById('loader').style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById('loader').style.display = "none";
-            document.getElementById('dashboardData').style.display = "block";
-        }, 500);
-    };
+// SMART 5-SEC SYNC
+const showDashboard = () => {
+    document.getElementById('loader').style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "block";
+    }, 500);
+};
 
-    onAuthStateChanged(auth, async (user) => {
-        if(!user) { window.location="login.html"; return; }
-        uid = user.uid;
-        loadPersonalData();
-        loadGlobalData();
-        setTimeout(showDashboard, 3000); // 3 sec loader
+setTimeout(showDashboard, 5000);
+
+onAuthStateChanged(auth, async (user) => {
+    if(!user) { window.location="login.html"; return; }
+    uid = user.uid;
+    loadPersonalData();
+    loadGlobalData();
+});
+
+async function loadPersonalData() {
+    onSnapshot(doc(db, "users", uid), (snap) => {
+        if(snap.exists()){
+            userData = snap.data();
+            updateUI();
+            checkClaim();
+        }
     });
+}
 
-    async function loadPersonalData() {
-        onSnapshot(doc(db, "users", uid), (snap) => {
-            if(snap.exists()){
-                userData = snap.data();
-                updateUI();
-                checkClaim();
-            }
+function updateUI() {
+    document.getElementById('username').innerText = userData.name || "Miner";
+    const bal = userData.balance || 0;
+    document.getElementById('balance').innerText = bal.toFixed(2);
+    document.getElementById('refcode').innerText = userData.referralCode || "---";
+    document.getElementById('streakCount').innerText = userData.streak || "0";
+
+    const tag = document.getElementById('rankTag');
+    if(bal >= 100) { tag.innerText = "Whale"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
+    else if(bal >= 50) { tag.innerText = "Pro"; tag.style.color = "#60a5fa"; tag.style.borderColor = "#60a5fa"; }
+    else { tag.innerText = "Rookie"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
+}
+
+window.claim = async() => {
+    const last = Number(userData.lastClaim) || 0;
+    if(Date.now() - last < 86400000) return;
+    try {
+        await updateDoc(doc(db, "users", uid), { 
+            balance: (userData.balance || 0) + 0.10, 
+            lastClaim: Date.now(),
+            streak: (userData.streak || 0) + 1
         });
-    }
-
-    function updateUI() {
-        document.getElementById('username').innerText = userData.name || "Miner";
-        const bal = userData.balance || 0;
-        document.getElementById('balance').innerText = bal.toFixed(2);
-        document.getElementById('streakCount').innerText = userData.streak || "0";
-        const tag = document.getElementById('rankTag');
-        if(bal >= 100) { tag.innerText = "Whale"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
-        else { tag.innerText = "Rookie"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
-    }
-
-    window.claim = async() => {
-        const last = Number(userData.lastClaim) || 0;
-        if(Date.now() - last < 86400000) return;
-        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now(), streak: (userData.streak || 0) + 1 });
         showToast("Mined +0.10 ONC");
-    }
+    } catch(e) { showToast("Sync Error!"); }
+}
 
-    function checkClaim() {
-        setInterval(() => {
-            const last = Number(userData.lastClaim) || 0;
-            const diff = 86400000 - (Date.now() - last);
-            const pBar = document.getElementById('progressBar');
-            if(diff <= 0) {
-                pBar.style.width = "100%"; document.getElementById('claimBtn').disabled = false;
-                document.getElementById('claimStatus').innerText = "Ready to Mine";
-            } else {
-                pBar.style.width = ((86400000-diff)/86400000)*100 + "%";
-                document.getElementById('claimBtn').disabled = true;
-                let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
-                document.getElementById('claimStatus').innerText = `Mining: ${h}h ${m}m`;
-            }
-        }, 1000);
-    }
+function checkClaim() {
+    setInterval(() => {
+        const last = Number(userData.lastClaim) || 0;
+        const diff = 86400000 - (Date.now() - last);
+        const pBar = document.getElementById('progressBar');
+        const btn = document.getElementById('claimBtn');
+        const status = document.getElementById('claimStatus');
+        if(diff <= 0) {
+            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Ready to Mine";
+        } else {
+            let p = ((86400000 - diff) / 86400000) * 100;
+            pBar.style.width = p + "%"; btn.disabled = true;
+            let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            status.innerText = `Mining: ${h}h ${m}m ${s}s`;
+        }
+    }, 1000);
+}
 
-    async function loadGlobalData() {
-        const uSnap = await getDocs(collection(db, "users"));
+async function loadGlobalData() {
+    try {
+        const [uSnap, upSnap, topSnap] = await Promise.all([
+            getDocs(collection(db, "users")),
+            getDocs(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1))),
+            getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)))
+        ]);
+
         document.getElementById('totalUsers').innerText = uSnap.size;
         let total = 0; uSnap.forEach(d => total += (d.data().balance || 0));
         document.getElementById('totalMined').innerText = total.toFixed(0);
-        
-        const topSnap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
+        if(!upSnap.empty) document.getElementById('updateTitle').innerText = upSnap.docs[0].data().title;
+
         let html = "", r = 1;
         topSnap.forEach(d => {
-            html += `<div class="holder-card"><div class="rank-num rank-${r}">${r}</div><div style="flex:1; font-size:12px;">${d.data().name}</div><div style="font-weight:800; color:var(--primary);">${(d.data().balance||0).toFixed(2)}</div></div>`;
+            html += `<div class="holder-card">
+                <div class="rank-num rank-${r}">${r}</div>
+                <div style="flex:1;"><div style="font-size:12px; font-weight:700;">${d.data().name}</div></div>
+                <div style="font-weight:800; color:var(--primary); font-size:13px;">${(d.data().balance||0).toFixed(2)}</div>
+            </div>`;
             r++;
         });
         document.getElementById('miniLeaderboard').innerHTML = html;
-    }
+    } catch(e) {}
+}
 
-    window.toggleMenu = () => {
-        const m = document.getElementById('menu'), o = document.getElementById('overlay');
-        const open = m.style.left === "0px";
-        m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
-    };
-    window.logout = () => signOut(auth).then(() => window.location="login.html");
-    function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 3000); }
+window.toggleMenu = () => {
+    const m = document.getElementById('menu'), o = document.getElementById('overlay');
+    const open = m.style.left === "0px";
+    m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
+};
+window.logout = () => signOut(auth).then(() => window.location="login.html");
+window.copyLink = () => { navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + userData.referralCode); showToast("Link Copied!"); };
+function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 3000); }
 </script>
 </body>
 </html>
