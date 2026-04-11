@@ -2,109 +2,256 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Fixer — ONCHYRA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #070816; color: white; padding: 20px; text-align: center; }
-        .box { background: #111; border: 1px solid #333; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; }
-        #status { text-align: left; height: 250px; overflow-y: auto; background: #000; padding: 10px; margin: 15px 0; font-family: monospace; font-size: 11px; border: 1px solid #444; color: #00ff00; }
-        button { background: #ff4757; padding: 15px; width: 100%; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; }
+        :root {
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --bg: #03040a;
+            --card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.1);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 15px; overflow-x: hidden; }
+
+        /* LOADER */
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
+        .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* NAV & MENU */
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+        
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
+        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        
+        .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
+        .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
+
+        /* PREMIMUM WITHDRAW MENU ITEM */
+        .withdraw-special {
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important;
+            border-left: 3px solid var(--primary) !important;
+            margin: 10px 0 !important;
+            position: relative;
+            overflow: hidden;
+            color: #fff !important;
+        }
+        .withdraw-special .icon-box {
+            color: var(--primary);
+            filter: drop-shadow(0 0 5px var(--primary));
+            animation: pulseIcon 2s infinite ease-in-out;
+            display: flex; align-items: center;
+        }
+        .live-dot {
+            position: absolute; right: 15px; width: 6px; height: 6px;
+            background: #00ff88; border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88; animation: blinker 1.5s infinite;
+        }
+
+        @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        @keyframes blinker { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* CARDS & COMPONENTS */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; }
+        .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
+        .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 10px auto; perspective: 1000px; }
+        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
+
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; transition: var(--transition); }
+        button:disabled { opacity: 0.2; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
+        
+        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; }
+        .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
+        .rank-1 { background: #ffd700; color: #000; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>Team Count Fixer</h3>
-        <p style="font-size: 12px; opacity: 0.7;">Ye script sabki extra team ko reset karke actual referral count set kar degi.</p>
-        <div id="status">Ready to fix data...</div>
-        <button id="runBtn" onclick="fixTeamCounts()">RECALCULATE ALL TEAMS</button>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div style="margin-top:15px; font-size:10px; opacity:0.5; letter-spacing:2px;">SYNCING NODE...</div>
+</div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<div class="menu" id="menu">
+    <div class="logo" style="margin-bottom: 30px; color: var(--primary);">ONCHYRA</div>
+    <a href="dashboard.html" class="menu-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Dashboard</a>
+    <a href="referrals.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> Referrals</a>
+    <a href="leaderboard.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 15l-2 5L2 14l5-2 1-5 5 2 5-2 1 5 5 2-8 6-2-5z"></path></svg> Leaderboard</a>
+    <a href="powerdrop.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Powerdrop</a>
+    
+    <a href="withdraw.html" class="menu-item withdraw-special">
+        <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <span>Withdraw Your ONCs</span>
+        <div class="live-dot"></div>
+    </a>
+
+    <a href="streaks.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 5.5 3 8.5a7 7 0 0 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"></path></svg> Streaks</a>
+    <a href="updates.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg> Updates</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</a>
+</div>
+
+<div class="nav">
+    <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
+    <div class="logo">ONCHYRA</div>
+    <div style="width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location='profile.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+</div>
+
+<div id="dashboardData" style="display:none;">
+    <div class="card" style="text-align:center;">
+        <div class="streak-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            STREAK: <span id="streakCount">0</span>
+        </div>
+        <div style="font-size:13px; opacity:0.8; margin-top:10px;">
+            <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" style="font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px;">Rookie</span>
+        </div>
+        <div class="coin-wrapper"><div class="coin">ONC</div></div>
+        <h2 id="balance" style="font-family:'Space Grotesk'; font-size:38px;">0.00</h2>
     </div>
+
+    <div class="card">
+        <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
+        <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing...</div>
+        <div style="background:#0a0b14; height:8px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border); overflow:hidden;">
+            <div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div>
+        </div>
+        <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <h3 style="font-size:13px; margin: 0 5px 12px 5px; opacity: 0.6; letter-spacing: 1px;">TOP NETWORK NODES</h3>
+        <div id="miniLeaderboard" onclick="window.location='leaderboard.html'"></div>
+    </div>
+
+    <div class="card" style="display:flex; text-align:center; padding: 15px;">
+        <div style="flex:1; border-right: 1px solid var(--border);">
+            <div id="totalUsers" style="font-size:20px; font-weight:800;">0</div>
+            <div style="font-size:9px; opacity:0.5; margin-top:4px;">TOTAL NODES</div>
+        </div>
+        <div style="flex:1;">
+            <div id="totalMined" style="font-size:20px; font-weight:800;">0</div>
+            <div style="font-size:9px; opacity:0.5; margin-top:4px;">CIRCULATION</div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"><span id="toastText"></span></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-        authDomain: "onchyra.firebaseapp.com",
-        projectId: "onchyra",
-        storageBucket: "onchyra.firebasestorage.app",
-        messagingSenderId: "441822770982",
-        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+        apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain:"onchyra.firebaseapp.com",
+        projectId:"onchyra",
+        storageBucket:"onchyra.firebasestorage.app",
+        messagingSenderId:"441822770982",
+        appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7"
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const log = (m) => { const s = document.getElementById("status"); s.innerHTML += `<div>> ${m}</div>`; s.scrollTop = s.scrollHeight; };
 
-    window.fixTeamCounts = async function() {
-        const btn = document.getElementById("runBtn");
-        if(!confirm("Are you sure? This will reset and recount all team members.")) return;
+    let uid, userData;
 
-        btn.disabled = true;
-        log("Step 1: Resetting everyone to 0...");
+    const showDashboard = () => {
+        document.getElementById('loader').style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('dashboardData').style.display = "block";
+        }, 500);
+    };
 
-        try {
-            const snap = await getDocs(collection(db, "users"));
-            const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    onAuthStateChanged(auth, async (user) => {
+        if(!user) { window.location="login.html"; return; }
+        uid = user.uid;
+        loadPersonalData();
+        loadGlobalData();
+        setTimeout(showDashboard, 3000); // 3 sec loader
+    });
 
-            // 1. Pehle Sabka Team Size Zero kar do
-            for (const u of allUsers) {
-                await updateDoc(doc(db, "users", u.id), {
-                    referrals: 0,
-                    refLevel1: 0,
-                    refLevel2: 0,
-                    refLevel3: 0
-                });
+    async function loadPersonalData() {
+        onSnapshot(doc(db, "users", uid), (snap) => {
+            if(snap.exists()){
+                userData = snap.data();
+                updateUI();
+                checkClaim();
             }
-            log("Reset complete. Recalculating actual structure...");
-
-            // 2. Ab user-by-user referral check karo
-            for (const u of allUsers) {
-                const refBy = u.referredBy;
-                if (refBy) {
-                    log(`Processing referral for: ${u.email}`);
-                    
-                    // Find Level 1
-                    const l1 = allUsers.find(user => user.referralCode === refBy);
-                    if (l1) {
-                        await updateDoc(doc(db, "users", l1.id), {
-                            referrals: increment(1),
-                            refLevel1: increment(1)
-                        });
-
-                        // Find Level 2
-                        if (l1.referredBy) {
-                            const l2 = allUsers.find(user => user.referralCode === l1.referredBy);
-                            if (l2) {
-                                await updateDoc(doc(db, "users", l2.id), {
-                                    refLevel2: increment(1)
-                                });
-
-                                // Find Level 3
-                                if (l2.referredBy) {
-                                    const l3 = allUsers.find(user => user.referralCode === l2.referredBy);
-                                    if (l3) {
-                                        await updateDoc(doc(db, "users", l3.id), {
-                                            refLevel3: increment(1)
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                // Thoda gap taaki mobile hang na ho
-                await new Promise(r => setTimeout(r, 300));
-            }
-
-            log("--- SUCCESS! All Teams Corrected ---");
-            alert("Done! Everyone's team size is now accurate.");
-        } catch (e) {
-            log("Error: " + e.message);
-        } finally {
-            btn.disabled = false;
-        }
+        });
     }
+
+    function updateUI() {
+        document.getElementById('username').innerText = userData.name || "Miner";
+        const bal = userData.balance || 0;
+        document.getElementById('balance').innerText = bal.toFixed(2);
+        document.getElementById('streakCount').innerText = userData.streak || "0";
+        const tag = document.getElementById('rankTag');
+        if(bal >= 100) { tag.innerText = "Whale"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
+        else { tag.innerText = "Rookie"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
+    }
+
+    window.claim = async() => {
+        const last = Number(userData.lastClaim) || 0;
+        if(Date.now() - last < 86400000) return;
+        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now(), streak: (userData.streak || 0) + 1 });
+        showToast("Mined +0.10 ONC");
+    }
+
+    function checkClaim() {
+        setInterval(() => {
+            const last = Number(userData.lastClaim) || 0;
+            const diff = 86400000 - (Date.now() - last);
+            const pBar = document.getElementById('progressBar');
+            if(diff <= 0) {
+                pBar.style.width = "100%"; document.getElementById('claimBtn').disabled = false;
+                document.getElementById('claimStatus').innerText = "Ready to Mine";
+            } else {
+                pBar.style.width = ((86400000-diff)/86400000)*100 + "%";
+                document.getElementById('claimBtn').disabled = true;
+                let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+                document.getElementById('claimStatus').innerText = `Mining: ${h}h ${m}m`;
+            }
+        }, 1000);
+    }
+
+    async function loadGlobalData() {
+        const uSnap = await getDocs(collection(db, "users"));
+        document.getElementById('totalUsers').innerText = uSnap.size;
+        let total = 0; uSnap.forEach(d => total += (d.data().balance || 0));
+        document.getElementById('totalMined').innerText = total.toFixed(0);
+        
+        const topSnap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
+        let html = "", r = 1;
+        topSnap.forEach(d => {
+            html += `<div class="holder-card"><div class="rank-num rank-${r}">${r}</div><div style="flex:1; font-size:12px;">${d.data().name}</div><div style="font-weight:800; color:var(--primary);">${(d.data().balance||0).toFixed(2)}</div></div>`;
+            r++;
+        });
+        document.getElementById('miniLeaderboard').innerHTML = html;
+    }
+
+    window.toggleMenu = () => {
+        const m = document.getElementById('menu'), o = document.getElementById('overlay');
+        const open = m.style.left === "0px";
+        m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
+    };
+    window.logout = () => signOut(auth).then(() => window.location="login.html");
+    function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 3000); }
 </script>
 </body>
 </html>
