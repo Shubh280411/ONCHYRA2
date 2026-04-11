@@ -9,96 +9,173 @@
         :root { 
             --primary: #a78bfa; 
             --bg: #03040a; 
-            --card: rgba(255, 255, 255, 0.04); 
-            --border: rgba(255, 255, 255, 0.1); 
+            --card: rgba(255, 255, 255, 0.03); 
+            --border: rgba(255, 255, 255, 0.08); 
             --accent: #ff4757;
+            --glow: rgba(167, 139, 250, 0.3);
         }
         
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            background-image: radial-gradient(circle at 50% -20%, #1a1033 0%, #03040a 60%);
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
 
         .card { 
             background: var(--card); 
-            border-radius: 35px; 
-            padding: 30px; 
+            border-radius: 40px; 
+            padding: 40px 30px; 
             width: 100%; 
             max-width: 400px; 
             text-align: center; 
-            backdrop-filter: blur(25px); 
-            border: 1px solid rgba(167, 139, 250, 0.2); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(40px); 
+            border: 1px solid var(--border); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-out;
         }
 
-        /* RPM METER LOGIC */
-        .meter-container { position: relative; width: 200px; height: 110px; margin: 30px auto 10px; overflow: hidden; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* RPM METER */
+        .meter-container { 
+            position: relative; 
+            width: 220px; 
+            height: 120px; 
+            margin: 40px auto 10px; 
+            overflow: hidden; 
+        }
+
         .base-arc { 
-            width: 200px; height: 200px; 
-            border: 12px solid #151515; 
+            width: 220px; height: 220px; 
+            border: 14px solid #111; 
             border-radius: 50%; 
             position: absolute; top: 0; left: 0; 
             border-bottom-color: transparent; 
             border-left-color: transparent; 
             transform: rotate(-135deg); 
+            mask-image: linear-gradient(to top, black, transparent);
+        }
+
+        /* The moving colored arc */
+        .progress-arc {
+            width: 220px; height: 220px;
+            border: 14px solid var(--primary);
+            border-radius: 50%;
+            position: absolute; top: 0; left: 0;
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            transform: rotate(-135deg);
+            opacity: 0.2;
+            filter: blur(2px);
         }
         
         .needle { 
             position: absolute; 
-            bottom: 0; 
-            left: calc(50% - 1.5px); 
-            width: 3px; 
-            height: 85px; 
-            background: var(--accent); 
-            border-radius: 4px; 
+            bottom: 5px; 
+            left: calc(50% - 2px); 
+            width: 4px; 
+            height: 95px; 
+            background: linear-gradient(to top, #ff4757, #ff6b81);
+            border-radius: 10px; 
             transform-origin: bottom center; 
-            transform: rotate(-90deg); /* Hidden start position */
-            transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 1); 
-            box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+            transform: rotate(-90deg); 
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 1); 
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
             z-index: 10;
         }
-        
-        .center-hub { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; background: #000; border: 3px solid var(--accent); border-radius: 50%; z-index: 11; }
 
-        .marks { 
-            display: flex; 
-            justify-content: space-between; 
-            width: 200px; 
-            margin: 0 auto 20px; 
-            font-family: 'Space Grotesk'; 
-            font-size: 11px; 
-            opacity: 0.6; 
+        /* Vibrating animation for the needle */
+        .needle.vibrate { animation: jitter 0.1s infinite; }
+        @keyframes jitter {
+            0% { margin-left: 0px; }
+            50% { margin-left: 0.5px; }
+            100% { margin-left: 0px; }
+        }
+        
+        .center-hub { 
+            position: absolute; bottom: -5px; left: 50%; 
+            transform: translateX(-50%); 
+            width: 20px; height: 20px; 
+            background: #000; 
+            border: 4px solid var(--accent); 
+            border-radius: 50%; 
+            z-index: 11;
+            box-shadow: 0 0 15px var(--accent);
         }
 
-        h1 { font-family: 'Space Grotesk'; font-size: 22px; margin-bottom: 5px; }
-        .badge { display: inline-block; background: rgba(255, 71, 87, 0.1); color: var(--accent); padding: 4px 12px; border-radius: 10px; font-size: 9px; font-weight: 800; border: 1px solid rgba(255, 71, 87, 0.2); text-transform: uppercase; margin-bottom: 15px; transition: 0.3s; }
-        
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 20px; border: 1px solid var(--border); }
-        .val { font-family: 'Space Grotesk'; font-size: 22px; color: var(--primary); display: block; }
-        .label { font-size: 9px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block; }
+        .marks { 
+            display: flex; justify-content: space-between; 
+            width: 230px; margin: 0 auto 30px; 
+            font-family: 'Space Grotesk'; font-size: 12px; font-weight: 700;
+            color: rgba(255,255,255,0.3);
+        }
 
-        .btn { display: block; width: 100%; padding: 16px; border-radius: 15px; background: rgba(255,255,255,0.03); color: white; text-decoration: none; font-weight: 700; border: 1px solid var(--border); transition: 0.3s; font-size: 13px; }
-        .btn:hover { background: rgba(255,255,255,0.07); border-color: var(--primary); color: var(--primary); }
+        h1 { font-family: 'Space Grotesk'; font-size: 24px; margin-bottom: 8px; letter-spacing: -1px; }
+        
+        .badge { 
+            display: inline-block; 
+            background: rgba(255, 71, 87, 0.1); 
+            color: var(--accent); 
+            padding: 6px 16px; 
+            border-radius: 100px; 
+            font-size: 10px; 
+            font-weight: 800; 
+            border: 1px solid rgba(255, 71, 87, 0.2); 
+            text-transform: uppercase; 
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* Stats UI */
+        .stats-row { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
+            margin: 25px 0; background: rgba(255,255,255,0.02); 
+            padding: 20px; border-radius: 25px; border: 1px solid var(--border); 
+        }
+        .val { font-family: 'Space Grotesk'; font-size: 26px; font-weight: 800; color: var(--primary); display: block; text-shadow: 0 0 10px var(--glow); }
+        .label { font-size: 10px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px; }
+
+        .btn { 
+            display: block; width: 100%; padding: 18px; border-radius: 20px; 
+            background: rgba(255,255,255,0.05); color: white; 
+            text-decoration: none; font-weight: 700; border: 1px solid var(--border); 
+            transition: 0.4s; font-size: 13px; letter-spacing: 1px;
+        }
+        .btn:hover { 
+            background: var(--primary); color: #000; 
+            box-shadow: 0 0 30px var(--glow);
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div class="badge" id="statusBadge">Engine Locked</div>
-        <h1>Withdrawal RPM</h1>
+        <div class="badge" id="statusBadge">System Initializing</div>
+        <h1>Engine Status</h1>
         
         <div class="meter-container">
             <div class="base-arc"></div>
-            <div id="needle" class="needle"></div>
+            <div class="progress-arc" id="glowArc"></div>
+            <div id="needle" class="needle vibrate"></div>
             <div class="center-hub"></div>
         </div>
         
         <div class="marks">
             <span>0</span>
-            <span style="color: var(--primary); font-weight: bold; letter-spacing: 1px;">NODES</span>
+            <span style="color: var(--primary)">RPM</span>
             <span>200</span>
         </div>
 
-        <p style="font-size: 11px; opacity: 0.5; line-height: 1.6; padding: 0 10px;">
-            Network warmup phase. Withdrawal unlocks at **200 verified nodes**. Keep the engine running!
+        <p style="font-size: 12px; opacity: 0.5; line-height: 1.6; padding: 0 15px;">
+            The network is warming up. Withdrawal unlocks when we hit <b>200 verified nodes</b>.
         </p>
 
         <div class="stats-row">
@@ -120,7 +197,6 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Configuration matching your Dashboard
         const firebaseConfig = { 
             apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
             authDomain: "onchyra.firebaseapp.com",
@@ -134,54 +210,57 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Verify User is logged in before fetching
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Session verified. Fetching network stats...");
-                startMeter();
-            } else {
-                console.warn("Unauthorized access. Returning to login.");
-                window.location.href = "login.html";
-            }
+            if (user) { startMeter(); } 
+            else { window.location.href = "login.html"; }
         });
 
         function startMeter() {
-            const usersRef = collection(db, "users");
-
-            // Real-time listener for the count
-            onSnapshot(usersRef, (snap) => {
+            onSnapshot(collection(db, "users"), (snap) => {
                 const count = snap.size;
                 const target = 200;
-                
-                // Update Numeric Displays
-                document.getElementById('currentCount').innerText = count;
-                const remaining = Math.max(target - count, 0);
-                document.getElementById('neededCount').innerText = remaining;
+                const ratio = Math.min(count / target, 1);
+                const rotation = (ratio * 180) - 90;
 
-                // Handle Engine Ready state
+                // Update Numbers with an "odometer" feel
+                animateValue("currentCount", 0, count, 2000);
+                document.getElementById('neededCount').innerText = Math.max(target - count, 0);
+
+                // Update Needle & Glow
+                const needle = document.getElementById('needle');
+                const glowArc = document.getElementById('glowArc');
+                
+                setTimeout(() => {
+                    needle.style.transform = `rotate(${rotation}deg)`;
+                    glowArc.style.opacity = 0.1 + (ratio * 0.4); // Gets brighter as it fills
+                }, 500);
+
+                // Update Status
+                const badge = document.getElementById('statusBadge');
                 if (count >= target) {
-                    const badge = document.getElementById('statusBadge');
                     badge.innerText = "Engine Ready";
                     badge.style.color = "#00ff88";
                     badge.style.background = "rgba(0, 255, 136, 0.1)";
-                    badge.style.borderColor = "rgba(0, 255, 136, 0.2)";
+                    badge.style.borderColor = "rgba(0, 255, 136, 0.3)";
+                    needle.classList.remove('vibrate'); // Stabilizes when ready
+                } else {
+                    badge.innerText = "Engine Warming";
                 }
 
-                // RPM Logic: 0 users = -90deg, 200 users = 90deg
-                const ratio = Math.min(count / target, 1);
-                const rotation = (ratio * 180) - 90;
-                
-                // Animate Needle
-                setTimeout(() => {
-                    const needle = document.getElementById('needle');
-                    if (needle) {
-                        needle.style.transform = `rotate(${rotation}deg)`;
-                    }
-                }, 500);
-
-            }, (err) => {
-                console.error("Firestore Error:", err.message);
             });
+        }
+
+        // Smooth number counting animation
+        function animateValue(id, start, end, duration) {
+            let obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) { window.requestAnimationFrame(step); }
+            };
+            window.requestAnimationFrame(step);
         }
     </script>
 </body>
