@@ -16,22 +16,9 @@
         }
 
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
-        /* PC PAR CENTER AUR MOBILE PAR FULL SCREEN */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: white; 
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; min-height: 100vh; }
 
-        .main-wrapper {
-            width: 100%;
-            max-width: 500px; /* PC par chauras rahega, mobile par auto full screen */
-            padding: 15px;
-        }
+        .main-wrapper { width: 100%; max-width: 500px; padding: 15px; }
 
         /* 5-SEC SMART LOADER */
         #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
@@ -48,14 +35,7 @@
         .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
         .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
-        /* WITHDRAW BUTTON SPECIAL CSS */
-        .withdraw-special {
-            background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important;
-            border-left: 3px solid var(--primary) !important;
-            position: relative;
-            overflow: hidden;
-            color: #fff !important;
-        }
+        .withdraw-special { background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important; border-left: 3px solid var(--primary) !important; position: relative; overflow: hidden; color: #fff !important; }
         .withdraw-special .icon-box { animation: pulseIcon 2s infinite ease-in-out; color: var(--primary); display: flex; align-items: center; }
         .live-dot { position: absolute; right: 15px; width: 6px; height: 6px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; animation: blinker 1.5s infinite; }
         @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
@@ -64,44 +44,29 @@
         /* CARDS */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
         
-        /* STREAK BADGE */
+        /* PRESALE IMAGE CARD SPECIAL */
+        .presale-card { padding: 0; overflow: hidden; cursor: pointer; }
+        .presale-img { width: 100%; height: auto; display: block; }
+        .presale-content { padding: 20px; text-align: center; }
+
         .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
 
-        /* COIN & PARTICLES */
         .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 10px auto; perspective: 1000px; }
         .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; position: relative; z-index: 2; }
         .particle { position: absolute; width: 3px; height: 3px; background: var(--primary); border-radius: 50%; opacity: 0; animation: rise 3s infinite linear; }
         @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-50px) scale(0); opacity: 0; } }
         @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
 
-        /* RANK TAGS */
         .rank-tag { font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px; vertical-align: middle; }
 
-        /* HOLDERS LIST */
         .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; cursor: pointer; }
         .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
         .rank-1 { background: #ffd700; color: #000; box-shadow: 0 0 10px #ffd700; }
         .rank-2 { background: #c0c0c0; color: #000; box-shadow: 0 0 10px #c0c0c0; }
         .rank-3 { background: #cd7f32; color: #000; box-shadow: 0 0 10px #cd7f32; }
 
-        /* UPGRADED MINING BUTTON */
-        #claimBtn { 
-            width: 100%; 
-            padding: 18px; 
-            border: none; 
-            border-radius: 18px; 
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-            color: #000; 
-            font-weight: 900; 
-            font-size: 15px;
-            letter-spacing: 1px;
-            cursor: pointer; 
-            transition: 0.3s; 
-            box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3);
-            text-transform: uppercase;
-        }
-        #claimBtn:not(:disabled):active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(167, 139, 250, 0.2); }
-        #claimBtn:disabled { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); border: 1px solid var(--border); box-shadow: none; cursor: not-allowed; }
+        #claimBtn { width: 100%; padding: 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3); text-transform: uppercase; }
+        #claimBtn:disabled { opacity: 0.2; cursor: not-allowed; box-shadow: none; }
 
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
     </style>
@@ -120,12 +85,13 @@
     <a href="dashboard.html" class="menu-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Dashboard</a>
     <a href="referrals.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> Referrals</a>
     <a href="leaderboard.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 15l-2 5L2 14l5-2 1-5 5 2 5-2 1 5 5 2-8 6-2-5z"></path></svg> Leaderboard</a>
+    
+    <a href="presale.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg> Pre-sale</a>
+    
     <a href="powerdrop.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Powerdrop</a>
     
     <a href="withdraw.html" class="menu-item withdraw-special">
-        <div class="icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        </div>
+        <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
         <span style="flex:1;">Withdraw Your ONCs</span>
         <div class="live-dot"></div>
     </a>
@@ -159,6 +125,14 @@
                 <div class="coin">ONC</div>
             </div>
             <h2 id="balance" style="font-family:'Space Grotesk'; font-size:38px;">0.00</h2>
+        </div>
+
+        <div class="card presale-card" onclick="window.location='presale.html'">
+            <img src="presale.jpg" alt="Presale Banner" class="presale-img">
+            <div class="presale-content">
+                <div style="font-weight: 800; color: var(--primary); font-size: 14px; letter-spacing: 1px;">JOIN TOKEN PRE-SALE</div>
+                <div style="font-size: 11px; opacity: 0.6; margin-top: 5px;">Secure your ONC tokens before public launch.</div>
+            </div>
         </div>
 
         <div class="card">
