@@ -18,7 +18,7 @@
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 
-        /* FIXED NAVBAR FIX */
+        /* FIXED NAVBAR CONTAINER */
         .nav-container {
             position: fixed;
             top: 0;
@@ -26,7 +26,7 @@
             right: 0;
             z-index: 1000;
             padding: 15px;
-            background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+            background: linear-gradient(to bottom, var(--bg) 50%, transparent);
         }
         
         .nav { 
@@ -39,17 +39,17 @@
             background: rgba(255, 255, 255, 0.03); 
             border-radius: 22px; 
             border: 1px solid var(--border); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px);
         }
 
         .container { 
             max-width: 1200px; 
             margin: 0 auto; 
-            padding: 100px 15px 30px 15px; /* Adjust for fixed nav */
+            padding: 110px 15px 30px 15px; 
         }
 
-        /* GRID FOR PC */
+        /* GRID FOR PC/MOBILE */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -62,7 +62,7 @@
         }
 
         /* LOADER */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -72,26 +72,30 @@
         .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; }
         .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
-        /* CARDS - ORIGINAL STYLE */
+        /* CARDS */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; overflow: hidden; height: fit-content; }
         
-        .presale-card { padding: 0; cursor: pointer; border: 1px solid rgba(167, 139, 250, 0.2); }
+        .presale-card { padding: 0; cursor: pointer; border: 1px solid rgba(167, 139, 250, 0.2); transition: 0.3s; }
+        .presale-card:hover { border-color: var(--primary); }
         .presale-img { width: 100%; height: 180px; object-fit: cover; display: block; }
-        .presale-content { padding: 15px; text-align: center; background: linear-gradient(to top, rgba(167, 139, 250, 0.05), transparent); }
+        .presale-content { padding: 15px; text-align: center; }
+
+        /* UPDATE CARD SPECIAL */
+        .update-card { border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(167, 139, 250, 0.06), transparent); cursor: pointer; }
 
         .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); color: var(--primary); font-size: 11px; font-weight: 700; }
 
-        .coin-wrapper { position: relative; width: 110px; height: 110px; margin: 10px auto; perspective: 1000px; }
+        .coin-wrapper { position: relative; width: 110px; height: 110px; margin: 10px auto; }
         .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 22px; }
         @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
 
-        #claimBtn { width: 100%; padding: 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3); text-transform: uppercase; }
+        #claimBtn { width: 100%; padding: 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
         #claimBtn:disabled { opacity: 0.2; cursor: not-allowed; }
 
         .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; }
         .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; background: #222; }
 
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 2000; font-size: 13px; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 2000; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -129,15 +133,15 @@
         <div class="card" style="text-align:center;">
             <div class="streak-badge">STREAK: <span id="streakCount">0</span></div>
             <div style="font-size:13px; opacity:0.8; margin-top:10px;">
-                <span id="username" style="font-weight:700;">Miner</span><span style="font-size: 9px; padding: 2px 6px; border: 1px solid var(--primary); border-radius: 5px; margin-left: 8px; color: var(--primary);">ROOKIE</span>
+                <span id="username" style="font-weight:700;">Miner</span><span style="font-size: 9px; padding: 2px 6px; border: 1px solid var(--primary); border-radius: 5px; margin-left: 8px; color: var(--primary);">ACTIVE NODE</span>
             </div>
             <div class="coin-wrapper"><div class="coin">ONC</div></div>
             <h2 id="balance" style="font-family:'Space Grotesk'; font-size:42px;">0.00</h2>
         </div>
 
         <div class="card">
-            <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Node</h3>
-            <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing...</div>
+            <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
+            <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Checking block...</div>
             <div style="background:rgba(0,0,0,0.4); height:10px; border-radius:10px; margin-bottom:18px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s linear;"></div></div>
             <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
         </div>
@@ -145,23 +149,29 @@
         <div class="card presale-card" onclick="window.location='presale.html'">
             <img src="presale.jpg" alt="Presale" class="presale-img">
             <div class="presale-content">
-                <div style="font-weight: 800; color: var(--primary); font-size: 15px; letter-spacing: 1px;">JOIN TOKEN PRE-SALE</div>
-                <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">Whitelist is open. Secure your bag.</div>
+                <div style="font-weight: 800; color: var(--primary); font-size: 15px; letter-spacing: 1px;">TOKEN PRE-SALE LIVE</div>
+                <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">Join the future of Decentralized Mining.</div>
             </div>
         </div>
 
+        <div class="card update-card" onclick="window.location='updates.html'">
+            <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1.5px; margin-bottom:8px; text-transform: uppercase;">Latest Network Update</div>
+            <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.5; color: rgba(255,255,255,0.9);">Fetching network logs...</div>
+        </div>
+
         <div class="card">
-            <h3 style="font-size:12px; margin-bottom: 15px; opacity: 0.5; letter-spacing: 1px;">TOP NETWORK NODES</h3>
+            <h3 style="font-size:12px; margin-bottom: 15px; opacity: 0.5; letter-spacing: 1px;">GLOBAL LEADERBOARD (TOP 3)</h3>
             <div id="miniLeaderboard"></div>
         </div>
 
         <div class="card full-width">
-            <h3 style="font-size:14px; margin-bottom:12px;">Referral Link</h3>
+            <h3 style="font-size:14px; margin-bottom:12px;">Mining Referral Link</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div id="refcode" style="flex: 2; min-width: 200px; padding:15px; border-radius:15px; text-align:center; color:var(--primary); font-family:monospace; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
-                <button onclick="copyLink()" style="flex: 1; min-width: 120px; background:var(--card); color:white; border:1px solid var(--border); border-radius:15px; cursor: pointer;">COPY</button>
+                <div id="refcode" style="flex: 2; min-width: 200px; padding:16px; border-radius:15px; text-align:center; color:var(--primary); font-family:monospace; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
+                <button onclick="copyLink()" style="flex: 1; min-width: 120px; background:var(--card); color:white; border:1px solid var(--border); border-radius:15px; font-weight:600; cursor: pointer;">COPY LINK</button>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -191,15 +201,13 @@ onAuthStateChanged(auth, async (user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
     
-    // UI Load
+    // Smooth transition
     setTimeout(() => {
-        document.getElementById('loader').style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById('loader').style.display = "none";
-            document.getElementById('dashboardData').style.display = "grid";
-        }, 500);
-    }, 3000);
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "grid";
+    }, 2500);
 
+    // Personal Data Sync
     onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
             userData = snap.data();
@@ -211,20 +219,31 @@ onAuthStateChanged(auth, async (user) => {
         }
     });
 
-    const topSnap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
-    let html = ""; let r = 1;
-    topSnap.forEach(d => {
-        html += `<div class="holder-card"><div class="rank-num">${r}</div><div style="flex:1; font-size:12px;">${d.data().name}</div><div style="font-weight:800; color:var(--primary);">${(d.data().balance||0).toFixed(2)}</div></div>`;
-        r++;
-    });
-    document.getElementById('miniLeaderboard').innerHTML = html;
+    // Global Updates & Leaderboard
+    try {
+        const [upSnap, topSnap] = await Promise.all([
+            getDocs(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1))),
+            getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)))
+        ]);
+
+        if(!upSnap.empty) document.getElementById('updateTitle').innerText = upSnap.docs[0].data().title;
+
+        let html = ""; let r = 1;
+        topSnap.forEach(d => {
+            html += `<div class="holder-card"><div class="rank-num">${r}</div><div style="flex:1; font-size:12px; font-weight:600;">${d.data().name}</div><div style="font-weight:800; color:var(--primary);">${(d.data().balance||0).toFixed(2)} ONC</div></div>`;
+            r++;
+        });
+        document.getElementById('miniLeaderboard').innerHTML = html;
+    } catch(e) { console.log(e); }
 });
 
 window.claim = async() => {
     const last = Number(userData.lastClaim) || 0;
     if(Date.now() - last < 86400000) return;
-    await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now(), streak: (userData.streak || 0) + 1 });
-    showToast("Mined +0.10 ONC");
+    try {
+        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now(), streak: (userData.streak || 0) + 1 });
+        showToast("Mining Successful! +0.10 ONC");
+    } catch(e) { showToast("Sync Error!"); }
 }
 
 function checkClaim() {
@@ -236,12 +255,12 @@ function checkClaim() {
         const btn = document.getElementById('claimBtn');
         const status = document.getElementById('claimStatus');
         if(diff <= 0) {
-            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Ready to Mine";
+            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Mining Rig Ready";
         } else {
             let p = ((86400000 - diff) / 86400000) * 100;
             pBar.style.width = p + "%"; btn.disabled = true;
             let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            status.innerText = `Mining... ${h}h ${m}m ${s}s`;
+            status.innerText = `Node Active: ${h}h ${m}m ${s}s remaining`;
         }
     }, 1000);
 }
@@ -252,7 +271,10 @@ window.toggleMenu = () => {
     m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
 };
 window.logout = () => signOut(auth).then(() => window.location="login.html");
-window.copyLink = () => { navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + userData.referralCode); showToast("Link Copied!"); };
+window.copyLink = () => { 
+    const link = window.location.origin + "/register.html?ref=" + userData.referralCode;
+    navigator.clipboard.writeText(link); showToast("Link Copied!"); 
+};
 function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 2500); }
 </script>
 </body>
