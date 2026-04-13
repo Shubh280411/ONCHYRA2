@@ -4,277 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard — ONCHYRA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #a78bfa;
-            --primary-dim: rgba(167, 139, 250, 0.1);
             --secondary: #60a5fa;
             --bg: #03040a;
-            --card: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.07);
-            --text-dim: rgba(255, 255, 255, 0.6);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.1);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         
+        /* PC PAR CENTER AUR MOBILE PAR FULL SCREEN */
         body { 
             font-family: 'Inter', sans-serif; 
             background: var(--bg); 
             color: white; 
-            overflow-x: hidden; 
-            min-height: 100vh;
-            position: relative;
-        }
-
-        /* PREMIUM ANIMATED BACKGROUND */
-        body::before {
-            content: "";
-            position: fixed;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, #1a123d 0%, #03040a 40%);
-            animation: bgRotate 30s linear infinite;
-            z-index: -2;
-        }
-
-        @keyframes bgRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* PC APP-LIKE CENTERING */
-        .app-container {
-            width: 100%;
-            max-width: 1200px; /* PC par content area fixed रहेगा */
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        /* LOADER */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 50px; height: 50px; border-radius: 50%; border: 3px solid var(--border); border-top: 3px solid var(--primary); animation: spin 1s linear infinite; box-shadow: 0 0 15px var(--primary-dim); }
+        .main-wrapper {
+            width: 100%;
+            max-width: 500px; /* PC par chauras rahega, mobile par auto full screen */
+            padding: 15px;
+        }
+
+        /* 5-SEC SMART LOADER */
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
+        .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* NAV - Glassmorphism */
-        .nav { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 15px 25px; 
-            background: var(--card); 
-            border-radius: 24px; 
-            border: 1px solid var(--border); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        .logo { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        /* CARDS - Glassmorphism & Subtle Glow */
-        .card { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 30px; 
-            padding: 30px; 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px);
-            position: relative; 
-            overflow: hidden; 
-            transition: var(--transition);
-        }
+        /* NAV & MENU */
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
         
-        .card:hover { border-color: rgba(167, 139, 250, 0.3); box-shadow: 0 10px 40px rgba(167, 139, 250, 0.05); }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
+        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
+        .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
-        /* BALANCE SECTION */
-        .profile-section { padding-top: 50px; text-align: center; }
-        .streak-badge { 
-            position: absolute; top: 20px; right: 25px; 
-            background: rgba(167, 139, 250, 0.15); 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            border: 1px solid var(--primary); 
-            font-size: 12px; font-weight: 700; color: var(--primary); 
-            box-shadow: 0 0 10px var(--primary-dim);
-            display: flex; align-items: center; gap: 6px;
-        }
-        .rank-tag { font-size: 11px; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 10px; display: inline-block; vertical-align: middle; }
-
-        /* MINING BUTTON - Premium Look */
-        #claimBtn {
-            width: 100%;
-            padding: 22px;
-            border: none;
-            border-radius: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #000;
-            font-size: 18px;
-            font-weight: 900;
-            font-family: 'Space Grotesk';
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
+        /* WITHDRAW BUTTON SPECIAL CSS */
+        .withdraw-special {
+            background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important;
+            border-left: 3px solid var(--primary) !important;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4);
-            transition: var(--transition);
+            color: #fff !important;
         }
+        .withdraw-special .icon-box { animation: pulseIcon 2s infinite ease-in-out; color: var(--primary); display: flex; align-items: center; }
+        .live-dot { position: absolute; right: 15px; width: 6px; height: 6px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; animation: blinker 1.5s infinite; }
+        @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        @keyframes blinker { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* CARDS */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
         
-        #claimBtn:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(167, 139, 250, 0.6); }
-        #claimBtn:not(:disabled):active { transform: scale(0.97); }
+        /* STREAK BADGE */
+        .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
 
-        #claimBtn:disabled { background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.15); box-shadow: none; border: 1px solid var(--border); cursor: not-allowed; }
-        
-        #claimBtn::after { content: ""; position: absolute; top: -50%; left: -100%; width: 100%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 3s infinite; }
-        @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } }
+        /* COIN & PARTICLES */
+        .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 10px auto; perspective: 1000px; }
+        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; position: relative; z-index: 2; }
+        .particle { position: absolute; width: 3px; height: 3px; background: var(--primary); border-radius: 50%; opacity: 0; animation: rise 3s infinite linear; }
+        @keyframes rise { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-50px) scale(0); opacity: 0; } }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(180deg); } }
 
-        /* PRESALE CARD - Responsive Image */
-        .presale-card-wrapper {
-            position: relative; border-radius: 30px; padding: 3px; 
-            background: linear-gradient(45deg, #ff0055, #00ff88, #00e1ff, #ff0055);
-            background-size: 400%; animation: moveGradient 4s infinite;
-            box-shadow: 0 10px 40px rgba(255, 0, 85, 0.1);
-        }
-        @keyframes moveGradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-        .presale-card { background: #03040a; border-radius: 27px; padding: 0; border: none; overflow: hidden; }
-        .presale-img { width: 100%; height: auto; display: block; }
-        .presale-body { padding: 30px; text-align: center; }
+        /* RANK TAGS */
+        .rank-tag { font-size: 9px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px; vertical-align: middle; }
 
-        /* COIN */
-        .coin-wrapper { position: relative; width: 130px; height: 130px; margin: 25px auto; }
-        .coin { 
-            width: 100%; height: 100%; 
-            border-radius: 50%; 
+        /* HOLDERS LIST */
+        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; cursor: pointer; }
+        .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; }
+        .rank-1 { background: #ffd700; color: #000; box-shadow: 0 0 10px #ffd700; }
+        .rank-2 { background: #c0c0c0; color: #000; box-shadow: 0 0 10px #c0c0c0; }
+        .rank-3 { background: #cd7f32; color: #000; box-shadow: 0 0 10px #cd7f32; }
+
+        /* UPGRADED MINING BUTTON */
+        #claimBtn { 
+            width: 100%; 
+            padding: 18px; 
+            border: none; 
+            border-radius: 18px; 
             background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-            display: flex; align-items: center; justify-content: center; 
-            font-family: 'Space Grotesk'; font-weight: 800; 
-            box-shadow: 0 0 50px rgba(167, 139, 250, 0.5); 
-            animation: float 4s ease-in-out infinite; 
-            color: #000; font-size: 26px; 
-            position: relative; z-index: 1;
+            color: #000; 
+            font-weight: 900; 
+            font-size: 15px;
+            letter-spacing: 1px;
+            cursor: pointer; 
+            transition: 0.3s; 
+            box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3);
+            text-transform: uppercase;
         }
-        
-        .coin-shadow {
-            position: absolute; bottom: -10px; left: 15%; width: 70%; height: 20px;
-            background: rgba(167, 139, 250, 0.2);
-            filter: blur(15px);
-            border-radius: 50%;
-            animation: shadowShrink 4s ease-in-out infinite;
-        }
+        #claimBtn:not(:disabled):active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(167, 139, 250, 0.2); }
+        #claimBtn:disabled { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); border: 1px solid var(--border); box-shadow: none; cursor: not-allowed; }
 
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        @keyframes shadowShrink { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.8); opacity: 0.5; } }
-
-        /* GRID SYSTEM */
-        .grid-system { display: flex; flex-direction: column; gap: 20px; }
-
-        @media (min-width: 992px) {
-            .grid-system { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-            .full-row { grid-column: span 2; }
-            .side-col { grid-template-columns: 1fr 1fr; }
-        }
-
-        /* SIDE MENU */
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(10px); }
-        .menu { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: rgba(8, 9, 20, 0.95); padding: 50px 30px; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999; border-right: 1px solid var(--border); backdrop-filter: blur(20px); }
-        .menu-item { color: #fff; opacity: 0.7; text-decoration: none; padding: 18px 20px; display: block; font-weight: 600; font-size: 15px; border-radius: 15px; transition: var(--transition); }
-        .menu-item:hover { background: rgba(255,255,255,0.03); opacity: 1; }
-        .menu-item.active { opacity: 1; background: var(--primary-dim); color: var(--primary); border: 1px solid rgba(167, 139, 250, 0.2); }
-
-        /* TOAST */
-        #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(17, 17, 17, 0.9); padding: 15px 30px; border-radius: 20px; border: 1px solid var(--primary); display: none; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #toastText { font-weight: 600; font-size: 14px; color: #fff; }
-
-        /* OTHER UTILS */
-        .stat-val { font-size: 30px; font-weight: 800; font-family: 'Space Grotesk'; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px; }
-        .holder-card { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; margin-bottom: 10px; transition: var(--transition); }
-        .holder-card:hover { background: rgba(255,255,255,0.04); transform: translateX(5px); }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <div style="margin-top:20px; font-size:12px; color: var(--text-dim); letter-spacing: 2px;">ONCHYRA CORE INITIALIZING...</div>
+    <div style="margin-top:15px; font-size:10px; opacity:0.5; letter-spacing:2px;">SYNCING NODE...</div>
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
+
 <div class="menu" id="menu">
-    <div class="logo" style="margin-bottom: 50px; color: var(--primary);">ONCHYRA</div>
-    <a href="dashboard.html" class="menu-item active">Dashboard Hub</a>
-    <a href="referrals.html" class="menu-item">Referral Network</a>
-    <a href="leaderboard.html" class="menu-item">Network Leaders</a>
-    <a href="presale.html" class="menu-item">Token Pre-sale</a>
-    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: 100px; border: 1px solid rgba(239, 68, 68, 0.2);">Secure Logout</a>
+    <div class="logo" style="margin-bottom: 30px; color: var(--primary);">ONCHYRA</div>
+    <a href="dashboard.html" class="menu-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Dashboard</a>
+    <a href="referrals.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> Referrals</a>
+    <a href="leaderboard.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 15l-2 5L2 14l5-2 1-5 5 2 5-2 1 5 5 2-8 6-2-5z"></path></svg> Leaderboard</a>
+    <a href="powerdrop.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Powerdrop</a>
+    
+    <a href="withdraw.html" class="menu-item withdraw-special">
+        <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <span style="flex:1;">Withdraw Your ONCs</span>
+        <div class="live-dot"></div>
+    </a>
+
+    <a href="streaks.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 5.5 3 8.5a7 7 0 0 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"></path></svg> Streaks</a>
+    <a href="updates.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg> Updates</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</a>
 </div>
 
-<div class="app-container">
+<div class="main-wrapper">
     <div class="nav">
-        <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
+        <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
         <div class="logo">ONCHYRA</div>
-        <div style="width:40px; height:40px; border-radius:14px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location='profile.html'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+        <div style="width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location='profile.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
     </div>
 
-    <div id="dashboardData" style="display:none;" class="grid-system">
+    <div id="dashboardData" style="display:none;">
         
-        <div class="card profile-section full-row">
-            <div class="streak-badge">⚡ STREAK: <span id="streakCount">0</span> DAYS</div>
-            <div style="margin-bottom: 15px;">
-                <span id="username" style="font-weight:600; font-size:18px;">Miner_onchyra</span>
-                <span id="rankTag" style="color: var(--primary); border-color: var(--primary);">Rookie Node</span>
+        <div class="card" style="text-align:center;">
+            <div class="streak-badge">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                STREAK: <span id="streakCount">0</span>
+            </div>
+            <div style="font-size:13px; opacity:0.8; margin-top:10px;">
+                <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" class="rank-tag">Rookie</span>
             </div>
             <div class="coin-wrapper">
+                <div class="particle" style="left:20%; animation-delay:0s;"></div>
+                <div class="particle" style="left:50%; animation-delay:1s;"></div>
+                <div class="particle" style="left:80%; animation-delay:2s;"></div>
                 <div class="coin">ONC</div>
-                <div class="coin-shadow"></div>
             </div>
-            <div style="font-size:12px; color: var(--text-dim); margin-bottom: 5px;">AVAILABLE BALANCE</div>
-            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:56px; font-weight: 800;">0.00</h2>
-        </div>
-
-        <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
-            <h3 style="font-size:17px; font-family:'Space Grotesk'; margin-bottom:20px; color:#fff;">Mining Operation Status</h3>
-            <div style="background:rgba(255,255,255,0.03); height:16px; border-radius:16px; margin-bottom:15px; overflow:hidden; border:1px solid var(--border); box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);"><div id="progressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:1s;"></div></div>
-            <div id="claimStatus" style="font-size:13px; color:var(--text-dim); margin-bottom:25px; text-align:center; font-family: monospace; letter-spacing: 1px;">AWAITING COMMAND...</div>
-            <button id="claimBtn" onclick="claim()" disabled>START MINING SESSION</button>
-        </div>
-
-        <div class="presale-card-wrapper">
-            <div class="card presale-card">
-                <img src="presale.jpg" alt="Presale Banner" class="presale-img">
-                <div class="presale-body">
-                    <div style="font-family:'Space Grotesk'; font-weight:800; font-size:22px; color: var(--primary);">EARLY BIRD PRE-SALE</div>
-                    <p style="font-size:13px; color:var(--text-dim); margin: 10px 0 25px 0;">Secure your ONC tokens at Phase 1 base price before public launch.</p>
-                    <button onclick="window.location='presale.html'" style="padding:16px; font-size:15px; background:linear-gradient(90deg, var(--primary), var(--secondary)); color:#000; font-weight:800; border-radius:18px;">ACCESS PRE-SALE NOW</button>
-                </div>
-            </div>
+            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:38px;">0.00</h2>
         </div>
 
         <div class="card">
-            <h3 style="font-size:14px; margin-bottom: 25px; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;">Top Network Nodes</h3>
-            <div id="miniLeaderboard"></div>
+            <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
+            <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Syncing Block...</div>
+            <div style="background:#0a0b14; height:8px; border-radius:10px; margin-bottom:15px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div></div>
+            <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
         </div>
 
-        <div class="card" onclick="window.location='updates.html'" style="border-left: 5px solid var(--primary); background: linear-gradient(90deg, rgba(167,139,250,0.03), transparent); display: flex; flex-direction: column; justify-content: center;">
-            <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px; letter-spacing: 1px;">CORE NETWORK UPDATE</div>
-            <div id="updateTitle" style="font-size:16px; font-weight:600; line-height:1.5; color:#fff;">Fetching latest protocol logs...</div>
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size:13px; margin: 0 5px 12px 5px; opacity: 0.6; letter-spacing: 1px;">TOP NETWORK NODES</h3>
+            <div id="miniLeaderboard" onclick="window.location='leaderboard.html'"></div>
         </div>
 
-        <div class="card full-row">
-            <h3 style="font-size:16px; margin-bottom:20px; color:#fff;">Expand Your Node Network</h3>
-            <p style="font-size:13px; color:var(--text-dim); margin-bottom: 20px;">Share your unique code to invite new miners and earn network bonuses.</p>
-            <div id="refcodeDisplay" style="padding:20px; border-radius:18px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:20px; font-weight:900; background:rgba(0,0,0,0.5); border:1px dashed rgba(167, 139, 250, 0.3); letter-spacing: 5px; font-size:24px; text-shadow: 0 0 10px var(--primary-dim);">...</div>
-            <button onclick="copyLink()" style="background:rgba(255,255,255,0.03); color:white; border:1px solid var(--border); font-size:14px; padding:16px; border-radius:16px;">COPY REFERRAL LINK</button>
+        <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), transparent);">
+            <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1px; margin-bottom:5px;">LATEST NEWS</div>
+            <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.4;">Fetching network logs...</div>
         </div>
 
-        <div class="card full-row" style="display:flex; text-align:center; padding: 40px 0; background: linear-gradient(180deg, var(--card), rgba(0,0,0,0.5));">
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:10px;">Referral System</h3>
+            <div id="refcode" style="padding:15px; border-radius:14px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:10px; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
+            <button onclick="copyLink()" style="background:var(--card); color:white; border:1px solid var(--border); padding: 12px;">COPY INVITE LINK</button>
+        </div>
+
+        <div class="card" style="display:flex; text-align:center; padding: 15px;">
             <div style="flex:1; border-right: 1px solid var(--border);">
-                <div id="totalUsers" class="stat-val">0</div>
-                <div class="stat-label">Active Nodes</div>
+                <div id="totalUsers" style="font-size:20px; font-weight:800;">0</div>
+                <div style="font-size:9px; opacity:0.5; margin-top:4px;">TOTAL NODES</div>
             </div>
             <div style="flex:1;">
-                <div id="totalMined" class="stat-val">0</div>
-                <div class="stat-label">Total Circulation</div>
+                <div id="totalMined" style="font-size:20px; font-weight:800;">0</div>
+                <div style="font-size:9px; opacity:0.5; margin-top:4px;">CIRCULATION</div>
             </div>
         </div>
     </div>
@@ -302,59 +219,77 @@ const db = getFirestore(app);
 
 let uid, userData;
 
-onAuthStateChanged(auth, (user) => {
+const showDashboard = () => {
+    document.getElementById('loader').style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "block";
+    }, 500);
+};
+
+setTimeout(showDashboard, 5000);
+
+onAuthStateChanged(auth, async (user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
     loadPersonalData();
     loadGlobalData();
-    // Loader timer increased slightly for premium feel
-    setTimeout(() => {
-        document.getElementById('loader').style.display = "none";
-        document.getElementById('dashboardData').style.display = "grid";
-    }, 3000);
 });
 
-function loadPersonalData() {
+async function loadPersonalData() {
     onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
             userData = snap.data();
-            document.getElementById('username').innerText = userData.name || "Miner_Node";
-            document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
-            document.getElementById('streakCount').innerText = userData.streak || "0";
-            document.getElementById('refcodeDisplay').innerText = userData.referralCode || "ONCHYRA";
-            
-            const bal = userData.balance || 0;
-            const tag = document.getElementById('rankTag');
-            if(bal >= 100) { tag.innerText = "Whale Node"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
-            else if(bal >= 50) { tag.innerText = "Pro Node"; tag.style.color = "#60a5fa"; tag.style.borderColor = "#60a5fa"; }
-            else { tag.innerText = "Rookie Node"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
-            
+            updateUI();
             checkClaim();
         }
     });
 }
 
-function checkClaim() {
-    if(!userData) return;
-    const last = Number(userData.lastClaim) || 0;
-    const diff = 86400000 - (Date.now() - last);
-    const pBar = document.getElementById('progressBar');
-    const btn = document.getElementById('claimBtn');
-    const status = document.getElementById('claimStatus');
-    
-    if(diff <= 0) {
-        pBar.style.width = "100%"; btn.disabled = false; status.innerText = "SYSTEM READY :: AUTHORIZE SESSION";
-        status.style.color = "var(--primary)";
-    } else {
-        btn.disabled = true;
-        let p = ((86400000 - diff) / 86400000) * 100;
-        pBar.style.width = p + "%";
-        let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-        status.innerText = `SESSION ACTIVE :: NEXT IN ${h}H ${m}M ${s}S`;
-        status.style.color = "var(--text-dim)";
-    }
+function updateUI() {
+    document.getElementById('username').innerText = userData.name || "Miner";
+    const bal = userData.balance || 0;
+    document.getElementById('balance').innerText = bal.toFixed(2);
+    document.getElementById('refcode').innerText = userData.referralCode || "---";
+    document.getElementById('streakCount').innerText = userData.streak || "0";
+
+    const tag = document.getElementById('rankTag');
+    if(bal >= 100) { tag.innerText = "Whale"; tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24"; }
+    else if(bal >= 50) { tag.innerText = "Pro"; tag.style.color = "#60a5fa"; tag.style.borderColor = "#60a5fa"; }
+    else { tag.innerText = "Rookie"; tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa"; }
 }
-setInterval(checkClaim, 1000);
+
+window.claim = async() => {
+    const last = Number(userData.lastClaim) || 0;
+    if(Date.now() - last < 86400000) return;
+    try {
+        await updateDoc(doc(db, "users", uid), { 
+            balance: (userData.balance || 0) + 0.10, 
+            lastClaim: Date.now(),
+            streak: (userData.streak || 0) + 1
+        });
+        showToast("Mined +0.10 ONC");
+    } catch(e) { showToast("Sync Error!"); }
+}
+
+function checkClaim() {
+    setInterval(() => {
+        if(!userData) return;
+        const last = Number(userData.lastClaim) || 0;
+        const diff = 86400000 - (Date.now() - last);
+        const pBar = document.getElementById('progressBar');
+        const btn = document.getElementById('claimBtn');
+        const status = document.getElementById('claimStatus');
+        if(diff <= 0) {
+            pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Ready to Mine";
+        } else {
+            let p = ((86400000 - diff) / 86400000) * 100;
+            pBar.style.width = p + "%"; btn.disabled = true;
+            let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            status.innerText = `Mining: ${h}h ${m}m ${s}s`;
+        }
+    }, 1000);
+}
 
 async function loadGlobalData() {
     try {
@@ -364,17 +299,17 @@ async function loadGlobalData() {
             getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)))
         ]);
 
-        document.getElementById('totalUsers').innerText = uSnap.size.toLocaleString();
+        document.getElementById('totalUsers').innerText = uSnap.size;
         let total = 0; uSnap.forEach(d => total += (d.data().balance || 0));
-        document.getElementById('totalMined').innerText = total.toFixed(0).toLocaleString();
+        document.getElementById('totalMined').innerText = total.toFixed(0);
         if(!upSnap.empty) document.getElementById('updateTitle').innerText = upSnap.docs[0].data().title;
 
-        let html = ""; let r = 1;
+        let html = "", r = 1;
         topSnap.forEach(d => {
             html += `<div class="holder-card">
-                <div style="width:34px; height:34px; border-radius:50%; background:${r==1?'#ffd700':r==2?'#c0c0c0':'#cd7f32'}; color:#000; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; box-shadow: 0 0 10px ${r==1?'rgba(255,215,0,0.3)':r==2?'rgba(192,192,192,0.3)':'rgba(205,127,50,0.3)'};">${r}</div>
-                <div style="flex:1; font-size:14px; font-weight:600; color:#fff;">${d.data().name}</div>
-                <div style="font-weight:800; color:var(--primary); font-size:15px; font-family:'Space Grotesk';">${(d.data().balance||0).toFixed(2)} ONC</div>
+                <div class="rank-num rank-${r}">${r}</div>
+                <div style="flex:1;"><div style="font-size:12px; font-weight:700;">${d.data().name}</div></div>
+                <div style="font-weight:800; color:var(--primary); font-size:13px;">${(d.data().balance||0).toFixed(2)}</div>
             </div>`;
             r++;
         });
@@ -382,31 +317,14 @@ async function loadGlobalData() {
     } catch(e) {}
 }
 
-window.claim = async() => {
-    try {
-        await updateDoc(doc(db, "users", uid), { 
-            balance: (userData.balance || 0) + 0.10, 
-            lastClaim: Date.now(),
-            streak: (userData.streak || 0) + 1
-        });
-        showToast("✓ Session Authorized: +0.10 ONC Secured");
-    } catch(e) { showToast("✕ Network Sync Error!"); }
-};
-
-window.copyLink = () => {
-    const link = window.location.origin + "/register.html?ref=" + userData.referralCode;
-    navigator.clipboard.writeText(link);
-    showToast("✓ Referral Link Copied to Clipboard");
-};
-
 window.toggleMenu = () => {
     const m = document.getElementById('menu'), o = document.getElementById('overlay');
     const open = m.style.left === "0px";
-    m.style.left = open ? "-300px" : "0px"; o.style.display = open ? "none" : "block";
+    m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
 };
-
 window.logout = () => signOut(auth).then(() => window.location="login.html");
-function showToast(t) { const el = document.getElementById('toast'); document.getElementById('toastText').innerText = t; el.style.display="block"; setTimeout(()=>el.style.display="none", 3000); }
+window.copyLink = () => { navigator.clipboard.writeText(window.location.origin + "/register.html?ref=" + userData.referralCode); showToast("Link Copied!"); };
+function showToast(txt) { const t = document.getElementById('toast'); document.getElementById('toastText').innerText = txt; t.style.display = "block"; setTimeout(()=>t.style.display="none", 3000); }
 </script>
 </body>
 </html>
