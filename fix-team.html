@@ -16,148 +16,165 @@
         }
 
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 15px; overflow-x: hidden; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: white; 
+            padding: 15px; 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* PC centering */
+        }
+
+        /* Responsive Container */
+        .main-container {
+            width: 100%;
+            max-width: 500px; /* PC par mobile jaisa clean dikhega */
+        }
 
         /* LOADER */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* NAV */
-        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
+        .nav { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; margin-bottom: 20px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
         .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
-        
-        /* MENU */
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
-        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
-        .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
-        .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
 
-        /* CARDS BASIC */
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
+        /* CARDS */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; position: relative; overflow: hidden; width: 100%; }
         
-        /* BALANCE CARD SPECIFIC - Spacing Fix */
-        .profile-section { padding-top: 35px; text-align: center; }
-        .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(167, 139, 250, 0.1); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(167, 139, 250, 0.3); display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--primary); }
-        .rank-tag { font-size: 10px; padding: 3px 10px; border-radius: 8px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 8px; display: inline-block; vertical-align: middle; }
+        /* BALANCE SECTION */
+        .profile-section { padding-top: 40px; text-align: center; }
+        .streak-badge { position: absolute; top: 15px; right: 15px; background: rgba(167, 139, 250, 0.15); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--primary); font-size: 11px; font-weight: 700; color: var(--primary); }
+        .rank-tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; border: 1px solid; margin-left: 5px; }
 
-        /* ANIMATED PRESALE CARD */
+        /* --- FULL SCREEN IMAGE PRESALE CARD --- */
         .presale-card-wrapper {
             position: relative; border-radius: 26px; padding: 3px; 
-            background: linear-gradient(90deg, #ff0055, #00ff88, #00e1ff, #ff0055);
-            background-size: 400%; animation: moveGradient 4s linear infinite; margin-bottom: 20px; overflow: hidden;
+            background: linear-gradient(45deg, #ff0055, #00ff88, #00e1ff, #ff0055);
+            background-size: 400%; animation: moveGradient 4s infinite; margin-bottom: 20px; width: 100%;
         }
         @keyframes moveGradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-        .presale-card { background: #03040a; border-radius: 23px; padding: 0; margin-bottom: 0; border: none; }
-        .presale-img-container { width: 100%; background: #000; border-radius: 23px 23px 0 0; overflow: hidden; }
-        .presale-img { width: 100%; max-height: 160px; object-fit: contain; display: block; }
-        .presale-body { padding: 18px; text-align: center; }
+        
+        .presale-card { background: #080914; border-radius: 23px; padding: 0; margin-bottom: 0; border: none; overflow: hidden; }
+        
+        .presale-img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            /* No max-height means it shows full image */
+        }
+        .presale-body { padding: 20px; text-align: center; }
 
         /* COIN */
-        .coin-wrapper { position: relative; width: 90px; height: 90px; margin: 15px auto; }
-        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 35px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 18px; }
+        .coin-wrapper { position: relative; width: 100px; height: 100px; margin: 15px auto; }
+        .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.4); animation: float 4s ease-in-out infinite; color: #000; font-size: 20px; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* UTILS */
-        .holder-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; margin-bottom: 10px; }
-        .rank-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
-        .rank-1 { background: #ffd700; color: #000; }
-        .rank-2 { background: #c0c0c0; color: #000; }
-        .rank-3 { background: #cd7f32; color: #000; }
+        /* BUTTONS */
+        button { width: 100%; padding: 16px; border: none; border-radius: 16px; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
+        
+        /* LISTS */
+        .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; }
+        .rank-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
 
-        button { width: 100%; padding: 16px; border: none; border-radius: 16px; background: var(--primary); color: #000; font-weight: 800; cursor: pointer; transition: var(--transition); }
-        button:disabled { opacity: 0.2; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; }
+        /* SIDE MENU */
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(5px); }
+        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: 0.4s; z-index: 999; border-right: 1px solid var(--border); }
+        .menu-item { color: white; opacity: 0.6; text-decoration: none; padding: 15px; display: block; font-weight: 600; }
+        .menu-item.active { opacity: 1; color: var(--primary); }
+
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 1000; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <div style="margin-top:15px; font-size:10px; opacity:0.5; letter-spacing:2px;">ONCHYRA LOADING...</div>
+    <div style="margin-top:15px; font-size:10px; opacity:0.5;">SYNCING NETWORK...</div>
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
-
 <div class="menu" id="menu">
     <div class="logo" style="margin-bottom: 30px; color: var(--primary);">ONCHYRA</div>
     <a href="dashboard.html" class="menu-item active">Dashboard</a>
     <a href="referrals.html" class="menu-item">Referrals</a>
     <a href="leaderboard.html" class="menu-item">Leaderboard</a>
     <a href="presale.html" class="menu-item">Pre-sale</a>
-    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto;">Logout</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: 50px;">Logout</a>
 </div>
 
-<div class="nav">
-    <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
-    <div class="logo">ONCHYRA</div>
-    <div style="width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;" onclick="window.location='profile.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
-</div>
-
-<div id="dashboardData" style="display:none;">
-    
-    <div class="card profile-section">
-        <div class="streak-badge">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-            STREAK: <span id="streakCount">0</span>
-        </div>
-        <div style="margin-bottom: 5px;">
-            <span id="username" style="font-weight:700; font-size:15px;">Miner</span>
-            <span id="rankTag" class="rank-tag">Rookie</span>
-        </div>
-        <div class="coin-wrapper"><div class="coin">ONC</div></div>
-        <h2 id="balance" style="font-family:'Space Grotesk'; font-size:36px;">0.00</h2>
+<div class="main-container">
+    <div class="nav">
+        <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
+        <div class="logo">ONCHYRA</div>
+        <div style="width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;" onclick="window.location='profile.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
     </div>
 
-    <div class="card">
-        <h3 style="font-size:14px; font-family:'Space Grotesk'; margin-bottom:12px;">Mining Session</h3>
-        <div style="background:#0a0b14; height:10px; border-radius:10px; margin-bottom:12px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div></div>
-        <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-bottom:15px; text-align:center;">Syncing...</div>
-        <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
-    </div>
+    <div id="dashboardData" style="display:none;">
+        
+        <div class="card profile-section">
+            <div class="streak-badge">⚡ STREAK: <span id="streakCount">0</span></div>
+            <div style="margin-bottom: 10px;">
+                <span id="username" style="font-weight:700;">Miner</span>
+                <span id="rankTag" class="rank-tag">Rookie</span>
+            </div>
+            <div class="coin-wrapper"><div class="coin">ONC</div></div>
+            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:40px;">0.00</h2>
+        </div>
 
-    <div class="presale-card-wrapper">
-        <div class="card presale-card">
-            <div class="presale-img-container">
+        <div class="card">
+            <h3 style="font-size:14px; font-family:'Space Grotesk'; margin-bottom:15px;">Mining Node Status</h3>
+            <div style="background:#0a0b14; height:10px; border-radius:10px; margin-bottom:10px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s;"></div></div>
+            <div id="claimStatus" style="font-size:11px; opacity:0.6; margin-bottom:15px; text-align:center;">Checking node...</div>
+            <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
+        </div>
+
+        <div class="presale-card-wrapper">
+            <div class="card presale-card">
                 <img src="presale.jpg" alt="Presale Banner" class="presale-img">
-            </div>
-            <div class="presale-body">
-                <div style="font-family:'Space Grotesk'; font-weight:800; font-size:16px; color: var(--primary);">PRE-SALE NOW OPEN</div>
-                <p style="font-size:10px; opacity:0.6; margin: 4px 0 12px 0;">Don't miss out on early bird prices!</p>
-                <button onclick="window.location='presale.html'" style="padding:12px; font-size:13px; background:linear-gradient(90deg, var(--primary), var(--secondary))">JOIN PRE-SALE</button>
+                <div class="presale-body">
+                    <div style="font-family:'Space Grotesk'; font-weight:800; font-size:18px; color: var(--primary);">ONC PRE-SALE IS LIVE</div>
+                    <p style="font-size:11px; opacity:0.6; margin: 6px 0 15px 0;">Get your tokens now before the price hike!</p>
+                    <button onclick="window.location='presale.html'" style="background:linear-gradient(90deg, var(--primary), var(--secondary))">BUY NOW</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div style="margin-bottom: 25px; padding: 0 5px;">
-        <h3 style="font-size:12px; margin-bottom: 12px; opacity: 0.5; letter-spacing: 1px;">TOP NODES</h3>
-        <div id="miniLeaderboard"></div>
-    </div>
-
-    <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary);">
-        <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:5px;">LATEST LOGS</div>
-        <div id="updateTitle" style="font-size:13px; font-weight:600;">Connecting to network...</div>
-    </div>
-
-    <div class="card">
-        <h3 style="font-size:14px; margin-bottom:12px;">Invite & Earn</h3>
-        <div id="refcodeDisplay" style="padding:15px; border-radius:14px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:12px; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border); letter-spacing: 2px;">LOADING CODE...</div>
-        <button onclick="copyLink()" style="background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); padding:12px;">COPY LINK</button>
-    </div>
-
-    <div class="card" style="display:flex; text-align:center; padding: 20px 10px;">
-        <div style="flex:1; border-right: 1px solid var(--border);">
-            <div id="totalUsers" style="font-size:20px; font-weight:800;">0</div>
-            <div style="font-size:9px; opacity:0.5; margin-top:4px;">ACTIVE NODES</div>
+        <div style="margin-bottom: 25px; padding: 0 5px;">
+            <h3 style="font-size:12px; margin-bottom: 15px; opacity: 0.5; letter-spacing: 1px;">NETWORK LEADERS</h3>
+            <div id="miniLeaderboard"></div>
         </div>
-        <div style="flex:1;">
-            <div id="totalMined" style="font-size:20px; font-weight:800;">0</div>
-            <div style="font-size:9px; opacity:0.5; margin-top:4px;">CIRCULATION</div>
+
+        <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary);">
+            <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:5px;">NETWORK UPDATES</div>
+            <div id="updateTitle" style="font-size:13px; font-weight:600;">Loading latest logs...</div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:15px;">Your Referral Code</h3>
+            <div id="refcodeDisplay" style="padding:15px; border-radius:14px; text-align:center; color:var(--primary); font-family:monospace; margin-bottom:12px; font-weight:800; background:rgba(0,0,0,0.3); border:1px dashed var(--border); letter-spacing: 3px; font-size:18px;">...</div>
+            <button onclick="copyLink()" style="background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border);">COPY INVITE LINK</button>
+        </div>
+
+        <div class="card" style="display:flex; text-align:center;">
+            <div style="flex:1; border-right: 1px solid var(--border);">
+                <div id="totalUsers" style="font-size:22px; font-weight:800;">0</div>
+                <div style="font-size:9px; opacity:0.5;">NODES</div>
+            </div>
+            <div style="flex:1;">
+                <div id="totalMined" style="font-size:22px; font-weight:800;">0</div>
+                <div style="font-size:9px; opacity:0.5;">CIRCULATION</div>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="toast"><span id="toastText" style="font-size:12px;"></span></div>
+<div id="toast"><span id="toastText"></span></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -187,7 +204,7 @@ onAuthStateChanged(auth, (user) => {
     setTimeout(() => {
         document.getElementById('loader').style.display = "none";
         document.getElementById('dashboardData').style.display = "block";
-    }, 3000);
+    }, 2000);
 });
 
 function loadPersonalData() {
@@ -197,7 +214,7 @@ function loadPersonalData() {
             document.getElementById('username').innerText = userData.name || "Miner";
             document.getElementById('balance').innerText = (userData.balance || 0).toFixed(2);
             document.getElementById('streakCount').innerText = userData.streak || "0";
-            document.getElementById('refcodeDisplay').innerText = userData.referralCode || "NONE";
+            document.getElementById('refcodeDisplay').innerText = userData.referralCode || "ONCHYRA";
             
             const bal = userData.balance || 0;
             const tag = document.getElementById('rankTag');
@@ -218,13 +235,13 @@ function checkClaim() {
     const status = document.getElementById('claimStatus');
     
     if(diff <= 0) {
-        pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Ready to Mine!";
+        pBar.style.width = "100%"; btn.disabled = false; status.innerText = "Node Ready to Mine!";
     } else {
         btn.disabled = true;
         let p = ((86400000 - diff) / 86400000) * 100;
         pBar.style.width = p + "%";
         let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-        status.innerText = `Mining Active: ${h}h ${m}m ${s}s`;
+        status.innerText = `Node Active: ${h}h ${m}m ${s}s`;
     }
 }
 setInterval(() => { if(userData) checkClaim(); }, 1000);
@@ -245,7 +262,7 @@ async function loadGlobalData() {
         let html = ""; let r = 1;
         topSnap.forEach(d => {
             html += `<div class="holder-card">
-                <div class="rank-num rank-${r}">${r}</div>
+                <div class="rank-num" style="background:${r==1?'#ffd700':r==2?'#c0c0c0':'#cd7f32'}; color:#000;">${r}</div>
                 <div style="flex:1; font-size:13px; font-weight:600;">${d.data().name}</div>
                 <div style="font-weight:800; color:var(--primary);">${(d.data().balance||0).toFixed(2)}</div>
             </div>`;
