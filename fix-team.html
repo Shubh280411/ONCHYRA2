@@ -28,32 +28,10 @@
         .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
         
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 900; backdrop-filter: blur(8px); }
-        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 999; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
         .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
         .menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
         .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
-
-        /* --- WITHDRAW BUTTON SPECIAL CSS --- */
-        .withdraw-special {
-            background: linear-gradient(90deg, rgba(167, 139, 250, 0.15), transparent) !important;
-            border-left: 3px solid var(--primary) !important;
-            position: relative;
-            overflow: hidden;
-            color: #fff !important;
-        }
-        .withdraw-special .icon-box {
-            animation: pulseIcon 2s infinite ease-in-out;
-            color: var(--primary);
-            display: flex; align-items: center;
-        }
-        .live-dot {
-            position: absolute; right: 15px; width: 6px; height: 6px;
-            background: #00ff88; border-radius: 50%;
-            box-shadow: 0 0 10px #00ff88; animation: blinker 1.5s infinite;
-        }
-        @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-        @keyframes blinker { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        /* ---------------------------------- */
 
         /* CARDS */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; margin-bottom: 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
@@ -99,17 +77,13 @@
     <a href="leaderboard.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 15l-2 5L2 14l5-2 1-5 5 2 5-2 1 5 5 2-8 6-2-5z"></path></svg> Leaderboard</a>
     <a href="powerdrop.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Powerdrop</a>
     
-    <a href="withdraw.html" class="menu-item withdraw-special">
-        <div class="icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        </div>
-        <span style="flex:1;">Withdraw Your ONCs</span>
-        <div class="live-dot"></div>
-    </a>
+    <a href="presale.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Pre-sale</a>
+    <a href="tokenomics.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20M2 12h20"></path></svg> Tokenomics</a>
+    <a href="roadmap.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path><path d="M3 12h18"></path></svg> Roadmap</a>
 
     <a href="streaks.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.5 4 6.5 2 2 3 5.5 3 8.5a7 7 0 0 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"></path></svg> Streaks</a>
     <a href="updates.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg> Updates</a>
-    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top: auto; padding-top: 20px;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</a>
 </div>
 
 <div class="nav">
@@ -194,7 +168,6 @@ const db = getFirestore(app);
 
 let uid, userData;
 
-// SMART 5-SEC SYNC
 const showDashboard = () => {
     document.getElementById('loader').style.opacity = "0";
     setTimeout(() => {
@@ -250,6 +223,7 @@ window.claim = async() => {
 
 function checkClaim() {
     setInterval(() => {
+        if(!userData) return;
         const last = Number(userData.lastClaim) || 0;
         const diff = 86400000 - (Date.now() - last);
         const pBar = document.getElementById('progressBar');
