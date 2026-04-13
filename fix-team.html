@@ -18,41 +18,47 @@
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 
+        /* ADVANCED LOADER */
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner-box { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+        .spinner { position: absolute; width: 100%; height: 100%; border: 2px solid transparent; border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .spinner-inner { width: 40px; height: 40px; border: 2px solid transparent; border-bottom: 2px solid var(--secondary); border-radius: 50%; animation: spin 1.2s linear reverse infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loader-text { margin-top: 20px; font-family: monospace; font-size: 10px; color: var(--primary); letter-spacing: 3px; text-transform: uppercase; text-align: center; }
+
         /* FIXED NAVBAR */
         .nav-container { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px; background: linear-gradient(to bottom, var(--bg) 50%, transparent); }
         .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: rgba(255, 255, 255, 0.03); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
-        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 110px 15px 30px 15px; }
 
-        /* GRID SYSTEM */
+        /* DASHBOARD GRID */
         .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
         @media (min-width: 992px) { .dashboard-grid { grid-template-columns: 1.6fr 1fr; } .full-width { grid-column: span 2; } }
 
-        /* LOADER */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); border-top: 2px solid var(--primary); animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* MENU WITH ICONS */
+        /* MENU */
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1100; backdrop-filter: blur(8px); }
         .menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #080914; padding: 40px 20px; transition: var(--transition); z-index: 1200; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .menu-item { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
         .menu-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
         .menu-item.active { background: rgba(167, 139, 250, 0.08); color: var(--primary); }
-        .menu-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
 
         /* CARDS */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; backdrop-filter: blur(12px); position: relative; overflow: hidden; }
+        
+        /* IMAGE BOX FIX */
         .presale-card { padding: 0; cursor: pointer; border: 1px solid rgba(167, 139, 250, 0.2); }
-        .presale-img { width: 100%; height: 180px; object-fit: cover; display: block; }
-        .presale-content { padding: 15px; text-align: center; }
+        .presale-img-box { width: 100%; height: 200px; overflow: hidden; background: #000; }
+        .presale-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .presale-card:hover .presale-img { transform: scale(1.05); }
+        .presale-content { padding: 18px; text-align: center; }
 
         /* RANK TAGS */
         .rank-tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 800; border: 1px solid; margin-left: 8px; text-transform: uppercase; }
         .rank-rookie { color: #a78bfa; border-color: rgba(167, 139, 250, 0.3); background: rgba(167, 139, 250, 0.05); }
         .rank-pro { color: #60a5fa; border-color: rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.05); }
-        .rank-whale { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); box-shadow: 0 0 10px rgba(251, 191, 36, 0.1); }
+        .rank-whale { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
 
         .coin-wrapper { position: relative; width: 110px; height: 110px; margin: 10px auto; }
         .coin { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; box-shadow: 0 0 40px rgba(167, 139, 250, 0.3); animation: float 4s ease-in-out infinite; color: #000; font-size: 22px; }
@@ -60,22 +66,26 @@
 
         #claimBtn { width: 100%; padding: 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
         #claimBtn:active { transform: scale(0.96); }
-        #claimBtn:disabled { opacity: 0.2; filter: grayscale(1); }
+        #claimBtn:disabled { opacity: 0.2; }
 
         .holder-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 8px; }
         .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk'; font-weight: 800; font-size: 11px; background: #222; }
 
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #111; padding: 12px 25px; border-radius: 15px; border: 1px solid var(--primary); display: none; z-index: 2000; font-size: 13px; }
         
-        .live-status { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: #22c55e; font-weight: 700; margin-bottom: 10px; }
+        .live-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: #22c55e; font-weight: 700; background: rgba(34, 197, 94, 0.1); padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
         .dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <div class="spinner"></div>
+    <div class="spinner-box">
+        <div class="spinner"></div>
+        <div class="spinner-inner"></div>
+    </div>
+    <div id="loader-text">Initializing Dashboard...</div>
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
@@ -105,41 +115,43 @@
     <div id="dashboardData" style="display:none;" class="dashboard-grid">
         
         <div class="card" style="text-align:center;">
-            <div class="live-status"><div class="dot"></div> NETWORK ACTIVE</div>
+            <div class="live-indicator"><div class="dot"></div> NETWORK SECURED</div>
             <div style="font-size:13px; opacity:0.8;">
-                <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" class="rank-tag rank-rookie">Rookie</span>
+                <span id="username" style="font-weight:700;">Miner</span><span id="rankTag" class="rank-tag">Rookie</span>
             </div>
             <div class="coin-wrapper"><div class="coin">ONC</div></div>
             <h2 id="balance" style="font-family:'Space Grotesk'; font-size:42px;">0.00</h2>
         </div>
 
         <div class="card">
-            <h3 style="font-size:15px; font-family:'Space Grotesk';">Cloud Mining Status</h3>
-            <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Verifying Node...</div>
+            <h3 style="font-size:15px; font-family:'Space Grotesk';">Mining Session</h3>
+            <div id="claimStatus" style="font-size:11px; opacity:0.5; margin-top:5px; margin-bottom:10px;">Checking Node...</div>
             <div style="background:rgba(0,0,0,0.4); height:10px; border-radius:10px; margin-bottom:18px; overflow:hidden; border:1px solid var(--border);"><div id="progressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:1s linear;"></div></div>
             <button id="claimBtn" onclick="claim()" disabled>START MINING</button>
         </div>
 
         <div class="card presale-card" onclick="window.location='presale.html'">
-            <img src="presale.jpg" alt="Presale" class="presale-img">
+            <div class="presale-img-box">
+                <img src="presale.jpg" alt="Presale" class="presale-img">
+            </div>
             <div class="presale-content">
-                <div style="font-weight: 800; color: var(--primary); font-size: 15px;">PRE-SALE PHASE 1</div>
-                <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">Don't miss the 100x opportunity.</div>
+                <div style="font-weight: 800; color: var(--primary); font-size: 15px; letter-spacing: 0.5px;">PRE-SALE PHASE 1 IS LIVE</div>
+                <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">Exclusive early access to ONC Ecosystem.</div>
             </div>
         </div>
 
         <div class="card" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary); cursor:pointer;">
-            <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1.5px; margin-bottom:8px; text-transform: uppercase;">Latest Update</div>
-            <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.5;">Connecting to core...</div>
+            <div style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:1.5px; margin-bottom:8px; text-transform: uppercase;">Latest Logs</div>
+            <div id="updateTitle" style="font-size:13px; font-weight:600; line-height:1.5;">Syncing network...</div>
         </div>
 
         <div class="card">
-            <h3 style="font-size:12px; margin-bottom: 15px; opacity: 0.5; letter-spacing: 1px;">GLOBAL RANKING</h3>
+            <h3 style="font-size:12px; margin-bottom: 15px; opacity: 0.5; letter-spacing: 1px;">TOP NETWORK NODES</h3>
             <div id="miniLeaderboard"></div>
         </div>
 
         <div class="card full-width">
-            <h3 style="font-size:14px; margin-bottom:12px;">Referral System</h3>
+            <h3 style="font-size:14px; margin-bottom:12px;">Mining Network Link</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div id="refcode" style="flex: 2; min-width: 200px; padding:16px; border-radius:15px; text-align:center; color:var(--primary); font-family:monospace; font-weight:bold; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">...</div>
                 <button onclick="copyLink()" style="flex: 1; min-width: 120px; background:var(--card); color:white; border:1px solid var(--border); border-radius:15px; font-weight:600; cursor: pointer;">COPY LINK</button>
@@ -170,14 +182,25 @@ const db = getFirestore(app);
 
 let uid, userData;
 
+// LOADER TEXT ROTATION
+const loaderMsgs = ["Initializing Node...", "Syncing Blockchain...", "Verifying Credentials...", "Fetching Assets...", "Network Secured!"];
+let msgIdx = 0;
+const msgInterval = setInterval(() => {
+    if(msgIdx < loaderMsgs.length - 1) {
+        msgIdx++;
+        document.getElementById('loader-text').innerText = loaderMsgs[msgIdx];
+    }
+}, 600);
+
 onAuthStateChanged(auth, async (user) => {
     if(!user) { window.location="login.html"; return; }
     uid = user.uid;
     
     setTimeout(() => {
+        clearInterval(msgInterval);
         document.getElementById('loader').style.display = "none";
         document.getElementById('dashboardData').style.display = "grid";
-    }, 2500);
+    }, 3500);
 
     onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
@@ -208,19 +231,11 @@ function updateUI() {
     document.getElementById('balance').innerText = bal.toFixed(2);
     document.getElementById('refcode').innerText = userData.referralCode || "---";
     
-    // CORRECT RANK LOGIC
     const tag = document.getElementById('rankTag');
-    tag.className = "rank-tag"; // Reset
-    if(bal >= 100) {
-        tag.innerText = "Whale";
-        tag.classList.add("rank-whale");
-    } else if(bal >= 50) {
-        tag.innerText = "Pro";
-        tag.classList.add("rank-pro");
-    } else {
-        tag.innerText = "Rookie";
-        tag.classList.add("rank-rookie");
-    }
+    tag.className = "rank-tag";
+    if(bal >= 100) { tag.innerText = "Whale"; tag.classList.add("rank-whale"); }
+    else if(bal >= 50) { tag.innerText = "Pro"; tag.classList.add("rank-pro"); }
+    else { tag.innerText = "Rookie"; tag.classList.add("rank-rookie"); }
 }
 
 window.claim = async() => {
@@ -228,8 +243,8 @@ window.claim = async() => {
     if(Date.now() - last < 86400000) return;
     try {
         await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now() });
-        showToast("Mining Successful!");
-    } catch(e) { showToast("Error!"); }
+        showToast("Block Mined Successfully!");
+    } catch(e) { showToast("Blockchain Error!"); }
 }
 
 function checkClaim() {
@@ -246,7 +261,7 @@ function checkClaim() {
             let p = ((86400000 - diff) / 86400000) * 100;
             pBar.style.width = p + "%"; btn.disabled = true;
             let h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-            status.innerText = `Node Syncing: ${h}h ${m}m ${s}s`;
+            status.innerText = `Mining Session: ${h}h ${m}m ${s}s`;
         }
     }, 1000);
 }
