@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presale Hub — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #a78bfa; --bg: #03040a; --card: rgba(255, 255, 255, 0.03); --border: rgba(167, 139, 250, 0.15); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); color: white; 
+            display: flex; align-items: center; justify-content: center; 
+            min-height: 100vh; padding: 20px; padding-top: 80px; overflow-x: hidden;
+        }
+
+        /* --- MODERN NAVBAR --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(3, 4, 10, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 25px; z-index: 1000;
+        }
+        .nav-logo { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .nav-back {
+            text-decoration: none; color: white; font-size: 12px; font-weight: 700;
+            background: rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 12px;
+            border: 1px solid var(--border); transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nav-back:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        /* MAIN STATIC CONTAINER */
+        .main-container {
+            background: var(--card); border: 1px solid var(--border); border-radius: 40px;
+            padding: 35px 25px; width: 100%; max-width: 400px; text-align: center;
+            backdrop-filter: blur(25px); position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+
+        /* RPM METER LOGIC */
+        .meter-box { position: relative; width: 240px; height: 130px; margin: 10px auto; overflow: hidden; }
+        .base-arc { 
+            width: 220px; height: 220px; border: 12px solid #111; border-radius: 50%; 
+            border-bottom-color: transparent; border-left-color: transparent; 
+            transform: rotate(-135deg); position: absolute; top: 0; left: 10px;
+        }
+        .needle { 
+            position: absolute; bottom: 0; left: 50%; width: 3px; height: 90px; 
+            background: #ff4757; border-radius: 5px; transform-origin: bottom center; 
+            transform: rotate(-90deg); transition: 2.5s cubic-bezier(0.17, 0.67, 0.12, 1);
+            box-shadow: 0 0 20px #ff4757; z-index: 10;
+        }
+        .marks-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+        .mark { position: absolute; bottom: 0; left: 50%; width: 1px; height: 7px; background: rgba(255,255,255,0.15); transform-origin: bottom center; }
+        .mark.major { height: 12px; background: var(--primary); width: 2px; }
+
+        .goal-label { font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 25px; font-family: 'Space Grotesk'; }
+
+        /* PRICE GRID */
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 30px; }
+        .price-item { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .p-label { font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .p-val { font-family: 'Space Grotesk'; font-size: 16px; color: var(--primary); font-weight: 800; }
+
+        /* 3D TILT COMING SOON CARD */
+        .tilt-wrapper { perspective: 1000px; margin-top: 40px; }
+        .tilt-card {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(10, 10, 15, 0.95));
+            border: 2px solid var(--primary); border-radius: 22px;
+            padding: 28px; color: #fff; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 3px; font-size: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            cursor: not-allowed; transform-style: preserve-3d; transition: transform 0.1s ease-out;
+            position: relative; overflow: hidden;
+        }
+        .tilt-content { transform: translateZ(50px); }
+
+        .badge { background: rgba(251, 191, 36, 0.1); color: #fbbf24; padding: 6px 16px; border-radius: 12px; font-size: 10px; font-weight: 800; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(251, 191, 36, 0.2); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-logo">ONCHYRA</div>
+        <a href="dashboard.html" class="nav-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            DASHBOARD
+        </a>
+    </nav>
+
+    <div class="main-container">
+        <div class="badge">PRESALE ENGINE: STANDBY</div>
+        <h1 style="font-family:'Space Grotesk'; font-size:26px; margin-bottom: 10px;">ONCHYRA HUB</h1>
+        
+        <div class="meter-box">
+            <div class="base-arc"></div>
+            <div class="marks-container" id="marks"></div>
+            <div id="needle" class="needle"></div>
+            <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 18px; height: 18px; background: #000; border: 4px solid #ff4757; border-radius: 50%; z-index: 11;"></div>
+        </div>
+
+        <div class="goal-label">Goal: 200 Verified Nodes 🛰️</div>
+
+        <div class="price-grid">
+            <div class="price-item">
+                <span class="p-label">Presale Price</span>
+                <span class="p-val">1 POL = 100 ONC</span>
+            </div>
+            <div class="price-item">
+                <span class="p-label">Listing Price</span>
+                <span class="p-val">1 POL = 50 ONC</span>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; opacity: 0.4; display: flex; justify-content: space-around; margin-top: 15px;">
+            <span>Supply: 150M ONC</span>
+            <span>Profit: 2X Potent.</span>
+        </div>
+
+        <div class="tilt-wrapper">
+            <div class="tilt-card" id="tiltCard">
+                <div class="tilt-content">
+                    Coming Soon
+                    <div style="font-size: 9px; opacity: 0.5; margin-top: 8px; letter-spacing: 1px; font-weight: 400;">Unlocks @ 200 Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+            authDomain: "onchyra.firebaseapp.com",
+            projectId: "onchyra",
+            storageBucket: "onchyra.firebasestorage.app",
+            messagingSenderId: "441822770982",
+            appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const marksContainer = document.getElementById('marks');
+        for (let i = 0; i <= 200; i += 10) {
+            const angle = (i / 200) * 180 - 90;
+            const mark = document.createElement('div');
+            mark.className = i % 50 === 0 ? 'mark major' : 'mark';
+            mark.style.transform = `rotate(${angle}deg) translateY(-100px)`;
+            marksContainer.appendChild(mark);
+        }
+
+        const tiltCard = document.getElementById('tiltCard');
+        const mainContainer = document.querySelector('.main-container');
+        mainContainer.addEventListener('mousemove', (e) => {
+            const rect = tiltCard.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const rotateX = (centerY - e.clientY) / 8;
+            const rotateY = (e.clientX - centerX) / 8;
+            tiltCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        mainContainer.addEventListener('mouseleave', () => {
+            tiltCard.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        });
+
+        async function syncMeter() {
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                const count = snap.size;
+                const ratio = Math.min(count / 200, 1);
+                const rotation = (ratio * 180) - 90;
+                setTimeout(() => {
+                    document.getElementById('needle').style.transform = `rotate(${rotation}deg)`;
+                }, 1000);
+            } catch(e) { console.error(e); }
+        }
+        syncMeter();
+    </script>
+</body>
+</html>
