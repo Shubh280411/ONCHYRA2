@@ -28,7 +28,6 @@
             text-decoration: none; color: white; font-size: 11px; font-weight: 700;
             background: rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 12px;
             border: 1px solid var(--border); transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
         }
 
         /* MAIN CONTAINER */
@@ -38,98 +37,78 @@
             backdrop-filter: blur(25px); position: relative;
         }
 
-        /* RPM METER PHYSICS */
-        .meter-box { position: relative; width: 260px; height: 140px; margin: 20px auto; overflow: hidden; }
+        /* RPM METER BOX */
+        .meter-box { position: relative; width: 280px; height: 160px; margin: 20px auto; overflow: hidden; }
+        
+        /* THE ARC */
         .base-arc { 
-            width: 240px; height: 240px; border: 12px solid #111; border-radius: 50%; 
+            width: 250px; height: 250px; border: 15px solid #111; border-radius: 50%; 
             border-bottom-color: transparent; border-left-color: transparent; 
-            transform: rotate(-135deg); position: absolute; top: 0; left: 10px;
+            transform: rotate(-135deg); position: absolute; top: 0; left: 15px;
         }
+
+        /* THE NEEDLE (CRITICAL LOGIC) */
         .needle { 
-            position: absolute; bottom: 10px; left: 50%; width: 4px; height: 100px; 
+            position: absolute; bottom: 15px; left: 50%; width: 4px; height: 110px; 
             background: #ff4757; border-radius: 5px; transform-origin: bottom center; 
-            transform: rotate(-90deg); transition: 3s cubic-bezier(0.17, 0.67, 0.12, 1);
-            box-shadow: 0 0 20px #ff4757; z-index: 10;
+            transform: rotate(-90deg); /* Starts at 0 */
+            transition: 2.5s cubic-bezier(0.17, 0.67, 0.12, 1.2); /* Smooth Springy Effect */
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6); z-index: 10;
         }
-        .marks-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
-        .mark { position: absolute; bottom: 10px; left: 50%; width: 2px; height: 8px; background: rgba(255,255,255,0.2); transform-origin: bottom center; }
-        .mark.major { height: 14px; background: var(--primary); width: 3px; }
 
-        /* METER VALUE */
-        .meter-value { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; }
-        #userCount { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 800; color: white; display: block; }
-        .user-label { font-size: 9px; opacity: 0.5; letter-spacing: 2px; text-transform: uppercase; }
+        .marks-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .mark { position: absolute; bottom: 15px; left: 50%; width: 2px; height: 10px; background: rgba(255,255,255,0.1); transform-origin: bottom center; }
+        .mark.major { height: 18px; background: var(--primary); width: 3px; }
 
-        .goal-label { font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 10px; font-family: 'Space Grotesk'; letter-spacing: 0.5px; }
+        /* CENTER DISPLAY */
+        .meter-info { position: absolute; bottom: 15px; width: 100%; text-align: center; z-index: 5; }
+        #userCount { font-family: 'Space Grotesk'; font-size: 32px; font-weight: 800; display: block; color: #fff; text-shadow: 0 0 15px rgba(167, 139, 250, 0.4); }
+        .label { font-size: 9px; opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* PRICE GRID */
-        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
-        .price-item { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .p-label { font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px; }
-        .p-val { font-family: 'Space Grotesk'; font-size: 15px; color: var(--primary); font-weight: 800; }
+        .goal-text { font-size: 11px; color: var(--primary); font-weight: 700; font-family: 'Space Grotesk'; margin-top: 10px; }
 
         /* TILT CARD */
-        .tilt-wrapper { perspective: 1000px; margin-top: 35px; }
         .tilt-card {
-            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(10, 10, 15, 0.95));
-            border: 2px solid var(--primary); border-radius: 22px;
-            padding: 25px; color: #fff; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 3px; font-size: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-            cursor: not-allowed; transition: 0.1s;
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(0,0,0,0.8));
+            border: 2px solid var(--primary); border-radius: 25px; padding: 25px; margin-top: 30px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
         }
-
-        .badge { background: rgba(251, 191, 36, 0.1); color: #fbbf24; padding: 6px 14px; border-radius: 10px; font-size: 9px; font-weight: 800; margin-bottom: 15px; border: 1px solid rgba(251, 191, 36, 0.2); }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
         <div class="nav-logo">ONCHYRA</div>
-        <a href="dashboard.html" class="nav-back">DASHBOARD</a>
+        <a href="dashboard.html" class="nav-back">BACK</a>
     </nav>
 
     <div class="main-container">
-        <div class="badge">PRESALE ENGINE: ANALYZING</div>
-        <h1 style="font-family:'Space Grotesk'; font-size:24px; margin-bottom: 5px;">PRESALE RADAR</h1>
+        <div style="font-size: 10px; color: var(--primary); font-weight: 800; margin-bottom: 15px; letter-spacing: 2px;">LIVE NETWORK STATUS</div>
         
         <div class="meter-box">
             <div class="base-arc"></div>
             <div class="marks-container" id="marks"></div>
             <div id="needle" class="needle"></div>
-            <div class="meter-value">
+            
+            <div class="meter-info">
                 <span id="userCount">0</span>
-                <span class="user-label">Verified Nodes</span>
+                <span class="label">Total Nodes</span>
             </div>
-            <div style="position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; background: #000; border: 3px solid #ff4757; border-radius: 50%; z-index: 11;"></div>
+            
+            <div style="position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: #000; border: 4px solid #ff4757; border-radius: 50%; z-index: 11;"></div>
         </div>
 
-        <div class="goal-label">NETWORK TARGET: 200 USERS 🛰️</div>
+        <div class="goal-text">TARGET TO UNLOCK PRESALE: 200 USERS</div>
 
-        <div class="price-grid">
-            <div class="price-item">
-                <span class="p-label">Entry Price</span>
-                <span class="p-val">1 POL = 100 ONC</span>
-            </div>
-            <div class="price-item">
-                <span class="p-label">Target Exit</span>
-                <span class="p-val">1 POL = 50 ONC</span>
-            </div>
-        </div>
-
-        <div class="tilt-wrapper">
-            <div class="tilt-card" id="tiltCard">
-                <div class="tilt-content">
-                    Coming Soon
-                    <div style="font-size: 8px; opacity: 0.5; margin-top: 6px; letter-spacing: 1px; font-weight: 400;">Whitelist Lock: 200 Users</div>
-                </div>
-            </div>
+        <div class="tilt-card">
+            Coming Soon
+            <div style="font-size: 8px; opacity: 0.5; margin-top: 8px; font-weight: 400;">System is waiting for network growth</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -142,50 +121,37 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CREATE METER MARKS (0 to 200)
+        // 1. GENERATE VISUAL MARKS (0 TO 200)
         const marksContainer = document.getElementById('marks');
         for (let i = 0; i <= 200; i += 10) {
             const angle = (i / 200) * 180 - 90;
             const mark = document.createElement('div');
             mark.className = i % 50 === 0 ? 'mark major' : 'mark';
-            mark.style.transform = `rotate(${angle}deg) translateY(-110px)`;
+            mark.style.transform = `rotate(${angle}deg) translateY(-120px)`;
             marksContainer.appendChild(mark);
         }
 
-        // SYNC DATA WITH REAL-TIME UPDATES
-        function syncMeter() {
+        // 2. REAL-TIME DATA SYNC & NEEDLE MOVEMENT
+        function startLiveUpdate() {
             onSnapshot(collection(db, "users"), (snap) => {
-                const count = snap.size;
+                const totalUsers = snap.size;
                 
-                // Update Number with animation
-                document.getElementById('userCount').innerText = count;
+                // Update text
+                document.getElementById('userCount').innerText = totalUsers;
 
-                // Update Needle Rotation
-                const ratio = Math.min(count / 200, 1);
-                const rotation = (ratio * 180) - 90;
-                
-                // Vibration effect for realistic needle
-                setTimeout(() => {
-                    document.getElementById('needle').style.transform = `rotate(${rotation}deg)`;
-                }, 500);
+                // NEEDLE LOGIC:
+                // 0 users = -90deg
+                // 200 users = +90deg
+                const ratio = Math.min(totalUsers / 200, 1);
+                const targetRotation = (ratio * 180) - 90;
+
+                // Move needle with transition
+                const needle = document.getElementById('needle');
+                needle.style.transform = `rotate(${targetRotation}deg)`;
             });
         }
-        syncMeter();
 
-        // TILT EFFECT
-        const tiltCard = document.getElementById('tiltCard');
-        document.addEventListener('mousemove', (e) => {
-            const rect = tiltCard.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
-                const rotateX = (rect.height / 2 - y) / 5;
-                const rotateY = (x - rect.width / 2) / 5;
-                tiltCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            } else {
-                tiltCard.style.transform = `rotateX(0deg) rotateY(0deg)`;
-            }
-        });
+        startLiveUpdate();
     </script>
 </body>
 </html>
