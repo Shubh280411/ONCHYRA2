@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Roadmap — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #a78bfa; --bg: #03040a; --success: #10b981; --border: rgba(255, 255, 255, 0.08); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); color: white; 
+            padding-top: 80px; /* Space for sticky navbar */
+            padding-bottom: 40px;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+
+        /* --- MODERN NAVBAR --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(3, 4, 10, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 25px; z-index: 1000;
+        }
+        .nav-logo { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .nav-back {
+            text-decoration: none; color: white; font-size: 12px; font-weight: 700;
+            background: rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 12px;
+            border: 1px solid var(--border); transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nav-back:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+        .header h1 { font-family: 'Space Grotesk'; font-size: 28px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* --- TIMELINE --- */
+        .roadmap { position: relative; max-width: 480px; width: 90%; }
+        .roadmap::before { 
+            content: ''; position: absolute; left: 25px; top: 0; width: 2px; height: 100%; 
+            background: linear-gradient(to bottom, var(--success), var(--primary), #222); 
+        }
+
+        .phase { position: relative; margin-left: 60px; margin-bottom: 40px; }
+        .dot { 
+            position: absolute; left: -43px; top: 8px; width: 18px; height: 18px; 
+            background: var(--bg); border: 4px solid #222; border-radius: 50%; z-index: 2; 
+        }
+
+        .card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 22px; border-radius: 25px; backdrop-filter: blur(10px); }
+        
+        .phase-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .num { font-family: 'Space Grotesk'; font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
+        .status { font-size: 8px; padding: 3px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; }
+
+        .completed .dot { border-color: var(--success); box-shadow: 0 0 15px var(--success); }
+        .completed .status { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .current .dot { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
+        .current .status { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .locked .status { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); }
+
+        .title { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+        .list { list-style: none; }
+        .list li { font-size: 13px; opacity: 0.6; margin-bottom: 8px; display: flex; align-items: flex-start; }
+        
+        .tick { color: var(--success); margin-right: 10px; font-weight: bold; }
+        .process { color: #fbbf24; margin-right: 10px; font-weight: bold; animation: blink 1s infinite; }
+        .wait { color: #444; margin-right: 10px; font-weight: bold; }
+
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-logo">ONCHYRA</div>
+        <a href="dashboard.html" class="nav-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            DASHBOARD
+        </a>
+    </nav>
+
+    <div class="header">
+        <h1>Evolution Path</h1>
+    </div>
+
+    <div class="roadmap">
+        
+        <div class="phase completed">
+            <div class="dot"></div>
+            <div class="card">
+                <div class="phase-meta">
+                    <span class="num">Phase 1</span>
+                    <span class="status">Step Done</span>
+                </div>
+                <div class="title">Foundation</div>
+                <ul class="list">
+                    <li><span class="tick">✓</span> Email Collection Campaign</li>
+                    <li><span class="tick">✓</span> Community Channel Build-up</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase current">
+            <div class="dot"></div>
+            <div class="card">
+                <div class="phase-meta">
+                    <span class="num">Phase 2</span>
+                    <span class="status">In Progress</span>
+                </div>
+                <div class="title">Ecosystem Live</div>
+                <ul class="list">
+                    <li><span class="tick">✓</span> Cloud Mining Dashboard Launch</li>
+                    <li><span class="tick">✓</span> 3-Level Referral System</li>
+                    <li><span class="process">⚡</span> P2P Internal Transfer</li>
+                    <li><span class="process">⚡</span> Daily Streak Reward System</li>
+                    <li><span class="process">⚡</span> Global Leaderboard Reward</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase locked">
+            <div class="dot"></div>
+            <div class="card">
+                <div class="phase-meta">
+                    <span class="num">Phase 3</span>
+                    <span class="status">Target: 200 Nodes</span>
+                </div>
+                <div class="title">Liquidity Phase</div>
+                <ul class="list">
+                    <li><span class="wait">○</span> Presale Engine Activation</li>
+                    <li><span class="wait">○</span> Token Valuation (1 POL = 100 ONC)</li>
+                    <li><span class="wait">○</span> Strategic Audit</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase locked">
+            <div class="dot"></div>
+            <div class="card">
+                <div class="phase-meta">
+                    <span class="num">Phase 4</span>
+                    <span class="status">Locked</span>
+                </div>
+                <div class="title">Open Market</div>
+                <ul class="list">
+                    <li><span class="wait">○</span> DEX Listing & Liquidity Lock</li>
+                    <li><span class="wait">○</span> Public Withdrawal System</li>
+                    <li><span class="wait">○</span> Marketing Blitz with Top Leaders</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="phase locked">
+            <div class="dot"></div>
+            <div class="card">
+                <div class="phase-meta">
+                    <span class="num">Phase 5</span>
+                    <span class="status">Final Stage</span>
+                </div>
+                <div class="title">Governance & Burn</div>
+                <ul class="list">
+                    <li><span class="wait">○</span> 20% Massive Supply Burn</li>
+                    <li><span class="wait">○</span> CEX Exchange Listing</li>
+                    <li><span class="wait">○</span> Mainnet Governance (DAO)</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
