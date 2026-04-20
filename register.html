@@ -72,12 +72,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp({
-  apiKey:"YOUR_KEY",
-  authDomain:"onchyra.firebaseapp.com",
-  projectId:"onchyra"
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra",
+  storageBucket: "onchyra.firebasestorage.app",
+  messagingSenderId: "441822770982",
+  appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
 
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -93,13 +97,13 @@ window.registerUser = async function(){
 
   try {
 
-    // CREATE USER
+    // CREATE AUTH USER
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
     const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
 
-    // CREATE USER DOC FIRST
+    // CREATE USER FIRST ✅
     await setDoc(doc(db,"users",uid),{
       name,email,uid,
       deviceId,
@@ -113,21 +117,23 @@ window.registerUser = async function(){
       createdAt: serverTimestamp()
     });
 
-    // REFERRAL REWARD
+    // REFERRAL (AFTER CREATE ✅)
     if(referralInput){
       const q = query(collection(db,"users"), where("referralCode","==",referralInput));
       const snap = await getDocs(q);
 
       if(!snap.empty){
         const refUser = snap.docs[0];
+
         await updateDoc(doc(db,"users",refUser.id),{
           balance: increment(0.25),
-          referrals: increment(1)
+          referrals: increment(1),
+          refLevel1: increment(1)
         });
       }
     }
 
-    alert("Account Created 🚀");
+    alert("Registration Successful 🚀");
     window.location.href="dashboard.html";
 
   } catch(e){
