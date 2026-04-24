@@ -10,86 +10,72 @@
         * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 
-        /* LOADER UPDATED */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(167, 139, 250, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        /* LOADER */
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 15px; }
+        .spinner { width: 45px; height: 45px; border: 3px solid rgba(167, 139, 250, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        #loadingText { font-size: 10px; letter-spacing: 2px; color: var(--primary); font-weight: 800; text-transform: uppercase; animation: pulse 1.5s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* NAVIGATION */
-        .nav-container { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px; background: linear-gradient(to bottom, var(--bg) 80%, transparent); }
+        /* NAV */
+        .nav-container { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px; background: linear-gradient(to bottom, var(--bg) 90%, transparent); }
         .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: rgba(255, 255, 255, 0.03); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(25px); }
-        
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1100; backdrop-filter: blur(8px); }
-        .menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #080914; padding: 30px 15px; transition: 0.4s; z-index: 1200; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
-        .menu-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; padding: 12px; border-radius: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .menu-item img { width: 20px; height: 20px; filter: invert(1); }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1100; backdrop-filter: blur(10px); }
+        .menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #080914; padding: 30px 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1200; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .menu-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; padding: 14px; border-radius: 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; }
         .menu-item.active { background: rgba(167, 139, 250, 0.1); color: var(--primary); }
 
-        /* DASHBOARD LAYOUT */
+        /* GRID */
         .container { max-width: 1200px; margin: 0 auto; padding: 100px 15px 40px 15px; }
         .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
         @media (min-width: 992px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } .full-width { grid-column: span 2; } }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 26px; padding: 22px; position: relative; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 25px; position: relative; overflow: hidden; }
 
-        /* MINING BUTTON */
-        #claimBtn { 
-            width: 100%; padding: 20px; border: none; border-radius: 20px; 
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-            color: #000; font-weight: 900; font-size: 15px; cursor: pointer; 
-            box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3); transition: 0.3s;
-            text-transform: uppercase; margin-top: 15px;
-        }
-        #claimBtn:disabled { background: #1a1a1a; color: #444; box-shadow: none; cursor: not-allowed; }
+        /* TAGS */
+        #rankTag { font-size: 9px; font-weight: 900; padding: 4px 12px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px; }
+        .tag-rookie { background: rgba(167, 139, 250, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .tag-shark { background: rgba(96, 165, 250, 0.1); color: var(--secondary); border: 1px solid var(--secondary); }
+        .tag-whale { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24; }
 
-        /* RANK TAGS */
-        .rank-tag { font-size: 10px; padding: 4px 10px; border-radius: 8px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; border: 1px solid var(--primary); color: var(--primary); display: inline-block; transition: 0.3s; }
+        /* BUTTONS */
+        #claimBtn { width: 100%; padding: 22px; border: none; border-radius: 22px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; }
+        #claimBtn:disabled { background: #1a1a1a; color: #444; }
 
-        /* FOOTER SOCIALS - IMPROVED HOVER */
-        .footer-socials { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
-        .s-link { width: 45px; height: 45px; background: #111; border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .s-link img { width: 22px; height: 22px; filter: grayscale(1) brightness(0.5); transition: 0.3s; }
-        
-        /* Specific Hover Colors */
-        .s-link.tg:hover { background: #229ED9; border-color: #229ED9; box-shadow: 0 0 15px rgba(34, 158, 217, 0.4); }
-        .s-link.x:hover { background: #fff; border-color: #fff; }
-        .s-link.ig:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-color: transparent; }
-        
-        .s-link:hover img { filter: grayscale(0) brightness(1) invert(0); }
-        .s-link.x:hover img { filter: grayscale(0) brightness(0); } /* X logo black on white */
+        /* LIST ITEMS */
+        .lb-row, .feed-item { display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; margin-bottom: 8px; font-size: 11px; border: 1px solid rgba(255,255,255,0.03); align-items: center; }
+        .user-name { font-weight: 700; color: #fff; }
+        .time-ago { opacity: 0.5; font-size: 10px; }
+
+        /* POLLS */
+        .v-btn-dynamic { width: 100%; padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; color: white; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; transition: 0.2s; }
+        .v-btn-dynamic.selected { border-color: var(--primary); background: rgba(167,139,250,0.1); }
+        .v-btn-dynamic:disabled { cursor: default; opacity: 1; }
+
+        /* REF BOX */
+        .ref-box { background: rgba(255,255,255,0.02); border: 1px dashed var(--border); padding: 18px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .copy-btn { background: #fff; color: #000; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 900; font-size: 11px; cursor: pointer; }
 
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 12px 25px; border-radius: 50px; font-weight: 800; display: none; z-index: 2000; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .lb-item { display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 15px; margin-bottom: 8px; font-size: 13px; }
-        .v-btn-dynamic { width: 100%; padding: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
     </style>
 </head>
 <body>
 
-<div id="loader">
-    <div class="spinner"></div>
-    <div id="loaderText" style="margin-top: 20px; font-family: 'Space Grotesk'; font-size: 11px; color: var(--primary); letter-spacing: 2px; text-transform: uppercase;">Initializing Neural Link...</div>
-</div>
-
+<div id="loader"><div class="spinner"></div><div id="loadingText">Synchronizing Nodes...</div></div>
 <div id="overlay" onclick="toggleMenu()"></div>
 
 <div class="menu" id="menu">
-    <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--primary); margin: 20px 0 30px 10px;">ONCHYRA</div>
-    <a href="dashboard.html" class="menu-item active"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946488.png"> Dashboard</a>
-    <a href="presale.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/2452/2452137.png"> Pre-sale</a>
-    <a href="referrals.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/912/912318.png"> Referrals</a>
-    <a href="powerdrop.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/1355/1355799.png"> Powerdrop</a>
-    <a href="leaderboard.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/3112/3112946.png"> Leaderboard</a>
-    <a href="roadmap.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/854/854878.png"> Roadmap</a>
-    <a href="tokenomics.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png"> Tokenomics</a>
-    <a href="updates.html" class="menu-item"><img src="https://cdn-icons-png.flaticon.com/512/1157/1157000.png"> Announcements</a>
-    <a href="profile.html" class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border); padding-top: 15px;"><img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png"> Profile</a>
-    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-bottom: 20px;"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828445.png"> Logout Node</a>
+    <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--primary); padding: 25px;">ONCHYRA</div>
+    <a href="dashboard.html" class="menu-item active">Dashboard</a>
+    <a href="leaderboard.html" class="menu-item">Leaderboard</a>
+    <a href="referrals.html" class="menu-item">Referrals</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top:auto; padding-bottom:30px;">Logout</a>
 </div>
 
 <div class="nav-container">
     <div class="nav">
         <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" stroke="white" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
-        <div style="font-family:'Space Grotesk'; font-weight:900; letter-spacing:1px;">ONCHYRA</div>
-        <div onclick="window.location='profile.html'" style="cursor:pointer;"><svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+        <div style="font-family:'Space Grotesk'; font-weight:900;">ONCHYRA</div>
+        <div onclick="window.location='profile.html'"><svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
     </div>
 </div>
 
@@ -97,59 +83,67 @@
     <div id="dashboardData" class="dashboard-grid" style="display:none;">
         
         <div class="card" style="text-align:center;">
-            <div id="rankTag" class="rank-tag">SCANNING RANK...</div>
-            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:52px; margin:5px 0;">0.00</h2>
-            <div style="font-size:11px; color:#fbbf24; font-weight:bold; letter-spacing:1px;">STREAK: <span id="streakDays">0</span> DAYS 🔥</div>
+            <div id="rankTag">SCANNING...</div>
+            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:60px; margin:5px 0;">0.00</h2>
+            <div style="font-size:12px; color:#fbbf24; font-weight:bold;">STREAK: <span id="streakDays">0</span> 🔥</div>
         </div>
 
         <div class="card">
-            <h3 style="font-size:11px; opacity:0.6; margin-bottom:15px; letter-spacing:1px;">BLOCKCHAIN NODE: ACTIVE</h3>
-            <div style="background:#111; height:8px; border-radius:10px; overflow:hidden;">
+            <div style="display:flex; justify-content:space-around; align-items:center; height:100%;">
+                <div style="text-align:center;"><div style="font-size:10px;opacity:0.6">VALIDATORS</div><div id="totalUsers" style="font-weight:800;">...</div></div>
+                <div style="text-align:center;"><div style="font-size:10px;opacity:0.6">TOTAL MINED</div><div id="totalMined" style="font-weight:800;">0.00</div></div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <div style="background:#111; height:8px; border-radius:20px; overflow:hidden; margin-bottom:18px;">
                 <div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s linear;"></div>
             </div>
             <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
         </div>
 
-        <div class="card full-width" onclick="window.location='updates.html'" style="border-left: 4px solid var(--primary); cursor: pointer;">
-            <span style="font-size:9px; font-weight:800; color:var(--primary); text-transform: uppercase; letter-spacing:1px;">Latest Protocol News</span>
-            <div id="updateTitle" style="font-size:14px; margin-top:5px; font-weight:600;">Fetching updates...</div>
-        </div>
-
-        <div class="card full-width">
-            <h3 id="pollQuestion" style="font-size:13px; margin-bottom:18px; font-family:'Space Grotesk';">LOADING POLL...</h3>
-            <div id="pollOptions" style="display:flex; gap:12px; text-align:center;"></div>
-            <p id="votedText" style="font-size:11px; color:var(--secondary); margin-top:15px; text-align:center; display:none; font-weight:bold;">VOTE REGISTERED ON-CHAIN ✅</p>
+        <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary); cursor:pointer;">
+            <div style="font-size:9px; font-weight:800; color:var(--primary);">PROTOCOL UPDATE</div>
+            <div id="latestUpdateTitle" style="font-size:14px; font-weight:600; margin-top:4px;">Searching for updates...</div>
         </div>
 
         <div class="card">
-            <h3 style="font-size:12px; margin-bottom:15px; letter-spacing:1px;">TOP MINERS</h3>
+            <h3 style="font-size:13px; margin-bottom:15px; font-family:'Space Grotesk';">TOP VALIDATORS</h3>
             <div id="miniLeaderboard"></div>
         </div>
 
         <div class="card">
-            <h3 style="font-size:12px; margin-bottom:10px; display:flex; align-items:center; gap:8px; letter-spacing:1px;">
-                <div style="width:8px; height:8px; background:#10b981; border-radius:50%;"></div> LIVE FEED
-            </h3>
-            <div id="latest-user" style="font-size:11px; color:rgba(255,255,255,0.6);">Scanning for node connections...</div>
+            <h3 id="pollQuestion" style="font-size:14px; font-family:'Space Grotesk'; margin-bottom:15px;">...</h3>
+            <div id="pollOptions"></div>
         </div>
 
-        <div class="full-width" style="text-align:center; padding: 20px 0;">
-            <div class="footer-socials">
-                <a href="https://t.me/onchyra" class="s-link tg"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png"></a>
-                <a href="https://x.com/onchyra" class="s-link x"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png"></a>
-                <a href="https://instagram.com/onchyra" class="s-link ig"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png"></a>
-            </div>
-            <p style="font-size:8px; opacity:0.2; margin-top:20px; letter-spacing:2px; text-transform: uppercase;">ONCHYRA DECENTRALIZED NETWORK v3.0</p>
+        <div class="card full-width">
+            <h3 style="font-size:12px; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                <div style="width:8px; height:8px; background:#10b981; border-radius:50%;"></div> LIVE ACTIVITY
+            </h3>
+            <div id="liveFeedList"></div>
         </div>
+
+        <div class="card full-width">
+            <div style="font-size:10px;opacity:0.6">Your Invite Link</div>
+            <div class="ref-box">
+                <span id="refCodeText" style="font-family:'Space Grotesk'; font-weight:800; color:var(--primary);">...</span>
+                <button class="copy-btn" id="copyBtn" onclick="copyInvite()">INVITE</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div id="toast">ACTION SUCCESSFUL! ✅</div>
+<div id="toast">DONE! ✅</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, getDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+    getFirestore, doc, onSnapshot, updateDoc, collection, 
+    query, limit, orderBy, getDoc, setDoc, getCountFromServer 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -166,145 +160,115 @@ const db = getFirestore(app);
 
 let uid, userData, currentPollId, currentPollData;
 
-// --- SMART LOADER LOGIC ---
-const loaderMsgs = ["Syncing Node...", "Fetching Blocks...", "Verifying Proof...", "Protocol Active"];
-let msgIndex = 0;
+// Failsafe for Loader
+setTimeout(() => { if(document.getElementById('loader').style.display !== "none") { document.getElementById('loader').style.display="none"; document.getElementById('dashboardData').style.display="grid"; } }, 6000);
 
-function startLoader() {
-    const isLoaded = sessionStorage.getItem('dashboardLoaded');
-    const loader = document.getElementById('loader');
-    const content = document.getElementById('dashboardData');
-
-    if (isLoaded) {
-        loader.style.display = "none";
-        content.style.display = "grid";
-    } else {
-        const msgInterval = setInterval(() => {
-            document.getElementById('loaderText').innerText = loaderMsgs[msgIndex];
-            msgIndex = (msgIndex + 1) % loaderMsgs.length;
-        }, 600);
-
-        window.hideLoader = () => {
-            clearInterval(msgInterval);
-            loader.style.opacity = "0";
-            setTimeout(() => {
-                loader.style.display = "none";
-                content.style.display = "grid";
-                sessionStorage.setItem('dashboardLoaded', 'true');
-            }, 400);
-        };
-    }
+function timeAgo(t) {
+    if(!t) return "Just now";
+    try {
+        const d = t.toDate ? t.toDate() : new Date(t);
+        const s = Math.floor((new Date() - d) / 1000);
+        if(s < 60) return s + "s ago";
+        if(s < 3600) return Math.floor(s/60) + "m ago";
+        if(s < 86400) return Math.floor(s/3600) + "h ago";
+        return Math.floor(s/86400) + "d ago";
+    } catch(e) { return "Recently"; }
 }
 
-startLoader();
-
 onAuthStateChanged(auth, async (user) => {
-    if(!user) { sessionStorage.removeItem('dashboardLoaded'); window.location="login.html"; return; }
+    if(!user) { window.location="login.html"; return; }
     uid = user.uid;
 
     onSnapshot(doc(db, "users", uid), (snap) => {
         if(snap.exists()){
             userData = snap.data();
-            if(userData.isBanned) window.location="banned.html";
             updateUI();
             checkMining();
-            if(window.hideLoader) window.hideLoader();
+            document.getElementById('refCodeText').innerText = userData.refCode || uid.substring(0,6).toUpperCase();
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('dashboardData').style.display = "grid";
         }
     });
 
-    listenToPolls();
-
-    const lbSnap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
-    let lbHtml = "";
-    lbSnap.forEach(d => { lbHtml += `<div class="lb-item"><span>${d.data().name}</span><b>${(d.data().balance||0).toFixed(2)} ONC</b></div>`; });
-    document.getElementById('miniLeaderboard').innerHTML = lbHtml;
-
-    const upSnap = await getDocs(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)));
-    if(!upSnap.empty) document.getElementById('updateTitle').innerText = upSnap.docs[0].data().title;
-
-    onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(1)), (snap) => {
-        if(!snap.empty) document.getElementById('latest-user').innerHTML = `Node <span style="color:var(--primary)">@${snap.docs[0].data().name.split(' ')[0]}</span> just linked!`;
-    });
+    fetchStats();
+    loadPoll();
+    fetchLatestUpdate();
 });
 
-function updateUI() {
-    const bal = userData.balance || 0;
-    document.getElementById('balance').innerText = bal.toFixed(2);
-    document.getElementById('streakDays').innerText = userData.streak || 0;
-    
-    const tag = document.getElementById('rankTag');
-    if (bal < 10) {
-        tag.innerText = "ROOKIE MINER";
-        tag.style.color = "#a78bfa"; tag.style.borderColor = "#a78bfa";
-    } else if (bal >= 11 && bal < 50) {
-        tag.innerText = "PRO MINER";
-        tag.style.color = "#60a5fa"; tag.style.borderColor = "#60a5fa";
-    } else if (bal >= 50 && bal < 100) {
-        tag.innerText = "WHALE MINER";
-        tag.style.color = "#fbbf24"; tag.style.borderColor = "#fbbf24";
-    } else {
-        tag.innerText = "ELITE VALIDATOR";
-        tag.style.color = "#10b981"; tag.style.borderColor = "#10b981";
-        tag.style.boxShadow = "0 0 10px rgba(16, 185, 129, 0.2)";
-    }
-}
+async function fetchStats() {
+    // Leaderboard - Full Name
+    onSnapshot(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)), (snap) => {
+        const lb = document.getElementById('miniLeaderboard'); lb.innerHTML = "";
+        snap.forEach(d => {
+            lb.innerHTML += `<div class="lb-row"><span class="user-name">${d.data().name}</span><b>${(d.data().balance||0).toFixed(2)} ONC</b></div>`;
+        });
+    });
 
-// --- POLL SYSTEM ---
-function listenToPolls() {
-    const qPoll = query(collection(db, "polls"), limit(1));
-    onSnapshot(qPoll, async (snap) => {
-        if(!snap.empty) {
-            const pollDoc = snap.docs[0];
-            currentPollId = pollDoc.id;
-            currentPollData = pollDoc.data();
-            renderPollUI();
-            const voteDoc = await getDoc(doc(db, "user_votes", `${uid}_${currentPollId}`));
-            if(voteDoc.exists()) lockPollButtons(voteDoc.data().votedFor);
-        }
+    // Live Feed - Full Name
+    onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)), (snap) => {
+        const list = document.getElementById('liveFeedList'); list.innerHTML = "";
+        snap.forEach(d => {
+            list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
+        });
+    });
+
+    try {
+        const uCount = await getCountFromServer(collection(db, "users"));
+        document.getElementById('totalUsers').innerText = uCount.data().count.toLocaleString();
+    } catch(e){}
+    
+    onSnapshot(collection(db, "users"), (snap) => {
+        let sum = 0; snap.forEach(d => sum += (d.data().balance || 0));
+        document.getElementById('totalMined').innerText = sum.toFixed(2);
     });
 }
 
-function renderPollUI() {
-    const q = document.getElementById('pollQuestion');
-    const container = document.getElementById('pollOptions');
-    q.innerText = currentPollData.question;
-    container.innerHTML = "";
-    const total = Object.values(currentPollData.results).reduce((a,b)=>a+b, 0);
-    currentPollData.options.forEach(opt => {
-        const count = currentPollData.results[opt] || 0;
-        const pct = total > 0 ? Math.round((count/total)*100) : 0;
-        const btnDiv = document.createElement('div');
-        btnDiv.style.flex = "1";
-        btnDiv.innerHTML = `<button onclick="castVote('${opt}')" class="v-btn-dynamic">${opt}</button><div style="font-size:10px; opacity:0.5; margin-top:6px; font-weight:bold;">${pct}%</div>`;
-        container.appendChild(btnDiv);
+async function fetchLatestUpdate() {
+    onSnapshot(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)), (snap) => {
+        if(!snap.empty) document.getElementById('latestUpdateTitle').innerText = snap.docs[0].data().title;
+    });
+}
+
+async function loadPoll() {
+    onSnapshot(query(collection(db, "polls"), limit(1)), async (snap) => {
+        if(!snap.empty) {
+            const pDoc = snap.docs[0];
+            currentPollId = pDoc.id; currentPollData = pDoc.data();
+            document.getElementById('pollQuestion').innerText = currentPollData.question;
+            
+            const userVote = await getDoc(doc(db, "user_votes", `${uid}_${currentPollId}`));
+            const container = document.getElementById('pollOptions');
+            container.innerHTML = "";
+            const total = Object.values(currentPollData.results || {}).reduce((a,b)=>a+b, 0);
+
+            currentPollData.options.forEach(opt => {
+                const count = currentPollData.results[opt] || 0;
+                const pct = total > 0 ? Math.round((count/total)*100) : 0;
+                const btn = document.createElement('button');
+                btn.className = "v-btn-dynamic";
+                if(userVote.exists() && userVote.data().choice === opt) btn.classList.add('selected');
+                btn.innerHTML = `<span>${opt}</span><span style="color:var(--primary); font-weight:800;">${userVote.exists() ? pct+'%' : ''}</span>`;
+                btn.disabled = userVote.exists();
+                btn.onclick = () => castVote(opt);
+                container.appendChild(btn);
+            });
+        }
     });
 }
 
 window.castVote = async (choice) => {
-    if(!uid || !currentPollId) return;
-    const voteRef = doc(db, "user_votes", `${uid}_${currentPollId}`);
     try {
-        await setDoc(voteRef, { uid, pollId: currentPollId, votedFor: choice, time: Date.now() });
-        const updatedResults = { ...currentPollData.results };
-        updatedResults[choice] = (updatedResults[choice] || 0) + 1;
-        await updateDoc(doc(db, "polls", currentPollId), { results: updatedResults });
+        const res = { ...currentPollData.results };
+        res[choice] = (res[choice] || 0) + 1;
+        await updateDoc(doc(db, "polls", currentPollId), { results: res });
+        await setDoc(doc(db, "user_votes", `${uid}_${currentPollId}`), { choice, uid });
         showToast("VOTE REGISTERED! ✅");
-        lockPollButtons(choice);
-    } catch(e) { showToast("VOTE FAILED"); }
+    } catch(e) { showToast("Error voting!"); }
 };
 
-function lockPollButtons(votedFor) {
-    const btns = document.querySelectorAll('.v-btn-dynamic');
-    btns.forEach(b => {
-        b.disabled = true; b.style.opacity = "0.3";
-        if(b.innerText === votedFor) { b.style.opacity = "1"; b.style.borderColor = "var(--primary)"; b.style.background = "rgba(167, 139, 250, 0.1)"; }
-    });
-    document.getElementById('votedText').style.display = "block";
-}
-
 function checkMining() {
-    const last = userData.lastClaim || 0;
-    const diff = 86400000 - (Date.now() - last);
+    if(!userData) return;
+    const diff = 86400000 - (Date.now() - (userData.lastClaim || 0));
     const btn = document.getElementById('claimBtn');
     if(diff <= 0) {
         btn.disabled = false; btn.innerText = "START MINING SESSION";
@@ -319,28 +283,32 @@ function checkMining() {
 }
 
 window.claim = async () => {
-    let streak = userData.streak || 0;
-    if(Date.now() - (userData.lastClaim||0) > 172800000) streak = 1; else streak++;
-    await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.15, lastClaim: Date.now(), streak: streak });
-    showToast("BLOCK MINED SUCCESSFULLY! 💎");
+    try {
+        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now() });
+        showToast("0.10 ONC MINED! 💎");
+    } catch(e) { showToast("Error mining!"); }
 };
 
-function showToast(msg) {
-    const t = document.getElementById('toast'); t.innerText = msg; t.style.display="block";
-    setTimeout(()=>t.style.display="none", 2500);
+window.copyInvite = () => {
+    const link = `${window.location.origin}/register.html?ref=${document.getElementById('refCodeText').innerText}`;
+    navigator.clipboard.writeText(link);
+    const b = document.getElementById('copyBtn'); b.innerText = "COPIED!"; 
+    setTimeout(() => { b.innerText = "INVITE"; }, 2000);
+};
+
+function updateUI() {
+    const bal = userData.balance || 0;
+    document.getElementById('balance').innerText = bal.toFixed(2);
+    document.getElementById('streakDays').innerText = userData.streak || 0;
+    const tag = document.getElementById('rankTag');
+    if(bal < 10) { tag.innerText = "ONC ROOKIE"; tag.className = "tag-rookie"; }
+    else if(bal < 50) { tag.innerText = "ONC SHARK"; tag.className = "tag-shark"; }
+    else { tag.innerText = "ONC WHALE"; tag.className = "tag-whale"; }
 }
 
-window.toggleMenu = () => {
-    const m = document.getElementById('menu'), o = document.getElementById('overlay');
-    const open = m.style.left === "0px";
-    m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block";
-};
-
-window.logout = () => {
-    sessionStorage.removeItem('dashboardLoaded');
-    signOut(auth).then(() => window.location="login.html");
-};
+function showToast(m) { const t = document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+window.toggleMenu = () => { const m = document.getElementById('menu'), o = document.getElementById('overlay'); const open = m.style.left === "0px"; m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block"; };
+window.logout = () => { signOut(auth).then(() => window.location="login.html"); };
 </script>
 </body>
-                </html>
-                
+</html>
