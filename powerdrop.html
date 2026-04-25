@@ -8,30 +8,46 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-:root { --primary: #c084fc; --bg: #030712; --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.1); }
-*{margin:0;padding:0;box-sizing:border-box}
-body{ font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: white; padding: 20px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, transparent 50%); }
-.container{width: 100%; max-width: 420px;}
-.nav-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-.back-btn { background: var(--glass); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
-.header h1{ font-family: 'Space Grotesk'; font-size: 24px; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.card{ background: var(--glass); border: 1px solid var(--border); border-radius: 36px; padding: 30px 25px; backdrop-filter: blur(25px); text-align: center; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.7); margin-bottom: 20px; }
-#eventTitle { display: block; color: var(--primary); font-weight: 800; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px; }
-.reward-amount{ font-size: 50px; font-weight: 800; font-family: 'Space Grotesk'; color: #fff; line-height: 1; }
-.timer-container { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
-.time-plate { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 10px; min-width: 60px; }
-.time-num { display: block; font-size: 18px; font-weight: 700; color: var(--primary); }
-.time-label { display: block; font-size: 7px; opacity: 0.3; text-transform: uppercase; }
-.progress-bar{ height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 10px; }
-#fill{ height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #c084fc); transition: width 2s ease; }
-input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: white; margin-bottom: 15px; outline: none; text-align: center; }
-.btn-main{ width: 100%; padding: 18px; border: none; border-radius: 20px; background: #fff; color: #000; font-weight: 800; cursor: pointer; }
-.btn-main:disabled { opacity: 0.2; cursor: not-allowed; }
-.btn-tg { width: 100%; padding: 15px; border-radius: 18px; background: transparent; color: #fff; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 15px; display: none; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-size: 13px; }
-.rules-card { background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border); border-radius: 24px; padding: 20px; }
-.rules-card h3 { font-size: 11px; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px; }
-.rule-item { display: flex; gap: 8px; margin-bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.5); text-align: left; }
-#msg{ margin-top: 10px; font-size: 12px; font-weight: 600; text-align:center; }
+:root { --primary: #c084fc; --bg: #030712; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:white; padding:20px; min-height:100vh; display:flex; justify-content:center; align-items:flex-start; background-image:radial-gradient(circle at 50% -20%, #1e1b4b 0%, transparent 50%); }
+.container { width:100%; max-width:420px; }
+.nav-bar { display:flex; align-items:center; gap:15px; margin-bottom:25px; }
+.back-btn { background:var(--glass); border:1px solid var(--border); width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:white; cursor:pointer; flex-shrink:0; }
+.header h1 { font-family:'Space Grotesk'; font-size:24px; background:linear-gradient(to bottom,#fff,#94a3b8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.card { background:var(--glass); border:1px solid var(--border); border-radius:36px; padding:30px 25px; backdrop-filter:blur(25px); text-align:center; box-shadow:0 40px 100px -20px rgba(0,0,0,0.7); margin-bottom:20px; }
+#eventTitle { display:block; color:var(--primary); font-weight:800; font-size:11px; letter-spacing:4px; text-transform:uppercase; margin-bottom:15px; }
+.reward-amount { font-size:50px; font-weight:800; font-family:'Space Grotesk'; color:#fff; line-height:1; }
+
+/* WINNERS BADGE */
+.winners-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(192,132,252,0.1); border:1px solid rgba(192,132,252,0.3); border-radius:20px; padding:6px 14px; margin:12px 0; font-size:11px; font-weight:700; color:var(--primary); letter-spacing:1px; }
+
+/* TIMER */
+.timer-container { display:flex; justify-content:center; gap:10px; margin:20px 0; }
+.time-plate { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:16px; padding:10px; min-width:60px; }
+.time-num { display:block; font-size:18px; font-weight:700; color:var(--primary); }
+.time-label { display:block; font-size:7px; opacity:0.3; text-transform:uppercase; }
+
+/* PROGRESS */
+.progress-bar { height:6px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; margin-top:10px; }
+#fill { height:100%; width:0%; background:linear-gradient(90deg,#6366f1,#c084fc); transition:width 2s ease; }
+
+input { width:100%; padding:18px; border-radius:18px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:white; margin-bottom:15px; outline:none; text-align:center; font-family:'Plus Jakarta Sans'; font-size:13px; }
+input::placeholder { color:rgba(255,255,255,0.25); }
+
+.btn-main { width:100%; padding:18px; border:none; border-radius:20px; background:#fff; color:#000; font-weight:800; cursor:pointer; font-family:'Plus Jakarta Sans'; font-size:14px; }
+.btn-main:disabled { opacity:0.2; cursor:not-allowed; }
+
+.btn-tg { width:100%; padding:15px; border-radius:18px; background:transparent; color:#fff; font-weight:600; border:1px solid rgba(255,255,255,0.1); margin-top:15px; display:none; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-size:13px; font-family:'Plus Jakarta Sans'; }
+
+.rules-card { background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:24px; padding:20px; }
+.rules-card h3 { font-size:11px; color:var(--primary); margin-bottom:12px; text-transform:uppercase; letter-spacing:2px; }
+.rule-item { display:flex; gap:8px; margin-bottom:10px; font-size:11px; color:rgba(255,255,255,0.5); text-align:left; }
+
+#msg { margin-top:10px; font-size:12px; font-weight:600; text-align:center; }
+
+/* EXPIRED STATE */
+.expired-tag { background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3); color:#f87171; font-size:10px; font-weight:800; padding:5px 14px; border-radius:20px; letter-spacing:2px; display:inline-block; margin-bottom:10px; }
 </style>
 </head>
 <body>
@@ -44,20 +60,45 @@ input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--
         <div class="header"><h1>ONCHYRA</h1></div>
     </div>
 
-    <div id="loader" style="text-align:center; opacity: 0.5; padding-top: 50px;">INITIALIZING...</div>
+    <div id="loader" style="text-align:center; opacity:0.5; padding-top:50px;">INITIALIZING...</div>
 
     <div id="eventUI" style="display:none;">
         <div class="card">
             <span id="eventTitle">POWER DROP</span>
-            <div class="reward-box"><span class="reward-amount" id="reward">0</span><span style="font-size: 18px; font-weight: 700; color: var(--primary); vertical-align: super;"> USDT</span></div>
-            <div class="timer-container">
-                <div class="time-plate"><span class="time-num" id="days">00</span><span class="time-label">Days</span></div>
-                <div class="time-plate"><span class="time-num" id="hours">00</span><span class="time-label">Hrs</span></div>
-                <div class="time-plate"><span class="time-num" id="mins">00</span><span class="time-label">Min</span></div>
-                <div class="time-plate"><span class="time-num" id="secs">00</span><span class="time-label">Sec</span></div>
+
+            <div class="reward-box">
+                <span class="reward-amount" id="reward">0</span>
+                <span style="font-size:18px;font-weight:700;color:var(--primary);vertical-align:super;"> USDT</span>
             </div>
-            <div style="display:flex; justify-content:space-between; font-size:10px; opacity:0.4;"><span>NETWORK LOAD</span><span id="pCount">0 / 0</span></div>
-            <div class="progress-bar"><div id="fill"></div></div><br>
+
+            <!-- WINNERS COUNT -->
+            <div>
+                <div class="winners-badge">
+                    🏆 <span id="winnersCount">?</span> WINNERS WILL BE SELECTED
+                </div>
+            </div>
+
+            <!-- TIMER -->
+            <div id="timerBox">
+                <div class="timer-container">
+                    <div class="time-plate"><span class="time-num" id="days">00</span><span class="time-label">Days</span></div>
+                    <div class="time-plate"><span class="time-num" id="hours">00</span><span class="time-label">Hrs</span></div>
+                    <div class="time-plate"><span class="time-num" id="mins">00</span><span class="time-label">Min</span></div>
+                    <div class="time-plate"><span class="time-num" id="secs">00</span><span class="time-label">Sec</span></div>
+                </div>
+            </div>
+            <div id="expiredBox" style="display:none; margin:15px 0;">
+                <div class="expired-tag">⏰ DROP ENDED</div>
+                <div style="font-size:11px; opacity:0.4; margin-top:5px;">Winners will be announced soon</div>
+            </div>
+
+            <!-- NETWORK LOAD -->
+            <div style="display:flex;justify-content:space-between;font-size:10px;opacity:0.4;margin-bottom:6px;">
+                <span>NETWORK LOAD</span><span id="pCount">0 / 0</span>
+            </div>
+            <div class="progress-bar"><div id="fill"></div></div>
+            <br>
+
             <input type="text" id="wallet" placeholder="USDT BEP20 Address" spellcheck="false">
             <button id="joinBtn" class="btn-main" onclick="participate()" disabled>CONFIRM ENTRY</button>
             <div id="msg"></div>
@@ -66,10 +107,13 @@ input{ width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--
                 Invite via Telegram
             </button>
         </div>
+
         <div class="rules-card">
             <h3>Protocol Rules</h3>
             <div class="rule-item"><span>▹ One entry per node. Multi-accounts lead to instant ban.</span></div>
             <div class="rule-item"><span>▹ Valid USDT BEP20 (BSC) address is strictly required.</span></div>
+            <div class="rule-item"><span>▹ Winners are randomly selected after the drop ends.</span></div>
+            <div class="rule-item"><span>▹ Rewards distributed within 48 hours of announcement.</span></div>
         </div>
     </div>
 </div>
@@ -79,7 +123,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = { apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain:"onchyra.firebaseapp.com", projectId:"onchyra", storageBucket:"onchyra.firebasestorage.app", messagingSenderId:"441822770982", appId:"1:441822770982:web:f22f6b95fd5148ce21b3e7" };
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -87,13 +139,16 @@ const db = getFirestore(app);
 let currentEventId = null, userUid = null, tInterval = null;
 
 onAuthStateChanged(auth, async (user) => {
-    if (user) { 
-        userUid = user.uid; 
+    if (user) {
+        userUid = user.uid;
         const uSnap = await getDoc(doc(db, "users", userUid));
-        // Check for 'banned' field specifically
-        if (uSnap.exists() && uSnap.data().banned === true) { window.location.href = "banned.html"; return; }
-        initEvent(); 
-    } else { window.location.href="login.html"; }
+        if (uSnap.exists() && uSnap.data().banned === true) {
+            window.location.href = "banned.html"; return;
+        }
+        initEvent();
+    } else {
+        window.location.href = "login.html";
+    }
 });
 
 async function initEvent() {
@@ -107,25 +162,61 @@ async function initEvent() {
     });
 }
 
+// Safe timestamp → milliseconds (handles Firestore Timestamp, plain number, or missing)
+function toMillis(val) {
+    if (!val) return null;
+    if (typeof val.toMillis === 'function') return val.toMillis();   // Firestore Timestamp
+    if (typeof val.seconds === 'number') return val.seconds * 1000;  // raw {seconds, nanoseconds}
+    if (typeof val === 'number') return val;                          // already ms
+    return null;
+}
+
 function render(data) {
     document.getElementById('loader').style.display = "none";
     document.getElementById('eventUI').style.display = "block";
     document.getElementById('eventTitle').innerText = (data.title || "POWERDROP").toUpperCase();
     document.getElementById('reward').innerText = data.reward || "0";
-    const c = data.participantsCount || 0, m = data.maxParticipants || 50;
-    document.getElementById('pCount').innerText = `${c} / ${m}`;
-    document.getElementById('fill').style.width = Math.min((c/m*100), 100) + "%";
 
-    const start = data.startTime.toMillis(), end = start + (data.duration * 86400000);
-    if(tInterval) clearInterval(tInterval);
+    // Winners count
+    document.getElementById('winnersCount').innerText = data.winners || data.winnersCount || "?";
+
+    // Participants
+    const c = data.participantsCount || 0;
+    const m = data.maxParticipants || 100;
+    document.getElementById('pCount').innerText = `${c} / ${m}`;
+    document.getElementById('fill').style.width = Math.min((c / m * 100), 100) + "%";
+
+    // Timer — safe conversion
+    const startMs = toMillis(data.startTime);
+    const durationDays = data.duration || 7;
+
+    if (startMs === null) {
+        // startTime missing or invalid — show dashes
+        ['days','hours','mins','secs'].forEach(id => document.getElementById(id).innerText = '--');
+        return;
+    }
+
+    const endMs = startMs + (durationDays * 86400000);
+
+    if (tInterval) clearInterval(tInterval);
     tInterval = setInterval(() => {
-        const diff = end - Date.now();
-        if (diff <= 0) { clearInterval(tInterval); return; }
-        const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-        document.getElementById('days').innerText = d.toString().padStart(2,'0');
-        document.getElementById('hours').innerText = h.toString().padStart(2,'0');
-        document.getElementById('mins').innerText = m.toString().padStart(2,'0');
-        document.getElementById('secs').innerText = s.toString().padStart(2,'0');
+        const diff = endMs - Date.now();
+        if (diff <= 0) {
+            clearInterval(tInterval);
+            document.getElementById('timerBox').style.display = "none";
+            document.getElementById('expiredBox').style.display = "block";
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('joinBtn').innerText = "DROP ENDED";
+            return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('days').innerText  = d.toString().padStart(2, '0');
+        document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+        document.getElementById('mins').innerText  = m.toString().padStart(2, '0');
+        document.getElementById('secs').innerText  = s.toString().padStart(2, '0');
     }, 1000);
 }
 
@@ -133,38 +224,51 @@ async function checkJoined() {
     const snap = await getDoc(doc(db, "powerdrops", currentEventId, "participants", userUid));
     if (snap.exists()) {
         const btn = document.getElementById('joinBtn');
-        btn.disabled = true; btn.innerText = "ENTRY VERIFIED ✅";
+        btn.disabled = true;
+        btn.innerText = "ENTRY VERIFIED ✅";
         document.getElementById('wallet').value = snap.data().address;
         document.getElementById('wallet').disabled = true;
         document.getElementById('shareBtn').style.display = "flex";
-    } else { document.getElementById('joinBtn').disabled = false; }
+    } else {
+        document.getElementById('joinBtn').disabled = false;
+    }
 }
 
 window.participate = async () => {
     const addr = document.getElementById('wallet').value.trim();
     if (addr.length < 20) return showMsg("Invalid BEP20 Address", "#f87171");
     const btn = document.getElementById('joinBtn');
-    btn.disabled = true; btn.innerText = "PROCESSING...";
+    btn.disabled = true;
+    btn.innerText = "PROCESSING...";
     try {
-        await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), { address: addr, joinedAt: serverTimestamp() });
-        await updateDoc(doc(db, "powerdrops", currentEventId), { participantsCount: increment(1) });
+        await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), {
+            address: addr,
+            joinedAt: serverTimestamp()
+        });
+        await updateDoc(doc(db, "powerdrops", currentEventId), {
+            participantsCount: increment(1)
+        });
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        showMsg("Registration Successful!", "#34d399");
+        showMsg("Registration Successful! 🎉", "#34d399");
         btn.innerText = "ENTRY VERIFIED ✅";
         document.getElementById('shareBtn').style.display = "flex";
-    } catch (e) { 
+    } catch (e) {
         console.error(e);
-        showMsg("Firestore Error. Check Rules.", "#f87171"); 
-        btn.disabled = false; btn.innerText = "CONFIRM ENTRY";
+        showMsg("Firestore Error. Check Rules.", "#f87171");
+        btn.disabled = false;
+        btn.innerText = "CONFIRM ENTRY";
     }
-}
+};
 
 window.shareOnTG = () => {
     const t = `Join ONCHYRA PowerDrop! ${window.location.origin}/powerdrop.html`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(t)}`, '_blank');
-}
+};
 
-function showMsg(t, c) { document.getElementById('msg').innerText = t; document.getElementById('msg').style.color = c; }
+function showMsg(t, c) {
+    document.getElementById('msg').innerText = t;
+    document.getElementById('msg').style.color = c;
+}
 </script>
 </body>
-</html>
+    </html>
