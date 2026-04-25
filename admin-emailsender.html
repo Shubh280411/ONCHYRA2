@@ -37,6 +37,12 @@ button{
 h1{
   margin-bottom:20px;
 }
+
+#status{
+  margin-top:15px;
+  color:#94a3b8;
+  font-size:14px;
+}
 </style>
 </head>
 
@@ -45,6 +51,7 @@ h1{
 <div class="container">
   <h1>ONCHYRA Admin 🔐</h1>
   <button onclick="sendEmails()">📩 Send Inactive Emails</button>
+  <p id="status">Ready</p>
 </div>
 
 <script type="module">
@@ -52,7 +59,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// 🔑 Firebase config (tera already sahi hai)
 const firebaseConfig = {
   apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
   authDomain:"onchyra.firebaseapp.com",
@@ -63,27 +69,30 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔑 EmailJS
+// EmailJS init
 emailjs.init("DRnSZ-UTRgrq7ol8b");
 
-// 🔐 ADMIN PROTECTION
+// Admin protection
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "admin-login.html";
   }
 });
 
-// 🚀 MAIN FUNCTION
 window.sendEmails = async function () {
 
   const btn = document.querySelector("button");
-  btn.innerText = "Sending...";
+  const status = document.getElementById("status");
+
   btn.disabled = true;
+  btn.innerText = "Sending...";
+  status.innerText = "Processing users...";
 
   const snap = await getDocs(collection(db, "users"));
   const now = Date.now();
 
-  let count = 0;
+  let success = 0;
+  let failed = 0;
 
   for (const u of snap.docs) {
 
@@ -95,23 +104,33 @@ window.sendEmails = async function () {
 
     if (diff > 86400000 && !data.emailSent) {
 
-      await emailjs.send("service_ztg8ijg", "template_hbdlech", {
-        email: data.email,
-        name: data.name || "Miner"
-      });
+      try {
 
-      await updateDoc(doc(db, "users", u.id), {
-        emailSent: true
-      });
+        await emailjs.send("service_ztg8ijg", "template_hbdlech", {
+          email: data.email,
+          name: data.name || "Miner"
+        });
 
-      count++;
+        await updateDoc(doc(db, "users", u.id), {
+          emailSent: true
+        });
+
+        console.log("✅ Sent:", data.email);
+        success++;
+
+      } catch (err) {
+        console.error("❌ Failed:", data.email, err);
+        failed++;
+      }
     }
   }
 
-  btn.innerText = "Done ✅ (" + count + ")";
   btn.disabled = false;
-};
+  btn.innerText = "📩 Send Inactive Emails";
 
+  status.innerText = `✅ ${success} Sent | ❌ ${failed} Failed`;
+
+};
 </script>
 
 </body>
