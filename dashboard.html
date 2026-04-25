@@ -6,132 +6,180 @@
     <title>ONCHYRA — Global Node</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255, 255, 255, 0.04); --border: rgba(255, 255, 255, 0.1); }
-        * { margin:0; padding:0; box-sizing:border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
+        :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; }
 
         /* LOADER */
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 15px; }
-        .spinner { width: 45px; height: 45px; border: 3px solid rgba(167, 139, 250, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        #loadingText { font-size: 10px; letter-spacing: 2px; color: var(--primary); font-weight: 800; text-transform: uppercase; animation: pulse 1.5s infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:15px; }
+        .spinner { width:45px; height:45px; border:3px solid rgba(167,139,250,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+        #loadingText { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:800; text-transform:uppercase; animation:pulse 1.5s infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
         /* NAV */
-        .nav-container { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px; background: linear-gradient(to bottom, var(--bg) 90%, transparent); }
-        .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: rgba(255, 255, 255, 0.03); border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(25px); }
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1100; backdrop-filter: blur(10px); }
-        .menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #080914; padding: 30px 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1200; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .menu-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; padding: 14px; border-radius: 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; }
-        .menu-item.active { background: rgba(167, 139, 250, 0.1); color: var(--primary); }
+        .nav-container { position:fixed; top:0; left:0; right:0; z-index:1000; padding:15px; background:linear-gradient(to bottom,var(--bg) 90%,transparent); }
+        .nav { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:rgba(255,255,255,0.03); border-radius:22px; border:1px solid var(--border); backdrop-filter:blur(25px); }
 
-        /* GRID */
-        .container { max-width: 1200px; margin: 0 auto; padding: 100px 15px 40px 15px; }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
-        @media (min-width: 992px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } .full-width { grid-column: span 2; } }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 25px; position: relative; overflow: hidden; }
+        /* MENU */
+        #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; z-index:1100; backdrop-filter:blur(10px); }
+        .menu { position:fixed; top:0; left:-280px; width:280px; height:100%; background:#080914; padding:30px 15px; transition:0.4s cubic-bezier(0.4,0,0.2,1); z-index:1200; border-right:1px solid var(--border); display:flex; flex-direction:column; }
+        .menu-item { color:rgba(255,255,255,0.7); text-decoration:none; font-size:13px; font-weight:600; padding:14px; border-radius:14px; margin-bottom:5px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+        .menu-item.active { background:rgba(167,139,250,0.1); color:var(--primary); }
+
+        /* LAYOUT */
+        .container { max-width:1200px; margin:0 auto; padding:100px 15px 40px; }
+        .dashboard-grid { display:grid; grid-template-columns:1fr; gap:18px; }
+        @media (min-width:992px) { .dashboard-grid { grid-template-columns:1fr 1fr; } .full-width { grid-column:span 2; } }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:25px; position:relative; overflow:hidden; }
 
         /* TAGS */
-        #rankTag { font-size: 9px; font-weight: 900; padding: 4px 12px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 10px; }
-        .tag-rookie { background: rgba(167, 139, 250, 0.1); color: var(--primary); border: 1px solid var(--primary); }
-        .tag-shark { background: rgba(96, 165, 250, 0.1); color: var(--secondary); border: 1px solid var(--secondary); }
-        .tag-whale { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24; }
+        #rankTag { font-size:9px; font-weight:900; padding:4px 12px; border-radius:6px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:10px; }
+        .tag-rookie { background:rgba(167,139,250,0.1); color:var(--primary); border:1px solid var(--primary); }
+        .tag-shark { background:rgba(96,165,250,0.1); color:var(--secondary); border:1px solid var(--secondary); }
+        .tag-whale { background:rgba(251,191,36,0.1); color:#fbbf24; border:1px solid #fbbf24; }
 
         /* BUTTONS */
-        #claimBtn { width: 100%; padding: 22px; border: none; border-radius: 22px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; }
-        #claimBtn:disabled { background: #1a1a1a; color: #444; }
+        #claimBtn { width:100%; padding:22px; border:none; border-radius:22px; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; font-weight:900; font-size:16px; cursor:pointer; text-transform:uppercase; }
+        #claimBtn:disabled { background:#1a1a1a; color:#444; cursor:not-allowed; }
+        .view-all-btn { font-size:10px; font-weight:800; color:var(--primary); text-decoration:none; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.3); padding:6px 14px; border-radius:20px; white-space:nowrap; }
+        .copy-btn { background:#fff; color:#000; border:none; border-radius:16px; font-weight:900; font-size:12px; cursor:pointer; white-space:nowrap; padding:14px 24px; }
 
-        /* LIST ITEMS */
-        .lb-row, .feed-item { display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; margin-bottom: 8px; font-size: 11px; border: 1px solid rgba(255,255,255,0.03); align-items: center; }
-        .user-name { font-weight: 700; color: #fff; }
-        .time-ago { opacity: 0.5; font-size: 10px; }
+        /* ROWS */
+        .lb-row, .feed-item { display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.02); border-radius:14px; margin-bottom:8px; font-size:11px; border:1px solid rgba(255,255,255,0.03); align-items:center; }
+        .user-name { font-weight:700; color:#fff; }
+        .time-ago { opacity:0.5; font-size:10px; }
 
         /* POLLS */
-        .v-btn-dynamic { width: 100%; padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; color: white; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; transition: 0.2s; }
-        .v-btn-dynamic.selected { border-color: var(--primary); background: rgba(167,139,250,0.1); }
-        .v-btn-dynamic:disabled { cursor: default; opacity: 1; }
+        .v-btn-dynamic { width:100%; padding:15px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; color:white; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; transition:0.2s; }
+        .v-btn-dynamic.selected { border-color:var(--primary); background:rgba(167,139,250,0.1); }
+        .v-btn-dynamic:disabled { cursor:default; opacity:1; }
 
-        /* REF BOX */
-        .ref-box { background: rgba(255,255,255,0.02); border: 1px dashed var(--border); padding: 18px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .copy-btn { background: #fff; color: #000; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 900; font-size: 11px; cursor: pointer; }
-
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 12px 25px; border-radius: 50px; font-weight: 800; display: none; z-index: 2000; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* TOAST */
+        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:12px 25px; border-radius:50px; font-weight:800; display:none; z-index:2000; font-size:11px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><div id="loadingText">Synchronizing Nodes...</div></div>
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="loadingText">Synchronizing Nodes...</div>
+</div>
+
 <div id="overlay" onclick="toggleMenu()"></div>
 
 <div class="menu" id="menu">
-    <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--primary); padding: 25px;">ONCHYRA</div>
+    <div style="font-family:'Space Grotesk';font-size:24px;font-weight:900;color:var(--primary);padding:25px;">ONCHYRA</div>
     <a href="dashboard.html" class="menu-item active">Dashboard</a>
-    <a href="leaderboard.html" class="menu-item">Leaderboard</a>
+    <a href="updates.html" class="menu-item">Update/Announcement</a>
+    <a href="powerdrop.html" class="menu-item">PowerDrop</a>
+    <a href="presale.html" class="menu-item">Presale</a>
     <a href="referrals.html" class="menu-item">Referrals</a>
-    <a onclick="logout()" class="menu-item" style="color:#ef4444; margin-top:auto; padding-bottom:30px;">Logout</a>
+    <a href="roadmap.html" class="menu-item">Roadmap</a>
+    <a href="tokenomics.html" class="menu-item">Tokenomics</a>
+    <a href="leaderboard.html" class="menu-item">Leaderboard</a>
+    <a href="streaks.html" class="menu-item">Streaks</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444;margin-top:auto;padding-bottom:30px;">Logout</a>
 </div>
 
 <div class="nav-container">
     <div class="nav">
-        <div onclick="toggleMenu()" style="cursor:pointer;"><svg width="24" height="24" stroke="white" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
-        <div style="font-family:'Space Grotesk'; font-weight:900;">ONCHYRA</div>
-        <div onclick="window.location='profile.html'"><svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+        <div onclick="toggleMenu()" style="cursor:pointer;">
+            <svg width="24" height="24" stroke="white" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </div>
+        <div style="font-family:'Space Grotesk';font-weight:900;">ONCHYRA</div>
+        <div onclick="window.location='profile.html'" style="cursor:pointer;">
+            <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
     </div>
 </div>
 
 <div class="container">
     <div id="dashboardData" class="dashboard-grid" style="display:none;">
-        
+
+        <!-- 1. BALANCE -->
         <div class="card" style="text-align:center;">
-            <div id="rankTag">SCANNING...</div>
-            <h2 id="balance" style="font-family:'Space Grotesk'; font-size:60px; margin:5px 0;">0.00</h2>
-            <div style="font-size:12px; color:#fbbf24; font-weight:bold;">STREAK: <span id="streakDays">0</span> 🔥</div>
+            <div id="rankTag" class="tag-rookie">SCANNING...</div>
+            <h2 id="balance" style="font-family:'Space Grotesk';font-size:60px;margin:5px 0;">0.00</h2>
+            <div style="font-size:12px;color:#fbbf24;font-weight:bold;">STREAK: <span id="streakDays">0</span> 🔥</div>
         </div>
 
+        <!-- 2. STATS -->
         <div class="card">
-            <div style="display:flex; justify-content:space-around; align-items:center; height:100%;">
-                <div style="text-align:center;"><div style="font-size:10px;opacity:0.6">VALIDATORS</div><div id="totalUsers" style="font-weight:800;">...</div></div>
-                <div style="text-align:center;"><div style="font-size:10px;opacity:0.6">TOTAL MINED</div><div id="totalMined" style="font-weight:800;">0.00</div></div>
+            <div style="display:flex;justify-content:space-around;align-items:center;height:100%;">
+                <div style="text-align:center;">
+                    <div style="font-size:10px;opacity:0.6;">VALIDATORS</div>
+                    <div id="totalUsers" style="font-weight:800;font-size:22px;">...</div>
+                </div>
+                <div style="width:1px;height:40px;background:var(--border);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:10px;opacity:0.6;">TOTAL MINED</div>
+                    <div id="totalMined" style="font-weight:800;font-size:22px;">0.00</div>
+                </div>
             </div>
         </div>
 
+        <!-- 3. MINING BUTTON -->
         <div class="card full-width">
-            <div style="background:#111; height:8px; border-radius:20px; overflow:hidden; margin-bottom:18px;">
-                <div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:1s linear;"></div>
+            <div style="background:#111;height:8px;border-radius:20px;overflow:hidden;margin-bottom:18px;">
+                <div id="progressBar" style="height:100%;width:0%;background:var(--primary);transition:1s linear;"></div>
             </div>
             <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
         </div>
 
-        <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary); cursor:pointer;">
-            <div style="font-size:9px; font-weight:800; color:var(--primary);">PROTOCOL UPDATE</div>
-            <div id="latestUpdateTitle" style="font-size:14px; font-weight:600; margin-top:4px;">Searching for updates...</div>
+        <!-- 4. PROTOCOL UPDATE -->
+        <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary);cursor:pointer;">
+            <div style="font-size:9px;font-weight:800;color:var(--primary);">PROTOCOL UPDATE</div>
+            <div id="latestUpdateTitle" style="font-size:14px;font-weight:600;margin-top:4px;">Searching for updates...</div>
         </div>
 
+        <!-- 5. REFERRAL CARD (above leaderboard) -->
+        <div class="card full-width" style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(96,165,250,0.06));border-color:rgba(167,139,250,0.25);">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:9px;font-weight:800;color:var(--primary);letter-spacing:2px;margin-bottom:8px;">🎁 YOUR REFERRAL CODE</div>
+                    <div id="refCodeText" style="font-family:'Space Grotesk';font-weight:900;color:#fff;letter-spacing:5px;font-size:24px;">...</div>
+                    <div style="font-size:10px;opacity:0.45;margin-top:6px;">Share & earn bonus ONC for every friend who joins</div>
+                </div>
+                <button class="copy-btn" id="copyBtn" onclick="copyInvite()">📤 INVITE</button>
+            </div>
+        </div>
+
+        <!-- 6. TOP VALIDATORS -->
         <div class="card">
-            <h3 style="font-size:13px; margin-bottom:15px; font-family:'Space Grotesk';">TOP VALIDATORS</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <h3 style="font-size:13px;font-family:'Space Grotesk';">TOP VALIDATORS</h3>
+                <a href="leaderboard.html" class="view-all-btn">VIEW ALL →</a>
+            </div>
             <div id="miniLeaderboard"></div>
         </div>
 
+        <!-- 7. POLL -->
         <div class="card">
-            <h3 id="pollQuestion" style="font-size:14px; font-family:'Space Grotesk'; margin-bottom:15px;">...</h3>
+            <h3 id="pollQuestion" style="font-size:14px;font-family:'Space Grotesk';margin-bottom:15px;">...</h3>
             <div id="pollOptions"></div>
         </div>
 
+        <!-- 8. LIVE ACTIVITY -->
         <div class="card full-width">
-            <h3 style="font-size:12px; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
-                <div style="width:8px; height:8px; background:#10b981; border-radius:50%;"></div> LIVE ACTIVITY
+            <h3 style="font-size:12px;margin-bottom:15px;display:flex;align-items:center;gap:8px;">
+                <div style="width:8px;height:8px;background:#10b981;border-radius:50%;box-shadow:0 0 8px #10b981;"></div>
+                LIVE ACTIVITY
             </h3>
             <div id="liveFeedList"></div>
         </div>
+
+        <!-- 9. CLOSING FOOTER -->
+        <div class="card full-width" style="background:linear-gradient(135deg,rgba(167,139,250,0.05),rgba(96,165,250,0.03));border-color:rgba(167,139,250,0.12);text-align:center;padding:40px 25px;">
+            <div style="font-family:'Space Grotesk';font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">ONCHYRA</div>
+            <div style="font-size:10px;opacity:0.4;letter-spacing:3px;margin-bottom:6px;">DECENTRALIZED VALIDATION NETWORK</div>
+            <div style="font-size:10px;opacity:0.3;margin-bottom:24px;">Mine The Future.</div>
+            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+            
+            </div>
+            <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
+            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
         </div>
-    <div class="card full-width">
-    <div style="font-size:10px; opacity:0.6;">Your Referral Code</div>
-    <div class="ref-box">
-        <span id="refCodeText" style="font-family:'Space Grotesk'; font-weight:800; color:var(--primary); letter-spacing:1px;">...</span>
-        <button class="copy-btn" id="copyBtn" onclick="copyInvite()">INVITE</button>
-    </div>
-    </div>
-    
 
     </div>
 </div>
@@ -141,9 +189,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { 
-    getFirestore, doc, onSnapshot, updateDoc, collection, 
-    query, limit, orderBy, getDoc, setDoc, getCountFromServer 
+import {
+    getFirestore, doc, onSnapshot, updateDoc, collection,
+    query, limit, orderBy, getDoc, setDoc, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -161,59 +209,41 @@ const db = getFirestore(app);
 
 let uid, userData, currentPollId, currentPollData;
 
-// Failsafe for Loader
-setTimeout(() => { if(document.getElementById('loader').style.display !== "none") { document.getElementById('loader').style.display="none"; document.getElementById('dashboardData').style.display="grid"; } }, 6000);
+// Failsafe: hide loader after 8s
+setTimeout(() => {
+    document.getElementById('loader').style.display = "none";
+    document.getElementById('dashboardData').style.display = "grid";
+}, 8000);
 
 function timeAgo(t) {
-    if(!t) return "Just now";
+    if (!t) return "Just now";
     try {
         const d = t.toDate ? t.toDate() : new Date(t);
         const s = Math.floor((new Date() - d) / 1000);
-        if(s < 60) return s + "s ago";
-        if(s < 3600) return Math.floor(s/60) + "m ago";
-        if(s < 86400) return Math.floor(s/3600) + "h ago";
-        return Math.floor(s/86400) + "d ago";
-    } catch(e) { return "Recently"; }
+        if (s < 60) return s + "s ago";
+        if (s < 3600) return Math.floor(s / 60) + "m ago";
+        if (s < 86400) return Math.floor(s / 3600) + "h ago";
+        return Math.floor(s / 86400) + "d ago";
+    } catch (e) { return "Recently"; }
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if(!user) { window.location="login.html"; return; }
+    if (!user) { window.location = "login.html"; return; }
     uid = user.uid;
 
-   onSnapshot(doc(db, "users", uid), (snap) => {
-    if(snap.exists()){
-        userData = snap.data();
+    onSnapshot(doc(db, "users", uid), (snap) => {
+        if (snap.exists()) {
+            userData = snap.data();
+            updateUI();
+            checkMining();
 
-        updateUI();
-        checkMining();
-
-        let code = userData.referralCode;
-
-        if(!code){
-            code = uid.substring(0,6).toUpperCase();
-
-            updateDoc(doc(db,"users",uid),{
-                referralCode: code
-            });
-        }
-
-        document.getElementById('refCodeText').innerText = code;
-
-        document.getElementById('loader').style.display = "none";
-        document.getElementById('dashboardData').style.display = "grid";
-    }
-});
             let code = userData.referralCode;
+            if (!code) {
+                code = uid.substring(0, 6).toUpperCase();
+                updateDoc(doc(db, "users", uid), { referralCode: code });
+            }
+            document.getElementById('refCodeText').innerText = code;
 
-if(!code){
-    code = uid.substring(0,6).toUpperCase();
-
-    updateDoc(doc(db,"users",uid),{
-        referralCode: code
-    });
-}
-
-document.getElementById('refCodeText').innerText = code;
             document.getElementById('loader').style.display = "none";
             document.getElementById('dashboardData').style.display = "grid";
         }
@@ -225,58 +255,65 @@ document.getElementById('refCodeText').innerText = code;
 });
 
 async function fetchStats() {
-    // Leaderboard - Full Name
     onSnapshot(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)), (snap) => {
-        const lb = document.getElementById('miniLeaderboard'); lb.innerHTML = "";
+        const lb = document.getElementById('miniLeaderboard');
+        lb.innerHTML = "";
+        let rank = 1;
         snap.forEach(d => {
-            lb.innerHTML += `<div class="lb-row"><span class="user-name">${d.data().name}</span><b>${(d.data().balance||0).toFixed(2)} ONC</b></div>`;
+            const medals = ["🥇","🥈","🥉"];
+            lb.innerHTML += `<div class="lb-row"><span class="user-name">${medals[rank-1]} ${d.data().name || "Anonymous"}</span><b>${(d.data().balance || 0).toFixed(2)} ONC</b></div>`;
+            rank++;
         });
     });
 
-    // Live Feed - Full Name
     onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)), (snap) => {
-        const list = document.getElementById('liveFeedList'); list.innerHTML = "";
+        const list = document.getElementById('liveFeedList');
+        list.innerHTML = "";
         snap.forEach(d => {
-            list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
+            list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name || "Anonymous"}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
         });
     });
 
     try {
         const uCount = await getCountFromServer(collection(db, "users"));
         document.getElementById('totalUsers').innerText = uCount.data().count.toLocaleString();
-    } catch(e){}
-    
+    } catch (e) { console.error("Count error:", e); }
+
     onSnapshot(collection(db, "users"), (snap) => {
-        let sum = 0; snap.forEach(d => sum += (d.data().balance || 0));
+        let sum = 0;
+        snap.forEach(d => sum += (d.data().balance || 0));
         document.getElementById('totalMined').innerText = sum.toFixed(2);
     });
 }
 
 async function fetchLatestUpdate() {
     onSnapshot(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)), (snap) => {
-        if(!snap.empty) document.getElementById('latestUpdateTitle').innerText = snap.docs[0].data().title;
+        if (!snap.empty) {
+            document.getElementById('latestUpdateTitle').innerText = snap.docs[0].data().title;
+        }
     });
 }
 
 async function loadPoll() {
     onSnapshot(query(collection(db, "polls"), limit(1)), async (snap) => {
-        if(!snap.empty) {
+        if (!snap.empty) {
             const pDoc = snap.docs[0];
-            currentPollId = pDoc.id; currentPollData = pDoc.data();
+            currentPollId = pDoc.id;
+            currentPollData = pDoc.data();
             document.getElementById('pollQuestion').innerText = currentPollData.question;
-            
+
             const userVote = await getDoc(doc(db, "user_votes", `${uid}_${currentPollId}`));
             const container = document.getElementById('pollOptions');
             container.innerHTML = "";
-            const total = Object.values(currentPollData.results || {}).reduce((a,b)=>a+b, 0);
+            const total = Object.values(currentPollData.results || {}).reduce((a, b) => a + b, 0);
 
             currentPollData.options.forEach(opt => {
                 const count = currentPollData.results[opt] || 0;
-                const pct = total > 0 ? Math.round((count/total)*100) : 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 const btn = document.createElement('button');
                 btn.className = "v-btn-dynamic";
-                if(userVote.exists() && userVote.data().choice === opt) btn.classList.add('selected');
-                btn.innerHTML = `<span>${opt}</span><span style="color:var(--primary); font-weight:800;">${userVote.exists() ? pct+'%' : ''}</span>`;
+                if (userVote.exists() && userVote.data().choice === opt) btn.classList.add('selected');
+                btn.innerHTML = `<span>${opt}</span><span style="color:var(--primary);font-weight:800;">${userVote.exists() ? pct + '%' : ''}</span>`;
                 btn.disabled = userVote.exists();
                 btn.onclick = () => castVote(opt);
                 container.appendChild(btn);
@@ -292,20 +329,23 @@ window.castVote = async (choice) => {
         await updateDoc(doc(db, "polls", currentPollId), { results: res });
         await setDoc(doc(db, "user_votes", `${uid}_${currentPollId}`), { choice, uid });
         showToast("VOTE REGISTERED! ✅");
-    } catch(e) { showToast("Error voting!"); }
+    } catch (e) { showToast("Error voting!"); }
 };
 
 function checkMining() {
-    if(!userData) return;
+    if (!userData) return;
     const diff = 86400000 - (Date.now() - (userData.lastClaim || 0));
     const btn = document.getElementById('claimBtn');
-    if(diff <= 0) {
-        btn.disabled = false; btn.innerText = "START MINING SESSION";
+    if (diff <= 0) {
+        btn.disabled = false;
+        btn.innerText = "START MINING SESSION";
         document.getElementById('progressBar').style.width = "100%";
     } else {
         btn.disabled = true;
-        document.getElementById('progressBar').style.width = ((86400000-diff)/86400000*100) + "%";
-        const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+        document.getElementById('progressBar').style.width = ((86400000 - diff) / 86400000 * 100) + "%";
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
         btn.innerText = `${h}h ${m}m ${s}s UNTIL BLOCK`;
         setTimeout(checkMining, 1000);
     }
@@ -313,16 +353,21 @@ function checkMining() {
 
 window.claim = async () => {
     try {
-        await updateDoc(doc(db, "users", uid), { balance: (userData.balance || 0) + 0.10, lastClaim: Date.now() });
+        await updateDoc(doc(db, "users", uid), {
+            balance: (userData.balance || 0) + 0.10,
+            lastClaim: Date.now()
+        });
         showToast("0.10 ONC MINED! 💎");
-    } catch(e) { showToast("Error mining!"); }
+    } catch (e) { showToast("Error mining!"); }
 };
 
 window.copyInvite = () => {
-    const link = `${window.location.origin}/register.html?ref=${document.getElementById('refCodeText').innerText}`;
-    navigator.clipboard.writeText(link);
-    const b = document.getElementById('copyBtn'); b.innerText = "COPIED!"; 
-    setTimeout(() => { b.innerText = "INVITE"; }, 2000);
+    const code = document.getElementById('refCodeText').innerText;
+    const link = `${window.location.origin}/register.html?ref=${code}`;
+    navigator.clipboard.writeText(link).catch(() => {});
+    const b = document.getElementById('copyBtn');
+    b.innerText = "COPIED! ✅";
+    setTimeout(() => { b.innerText = "📤 INVITE"; }, 2000);
 };
 
 function updateUI() {
@@ -330,14 +375,29 @@ function updateUI() {
     document.getElementById('balance').innerText = bal.toFixed(2);
     document.getElementById('streakDays').innerText = userData.streak || 0;
     const tag = document.getElementById('rankTag');
-    if(bal < 10) { tag.innerText = "ONC ROOKIE"; tag.className = "tag-rookie"; }
-    else if(bal < 50) { tag.innerText = "ONC SHARK"; tag.className = "tag-shark"; }
+    if (bal < 10) { tag.innerText = "ONC ROOKIE"; tag.className = "tag-rookie"; }
+    else if (bal < 50) { tag.innerText = "ONC SHARK"; tag.className = "tag-shark"; }
     else { tag.innerText = "ONC WHALE"; tag.className = "tag-whale"; }
 }
 
-function showToast(m) { const t = document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-window.toggleMenu = () => { const m = document.getElementById('menu'), o = document.getElementById('overlay'); const open = m.style.left === "0px"; m.style.left = open ? "-280px" : "0px"; o.style.display = open ? "none" : "block"; };
-window.logout = () => { signOut(auth).then(() => window.location="login.html"); };
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.innerText = m;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2000);
+}
+
+window.toggleMenu = () => {
+    const m = document.getElementById('menu');
+    const o = document.getElementById('overlay');
+    const open = m.style.left === "0px";
+    m.style.left = open ? "-280px" : "0px";
+    o.style.display = open ? "none" : "block";
+};
+
+window.logout = () => {
+    signOut(auth).then(() => window.location = "login.html");
+};
 </script>
 </body>
 </html>
