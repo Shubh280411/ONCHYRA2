@@ -57,8 +57,9 @@ h1{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
   authDomain:"onchyra.firebaseapp.com",
@@ -106,7 +107,7 @@ window.sendEmails = async function () {
 
       try {
 
-        await emailjs.send("service_ztg8ijg", "template_hbdlech", {
+        await emailjs.send("service_ztg8ijg", "template_7zz4b4w", {
           email: data.email,
           name: data.name || "Miner"
         });
