@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA Admin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#050610;
+  font-family:Arial;
+  color:white;
+}
+
+.container{
+  text-align:center;
+}
+
+button{
+  padding:14px 30px;
+  font-size:16px;
+  border:none;
+  border-radius:12px;
+  background:#22c55e;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+h1{
+  margin-bottom:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>ONCHYRA Admin 🔐</h1>
+  <button onclick="sendEmails()">📩 Send Inactive Emails</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// 🔑 Firebase config (tera already sahi hai)
+const firebaseConfig = {
+  apiKey:"AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain:"onchyra.firebaseapp.com",
+  projectId:"onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// 🔑 EmailJS
+emailjs.init("DRnSZ-UTRgrq7ol8b");
+
+// 🔐 ADMIN PROTECTION
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "admin-login.html";
+  }
+});
+
+// 🚀 MAIN FUNCTION
+window.sendEmails = async function () {
+
+  const btn = document.querySelector("button");
+  btn.innerText = "Sending...";
+  btn.disabled = true;
+
+  const snap = await getDocs(collection(db, "users"));
+  const now = Date.now();
+
+  let count = 0;
+
+  for (const u of snap.docs) {
+
+    const data = u.data();
+
+    if (!data.lastClaim || !data.email) continue;
+
+    const diff = now - data.lastClaim;
+
+    if (diff > 86400000 && !data.emailSent) {
+
+      await emailjs.send("service_ztg8ijg", "template_hbdlech", {
+        email: data.email,
+        name: data.name || "Miner"
+      });
+
+      await updateDoc(doc(db, "users", u.id), {
+        emailSent: true
+      });
+
+      count++;
+    }
+  }
+
+  btn.innerText = "Done ✅ (" + count + ")";
+  btn.disabled = false;
+};
+
+</script>
+
+</body>
+</html>
