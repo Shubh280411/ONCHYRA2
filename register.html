@@ -53,6 +53,10 @@ button{
   font-weight:700;
   cursor:pointer;
 }
+button:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
 </style>
 </head>
 
@@ -64,7 +68,7 @@ button{
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <input id="referral" placeholder="Referral Code (Optional)">
-  <button onclick="registerUser()">Create Account</button>
+  <button id="regBtn" onclick="registerUser()">Create Account</button>
 </div>
 
 <script type="module">
@@ -88,22 +92,42 @@ const db = getFirestore(app);
 let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
 localStorage.setItem("onc_device", deviceId);
 
+// 🔥 AUTO REF FROM LINK
+window.addEventListener("DOMContentLoaded", () => {
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  if(ref){
+    document.getElementById("referral").value = ref.toUpperCase();
+  }
+});
+
 window.registerUser = async function(){
+
+  const btn = document.getElementById("regBtn");
 
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const referralInput = document.getElementById("referral").value.trim().toUpperCase();
 
+  if(!name || !email || !password){
+    alert("Fill all fields");
+    return;
+  }
+
+  // 🔒 prevent double click
+  btn.disabled = true;
+  btn.innerText = "Creating...";
+
   try {
 
-    // CREATE AUTH USER
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
     const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
 
-    // CREATE USER FIRST ✅
+    let finalReferredBy = null;
+
+    // 🔥 CREATE USER FIRST (IMPORTANT)
     await setDoc(doc(db,"users",uid),{
       name,email,uid,
       deviceId,
@@ -117,19 +141,54 @@ window.registerUser = async function(){
       createdAt: serverTimestamp()
     });
 
-    // REFERRAL (AFTER CREATE ✅)
+    // 🔥 REFERRAL SYSTEM
     if(referralInput){
-      const q = query(collection(db,"users"), where("referralCode","==",referralInput));
-      const snap = await getDocs(q);
 
-      if(!snap.empty){
-        const refUser = snap.docs[0];
+      const q1 = query(collection(db,"users"), where("referralCode","==",referralInput));
+      const snap1 = await getDocs(q1);
 
-        await updateDoc(doc(db,"users",refUser.id),{
+      if(!snap1.empty){
+
+        const l1Doc = snap1.docs[0];
+        const l1Data = l1Doc.data();
+
+        finalReferredBy = referralInput;
+
+        // L1
+        await updateDoc(doc(db,"users",l1Doc.id),{
           balance: increment(0.25),
           referrals: increment(1),
           refLevel1: increment(1)
         });
+
+        // L2
+        if(l1Data.referredBy){
+          const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
+          const snap2 = await getDocs(q2);
+
+          if(!snap2.empty){
+            const l2Doc = snap2.docs[0];
+            const l2Data = l2Doc.data();
+
+            await updateDoc(doc(db,"users",l2Doc.id),{
+              balance: increment(0.10),
+              refLevel2: increment(1)
+            });
+
+            // L3
+            if(l2Data.referredBy){
+              const q3 = query(collection(db,"users"), where("referralCode","==",l2Data.referredBy));
+              const snap3 = await getDocs(q3);
+
+              if(!snap3.empty){
+                await updateDoc(doc(db,"users",snap3.docs[0].id),{
+                  balance: increment(0.05),
+                  refLevel3: increment(1)
+                });
+              }
+            }
+          }
+        }
       }
     }
 
@@ -138,6 +197,8 @@ window.registerUser = async function(){
 
   } catch(e){
     alert(e.message);
+    btn.disabled = false;
+    btn.innerText = "Create Account";
   }
 }
 </script>
