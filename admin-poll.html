@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA | Poll Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #7C3AED;
+            --accent2: #60A5FA;
+            --glow: rgba(124,58,237,0.4);
+            --bg: #03040B;
+            --card: rgba(15,17,26,0.8);
+            --border: rgba(255,255,255,0.07);
+            --muted: #64748B;
+            --text: #F1F5F9;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; background-image:radial-gradient(circle at 50% -10%, #1e1b4b 0%, transparent 55%); }
+
+        /* TOP BAR */
+        .topbar {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:18px 40px;
+            background:rgba(255,255,255,0.015);
+            border-bottom:1px solid var(--border);
+            backdrop-filter:blur(20px);
+            position:sticky; top:0; z-index:200;
+        }
+        .logo { font-family:'Space Grotesk'; font-size:18px; font-weight:800; background:linear-gradient(to right,#A78BFA,#60A5FA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .topbar-stats { display:flex; gap:30px; }
+        .tstat span { display:block; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+        .tstat b { font-size:20px; color:#fff; }
+
+        /* LAYOUT */
+        .page { max-width:1300px; margin:0 auto; padding:35px 25px; display:grid; grid-template-columns:400px 1fr; gap:25px; align-items:start; }
+        @media(max-width:900px){ .page { grid-template-columns:1fr; } }
+
+        /* CARD */
+        .card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:24px; backdrop-filter:blur(20px); box-shadow:0 8px 40px rgba(0,0,0,0.5); }
+
+        /* FORM */
+        .card h2 { font-family:'Space Grotesk'; font-size:16px; color:#A78BFA; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+        .field { margin-bottom:16px; }
+        .field label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:7px; }
+        .field input, .field textarea {
+            width:100%; padding:14px 16px; border-radius:14px;
+            background:rgba(255,255,255,0.04); border:1px solid var(--border);
+            color:#fff; font-family:'Plus Jakarta Sans'; font-size:13px; outline:none;
+            transition:border 0.2s;
+        }
+        .field input:focus, .field textarea:focus { border-color:rgba(167,139,250,0.5); }
+        .field textarea { resize:vertical; min-height:60px; }
+
+        /* OPTIONS BUILDER */
+        .options-list { display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+        .option-row { display:flex; gap:8px; align-items:center; }
+        .option-row input { flex:1; }
+        .remove-opt { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:0.2s; }
+        .remove-opt:hover { background:rgba(239,68,68,0.2); }
+        .add-opt-btn { width:100%; padding:11px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.12); color:rgba(255,255,255,0.4); cursor:pointer; font-size:12px; font-weight:600; transition:0.2s; font-family:'Plus Jakarta Sans'; }
+        .add-opt-btn:hover { background:rgba(255,255,255,0.06); color:#fff; }
+
+        /* BUTTONS */
+        .btn { padding:14px 22px; border-radius:14px; border:none; font-weight:800; cursor:pointer; font-family:'Plus Jakarta Sans'; font-size:13px; transition:0.2s; }
+        .btn:hover { transform:translateY(-1px); }
+        .btn-primary { background:linear-gradient(135deg,var(--accent),#9333ea); color:#fff; box-shadow:0 4px 20px var(--glow); width:100%; }
+        .btn-danger { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#f87171; padding:8px 16px; font-size:11px; border-radius:10px; }
+        .btn-danger:hover { background:rgba(239,68,68,0.2); transform:none; }
+
+        /* POLL CARDS */
+        .polls-grid { display:flex; flex-direction:column; gap:16px; }
+        .poll-card {
+            background:rgba(255,255,255,0.02); border:1px solid var(--border);
+            border-radius:20px; padding:20px; position:relative; overflow:hidden;
+        }
+        .poll-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:linear-gradient(to bottom,#A78BFA,#60A5FA); }
+        .poll-question { font-size:15px; font-weight:700; margin-bottom:14px; padding-right:80px; }
+        .poll-meta { font-size:10px; color:var(--muted); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; }
+
+        /* VOTE BARS */
+        .vote-option { margin-bottom:10px; }
+        .vote-label-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+        .vote-label { font-size:12px; font-weight:600; color:#fff; }
+        .vote-count { font-size:11px; color:var(--muted); }
+        .vote-bar-bg { height:7px; background:rgba(255,255,255,0.05); border-radius:20px; overflow:hidden; }
+        .vote-bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,#7C3AED,#A78BFA); transition:width 0.6s ease; }
+        .vote-bar-fill.top { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+
+        /* TOTAL VOTES BADGE */
+        .total-badge { position:absolute; top:18px; right:18px; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.25); border-radius:20px; padding:4px 12px; font-size:10px; font-weight:800; color:#A78BFA; letter-spacing:1px; }
+
+        /* DELETE AREA */
+        .poll-footer { display:flex; justify-content:flex-end; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); }
+
+        /* EMPTY */
+        .empty { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }
+        .empty div { font-size:32px; margin-bottom:10px; }
+
+        /* LOADER */
+        .loader { text-align:center; padding:40px; color:var(--muted); font-size:12px; letter-spacing:2px; animation:pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* TOAST */
+        #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); padding:12px 26px; border-radius:50px; font-weight:800; font-size:12px; display:none; z-index:999; box-shadow:0 8px 30px rgba(0,0,0,0.5); white-space:nowrap; }
+        .toast-success { background:linear-gradient(135deg,#059669,#10b981); color:#fff; }
+        .toast-error { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; }
+
+        /* CONFIRM MODAL */
+        #confirmModal { position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); display:none; z-index:500; align-items:center; justify-content:center; }
+        #confirmModal.show { display:flex; }
+        .modal-box { background:#0f1118; border:1px solid var(--border); border-radius:24px; padding:30px; max-width:360px; width:90%; text-align:center; }
+        .modal-box h3 { font-size:17px; margin-bottom:8px; }
+        .modal-box p { font-size:13px; color:var(--muted); margin-bottom:24px; }
+        .modal-actions { display:flex; gap:12px; justify-content:center; }
+        .btn-cancel { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:#fff; padding:12px 22px; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px; font-family:'Plus Jakarta Sans'; }
+        .btn-confirm-del { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:none; padding:12px 22px; border-radius:12px; cursor:pointer; font-weight:800; font-size:13px; font-family:'Plus Jakarta Sans'; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="logo">ONCHYRA ADMIN</div>
+    <div class="topbar-stats">
+        <div class="tstat"><span>Total Polls</span><b id="statPolls">—</b></div>
+        <div class="tstat"><span>Total Votes</span><b id="statVotes">—</b></div>
+    </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div id="confirmModal">
+    <div class="modal-box">
+        <h3>🗑️ Delete Poll?</h3>
+        <p id="modalPollName">This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-confirm-del" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="page">
+
+    <!-- LEFT: CREATE FORM -->
+    <div>
+        <div class="card">
+            <h2>✏️ Create New Poll</h2>
+
+            <div class="field">
+                <label>Question</label>
+                <textarea id="pollQuestion" placeholder="What should ONCHYRA add next?"></textarea>
+            </div>
+
+            <div class="field">
+                <label>Options</label>
+                <div class="options-list" id="optionsList">
+                    <div class="option-row">
+                        <input type="text" placeholder="Option 1" class="opt-input">
+                        <button class="remove-opt" onclick="removeOption(this)">×</button>
+                    </div>
+                    <div class="option-row">
+                        <input type="text" placeholder="Option 2" class="opt-input">
+                        <button class="remove-opt" onclick="removeOption(this)">×</button>
+                    </div>
+                </div>
+                <button class="add-opt-btn" onclick="addOption()">＋ Add Option</button>
+            </div>
+
+            <button class="btn btn-primary" onclick="createPoll()" style="margin-top:8px;">🚀 Publish Poll</button>
+        </div>
+    </div>
+
+    <!-- RIGHT: POLLS LIST -->
+    <div>
+        <div class="card">
+            <h2>📊 Active Polls</h2>
+            <div id="pollsList"><div class="loader">LOADING POLLS...</div></div>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, collection, onSnapshot, addDoc, deleteDoc,
+    doc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let pendingDeleteId = null;
+let pendingDeleteQuestion = null;
+
+onAuthStateChanged(auth, user => {
+    if (!user) window.location = "admin-login.html";
+});
+
+// ── REAL-TIME POLLS LISTENER ──
+onSnapshot(collection(db, "polls"), (snap) => {
+    const container = document.getElementById('pollsList');
+
+    if (snap.empty) {
+        container.innerHTML = `<div class="empty"><div>🗳️</div>No polls yet. Create one!</div>`;
+        document.getElementById('statPolls').innerText = '0';
+        document.getElementById('statVotes').innerText = '0';
+        return;
+    }
+
+    let totalVotes = 0;
+    let html = '<div class="polls-grid">';
+
+    snap.forEach(d => {
+        const data = d.data();
+        const results = data.results || {};
+        const options = data.options || [];
+        const pollTotal = Object.values(results).reduce((a, b) => a + b, 0);
+        totalVotes += pollTotal;
+
+        // Find top option
+        const topOption = options.reduce((best, opt) => {
+            return (results[opt] || 0) > (results[best] || 0) ? opt : best;
+        }, options[0]);
+
+        const createdAt = data.createdAt?.toDate
+            ? data.createdAt.toDate().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+            : 'Unknown date';
+
+        // Build vote bars
+        const barsHTML = options.map(opt => {
+            const votes = results[opt] || 0;
+            const pct = pollTotal > 0 ? Math.round((votes / pollTotal) * 100) : 0;
+            const isTop = opt === topOption && pollTotal > 0;
+            return `
+                <div class="vote-option">
+                    <div class="vote-label-row">
+                        <span class="vote-label">${opt} ${isTop ? '👑' : ''}</span>
+                        <span class="vote-count">${votes} vote${votes !== 1 ? 's' : ''} · ${pct}%</span>
+                    </div>
+                    <div class="vote-bar-bg">
+                        <div class="vote-bar-fill ${isTop ? 'top' : ''}" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        html += `
+            <div class="poll-card">
+                <div class="total-badge">${pollTotal} VOTES</div>
+                <div class="poll-meta">Created ${createdAt}</div>
+                <div class="poll-question">${data.question || 'No question'}</div>
+                ${barsHTML}
+                <div class="poll-footer">
+                    <button class="btn btn-danger" onclick="openDeleteModal('${d.id}', \`${(data.question || '').replace(/`/g, "'")}\`)">
+                        🗑️ Delete Poll
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    document.getElementById('statPolls').innerText = snap.size;
+    document.getElementById('statVotes').innerText = totalVotes.toLocaleString();
+});
+
+// ── CREATE POLL ──
+window.createPoll = async () => {
+    const question = document.getElementById('pollQuestion').value.trim();
+    const optInputs = document.querySelectorAll('.opt-input');
+    const options = [...optInputs].map(i => i.value.trim()).filter(Boolean);
+
+    if (!question) { showToast("Enter a question!", false); return; }
+    if (options.length < 2) { showToast("Add at least 2 options!", false); return; }
+
+    // Build empty results object
+    const results = {};
+    options.forEach(opt => results[opt] = 0);
+
+    try {
+        await addDoc(collection(db, "polls"), {
+            question,
+            options,
+            results,
+            createdAt: serverTimestamp()
+        });
+
+        // Reset form
+        document.getElementById('pollQuestion').value = '';
+        document.getElementById('optionsList').innerHTML = `
+            <div class="option-row"><input type="text" placeholder="Option 1" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button></div>
+            <div class="option-row"><input type="text" placeholder="Option 2" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button></div>
+        `;
+
+        showToast("Poll published! 🚀", true);
+    } catch (e) {
+        console.error(e);
+        showToast("Error: " + e.message, false);
+    }
+};
+
+// ── ADD / REMOVE OPTIONS ──
+window.addOption = () => {
+    const list = document.getElementById('optionsList');
+    const count = list.querySelectorAll('.option-row').length + 1;
+    if (count > 6) { showToast("Max 6 options allowed", false); return; }
+    const row = document.createElement('div');
+    row.className = 'option-row';
+    row.innerHTML = `<input type="text" placeholder="Option ${count}" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button>`;
+    list.appendChild(row);
+};
+
+window.removeOption = (btn) => {
+    const list = document.getElementById('optionsList');
+    if (list.querySelectorAll('.option-row').length <= 2) {
+        showToast("Minimum 2 options required", false); return;
+    }
+    btn.parentElement.remove();
+};
+
+// ── DELETE MODAL ──
+window.openDeleteModal = (id, question) => {
+    pendingDeleteId = id;
+    pendingDeleteQuestion = question;
+    document.getElementById('modalPollName').innerText = `"${question}"`;
+    document.getElementById('confirmModal').classList.add('show');
+};
+
+window.closeModal = () => {
+    pendingDeleteId = null;
+    document.getElementById('confirmModal').classList.remove('show');
+};
+
+window.confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    try {
+        await deleteDoc(doc(db, "polls", pendingDeleteId));
+        showToast("Poll deleted ✅", true);
+    } catch (e) {
+        showToast("Delete failed: " + e.message, false);
+    }
+    closeModal();
+};
+
+// ── TOAST ──
+function showToast(msg, success = true) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.className = success ? 'toast-success' : 'toast-error';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+}
+</script>
+</body>
+</html>
+
