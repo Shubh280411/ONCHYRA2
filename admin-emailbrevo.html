@@ -1,54 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ONCHYRA Admin</title>
+<title>ONCHYRA Admin</title>
 
-  <style>
-    body {
-      background:#050610;
-      color:white;
-      font-family:Arial;
-      text-align:center;
-      padding:40px;
-    }
+<style>
+body { background:#050610; color:white; font-family:Arial; text-align:center; padding:30px; }
 
-    .card {
-      background:#0b1323;
-      padding:30px;
-      border-radius:15px;
-      max-width:400px;
-      margin:auto;
-    }
+.card { background:#0b1323; padding:20px; border-radius:12px; max-width:500px; margin:auto; }
 
-    button {
-      padding:15px 25px;
-      margin:10px;
-      border:none;
-      border-radius:10px;
-      background:#22c55e;
-      color:black;
-      font-weight:bold;
-      cursor:pointer;
-    }
+button {
+  padding:12px 20px;
+  margin:8px;
+  border:none;
+  border-radius:8px;
+  background:#22c55e;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-    input {
-      width:90%;
-      padding:10px;
-      margin:8px;
-      border-radius:8px;
-      border:none;
-    }
+input {
+  padding:10px;
+  margin:5px;
+  border-radius:6px;
+  border:none;
+}
 
-    h1 { color:#22c55e; }
-  </style>
+.stats { display:flex; justify-content:space-around; margin:15px 0; }
+.statBox { background:#111827; padding:10px; border-radius:8px; }
+
+</style>
 </head>
 
 <body>
 
 <div id="loginBox" class="card">
   <h2>Admin Login 🔐</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
   <p id="loginStatus"></p>
 </div>
@@ -56,8 +45,23 @@
 <div id="adminPanel" class="card" style="display:none;">
   <h1>ONCHYRA Admin ⚡</h1>
 
+  <!-- STATS -->
+  <div class="stats">
+    <div class="statBox">👥 <br><span id="total">0</span></div>
+    <div class="statBox">💤 <br><span id="inactive">0</span></div>
+    <div class="statBox">📩 <br><span id="sent">0</span></div>
+    <div class="statBox">❌ <br><span id="failed">0</span></div>
+  </div>
+
+  <!-- BUTTONS -->
   <button onclick="sendInactive()">📩 Send Inactive</button>
   <button onclick="sendAll()">🚀 Send All</button>
+
+  <h3>📤 Send Single Email</h3>
+  <input id="singleEmail" placeholder="Enter email">
+  <button onclick="sendSingle()">Send</button>
+
+  <br><br>
   <button onclick="logout()">🚪 Logout</button>
 
   <p id="status"></p>
@@ -65,12 +69,10 @@
 
 <script type="module">
 
-// 🔥 FIREBASE IMPORT
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 CONFIG (replace)
 const firebaseConfig = {
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
   authDomain: "onchyra.firebaseapp.com",
@@ -81,127 +83,132 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔐 LOGIN
+// LOGIN
 window.login = async function() {
   try {
-    await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    await signInWithEmailAndPassword(auth, email.value, password.value);
   } catch {
     loginStatus.innerText = "Login failed ❌";
   }
 };
 
-// 🔐 CHECK LOGIN
+// CHECK LOGIN
 onAuthStateChanged(auth, (user) => {
   if (user) {
     loginBox.style.display = "none";
     adminPanel.style.display = "block";
-  } else {
-    loginBox.style.display = "block";
-    adminPanel.style.display = "none";
+    loadStats();
   }
 });
 
-// 🔐 LOGOUT
-window.logout = function() {
-  signOut(auth);
-};
+// LOGOUT
+window.logout = () => signOut(auth);
 
-// 🔥 SLEEP
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+// SLEEP
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// 🔥 SEND EMAIL
-async function sendMail(email) {
+// LOAD STATS
+async function loadStats() {
+  const snap = await getDocs(collection(db, "users"));
 
-  await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": "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"
-    },
-    body: JSON.stringify({
-      sender: {
-        email: "onchyra@gmail.com",
-        name: "ONCHYRA"
-      },
-      to: [{ email }],
-      subject: "Your ONCHYRA activity is currently inactive",
-      htmlContent: `
+  let total = 0, inactive = 0;
 
-<div style="background:#050610;padding:30px;color:white;text-align:center;font-family:Arial;">
-  <h2 style="color:#22c55e;">⛏️ ONCHYRA STATUS</h2>
-  <p>Miners 👋</p>
-  <p>Your session is inactive. Resume anytime.</p>
+  snap.forEach(doc => {
+    const d = doc.data();
+    total++;
 
-  <a href="https://onchyra.netlify.app"
-  style="background:#22c55e;color:black;padding:12px 25px;
-  border-radius:10px;text-decoration:none;font-weight:bold;">
-  🚀 Resume Activity
-  </a>
-
-  <p style="margin-top:20px;font-size:12px;color:#aaa;">
-  Stay active ⚡<br><br>
-  <a href="{{ unsubscribe }}" style="color:#22c55e;">Unsubscribe</a>
-  </p>
-</div>
-
-      `
-    })
+    if (Date.now() - (d.lastClaim || 0) > 86400000) inactive++;
   });
 
+  document.getElementById("total").innerText = total;
+  document.getElementById("inactive").innerText = inactive;
 }
 
-// 📩 SEND INACTIVE
+// SEND EMAIL (WITH RESPONSE CHECK)
+async function sendMail(email) {
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": "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"
+      },
+      body: JSON.stringify({
+        sender: { email: "onchyra@gmail.com", name: "ONCHYRA" },
+        to: [{ email }],
+        subject: "ONCHYRA Update",
+        htmlContent: "<p>Resume your activity</p>"
+      })
+    });
+
+    return res.ok;
+
+  } catch {
+    return false;
+  }
+}
+
+// SEND INACTIVE
 window.sendInactive = async function() {
 
   status.innerText = "Sending...";
+  let sent = 0, failed = 0;
 
   const snap = await getDocs(collection(db, "users"));
-  let sent = 0;
 
   for (const u of snap.docs) {
+    const d = u.data();
 
-    const data = u.data();
+    if (!d.email) continue;
+    if (Date.now() - (d.lastClaim || 0) < 86400000) continue;
 
-    if (!data.email) continue;
+    const ok = await sendMail(d.email);
 
-    if (Date.now() - (data.lastClaim || 0) < 86400000) continue;
-
-    await sendMail(data.email);
-    sent++;
+    ok ? sent++ : failed++;
 
     await sleep(1000);
   }
 
-  status.innerText = "Done ✅ Sent: " + sent;
+  document.getElementById("sent").innerText = sent;
+  document.getElementById("failed").innerText = failed;
+
+  status.innerText = `Done ✅ Sent: ${sent}, Failed: ${failed}`;
 };
 
-// 🚀 SEND ALL
+// SEND ALL
 window.sendAll = async function() {
 
   status.innerText = "Sending...";
+  let sent = 0, failed = 0;
 
   const snap = await getDocs(collection(db, "users"));
-  let sent = 0;
 
   for (const u of snap.docs) {
+    const d = u.data();
 
-    const data = u.data();
+    if (!d.email) continue;
 
-    if (!data.email) continue;
+    const ok = await sendMail(d.email);
 
-    await sendMail(data.email);
-    sent++;
+    ok ? sent++ : failed++;
 
     await sleep(1000);
   }
 
-  status.innerText = "Done 🚀 Sent: " + sent;
+  document.getElementById("sent").innerText = sent;
+  document.getElementById("failed").innerText = failed;
+
+  status.innerText = `Done 🚀 Sent: ${sent}, Failed: ${failed}`;
+};
+
+// SINGLE
+window.sendSingle = async function() {
+
+  const email = document.getElementById("singleEmail").value;
+
+  const ok = await sendMail(email);
+
+  status.innerText = ok ? "Sent ✅" : "Failed ❌";
 };
 
 </script>
