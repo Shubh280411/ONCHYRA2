@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ONCHYRA Admin</title>
+
+  <style>
+    body {
+      background:#050610;
+      color:white;
+      font-family:Arial;
+      text-align:center;
+      padding:40px;
+    }
+
+    .card {
+      background:#0b1323;
+      padding:30px;
+      border-radius:15px;
+      max-width:400px;
+      margin:auto;
+    }
+
+    button {
+      padding:15px 25px;
+      margin:10px;
+      border:none;
+      border-radius:10px;
+      background:#22c55e;
+      color:black;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    input {
+      width:90%;
+      padding:10px;
+      margin:8px;
+      border-radius:8px;
+      border:none;
+    }
+
+    h1 { color:#22c55e; }
+  </style>
+</head>
+
+<body>
+
+<div id="loginBox" class="card">
+  <h2>Admin Login 🔐</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="loginStatus"></p>
+</div>
+
+<div id="adminPanel" class="card" style="display:none;">
+  <h1>ONCHYRA Admin ⚡</h1>
+
+  <button onclick="sendInactive()">📩 Send Inactive</button>
+  <button onclick="sendAll()">🚀 Send All</button>
+  <button onclick="logout()">🚪 Logout</button>
+
+  <p id="status"></p>
+</div>
+
+<script type="module">
+
+// 🔥 FIREBASE IMPORT
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔥 CONFIG (replace)
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// 🔐 LOGIN
+window.login = async function() {
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+  } catch {
+    loginStatus.innerText = "Login failed ❌";
+  }
+};
+
+// 🔐 CHECK LOGIN
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBox.style.display = "none";
+    adminPanel.style.display = "block";
+  } else {
+    loginBox.style.display = "block";
+    adminPanel.style.display = "none";
+  }
+});
+
+// 🔐 LOGOUT
+window.logout = function() {
+  signOut(auth);
+};
+
+// 🔥 SLEEP
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// 🔥 SEND EMAIL
+async function sendMail(email) {
+
+  await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": "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"
+    },
+    body: JSON.stringify({
+      sender: {
+        email: "onchyra@gmail.com",
+        name: "ONCHYRA"
+      },
+      to: [{ email }],
+      subject: "Your ONCHYRA activity is currently inactive",
+      htmlContent: `
+
+<div style="background:#050610;padding:30px;color:white;text-align:center;font-family:Arial;">
+  <h2 style="color:#22c55e;">⛏️ ONCHYRA STATUS</h2>
+  <p>Miners 👋</p>
+  <p>Your session is inactive. Resume anytime.</p>
+
+  <a href="https://onchyra.netlify.app"
+  style="background:#22c55e;color:black;padding:12px 25px;
+  border-radius:10px;text-decoration:none;font-weight:bold;">
+  🚀 Resume Activity
+  </a>
+
+  <p style="margin-top:20px;font-size:12px;color:#aaa;">
+  Stay active ⚡<br><br>
+  <a href="{{ unsubscribe }}" style="color:#22c55e;">Unsubscribe</a>
+  </p>
+</div>
+
+      `
+    })
+  });
+
+}
+
+// 📩 SEND INACTIVE
+window.sendInactive = async function() {
+
+  status.innerText = "Sending...";
+
+  const snap = await getDocs(collection(db, "users"));
+  let sent = 0;
+
+  for (const u of snap.docs) {
+
+    const data = u.data();
+
+    if (!data.email) continue;
+
+    if (Date.now() - (data.lastClaim || 0) < 86400000) continue;
+
+    await sendMail(data.email);
+    sent++;
+
+    await sleep(1000);
+  }
+
+  status.innerText = "Done ✅ Sent: " + sent;
+};
+
+// 🚀 SEND ALL
+window.sendAll = async function() {
+
+  status.innerText = "Sending...";
+
+  const snap = await getDocs(collection(db, "users"));
+  let sent = 0;
+
+  for (const u of snap.docs) {
+
+    const data = u.data();
+
+    if (!data.email) continue;
+
+    await sendMail(data.email);
+    sent++;
+
+    await sleep(1000);
+  }
+
+  status.innerText = "Done 🚀 Sent: " + sent;
+};
+
+</script>
+
+</body>
+</html>
