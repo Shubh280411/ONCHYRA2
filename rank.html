@@ -125,33 +125,44 @@ const data = snap.data();
 const teamSize = data.teamSize || 0;
 let achievements = data.rankAchievements || {};
 
-let currentRank, next;
+let currentRank = ranks[0];
+let next = null;
 
+// FIND RANK
 for(let i=0;i<ranks.length;i++){
 if(teamSize >= ranks[i].min && teamSize <= ranks[i].max){
 currentRank = ranks[i];
-next = ranks[i+1];
+next = ranks[i+1] || null;
+break;
 }
 }
 
-// SAVE ACHIEVEMENT
+// SAFE SAVE (NO LOOP)
 if(!achievements[currentRank.name]){
 achievements[currentRank.name] = Date.now();
+
+setTimeout(async ()=>{
+try{
 await updateDoc(doc(db,"users",user.uid), {
 rankAchievements: achievements
 });
+}catch(e){
+console.log("Update error:", e);
+}
+},100);
 }
 
-// UI
+// UI UPDATE
 document.getElementById("rankName").innerText = currentRank.name;
 document.getElementById("teamText").innerText = "Team: " + teamSize;
 document.getElementById("boostText").innerText = "+" + currentRank.boost + "%";
 
+// PROGRESS
 if(next){
 let progress = ((teamSize - currentRank.min) / (next.min - currentRank.min)) * 100;
 document.getElementById("progressBar").style.width = progress + "%";
 document.getElementById("nextRank").innerText = "Next Rank: " + next.name + " (" + next.min + ")";
-} else {
+}else{
 document.getElementById("progressBar").style.width = "100%";
 document.getElementById("nextRank").innerText = "MAX RANK 👑";
 }
