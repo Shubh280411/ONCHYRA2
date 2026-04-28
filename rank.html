@@ -105,7 +105,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔥 RANK SYSTEM WITH ICONS
 const ranks = [
 { name:"INITIATE", icon:"⚪", min:0, max:10, boost:0 },
 { name:"NODE", icon:"🔹", min:11, max:25, boost:2 },
@@ -170,7 +169,7 @@ console.log(e);
 },100);
 }
 
-// UI TOP
+// TOP UI
 document.getElementById("rankName").innerText =
 currentRank.icon + " " + currentRank.name;
 
@@ -204,9 +203,17 @@ div.className = "rank-item";
 
 let tag = "";
 
-if(achievements[r.name]){
+// ACTIVE
+if(r.name === currentRank.name){
+tag = `<span style="background:#3b82f6;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;">
+ACTIVE ⚡</span>`;
+}
+
+// FINISHED
+else if(achievements[r.name]){
 const date = new Date(achievements[r.name]).toLocaleDateString();
-tag = `<span class="achieved">ACHIEVED</span><span class="date">${date}</span>`;
+tag = `<span class="achieved">FINISHED ✔</span>
+<span class="date">${date}</span>`;
 }
 
 if(r.name === currentRank.name){
