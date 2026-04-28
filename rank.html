@@ -9,6 +9,7 @@
 
 <style>
 body { margin:0; font-family:'Inter'; background:#03040a; color:white; }
+
 .container { padding:20px; max-width:500px; margin:auto; }
 
 .card {
@@ -35,7 +36,11 @@ justify-content:space-between;
 align-items:center;
 }
 
-.active { border:1px solid #a78bfa; background:rgba(167,139,250,0.15); }
+.active {
+border:1px solid #a78bfa;
+background:rgba(167,139,250,0.15);
+box-shadow:0 0 15px rgba(167,139,250,0.3);
+}
 
 .achieved {
 font-size:10px;
@@ -50,6 +55,11 @@ font-size:10px;
 opacity:0.6;
 margin-left:6px;
 }
+
+.small {
+font-size:11px;
+opacity:0.6;
+}
 </style>
 </head>
 
@@ -59,6 +69,7 @@ margin-left:6px;
 
 <div class="card">
 <div style="font-family:'Space Grotesk';margin-bottom:10px;">Your Rank</div>
+
 <div class="rank" id="rankName">...</div>
 
 <div id="teamText">Team: 0</div>
@@ -94,23 +105,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔥 RANK SYSTEM
+// 🔥 RANK SYSTEM WITH ICONS
 const ranks = [
-{ name:"INITIATE", min:0, max:10, boost:0 },
-{ name:"NODE", min:11, max:25, boost:2 },
-{ name:"LINKER", min:26, max:50, boost:4 },
-{ name:"EXPANDER", min:51, max:80, boost:6 },
-{ name:"OPERATOR", min:81, max:120, boost:8 },
-{ name:"ARCHITECT", min:121, max:180, boost:10 },
-{ name:"SYNCHRONIZER", min:181, max:260, boost:12 },
-{ name:"CONTROLLER", min:261, max:350, boost:14 },
-{ name:"DOMINATOR", min:351, max:500, boost:16 },
-{ name:"OVERSEER", min:501, max:700, boost:18 },
-{ name:"SUPREME NODE", min:701, max:1000, boost:20 },
-{ name:"QUANTUM CORE", min:1001, max:1500, boost:23 },
-{ name:"NETWORK LORD", min:1501, max:2200, boost:26 },
-{ name:"SYSTEM KING", min:2201, max:3000, boost:28 },
-{ name:"ONCHYRA TITAN", min:3001, max:999999, boost:30 }
+{ name:"INITIATE", icon:"⚪", min:0, max:10, boost:0 },
+{ name:"NODE", icon:"🔹", min:11, max:25, boost:2 },
+{ name:"LINKER", icon:"🔗", min:26, max:50, boost:4 },
+{ name:"EXPANDER", icon:"🌐", min:51, max:80, boost:6 },
+{ name:"OPERATOR", icon:"⚙️", min:81, max:120, boost:8 },
+{ name:"ARCHITECT", icon:"🏗️", min:121, max:180, boost:10 },
+{ name:"SYNCHRONIZER", icon:"🔄", min:181, max:260, boost:12 },
+{ name:"CONTROLLER", icon:"🎛️", min:261, max:350, boost:14 },
+{ name:"DOMINATOR", icon:"🔥", min:351, max:500, boost:16 },
+{ name:"OVERSEER", icon:"👁️", min:501, max:700, boost:18 },
+{ name:"SUPREME NODE", icon:"💠", min:701, max:1000, boost:20 },
+{ name:"QUANTUM CORE", icon:"⚛️", min:1001, max:1500, boost:23 },
+{ name:"NETWORK LORD", icon:"💎", min:1501, max:2200, boost:26 },
+{ name:"SYSTEM KING", icon:"👑", min:2201, max:3000, boost:28 },
+{ name:"ONCHYRA TITAN", icon:"🚀", min:3001, max:999999, boost:30 }
 ];
 
 onAuthStateChanged(auth, (user)=>{
@@ -124,11 +135,10 @@ if(!snap.exists()) return;
 
 const data = snap.data();
 
-// ✅ TEAM SIZE (FINAL FIX)
+// TEAM SIZE
 const l1 = data.refLevel1 || 0;
 const l2 = data.refLevel2 || 0;
 const l3 = data.refLevel3 || 0;
-
 const teamSize = l1 + l2 + l3;
 
 let achievements = data.rankAchievements || {};
@@ -145,7 +155,7 @@ break;
 }
 }
 
-// SAVE ACHIEVEMENT (SAFE)
+// SAVE ACHIEVEMENT
 if(!achievements[currentRank.name]){
 achievements[currentRank.name] = Date.now();
 
@@ -155,25 +165,30 @@ await updateDoc(doc(db,"users",user.uid), {
 rankAchievements: achievements
 });
 }catch(e){
-console.log("Update error:", e);
+console.log(e);
 }
 },100);
 }
 
-// UI UPDATE
-document.getElementById("rankName").innerText = currentRank.name;
+// UI TOP
+document.getElementById("rankName").innerText =
+currentRank.icon + " " + currentRank.name;
 
 document.getElementById("teamText").innerText =
-"Team: " + teamSize + " (L1: " + l1 + ", L2: " + l2 + ", L3: " + l3 + ")";
+"Team: " + teamSize + " (L1:" + l1 + " L2:" + l2 + " L3:" + l3 + ")";
 
-document.getElementById("boostText").innerText = "+" + currentRank.boost + "%";
+document.getElementById("boostText").innerText =
+"+" + currentRank.boost + "%";
 
 // PROGRESS
 if(next){
 let progress = ((teamSize - currentRank.min) / (next.min - currentRank.min)) * 100;
 document.getElementById("progressBar").style.width = progress + "%";
+
+let needed = next.min - teamSize;
+
 document.getElementById("nextRank").innerText =
-"Next Rank: " + next.name + " (" + next.min + ")";
+"Next: " + next.name + " (Need " + needed + ")";
 }else{
 document.getElementById("progressBar").style.width = "100%";
 document.getElementById("nextRank").innerText = "MAX RANK 👑";
@@ -199,8 +214,14 @@ div.classList.add("active");
 }
 
 div.innerHTML = `
-<div>${r.name}</div>
-<div>+${r.boost}% ${tag}</div>
+<div>
+  <div>${r.icon} ${r.name}</div>
+  <div class="small">Team: ${r.min} - ${r.max === 999999 ? "+" : r.max}</div>
+</div>
+
+<div>
+  +${r.boost}% ${tag}
+</div>
 `;
 
 list.appendChild(div);
