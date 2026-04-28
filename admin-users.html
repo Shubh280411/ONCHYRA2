@@ -7,13 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; opacity: 0; transition: opacity 0.5s; }
+        /* Shuru me body hide rakhenge jab tak auth confirm na ho jaye */
+        body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; display: none; }
         .container { max-width: 500px; margin: auto; }
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(10px); }
         h1 { text-align: center; margin-bottom: 20px; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; }
+        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; border: 1px solid transparent; transition: 0.3s; }
+        input:focus { border-color: #3b82f6; }
         
-        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid #3b82f6; border-radius: 12px; max-height: 250px; overflow-y: auto; z-index: 999; display: none; margin-top: 5px; }
+        .search-results { position: absolute; top: 100%; left: 0; width: 100%; background: #111225; border: 1px solid #3b82f6; border-radius: 12px; max-height: 250px; overflow-y: auto; z-index: 999; display: none; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .search-item:hover { background: #3b82f6; }
 
@@ -26,43 +28,53 @@
         .level-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
         .level-item b { font-size: 18px; color: #a78bfa; display: block; }
 
-        .row { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .row { display: flex; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .primary-btn { background: #3b82f6; color: white; }
         .ban-btn { background: #ef4444; color: white; }
         .unban-btn { background: #22c55e; color: white; }
+        .quick-btn { background: rgba(255,255,255,0.1); color: white; font-size: 11px; padding: 8px; }
+        .quick-btn:hover { background: #60a5fa; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>ONCHYRA Panel 🛰️</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>ONCHYRA Panel 🛰️</h1>
+        <button onclick="logout()" style="flex:none; background:none; color:#ef4444; font-size:12px; cursor:pointer;">Logout</button>
+    </div>
 
     <div class="card">
         <h3>Find Miner 🕵️‍♂️</h3>
-        <input id="search" placeholder="Type name or email..." oninput="fetchUsers(this.value)" autocomplete="off">
+        <input id="search" placeholder="Type name or email..." oninput="handleSearchInput(this.value)" autocomplete="off">
         <div id="searchResults" class="search-results"></div>
 
-        <div id="info" class="info-box">
-            </div>
+        <div id="info" class="info-box"></div>
     </div>
 
     <div class="card" id="actions" style="display:none;">
         <h3>Admin Actions ⚙️</h3>
         <input id="amount" type="number" placeholder="Enter ONC Amount">
+        
+        <div class="row">
+            <button class="quick-btn" onclick="setAmt(10)">+10 ONC</button>
+            <button class="quick-btn" onclick="setAmt(50)">+50 ONC</button>
+            <button class="quick-btn" onclick="setAmt(100)">+100 ONC</button>
+        </div>
+
         <div class="row">
             <button class="primary-btn" onclick="updateOnc(true)">Add Balance</button>
             <button style="background:#334155; color:white;" onclick="updateOnc(false)">Remove</button>
         </div>
-        <div class="row" id="banToggleArea">
-            </div>
+        <div class="row" id="banToggleArea"></div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, updateDoc, collection, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -78,56 +90,88 @@
     const auth = getAuth(app);
 
     let currentUID = null;
-    let currentUser = null;
 
+    // --- Strict Auth Check ---
     onAuthStateChanged(auth, (user) => {
-        if (!user) window.location.href = "admin-login.html";
-        else document.body.style.opacity = "1";
+        if (!user) {
+            // Agar login nahi hai, sidha login page pe bhej do
+            window.location.replace("admin-login.html");
+        } else {
+            // Agar login hai, tabhi body dikhao
+            document.body.style.display = "block";
+        }
     });
+
+    window.logout = () => {
+        signOut(auth).then(() => {
+            window.location.replace("admin-login.html");
+        });
+    };
+    // ------------------------
+
+    window.handleSearchInput = (val) => {
+        document.getElementById("info").style.display = "none";
+        document.getElementById("actions").style.display = "none";
+        fetchUsers(val);
+    };
 
     window.fetchUsers = async (val) => {
         const resDiv = document.getElementById("searchResults");
         if (val.length < 2) { resDiv.style.display = "none"; return; }
-        const snap = await getDocs(collection(db, "users"));
-        resDiv.innerHTML = "";
-        let found = false;
-        snap.forEach(d => {
-            const u = d.data();
-            if ((u.name && u.name.toLowerCase().includes(val.toLowerCase())) || (u.email && u.email.toLowerCase().includes(val.toLowerCase()))) {
-                found = true;
-                const item = document.createElement("div");
-                item.className = "search-item";
-                item.innerHTML = `<b>${u.name}</b><span>${u.email}</span>`;
-                item.onclick = () => selectUser(d.id, u);
-                resDiv.appendChild(item);
-            }
-        });
-        resDiv.style.display = found ? "block" : "none";
+        
+        try {
+            const snap = await getDocs(collection(db, "users"));
+            resDiv.innerHTML = "";
+            let found = false;
+            
+            snap.forEach(d => {
+                const u = d.data();
+                const sk = val.toLowerCase();
+                if ((u.name && u.name.toLowerCase().includes(sk)) || (u.email && u.email.toLowerCase().includes(sk))) {
+                    found = true;
+                    const item = document.createElement("div");
+                    item.className = "search-item";
+                    item.innerHTML = `<b>${u.name}</b><br><small style="color:#94a3b8">${u.email}</small>`;
+                    item.onclick = () => selectUser(d.id, u);
+                    resDiv.appendChild(item);
+                }
+            });
+            resDiv.style.display = found ? "block" : "none";
+        } catch (e) {
+            console.error("Fetch Error:", e);
+        }
     };
+
+    window.setAmt = (val) => { document.getElementById("amount").value = val; };
 
     function selectUser(uid, data) {
         currentUID = uid;
-        currentUser = data;
         document.getElementById("searchResults").style.display = "none";
         document.getElementById("search").value = data.name;
         document.getElementById("info").style.display = "block";
         document.getElementById("actions").style.display = "block";
 
         const isBanned = data.banned === true;
-        const l1 = data.refLevel1 || 0;
-        const l2 = data.refLevel2 || 0;
-        const l3 = data.refLevel3 || 0;
+        const lastSeen = data.lastActive ? new Date(data.lastActive).toLocaleString() : "Never";
+        const referrer = data.referredBy || "Direct Join";
 
         document.getElementById("info").innerHTML = `
             <div class="status-badge ${isBanned ? 'banned' : 'active'}">${isBanned ? 'BANNED' : 'ACTIVE'}</div>
             <h2>${data.name} ${data.streak ? '🔥'+data.streak : ''}</h2>
-            <p style="color:#94a3b8; font-size:13px; margin-top:5px;"><b>Email:</b> ${data.email}</p>
-            <p style="color:#94a3b8; font-size:11px;"><b>UID:</b> ${uid}</p>
-            <p style="margin-top:10px; font-size:18px;">Balance: <b style="color:#60a5fa">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
+            
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; margin-top:10px; font-size:12px;">
+                <p><b>Email:</b> ${data.email}</p>
+                <p><b>UID:</b> <small>${uid}</small></p>
+                <p style="color:#60a5fa; margin-top:5px;"><b>Referred By:</b> ${referrer}</p>
+                <p style="color:#a78bfa;"><b>Last Active:</b> ${lastSeen}</p>
+            </div>
+
+            <p style="margin-top:15px; font-size:20px;">Balance: <b style="color:#22c55e">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
+            
             <div class="level-grid">
-                <div class="level-item"><small>L1</small><b>${l1}</b></div>
-                <div class="level-item"><small>L2</small><b>${l2}</b></div>
-                <div class="level-item"><small>L3</small><b>${l3}</b></div>
+                <div class="level-item"><small>L1</small><b>${data.refLevel1 || 0}</b></div>
+                <div class="level-item"><small>L2</small><b>${data.refLevel2 || 0}</b></div>
+                <div class="level-item"><small>L3</small><b>${data.refLevel3 || 0}</b></div>
             </div>
         `;
 
@@ -141,19 +185,18 @@
     window.updateOnc = async (isAdd) => {
         const amt = parseFloat(document.getElementById("amount").value);
         if (!currentUID || isNaN(amt)) return;
-        const change = isAdd ? amt : -amt;
         if(confirm(`Confirm balance update?`)) {
-            await updateDoc(doc(db, "users", currentUID), { balance: increment(change) });
+            await updateDoc(doc(db, "users", currentUID), { balance: increment(isAdd ? amt : -amt) });
             alert("Updated!");
-            location.reload();
+            location.reload(); 
         }
     };
 
     window.handleBan = async (newStatus) => {
         if (!currentUID) return;
-        if(confirm(`Are you sure you want to ${newStatus ? 'BAN' : 'UNBAN'} this user?`)) {
+        if(confirm(`Confirm status change?`)) {
             await updateDoc(doc(db, "users", currentUID), { banned: newStatus });
-            alert("Status Changed!");
+            alert("Updated!");
             location.reload();
         }
     };
