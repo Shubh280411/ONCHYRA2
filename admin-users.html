@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        /* Shuru me body hide rakhenge jab tak auth confirm na ho jaye */
+        /* Auth confirm hone tak body hide rahegi */
         body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; display: none; }
         .container { max-width: 500px; margin: auto; }
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(10px); }
@@ -42,12 +42,12 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h1>ONCHYRA Panel 🛰️</h1>
-        <button onclick="logout()" style="flex:none; background:none; color:#ef4444; font-size:12px; cursor:pointer;">Logout</button>
+        <button onclick="logout()" style="flex:none; background:none; color:#ef4444; font-size:12px; cursor:pointer; font-weight:bold;">Logout</button>
     </div>
 
     <div class="card">
         <h3>Find Miner 🕵️‍♂️</h3>
-        <input id="search" placeholder="Type name or email..." oninput="handleSearchInput(this.value)" autocomplete="off">
+        <input id="search" placeholder="Name, Email or Referral Code..." oninput="handleSearchInput(this.value)" autocomplete="off">
         <div id="searchResults" class="search-results"></div>
 
         <div id="info" class="info-box"></div>
@@ -91,13 +91,11 @@
 
     let currentUID = null;
 
-    // --- Strict Auth Check ---
+    // --- Strict Auth & Redirect Logic ---
     onAuthStateChanged(auth, (user) => {
         if (!user) {
-            // Agar login nahi hai, sidha login page pe bhej do
             window.location.replace("admin-login.html");
         } else {
-            // Agar login hai, tabhi body dikhao
             document.body.style.display = "block";
         }
     });
@@ -107,7 +105,6 @@
             window.location.replace("admin-login.html");
         });
     };
-    // ------------------------
 
     window.handleSearchInput = (val) => {
         document.getElementById("info").style.display = "none";
@@ -127,11 +124,19 @@
             snap.forEach(d => {
                 const u = d.data();
                 const sk = val.toLowerCase();
-                if ((u.name && u.name.toLowerCase().includes(sk)) || (u.email && u.email.toLowerCase().includes(sk))) {
+                // Search logic updated for Name, Email, and Referral Code
+                const nameMatch = u.name && u.name.toLowerCase().includes(sk);
+                const emailMatch = u.email && u.email.toLowerCase().includes(sk);
+                const refMatch = u.referralCode && u.referralCode.toLowerCase().includes(sk);
+
+                if (nameMatch || emailMatch || refMatch) {
                     found = true;
                     const item = document.createElement("div");
                     item.className = "search-item";
-                    item.innerHTML = `<b>${u.name}</b><br><small style="color:#94a3b8">${u.email}</small>`;
+                    item.innerHTML = `
+                        <b>${u.name}</b> <small style="color:#60a5fa;">[${u.referralCode || 'N/A'}]</small><br>
+                        <small style="color:#94a3b8">${u.email}</small>
+                    `;
                     item.onclick = () => selectUser(d.id, u);
                     resDiv.appendChild(item);
                 }
@@ -154,24 +159,26 @@
         const isBanned = data.banned === true;
         const lastSeen = data.lastActive ? new Date(data.lastActive).toLocaleString() : "Never";
         const referrer = data.referredBy || "Direct Join";
+        const userRefCode = data.referralCode || "Not Set";
 
         document.getElementById("info").innerHTML = `
             <div class="status-badge ${isBanned ? 'banned' : 'active'}">${isBanned ? 'BANNED' : 'ACTIVE'}</div>
             <h2>${data.name} ${data.streak ? '🔥'+data.streak : ''}</h2>
             
-            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; margin-top:10px; font-size:12px;">
+            <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; margin-top:10px; font-size:12px; line-height:1.5;">
                 <p><b>Email:</b> ${data.email}</p>
-                <p><b>UID:</b> <small>${uid}</small></p>
-                <p style="color:#60a5fa; margin-top:5px;"><b>Referred By:</b> ${referrer}</p>
+                <p><b>Referral Code:</b> <span style="color:#facc15; font-weight:bold;">${userRefCode}</span></p>
+                <p style="color:#60a5fa; margin-top:4px;"><b>Referred By:</b> ${referrer}</p>
                 <p style="color:#a78bfa;"><b>Last Active:</b> ${lastSeen}</p>
+                <p><b>UID:</b> <small style="color:#94a3b8">${uid}</small></p>
             </div>
 
             <p style="margin-top:15px; font-size:20px;">Balance: <b style="color:#22c55e">${Number(data.balance || 0).toFixed(4)} ONC</b></p>
             
             <div class="level-grid">
-                <div class="level-item"><small>L1</small><b>${data.refLevel1 || 0}</b></div>
-                <div class="level-item"><small>L2</small><b>${data.refLevel2 || 0}</b></div>
-                <div class="level-item"><small>L3</small><b>${data.refLevel3 || 0}</b></div>
+                <div class="level-item"><small>L1 Refs</small><b>${data.refLevel1 || 0}</b></div>
+                <div class="level-item"><small>L2 Refs</small><b>${data.refLevel2 || 0}</b></div>
+                <div class="level-item"><small>L3 Refs</small><b>${data.refLevel3 || 0}</b></div>
             </div>
         `;
 
@@ -183,20 +190,24 @@
     }
 
     window.updateOnc = async (isAdd) => {
-        const amt = parseFloat(document.getElementById("amount").value);
-        if (!currentUID || isNaN(amt)) return;
-        if(confirm(`Confirm balance update?`)) {
+        const amtInput = document.getElementById("amount");
+        const amt = parseFloat(amtInput.value);
+        if (!currentUID || isNaN(amt)) {
+            alert("Please enter a valid amount");
+            return;
+        }
+        if(confirm(`Confirm ${isAdd ? 'Add' : 'Remove'} ${amt} ONC?`)) {
             await updateDoc(doc(db, "users", currentUID), { balance: increment(isAdd ? amt : -amt) });
-            alert("Updated!");
+            alert("Balance Updated!");
             location.reload(); 
         }
     };
 
     window.handleBan = async (newStatus) => {
         if (!currentUID) return;
-        if(confirm(`Confirm status change?`)) {
+        if(confirm(`Are you sure you want to ${newStatus ? 'BAN' : 'UNBAN'}?`)) {
             await updateDoc(doc(db, "users", currentUID), { banned: newStatus });
-            alert("Updated!");
+            alert("Status Updated!");
             location.reload();
         }
     };
