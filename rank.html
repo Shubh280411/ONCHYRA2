@@ -9,7 +9,6 @@
 
 <style>
 body { margin:0; font-family:'Inter'; background:#03040a; color:white; }
-
 .container { padding:20px; max-width:500px; margin:auto; }
 
 .card {
@@ -61,6 +60,7 @@ margin-left:6px;
 <div class="card">
 <div style="font-family:'Space Grotesk';margin-bottom:10px;">Your Rank</div>
 <div class="rank" id="rankName">...</div>
+
 <div id="teamText">Team: 0</div>
 <div>⚡ Boost: <span id="boostText">0%</span></div>
 
@@ -94,6 +94,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// 🔥 RANK SYSTEM
 const ranks = [
 { name:"INITIATE", min:0, max:10, boost:0 },
 { name:"NODE", min:11, max:25, boost:2 },
@@ -122,7 +123,14 @@ onSnapshot(doc(db,"users",user.uid), async (snap)=>{
 if(!snap.exists()) return;
 
 const data = snap.data();
-const teamSize = data.teamSize || 0;
+
+// ✅ TEAM SIZE (FINAL FIX)
+const l1 = data.refLevel1 || 0;
+const l2 = data.refLevel2 || 0;
+const l3 = data.refLevel3 || 0;
+
+const teamSize = l1 + l2 + l3;
+
 let achievements = data.rankAchievements || {};
 
 let currentRank = ranks[0];
@@ -137,7 +145,7 @@ break;
 }
 }
 
-// SAFE SAVE (NO LOOP)
+// SAVE ACHIEVEMENT (SAFE)
 if(!achievements[currentRank.name]){
 achievements[currentRank.name] = Date.now();
 
@@ -154,14 +162,18 @@ console.log("Update error:", e);
 
 // UI UPDATE
 document.getElementById("rankName").innerText = currentRank.name;
-document.getElementById("teamText").innerText = "Team: " + teamSize;
+
+document.getElementById("teamText").innerText =
+"Team: " + teamSize + " (L1: " + l1 + ", L2: " + l2 + ", L3: " + l3 + ")";
+
 document.getElementById("boostText").innerText = "+" + currentRank.boost + "%";
 
 // PROGRESS
 if(next){
 let progress = ((teamSize - currentRank.min) / (next.min - currentRank.min)) * 100;
 document.getElementById("progressBar").style.width = progress + "%";
-document.getElementById("nextRank").innerText = "Next Rank: " + next.name + " (" + next.min + ")";
+document.getElementById("nextRank").innerText =
+"Next Rank: " + next.name + " (" + next.min + ")";
 }else{
 document.getElementById("progressBar").style.width = "100%";
 document.getElementById("nextRank").innerText = "MAX RANK 👑";
