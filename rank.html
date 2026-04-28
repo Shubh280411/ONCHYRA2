@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Rank</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+body { margin:0; font-family:'Inter'; background:#03040a; color:white; }
+
+.container { padding:20px; max-width:500px; margin:auto; }
+
+.card {
+background:rgba(255,255,255,0.04);
+border:1px solid rgba(255,255,255,0.1);
+border-radius:20px;
+padding:20px;
+margin-bottom:20px;
+}
+
+.rank { font-size:26px; font-weight:800; color:#a78bfa; }
+
+.progress { height:10px; background:#111; border-radius:10px; overflow:hidden; margin:15px 0; }
+.progress-bar { height:100%; background:linear-gradient(90deg,#a78bfa,#60a5fa); width:0%; }
+
+.rank-item {
+padding:12px;
+border-radius:12px;
+margin-bottom:8px;
+background:rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.05);
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.active { border:1px solid #a78bfa; background:rgba(167,139,250,0.15); }
+
+.achieved {
+font-size:10px;
+background:#10b981;
+padding:4px 8px;
+border-radius:6px;
+font-weight:700;
+}
+
+.date {
+font-size:10px;
+opacity:0.6;
+margin-left:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+<div style="font-family:'Space Grotesk';margin-bottom:10px;">Your Rank</div>
+<div class="rank" id="rankName">...</div>
+<div id="teamText">Team: 0</div>
+<div>⚡ Boost: <span id="boostText">0%</span></div>
+
+<div class="progress">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="nextRank"></div>
+</div>
+
+<div class="card">
+<div style="font-family:'Space Grotesk';margin-bottom:10px;">Rank Progression</div>
+<div id="rankList"></div>
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+authDomain: "onchyra.firebaseapp.com",
+projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const ranks = [
+{ name:"INITIATE", min:0, max:10, boost:0 },
+{ name:"NODE", min:11, max:25, boost:2 },
+{ name:"LINKER", min:26, max:50, boost:4 },
+{ name:"EXPANDER", min:51, max:80, boost:6 },
+{ name:"OPERATOR", min:81, max:120, boost:8 },
+{ name:"ARCHITECT", min:121, max:180, boost:10 },
+{ name:"SYNCHRONIZER", min:181, max:260, boost:12 },
+{ name:"CONTROLLER", min:261, max:350, boost:14 },
+{ name:"DOMINATOR", min:351, max:500, boost:16 },
+{ name:"OVERSEER", min:501, max:700, boost:18 },
+{ name:"SUPREME NODE", min:701, max:1000, boost:20 },
+{ name:"QUANTUM CORE", min:1001, max:1500, boost:23 },
+{ name:"NETWORK LORD", min:1501, max:2200, boost:26 },
+{ name:"SYSTEM KING", min:2201, max:3000, boost:28 },
+{ name:"ONCHYRA TITAN", min:3001, max:999999, boost:30 }
+];
+
+onAuthStateChanged(auth, (user)=>{
+if(!user){
+window.location = "login.html";
+return;
+}
+
+onSnapshot(doc(db,"users",user.uid), async (snap)=>{
+if(!snap.exists()) return;
+
+const data = snap.data();
+const teamSize = data.teamSize || 0;
+let achievements = data.rankAchievements || {};
+
+let currentRank, next;
+
+for(let i=0;i<ranks.length;i++){
+if(teamSize >= ranks[i].min && teamSize <= ranks[i].max){
+currentRank = ranks[i];
+next = ranks[i+1];
+}
+}
+
+// SAVE ACHIEVEMENT
+if(!achievements[currentRank.name]){
+achievements[currentRank.name] = Date.now();
+await updateDoc(doc(db,"users",user.uid), {
+rankAchievements: achievements
+});
+}
+
+// UI
+document.getElementById("rankName").innerText = currentRank.name;
+document.getElementById("teamText").innerText = "Team: " + teamSize;
+document.getElementById("boostText").innerText = "+" + currentRank.boost + "%";
+
+if(next){
+let progress = ((teamSize - currentRank.min) / (next.min - currentRank.min)) * 100;
+document.getElementById("progressBar").style.width = progress + "%";
+document.getElementById("nextRank").innerText = "Next Rank: " + next.name + " (" + next.min + ")";
+} else {
+document.getElementById("progressBar").style.width = "100%";
+document.getElementById("nextRank").innerText = "MAX RANK 👑";
+}
+
+// RENDER LIST
+const list = document.getElementById("rankList");
+list.innerHTML = "";
+
+ranks.forEach(r=>{
+const div = document.createElement("div");
+div.className = "rank-item";
+
+let tag = "";
+
+if(achievements[r.name]){
+const date = new Date(achievements[r.name]).toLocaleDateString();
+tag = `<span class="achieved">ACHIEVED</span><span class="date">${date}</span>`;
+}
+
+if(r.name === currentRank.name){
+div.classList.add("active");
+}
+
+div.innerHTML = `
+<div>${r.name}</div>
+<div>+${r.boost}% ${tag}</div>
+`;
+
+list.appendChild(div);
+});
+
+});
+});
+
+</script>
+
+</body>
+</html>
