@@ -1,217 +1,436 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>ONCHYRA Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Export — ONCHYRA Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --bg: #03040a;
+            --card: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.07);
+            --muted: #64748b;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; background:var(--bg); color:white;
+            min-height:100vh; padding:20px 16px 50px; opacity:0; transition:opacity 0.4s;
+            background-image:radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%);
+        }
+        .page { max-width:600px; margin:0 auto; }
 
-<style>
-body { background:#050610; color:white; font-family:Arial; text-align:center; padding:30px; }
+        /* HEADER */
+        .header { text-align:center; margin-bottom:28px; padding-top:10px; }
+        .header h1 { font-family:'Space Grotesk'; font-size:24px; font-weight:800; background:linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .header p { font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:1px; }
 
-.card { background:#0b1323; padding:20px; border-radius:12px; max-width:500px; margin:auto; }
+        /* CARD */
+        .card { background:var(--card); border:1px solid var(--border); border-radius:22px; padding:22px; margin-bottom:14px; backdrop-filter:blur(12px); }
+        .card-title { font-size:12px; font-weight:800; color:var(--primary); text-transform:uppercase; letter-spacing:2px; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
 
-button {
-  padding:12px 20px;
-  margin:8px;
-  border:none;
-  border-radius:8px;
-  background:#22c55e;
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
-}
+        /* CATEGORY GRID */
+        .cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .cat-card {
+            background:rgba(0,0,0,0.4); border:2px solid rgba(255,255,255,0.06);
+            border-radius:18px; padding:18px 14px; cursor:pointer;
+            transition:0.2s; position:relative; overflow:hidden;
+        }
+        .cat-card:hover { border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.05); transform:translateY(-1px); }
+        .cat-card.selected { border-color:var(--primary); background:rgba(167,139,250,0.08); }
+        .cat-card.selected::after { content:'✓'; position:absolute; top:10px; right:12px; color:var(--primary); font-weight:800; font-size:14px; }
 
-input {
-  padding:10px;
-  margin:5px;
-  border-radius:6px;
-  border:none;
-}
+        .cat-icon { font-size:26px; margin-bottom:10px; display:block; }
+        .cat-name { font-family:'Space Grotesk'; font-size:14px; font-weight:800; margin-bottom:4px; }
+        .cat-desc { font-size:10px; color:var(--muted); line-height:1.4; }
+        .cat-count { display:inline-block; margin-top:8px; font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; background:rgba(167,139,250,0.1); color:var(--primary); border:1px solid rgba(167,139,250,0.2); }
 
-.stats { display:flex; justify-content:space-around; margin:15px 0; }
-.statBox { background:#111827; padding:10px; border-radius:8px; }
+        /* CATEGORY COLORS */
+        .cat-card[data-cat="all"].selected { border-color:#a78bfa; background:rgba(167,139,250,0.08); }
+        .cat-card[data-cat="all"] .cat-icon-wrap { color:#a78bfa; }
 
-</style>
+        .cat-card[data-cat="active"].selected { border-color:#22c55e; background:rgba(34,197,94,0.07); }
+        .cat-card[data-cat="active"].selected .cat-count { background:rgba(34,197,94,0.1); color:#22c55e; border-color:rgba(34,197,94,0.2); }
+
+        .cat-card[data-cat="inactive"].selected { border-color:#f97316; background:rgba(249,115,22,0.07); }
+        .cat-card[data-cat="inactive"].selected .cat-count { background:rgba(249,115,22,0.1); color:#f97316; border-color:rgba(249,115,22,0.2); }
+
+        .cat-card[data-cat="whales"].selected { border-color:#fbbf24; background:rgba(251,191,36,0.07); }
+        .cat-card[data-cat="whales"].selected .cat-count { background:rgba(251,191,36,0.1); color:#fbbf24; border-color:rgba(251,191,36,0.2); }
+
+        .cat-card[data-cat="newjoin"].selected { border-color:#60a5fa; background:rgba(96,165,250,0.07); }
+        .cat-card[data-cat="newjoin"].selected .cat-count { background:rgba(96,165,250,0.1); color:#60a5fa; border-color:rgba(96,165,250,0.2); }
+
+        .cat-card[data-cat="noreferral"].selected { border-color:#f472b6; background:rgba(244,114,182,0.07); }
+        .cat-card[data-cat="noreferral"].selected .cat-count { background:rgba(244,114,182,0.1); color:#f472b6; border-color:rgba(244,114,182,0.2); }
+
+        /* PREVIEW TABLE */
+        .preview-wrap { margin-top:14px; }
+        .preview-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; font-weight:700; }
+        .preview-table-wrap { border-radius:14px; overflow:hidden; border:1px solid var(--border); max-height:260px; overflow-y:auto; }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        thead tr { background:rgba(255,255,255,0.04); }
+        th { padding:10px 12px; text-align:left; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; white-space:nowrap; }
+        td { padding:10px 12px; border-top:1px solid rgba(255,255,255,0.04); }
+        tr:hover td { background:rgba(255,255,255,0.02); }
+        .td-name { font-weight:700; color:#fff; }
+        .td-email { color:var(--muted); font-size:11px; }
+        .td-badge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:9px; font-weight:800; }
+        .badge-active { background:rgba(34,197,94,0.1); color:#22c55e; }
+        .badge-inactive { background:rgba(249,115,22,0.1); color:#f97316; }
+        .badge-whale { background:rgba(251,191,36,0.1); color:#fbbf24; }
+        .badge-new { background:rgba(96,165,250,0.1); color:#60a5fa; }
+
+        /* EXPORT SECTION */
+        .export-section { margin-top:8px; }
+        .export-info { background:rgba(96,165,250,0.05); border:1px solid rgba(96,165,250,0.15); border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+        .export-info .ei-title { font-size:11px; font-weight:700; color:var(--secondary); margin-bottom:6px; }
+        .export-info .ei-desc { font-size:11px; color:var(--muted); line-height:1.6; }
+        .export-info code { background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:5px; font-size:10px; color:#fff; }
+
+        /* BUTTONS */
+        .btn-export {
+            width:100%; padding:18px; border:none; border-radius:16px;
+            background:linear-gradient(135deg,#7c3aed,#a78bfa);
+            color:#fff; font-weight:800; font-size:15px; cursor:pointer;
+            font-family:'Space Grotesk'; letter-spacing:1px;
+            box-shadow:0 4px 20px rgba(124,58,237,0.3); transition:0.2s;
+            display:flex; align-items:center; justify-content:center; gap:10px;
+        }
+        .btn-export:hover { transform:translateY(-1px); box-shadow:0 8px 30px rgba(124,58,237,0.4); }
+        .btn-export:disabled { opacity:0.3; cursor:not-allowed; transform:none; }
+
+        /* LOADING */
+        .loading-bar { height:3px; background:rgba(255,255,255,0.05); border-radius:20px; overflow:hidden; margin:14px 0; display:none; }
+        .loading-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#a78bfa,#60a5fa); border-radius:20px; animation:load 1.5s infinite; }
+        @keyframes load { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+
+        /* EMPTY */
+        .empty-state { text-align:center; padding:30px; color:var(--muted); font-size:12px; }
+
+        /* TOAST */
+        #toast { position:fixed; bottom:25px; left:50%; transform:translateX(-50%); padding:12px 26px; border-radius:50px; font-weight:800; font-size:12px; display:none; z-index:2000; white-space:nowrap; box-shadow:0 8px 30px rgba(0,0,0,0.5); }
+        .toast-ok { background:linear-gradient(135deg,#059669,#10b981); color:#fff; }
+        .toast-err { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:10px; }
+    </style>
 </head>
-
 <body>
 
-<div id="loginBox" class="card">
-  <h2>Admin Login 🔐</h2>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Password"><br>
-  <button onclick="login()">Login</button>
-  <p id="loginStatus"></p>
+<div class="page">
+
+    <div class="header">
+        <h1>📧 EMAIL EXPORT</h1>
+        <p>BREVO-READY CSV GENERATOR</p>
+    </div>
+
+    <!-- STEP 1: CATEGORY -->
+    <div class="card">
+        <div class="card-title">📂 Step 1 — Select Category</div>
+
+        <div class="loading-bar" id="loadingBar"><div class="loading-fill"></div></div>
+
+        <div class="cat-grid">
+
+            <div class="cat-card" data-cat="all" onclick="selectCat(this)">
+                <span class="cat-icon">🌐</span>
+                <div class="cat-name">All Miners</div>
+                <div class="cat-desc">Every registered user on the network</div>
+                <span class="cat-count" id="count-all">— users</span>
+            </div>
+
+            <div class="cat-card" data-cat="active" onclick="selectCat(this)">
+                <span class="cat-icon">⚡</span>
+                <div class="cat-name">Active Miners</div>
+                <div class="cat-desc">Mined at least once in the last 7 days</div>
+                <span class="cat-count" id="count-active">— users</span>
+            </div>
+
+            <div class="cat-card" data-cat="inactive" onclick="selectCat(this)">
+                <span class="cat-icon">😴</span>
+                <div class="cat-name">Inactive Miners</div>
+                <div class="cat-desc">No mining activity in 7+ days</div>
+                <span class="cat-count" id="count-inactive">— users</span>
+            </div>
+
+            <div class="cat-card" data-cat="whales" onclick="selectCat(this)">
+                <span class="cat-icon">🐋</span>
+                <div class="cat-name">ONC Whales</div>
+                <div class="cat-desc">Top miners with 50+ ONC balance</div>
+                <span class="cat-count" id="count-whales">— users</span>
+            </div>
+
+            <div class="cat-card" data-cat="newjoin" onclick="selectCat(this)">
+                <span class="cat-icon">🆕</span>
+                <div class="cat-name">New Joiners</div>
+                <div class="cat-desc">Joined in the last 3 days</div>
+                <span class="cat-count" id="count-newjoin">— users</span>
+            </div>
+
+            <div class="cat-card" data-cat="noreferral" onclick="selectCat(this)">
+                <span class="cat-icon">🔗</span>
+                <div class="cat-name">No Referral</div>
+                <div class="cat-desc">Joined organically without a referral code</div>
+                <span class="cat-count" id="count-noreferral">— users</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STEP 2: PREVIEW -->
+    <div class="card" id="previewCard" style="display:none;">
+        <div class="card-title">👁️ Step 2 — Preview</div>
+
+        <div class="preview-wrap">
+            <div class="preview-label" id="previewLabel">Showing 0 users</div>
+            <div class="preview-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: EXPORT -->
+    <div class="card" id="exportCard" style="display:none;">
+        <div class="card-title">📤 Step 3 — Export for Brevo</div>
+
+        <div class="export-section">
+            <div class="export-info">
+                <div class="ei-title">How to use with Brevo:</div>
+                <div class="ei-desc">
+                    1. Download the CSV below<br>
+                    2. Go to Brevo → <code>Contacts</code> → <code>Import Contacts</code><br>
+                    3. Upload the CSV file<br>
+                    4. Map <code>EMAIL</code> and <code>FIRSTNAME</code> fields<br>
+                    5. Create your campaign and send 🚀
+                </div>
+            </div>
+
+            <button class="btn-export" id="exportBtn" onclick="downloadCSV()" disabled>
+                📥 Download CSV
+            </button>
+        </div>
+    </div>
+
 </div>
 
-<div id="adminPanel" class="card" style="display:none;">
-  <h1>ONCHYRA Admin ⚡</h1>
-
-  <!-- STATS -->
-  <div class="stats">
-    <div class="statBox">👥 <br><span id="total">0</span></div>
-    <div class="statBox">💤 <br><span id="inactive">0</span></div>
-    <div class="statBox">📩 <br><span id="sent">0</span></div>
-    <div class="statBox">❌ <br><span id="failed">0</span></div>
-  </div>
-
-  <!-- BUTTONS -->
-  <button onclick="sendInactive()">📩 Send Inactive</button>
-  <button onclick="sendAll()">🚀 Send All</button>
-
-  <h3>📤 Send Single Email</h3>
-  <input id="singleEmail" placeholder="Enter email">
-  <button onclick="sendSingle()">Send</button>
-
-  <br><br>
-  <button onclick="logout()">🚪 Logout</button>
-
-  <p id="status"></p>
-</div>
+<div id="toast"></div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
-  authDomain: "onchyra.firebaseapp.com",
-  projectId: "onchyra"
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// LOGIN
-window.login = async function() {
-  try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch {
-    loginStatus.innerText = "Login failed ❌";
-  }
-};
+let allUsers = [];
+let filteredUsers = [];
+let selectedCat = null;
 
-// CHECK LOGIN
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    loginBox.style.display = "none";
-    adminPanel.style.display = "block";
-    loadStats();
-  }
+// ── AUTH ──
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "admin-login.html"; return; }
+    document.body.style.opacity = "1";
+    await loadUsers();
 });
 
-// LOGOUT
-window.logout = () => signOut(auth);
-
-// SLEEP
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-// LOAD STATS
-async function loadStats() {
-  const snap = await getDocs(collection(db, "users"));
-
-  let total = 0, inactive = 0;
-
-  snap.forEach(doc => {
-    const d = doc.data();
-    total++;
-
-    if (Date.now() - (d.lastClaim || 0) > 86400000) inactive++;
-  });
-
-  document.getElementById("total").innerText = total;
-  document.getElementById("inactive").innerText = inactive;
+// ── LOAD ALL USERS ──
+async function loadUsers() {
+    const bar = document.getElementById('loadingBar');
+    bar.style.display = 'block';
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        allUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        updateCounts();
+    } catch(e) {
+        showToast("Error loading users", 'err');
+    }
+    bar.style.display = 'none';
 }
 
-// SEND EMAIL (WITH RESPONSE CHECK)
-async function sendMail(email) {
-  try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": "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"
-      },
-      body: JSON.stringify({
-        sender: { email: "onchyra@gmail.com", name: "ONCHYRA" },
-        to: [{ email }],
-        subject: "ONCHYRA Update",
-        htmlContent: "<p>Resume your activity</p>"
-      })
+// ── CATEGORY FILTER LOGIC ──
+const now = Date.now();
+const DAY7 = 7 * 24 * 60 * 60 * 1000;
+const DAY3 = 3 * 24 * 60 * 60 * 1000;
+
+function toMs(val) {
+    if (!val) return 0;
+    if (typeof val.toMillis === 'function') return val.toMillis();
+    if (typeof val.seconds === 'number') return val.seconds * 1000;
+    if (typeof val === 'number') return val;
+    return 0;
+}
+
+const categories = {
+    all: {
+        label: 'All Miners',
+        filter: () => allUsers,
+        badge: (u) => ({ text: 'MINER', cls: 'badge-active' })
+    },
+    active: {
+        label: 'Active Miners',
+        filter: () => allUsers.filter(u => {
+            const lastClaim = u.lastClaim ? u.lastClaim : toMs(u.lastClaimAt);
+            return lastClaim && (now - lastClaim) <= DAY7;
+        }),
+        badge: () => ({ text: 'ACTIVE', cls: 'badge-active' })
+    },
+    inactive: {
+        label: 'Inactive Miners',
+        filter: () => allUsers.filter(u => {
+            const lastClaim = u.lastClaim ? u.lastClaim : toMs(u.lastClaimAt);
+            return !lastClaim || (now - lastClaim) > DAY7;
+        }),
+        badge: () => ({ text: 'INACTIVE', cls: 'badge-inactive' })
+    },
+    whales: {
+        label: 'ONC Whales',
+        filter: () => allUsers.filter(u => (u.balance || 0) >= 50),
+        badge: () => ({ text: 'WHALE 🐋', cls: 'badge-whale' })
+    },
+    newjoin: {
+        label: 'New Joiners',
+        filter: () => allUsers.filter(u => {
+            const joined = toMs(u.createdAt);
+            return joined && (now - joined) <= DAY3;
+        }),
+        badge: () => ({ text: 'NEW', cls: 'badge-new' })
+    },
+    noreferral: {
+        label: 'No Referral',
+        filter: () => allUsers.filter(u => !u.referredBy && !u.referralUsedCode),
+        badge: () => ({ text: 'ORGANIC', cls: 'badge-inactive' })
+    }
+};
+
+function updateCounts() {
+    Object.keys(categories).forEach(cat => {
+        const count = categories[cat].filter().length;
+        const el = document.getElementById(`count-${cat}`);
+        if (el) el.innerText = `${count} user${count !== 1 ? 's' : ''}`;
+    });
+}
+
+// ── SELECT CATEGORY ──
+window.selectCat = (el) => {
+    document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedCat = el.dataset.cat;
+
+    filteredUsers = categories[selectedCat].filter();
+    renderPreview();
+
+    document.getElementById('previewCard').style.display = 'block';
+    document.getElementById('exportCard').style.display = 'block';
+
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = filteredUsers.length === 0;
+    btn.innerText = filteredUsers.length > 0
+        ? `📥 Download CSV — ${filteredUsers.length} contacts`
+        : '📥 No users in this category';
+};
+
+// ── RENDER PREVIEW TABLE ──
+function renderPreview() {
+    const cat = categories[selectedCat];
+    const preview = filteredUsers.slice(0, 50); // show max 50 rows
+
+    document.getElementById('previewLabel').innerText =
+        `Showing ${Math.min(50, filteredUsers.length)} of ${filteredUsers.length} users · ${cat.label}`;
+
+    if (!preview.length) {
+        document.getElementById('previewBody').innerHTML =
+            '<tr><td colspan="5"><div class="empty-state">No users in this category</div></td></tr>';
+        return;
+    }
+
+    document.getElementById('previewBody').innerHTML = preview.map((u, i) => {
+        const badge = cat.badge(u);
+        const bal = (u.balance || 0).toFixed(2);
+        const name = u.name || 'Unknown';
+        const email = u.email || '—';
+        return `
+            <tr>
+                <td style="color:var(--muted);font-size:11px;">${i+1}</td>
+                <td class="td-name">${name}</td>
+                <td class="td-email">${email}</td>
+                <td style="font-weight:700;color:var(--primary);font-size:11px;">${bal} ONC</td>
+                <td><span class="td-badge ${badge.cls}">${badge.text}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ── DOWNLOAD CSV ──
+window.downloadCSV = () => {
+    if (!filteredUsers.length) return;
+
+    // Brevo-compatible columns: EMAIL, FIRSTNAME, LASTNAME, ONC_BALANCE, CATEGORY
+    const catLabel = categories[selectedCat].label;
+    const rows = [
+        ['EMAIL', 'FIRSTNAME', 'LASTNAME', 'ONC_BALANCE', 'STREAK', 'CATEGORY', 'JOIN_DATE']
+    ];
+
+    filteredUsers.forEach(u => {
+        const nameParts = (u.name || 'Miner').split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const email = u.email || '';
+        if (!email) return; // skip users without email
+        const balance = (u.balance || 0).toFixed(4);
+        const streak = u.streak || 0;
+        const joinDate = u.createdAt?.toDate
+            ? u.createdAt.toDate().toLocaleDateString('en-IN')
+            : (u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleDateString('en-IN') : '—');
+
+        rows.push([email, firstName, lastName, balance, streak, catLabel, joinDate]);
     });
 
-    return res.ok;
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `onchyra_${selectedCat}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
 
-  } catch {
-    return false;
-  }
+    const emailCount = filteredUsers.filter(u => u.email).length;
+    showToast(`✅ ${emailCount} contacts exported!`, 'ok');
+};
+
+// ── TOAST ──
+function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.className = type === 'ok' ? 'toast-ok' : 'toast-err';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
 }
-
-// SEND INACTIVE
-window.sendInactive = async function() {
-
-  status.innerText = "Sending...";
-  let sent = 0, failed = 0;
-
-  const snap = await getDocs(collection(db, "users"));
-
-  for (const u of snap.docs) {
-    const d = u.data();
-
-    if (!d.email) continue;
-    if (Date.now() - (d.lastClaim || 0) < 86400000) continue;
-
-    const ok = await sendMail(d.email);
-
-    ok ? sent++ : failed++;
-
-    await sleep(1000);
-  }
-
-  document.getElementById("sent").innerText = sent;
-  document.getElementById("failed").innerText = failed;
-
-  status.innerText = `Done ✅ Sent: ${sent}, Failed: ${failed}`;
-};
-
-// SEND ALL
-window.sendAll = async function() {
-
-  status.innerText = "Sending...";
-  let sent = 0, failed = 0;
-
-  const snap = await getDocs(collection(db, "users"));
-
-  for (const u of snap.docs) {
-    const d = u.data();
-
-    if (!d.email) continue;
-
-    const ok = await sendMail(d.email);
-
-    ok ? sent++ : failed++;
-
-    await sleep(1000);
-  }
-
-  document.getElementById("sent").innerText = sent;
-  document.getElementById("failed").innerText = failed;
-
-  status.innerText = `Done 🚀 Sent: ${sent}, Failed: ${failed}`;
-};
-
-// SINGLE
-window.sendSingle = async function() {
-
-  const email = document.getElementById("singleEmail").value;
-
-  const ok = await sendMail(email);
-
-  status.innerText = ok ? "Sent ✅" : "Failed ❌";
-};
-
 </script>
-
 </body>
 </html>
