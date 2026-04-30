@@ -3,62 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Device Monitor — ONCHYRA</title>
+    <title>Onchyra Ultimate Monitor v2.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0b0c1a; color: white; padding: 20px; }
+        :root { --bg: #0b0c1a; --card: #161b22; --accent: #7c3aed; --danger: #ef4444; --success: #22c55e; --info: #3b82f6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 20px; margin: 0; }
+        .container { max-width: 1100px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .stats-container { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stats { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px solid #333; flex: 1; }
         
-        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #444; background: #161b22; color: white; font-size: 16px; }
-        
-        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.02); border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
-        th { background: #1a1b2e; color: #a78bfa; text-transform: uppercase; font-size: 12px; }
-        
-        .duplicate { background: rgba(239, 68, 68, 0.1) !important; }
-        .is-banned { opacity: 0.6; background: rgba(0, 0, 0, 0.3) !important; }
-        
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge-red { background: #ef4444; color: white; }
-        .badge-green { background: #22c55e; color: white; }
-        .badge-blue { background: #3b82f6; color: white; }
+        /* Stats Styling */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #333; text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 14px; color: #aaa; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 24px; font-weight: bold; }
 
-        .actions { display: flex; gap: 5px; }
-        button { cursor: pointer; padding: 6px 10px; border-radius: 5px; border: none; font-size: 12px; color: white; transition: 0.2s; }
-        .btn-ban { background: #dc2626; }
-        .btn-safe { background: #059669; }
-        .btn-refresh { background: #4f46e5; padding: 10px 20px; }
-        button:disabled { background: #333; cursor: not-allowed; }
-        button:hover:not(:disabled) { opacity: 0.8; }
+        /* Search Bar */
+        .search-area { position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 100; }
+        .search-input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #444; background: var(--card); color: white; box-sizing: border-box; font-size: 16px; outline: none; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(124, 58, 237, 0.3); }
+
+        /* Table Styling */
+        .table-container { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1a1b2e; padding: 15px; text-align: left; font-size: 12px; color: var(--accent); }
+        td { padding: 15px; border-bottom: 1px solid #222; font-size: 14px; }
+        
+        /* Row States */
+        .row-duplicate { background: rgba(239, 68, 68, 0.08); }
+        .row-banned { opacity: 0.5; background: #000; }
+        .row-safe { border-left: 4px solid var(--info); }
+
+        /* Badges */
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .bg-red { background: var(--danger); }
+        .bg-green { background: var(--success); }
+        .bg-blue { background: var(--info); }
+        
+        /* Buttons */
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; margin-right: 5px; transition: 0.2s; }
+        .btn-ban { background: var(--danger); }
+        .btn-safe { background: var(--info); }
+        .btn-refresh { background: var(--accent); }
+        .btn:disabled { background: #444; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.1); }
+
+        code { background: #2d333b; padding: 2px 5px; border-radius: 4px; color: #e5c07b; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="header">
-        <h1>📱 Device Monitor <small style="font-size: 12px; color: #666;">v2.0</small></h1>
-        <button class="btn-refresh" onclick="location.reload()">Refresh Data</button>
+        <h1>📱 Device Monitor <small style="font-size: 14px; color: var(--accent);">Admin Panel</small></h1>
+        <button class="btn btn-refresh" onclick="location.reload()">Refresh Data</button>
     </div>
 
-    <div class="stats-container">
-        <div class="stats">Total Users: <b id="totalUsers">0</b></div>
-        <div class="stats" style="color:#f87171;">Flagged Duplicates: <b id="totalDupes">0</b></div>
+    <div class="stats-grid">
+        <div class="stat-card"><h3>Total Users</h3><p id="statTotal">0</p></div>
+        <div class="stat-card" style="color: var(--danger);"><h3>Suspected Duplicates</h3><p id="statDupes">0</p></div>
+        <div class="stat-card" style="color: var(--success);"><h3>Marked Safe</h3><p id="statSafe">0</p></div>
     </div>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="Search by Email or Device ID...">
+    <div class="search-area">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by Email or Device ID...">
+    </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>User Details</th>
-                <th>Device ID (Last 12)</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="userTable"></tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>User / Email</th>
+                    <th>Device ID</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <tr><td colspan="4" style="text-align:center; padding:50px;">Fetching data from Firebase...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -76,99 +101,115 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allUsers = [];
+    let usersMasterList = [];
     let deviceCounts = {};
 
-    async function fetchData() {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        allUsers = [];
-        deviceCounts = {};
+    async function loadData() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            usersMasterList = [];
+            deviceCounts = {};
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const uData = { id: doc.id, ...data };
-            allUsers.push(uData);
-            
-            // Count devices (only if not marked safe)
-            if(!uData.isSafe) {
-                const dId = uData.deviceId || "Unknown";
-                deviceCounts[dId] = (deviceCounts[dId] || 0) + 1;
-            }
-        });
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const user = { 
+                    id: doc.id, 
+                    ...data,
+                    isSafe: data.isSafe || false, 
+                    banned: data.banned || false 
+                };
+                usersMasterList.push(user);
 
-        renderTable();
+                // Sirf duplicates count karo jo Safe nahi hain
+                if (!user.isSafe) {
+                    const dId = user.deviceId || "Unknown";
+                    deviceCounts[dId] = (deviceCounts[dId] || 0) + 1;
+                }
+            });
+
+            renderTable();
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            document.getElementById("userTable").innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Error: ${err.message}. Rules check karein!</td></tr>`;
+        }
     }
 
-    function renderTable(filter = "") {
-        const tableBody = document.getElementById("userTable");
-        tableBody.innerHTML = "";
+    function renderTable(filterText = "") {
+        const tbody = document.getElementById("userTable");
+        tbody.innerHTML = "";
+        
         let dupeCounter = 0;
+        let safeCounter = 0;
 
-        const filtered = allUsers.filter(u => 
-            u.email?.toLowerCase().includes(filter.toLowerCase()) || 
-            u.deviceId?.toLowerCase().includes(filter.toLowerCase())
-        );
+        const filtered = usersMasterList.filter(u => {
+            const searchStr = filterText.toLowerCase();
+            return u.email?.toLowerCase().includes(searchStr) || 
+                   u.deviceId?.toLowerCase().includes(searchStr);
+        });
 
         filtered.forEach(user => {
             const dId = user.deviceId || "Unknown";
             const isDuplicate = deviceCounts[dId] > 1 && !user.isSafe;
+            
             if(isDuplicate) dupeCounter++;
+            if(user.isSafe) safeCounter++;
 
             const tr = document.createElement("tr");
-            if(isDuplicate) tr.className = "duplicate";
-            if(user.banned) tr.classList.add("is-banned");
+            if(isDuplicate) tr.className = "row-duplicate";
+            if(user.banned) tr.className = "row-banned";
+            if(user.isSafe) tr.className = "row-safe";
 
             tr.innerHTML = `
                 <td>
-                    <b>${user.email}</b><br>
-                    <small style="color:#888">${user.id}</small>
+                    <b>${user.email || 'No Email'}</b><br>
+                    <small style="color: #666;">UID: ${user.id}</small>
                 </td>
-                <td><code>...${dId.slice(-12)}</code></td>
+                <td><code>${dId.slice(0, 8)}...${dId.slice(-4)}</code></td>
                 <td>
-                    ${user.banned ? '<span class="badge badge-red">BANNED</span>' : 
-                      user.isSafe ? '<span class="badge badge-blue">TRUSTED</span>' :
-                      isDuplicate ? '<span class="badge badge-red">DUPLICATE</span>' : 
-                      '<span class="badge badge-green">CLEAN</span>'}
+                    ${user.banned ? '<span class="badge bg-red">BANNED</span>' : 
+                      user.isSafe ? '<span class="badge bg-blue">TRUSTED</span>' :
+                      isDuplicate ? '<span class="badge bg-red">DUPLICATE</span>' : 
+                      '<span class="badge bg-green">SINGLE</span>'}
                 </td>
-                <td class="actions">
-                    <button class="btn-ban" onclick="handleAction('${user.id}', 'ban')" ${user.banned ? 'disabled' : ''}>Ban</button>
-                    <button class="btn-safe" onclick="handleAction('${user.id}', 'safe')" ${user.isSafe ? 'disabled' : ''}>Safe</button>
+                <td>
+                    <button class="btn btn-ban" onclick="userAction('${user.id}', 'ban')" ${user.banned ? 'disabled' : ''}>Ban</button>
+                    <button class="btn btn-safe" onclick="userAction('${user.id}', 'safe')" ${user.isSafe ? 'disabled' : ''}>Safe</button>
                 </td>
             `;
-            tableBody.appendChild(tr);
+            tbody.appendChild(tr);
         });
 
-        document.getElementById("totalUsers").innerText = allUsers.length;
-        document.getElementById("totalDupes").innerText = dupeCounter;
+        document.getElementById("statTotal").innerText = usersMasterList.length;
+        document.getElementById("statDupes").innerText = dupeCounter;
+        document.getElementById("statSafe").innerText = safeCounter;
     }
 
-    // Search Logic
+    // Handle Search
     document.getElementById("searchInput").addEventListener("input", (e) => {
         renderTable(e.target.value);
     });
 
-    // Global Action Handler
-    window.handleAction = async function(uid, type) {
+    // Handle Ban/Safe Actions
+    window.userAction = async function(uid, type) {
         const userRef = doc(db, "users", uid);
+        const actionText = type === 'ban' ? "Is user ko BAN kar dein?" : "Is user ko SAFE mark kar dein?";
         
-        try {
-            if(type === 'ban') {
-                if(confirm("Confirm Ban? User login nahi kar payega.")){
-                    await updateDoc(userRef, { banned: true });
-                    alert("User Banned!");
-                }
-            } else if(type === 'safe') {
-                await updateDoc(userRef, { isSafe: true });
-                alert("User marked as Safe!");
+        if(confirm(actionText)) {
+            try {
+                const updateData = type === 'ban' ? { banned: true } : { isSafe: true };
+                await updateDoc(userRef, updateData);
+                
+                alert("Success!");
+                loadData(); // Re-fetch to update counts and UI
+            } catch (error) {
+                console.error("Action Error:", error);
+                alert("Error: Action failed. Check your Firebase Rules!");
             }
-            fetchData(); // Refresh list without page reload
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Action failed! Check Console.");
         }
-    }
+    };
 
-    fetchData();
+    loadData();
 </script>
+
 </body>
 </html>
