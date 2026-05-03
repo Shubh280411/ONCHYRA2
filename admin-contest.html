@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red:#ef4444; --green:#22c55e; --yellow:#eab308; }
+
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Inter'; background:var(--bg); color:white; }
+
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+  background: rgba(10,12,25,0.95); border-right: 1px solid var(--border);
+  padding: 20px 0; z-index: 100;
+}
+.sidebar h2 { font-family:'Space Grotesk'; font-size: 22px; font-weight: 800; padding: 0 20px; margin: 0 0 30px; letter-spacing: -1px; }
+.sidebar h2 span { color: var(--primary); }
+.nav-item {
+  padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
+  color: rgba(255,255,255,0.5); transition: 0.2s; display: flex; align-items: center; gap: 10px;
+}
+.nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { border-right: 3px solid var(--primary); }
+
+.main { margin-left: 240px; padding: 30px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+
+.page-title { font-family:'Space Grotesk'; font-size: 28px; font-weight: 800; margin: 0 0 25px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.stat-card .label { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.stat-card .value { font-family:'Space Grotesk'; font-size: 32px; font-weight: 800; margin-top: 5px; }
+.stat-card .value.purple { color: var(--primary); }
+.stat-card .value.blue { color: var(--secondary); }
+.stat-card .value.green { color: var(--green); }
+.stat-card .value.red { color: var(--red); }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.card-title { font-family:'Space Grotesk'; font-size: 18px; font-weight: 700; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 12px 10px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+.badge-blue { background: rgba(96,165,250,0.15); color: var(--secondary); }
+
+button {
+  padding: 10px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;
+}
+.btn-primary { background: linear-gradient(135deg,var(--primary),var(--secondary)); color: #000; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+.btn-secondary { background: rgba(255,255,255,0.08); color: white; }
+.btn-secondary:hover { background: rgba(255,255,255,0.12); }
+.btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+
+input, select, textarea {
+  width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03); color: white; font-size: 14px; font-family: 'Inter'; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+textarea { resize: vertical; min-height: 80px; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: rgba(255,255,255,0.6); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
+  align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #0b0d18; border: 1px solid var(--border); border-radius: 24px;
+  padding: 30px; width: 100%; max-width: 500px;
+}
+.modal h3 { font-family:'Space Grotesk'; font-size: 20px; font-weight: 800; margin: 0 0 20px; }
+
+.toast {
+  position: fixed; bottom: 30px; right: 30px; background: var(--green); color: #000;
+  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 13px;
+  display: none; z-index: 3000; animation: slideIn 0.3s ease;
+}
+.toast.error { background: var(--red); color: white; }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } }
+
+.search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+.search-box input { max-width: 300px; }
+
+.actions { display: flex; gap: 8px; }
+
+.contest-row { cursor: pointer; }
+.contest-row:hover { background: rgba(255,255,255,0.02); }
+
+.empty-state { text-align: center; padding: 40px; color: rgba(255,255,255,0.3); font-size: 14px; }
+
+.prize-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar h2, .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 15px; }
+  .main { margin-left: 60px; padding: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .prize-inputs { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>ONCHY<span>RA</span></h2>
+  <div class="nav-item active" onclick="showPage('dashboard')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="10" y="3" width="7" height="7" rx="1"/><rect x="3" y="10" width="7" height="7" rx="1"/><rect x="10" y="10" width="7" height="7" rx="1"/></svg>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item" onclick="showPage('contests')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L2 7l7 5 7-5-7-5z"/><path d="M2 12l7 5 7-5"/><path d="M2 9.5l7 5 7-5"/></svg>
+    <span>Contests</span>
+  </div>
+  <div class="nav-item" onclick="showPage('participants')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Participants</span>
+  </div>
+  <div class="nav-item" onclick="showPage('winners')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span>Winners</span>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+    <h1 class="page-title">Dashboard</h1>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total Contests</div><div class="value purple" id="statContests">0</div></div>
+      <div class="stat-card"><div class="label">Active Contest</div><div class="value green" id="statActive">None</div></div>
+      <div class="stat-card"><div class="label">Total Participants</div><div class="value blue" id="statParticipants">0</div></div>
+      <div class="stat-card"><div class="label">Total Referrals</div><div class="value green" id="statReferrals">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Recent Activity</div></div>
+      <div id="recentActivity"><div class="empty-state">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- CONTESTS -->
+  <div id="contests" class="page">
+    <div class="card-header">
+      <h1 class="page-title" style="margin:0">Contests</h1>
+      <button class="btn-primary" onclick="openCreateContest()">+ Create Contest</button>
+    </div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>Name</th><th>Status</th><th>Participants</th><th>End Date</th><th>Actions</th></tr></thead>
+        <tbody id="contestsTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PARTICIPANTS -->
+  <div id="participants" class="page">
+    <h1 class="page-title">Participants</h1>
+    <div class="card">
+      <div class="card-header">
+        <select id="contestSelect" onchange="loadParticipants()">
+          <option value="">Select a contest...</option>
+        </select>
+      </div>
+      <div class="search-box">
+        <input type="text" id="searchParticipants" placeholder="Search by name or ID..." oninput="filterParticipants()">
+      </div>
+      <table>
+        <thead><tr><th>Rank</th><th>User</th><th>Referrals</th><th>Wallet</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="participantsTable"><tr><td colspan="6" class="empty-state">Select a contest to view participants</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WINNERS -->
+  <div id="winners" class="page">
+    <h1 class="page-title">Winners</h1>
+    <div class="card">
+      <div class="card-header">
+        <select id="winnerContestSelect" onchange="loadWinners()">
+          <option value="">Select a contest...</option>
+        </select>
+        <button class="btn-primary" onclick="declareWinners()">Declare Winners</button>
+      </div>
+      <table>
+        <thead><tr><th>Rank</th><th>Winner</th><th>Referrals</th><th>Prize</th><th>Wallet</th><th>Status</th></tr></thead>
+        <tbody id="winnersTable"><tr><td colspan="6" class="empty-state">Select a contest to view winners</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- CREATE/EDIT CONTEST MODAL -->
+<div class="modal-overlay" id="contestModal">
+  <div class="modal">
+    <h3 id="modalTitle">Create New Contest</h3>
+    <div class="form-group"><label>Contest Name</label><input id="contestName" placeholder="e.g., Weekly War #1"></div>
+    <div class="form-group"><label>End Date & Time</label><input id="contestEnd" type="datetime-local"></div>
+    <div class="form-group">
+      <label>Prize Pool (POL)</label>
+      <div class="prize-inputs">
+        <input id="prize1" placeholder="Rank 1" type="number">
+        <input id="prize2" placeholder="Rank 2" type="number">
+        <input id="prize3" placeholder="Rank 3" type="number">
+      </div>
+    </div>
+    <div class="form-group"><label>Description (optional)</label><textarea id="contestDesc" placeholder="Contest rules or notes..."></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn-primary" onclick="saveContest()">Save Contest</button>
+      <button class="btn-secondary" onclick="closeModal('contestModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW CONTEST DETAILS MODAL -->
+<div class="modal-overlay" id="detailsModal">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="detailsTitle">Contest Details</h3>
+    <div id="detailsContent"></div>
+    <div style="margin-top:20px;text-align:right;">
+      <button class="btn-secondary" onclick="closeModal('detailsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allContests = [], allParticipants = [], editingContestId = null;
+
+window.showPage = (page) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  document.querySelectorAll('.nav-item')[['dashboard','contests','participants','winners'].indexOf(page)].classList.add('active');
+  if(page === 'dashboard') loadDashboard();
+  if(page === 'contests') loadContests();
+  if(page === 'participants') populateContestSelects();
+  if(page === 'winners') populateContestSelects();
+};
+
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.innerText = msg; t.className = 'toast' + (error ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+
+// DASHBOARD
+async function loadDashboard() {
+  const contestsSnap = await getDocs(collection(db, 'contests'));
+  const participantsSnap = await getDocs(collection(db, 'contestParticipants'));
+  const usersSnap = await getDocs(collection(db, 'users'));
+
+  let activeCount = 0, totalRefs = 0, activeName = 'None';
+  contestsSnap.forEach(d => {
+    if(d.data().active) { activeCount++; activeName = d.data().name; }
+  });
+
+  participantsSnap.forEach(d => { totalRefs += Number(d.data().contestReferrals || 0); });
+
+  document.getElementById('statContests').innerText = contestsSnap.size;
+  document.getElementById('statActive').innerText = activeName;
+  document.getElementById('statParticipants').innerText = participantsSnap.size;
+  document.getElementById('statReferrals').innerText = totalRefs;
+
+  let recentHtml = '<table><thead><tr><th>Event</th><th>Details</th><th>Time</th></tr></thead><tbody>';
+  const recent = [];
+  participantsSnap.forEach(d => {
+    const data = d.data();
+    if(data.joinTime) recent.push({ type: 'Joined Contest', detail: `User ${data.userId.slice(0,8)}... joined`, time: new Date(data.joinTime).toLocaleString() });
+  });
+  recent.sort((a, b) => new Date(b.time) - new Date(a.time));
+  recent.slice(0, 10).forEach(r => {
+    recentHtml += `<tr><td><span class="badge badge-blue">${r.type}</span></td><td>${r.detail}</td><td style="opacity:0.5">${r.time}</td></tr>`;
+  });
+  recentHtml += '</tbody></table>';
+  document.getElementById('recentActivity').innerHTML = recentHtml || '<div class="empty-state">No recent activity</div>';
+}
+
+// CONTESTS
+async function loadContests() {
+  const q = query(collection(db, 'contests'), orderBy('endTime', 'desc'));
+  const snap = await getDocs(q);
+  allContests = [];
+  const tbody = document.getElementById('contestsTable');
+  let html = '';
+
+  for(const d of snap.docs) {
+    const data = d.data();
+    const pSnap = await getDocs(query(collection(db, 'contestParticipants'), where('contestId', '==', d.id)));
+    const pCount = pSnap.size;
+    allContests.push({ id: d.id, ...data, participantCount: pCount });
+
+    const status = data.active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Ended</span>';
+    const endDate = data.endTime?.toDate ? data.endTime.toDate().toLocaleDateString() : new Date(data.endTime).toLocaleDateString();
+
+    html += `<tr class="contest-row">
+      <td style="font-weight:700">${data.name}</td>
+      <td>${status}</td>
+      <td>${pCount}</td>
+      <td>${endDate}</td>
+      <td class="actions">
+        ${data.active ? `<button class="btn-sm btn-danger" onclick="toggleContest('${d.id}', false)">End</button>` : `<button class="btn-sm btn-secondary" onclick="toggleContest('${d.id}', true)">Activate</button>`}
+        <button class="btn-sm btn-secondary" onclick="editContest('${d.id}')">Edit</button>
+        <button class="btn-sm btn-danger" onclick="deleteContest('${d.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }
+  tbody.innerHTML = html || '<tr><td colspan="5" class="empty-state">No contests found</td></tr>';
+}
+
+window.openCreateContest = () => {
+  editingContestId = null;
+  document.getElementById('modalTitle').innerText = 'Create New Contest';
+  document.getElementById('contestName').value = '';
+  document.getElementById('contestEnd').value = '';
+  document.getElementById('prize1').value = '15';
+  document.getElementById('prize2').value = '10';
+  document.getElementById('prize3').value = '5';
+  document.getElementById('contestDesc').value = '';
+  document.getElementById('contestModal').classList.add('active');
+};
+
+window.editContest = async (id) => {
+  const snap = await getDoc(doc(db, 'contests', id));
+  const data = snap.data();
+  editingContestId = id;
+  document.getElementById('modalTitle').innerText = 'Edit Contest';
+  document.getElementById('contestName').value = data.name || '';
+  const endDate = data.endTime?.toDate ? data.endTime.toDate() : new Date(data.endTime);
+  document.getElementById('contestEnd').value = endDate.toISOString().slice(0, 16);
+  document.getElementById('prize1').value = data.prizes?.rank1 || 15;
+  document.getElementById('prize2').value = data.prizes?.rank2 || 10;
+  document.getElementById('prize3').value = data.prizes?.rank3 || 5;
+  document.getElementById('contestDesc').value = data.description || '';
+  document.getElementById('contestModal').classList.add('active');
+};
+
+window.saveContest = async () => {
+  const name = document.getElementById('contestName').value.trim();
+  const endDate = document.getElementById('contestEnd').value;
+  if(!name || !endDate) { showToast('Please fill all required fields', true); return; }
+
+  const data = {
+    name,
+    endTime: new Date(endDate).getTime(),
+    active: true,
+    description: document.getElementById('contestDesc').value,
+    prizes: {
+      rank1: Number(document.getElementById('prize1').value) || 15,
+      rank2: Number(document.getElementById('prize2').value) || 10,
+      rank3: Number(document.getElementById('prize3').value) || 5
+    },
+    createdAt: serverTimestamp()
+  };
+
+  try {
+    if(editingContestId) {
+      delete data.createdAt;
+      await updateDoc(doc(db, 'contests', editingContestId), data);
+      showToast('Contest updated!');
+    } else {
+      await setDoc(doc(collection(db, 'contests')), data);
+      showToast('Contest created!');
+    }
+    closeModal('contestModal');
+    loadContests();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+window.toggleContest = async (id, active) => {
+  try {
+    await updateDoc(doc(db, 'contests', id), { active });
+    showToast(`Contest ${active ? 'activated' : 'ended'}!`);
+    loadContests();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+window.deleteContest = async (id) => {
+  if(!confirm('Delete this contest? This will also remove all participants.')) return;
+  try {
+    const pSnap = await getDocs(query(collection(db, 'contestParticipants'), where('contestId', '==', id)));
+    const batch = [];
+    pSnap.forEach(d => batch.push(deleteDoc(doc(db, 'contestParticipants', d.id))));
+    await Promise.all(batch);
+    await deleteDoc(doc(db, 'contests', id));
+    showToast('Contest deleted!');
+    loadContests();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+// PARTICIPANTS
+function populateContestSelects() {
+  const s1 = document.getElementById('contestSelect');
+  const s2 = document.getElementById('winnerContestSelect');
+  s1.innerHTML = '<option value="">Select a contest...</option>';
+  s2.innerHTML = '<option value="">Select a contest...</option>';
+  allContests.forEach(c => {
+    s1.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    s2.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+}
+
+window.loadParticipants = async () => {
+  const contestId = document.getElementById('contestSelect').value;
+  const tbody = document.getElementById('participantsTable');
+  if(!contestId) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Select a contest to view participants</td></tr>'; return; }
+
+  const q = query(collection(db, 'contestParticipants'), where('contestId', '==', contestId), orderBy('contestReferrals', 'desc'));
+  const snap = await getDocs(q);
+  allParticipants = [];
+  let html = '';
+
+  let rank = 1;
+  for(const d of snap.docs) {
+    const data = d.data();
+    const uSnap = await getDoc(doc(db, 'users', data.userId));
+    const userData = uSnap.exists() ? uSnap.data() : {};
+    const name = userData.name || userData.referralCode || `User_${data.userId.slice(0,5)}`;
+    const joinedDate = data.joinTime ? new Date(data.joinTime).toLocaleDateString() : '-';
+
+    allParticipants.push({ id: d.id, ...data, name, email: userData.email || '-' });
+
+    html += `<tr>
+      <td style="font-weight:800;color:var(--primary)">#${rank}</td>
+      <td><div style="font-weight:700">${name}</div><div style="font-size:11px;opacity:0.5">${data.userId.slice(0,10)}...</div></td>
+      <td style="font-weight:700;color:var(--primary)">${data.contestReferrals}</td>
+      <td style="font-size:11px;font-family:monospace">${data.walletAddress || '-'}</td>
+      <td style="font-size:11px;opacity:0.5">${joinedDate}</td>
+      <td><button class="btn-sm btn-danger" onclick="removeParticipant('${d.id}')">Remove</button></td>
+    </tr>`;
+    rank++;
+  }
+  tbody.innerHTML = html || '<tr><td colspan="6" class="empty-state">No participants found</td></tr>';
+};
+
+window.filterParticipants = () => {
+  const search = document.getElementById('searchParticipants').value.toLowerCase();
+  const rows = document.querySelectorAll('#participantsTable tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(search) ? '' : 'none';
+  });
+};
+
+window.removeParticipant = async (id) => {
+  if(!confirm('Remove this participant?')) return;
+  try {
+    await deleteDoc(doc(db, 'contestParticipants', id));
+    showToast('Participant removed!');
+    loadParticipants();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+// WINNERS
+window.loadWinners = async () => {
+  const contestId = document.getElementById('winnerContestSelect').value;
+  const tbody = document.getElementById('winnersTable');
+  if(!contestId) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Select a contest to view winners</td></tr>'; return; }
+
+  const contest = allContests.find(c => c.id === contestId);
+  const prizes = contest?.prizes || { rank1: 15, rank2: 10, rank3: 5 };
+
+  const q = query(collection(db, 'contestParticipants'), where('contestId', '==', contestId), orderBy('contestReferrals', 'desc'), limit(10));
+  const snap = await getDocs(q);
+  let html = '', rank = 1;
+
+  for(const d of snap.docs) {
+    const data = d.data();
+    if(data.contestReferrals < 1) continue;
+    const uSnap = await getDoc(doc(db, 'users', data.userId));
+    const userData = uSnap.exists() ? uSnap.data() : {};
+    const name = userData.name || userData.referralCode || `User_${data.userId.slice(0,5)}`;
+    const prizeMap = { 1: prizes.rank1, 2: prizes.rank2, 3: prizes.rank3 };
+    const prize = prizeMap[rank] || 0;
+
+    html += `<tr>
+      <td style="font-weight:800;color:${rank===1?'#ffd700':rank===2?'#c0c0c0':rank===3?'#cd7f32':'var(--primary)'}">#${rank}</td>
+      <td style="font-weight:700">${name}</td>
+      <td style="font-weight:700;color:var(--primary)">${data.contestReferrals}</td>
+      <td style="font-weight:800;color:var(--green)">${prize} POL</td>
+      <td style="font-size:11px;font-family:monospace">${data.walletAddress || '-'}</td>
+      <td><span class="badge ${data.payoutSent ? 'badge-green' : 'badge-yellow'}">${data.payoutSent ? 'Paid' : 'Pending'}</span></td>
+    </tr>`;
+    rank++;
+    if(rank > 3) break;
+  }
+  tbody.innerHTML = html || '<tr><td colspan="6" class="empty-state">No winners found (minimum 1 referral required)</td></tr>';
+};
+
+window.declareWinners = async () => {
+  const contestId = document.getElementById('winnerContestSelect').value;
+  if(!contestId) { showToast('Select a contest first', true); return; }
+  if(!confirm('Declare top 3 as winners?')) return;
+
+  const q = query(collection(db, 'contestParticipants'), where('contestId', '==', contestId), orderBy('contestReferrals', 'desc'), limit(3));
+  const snap = await getDocs(q);
+  let rank = 1;
+  for(const d of snap.docs) {
+    if(d.data().contestReferrals < 1) continue;
+    await updateDoc(doc(db, 'contestParticipants', d.id), { winnerRank: rank, payoutSent: false });
+    rank++;
+  }
+  showToast(`${rank - 1} winners declared!`);
+  loadWinners();
+};
+
+window.loadDashboard();
+</script>
+
+</body>
+</html>
