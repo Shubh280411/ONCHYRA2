@@ -25,19 +25,24 @@ body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit
 .hero h1 span { color: var(--primary); }
 #dynamicContestName { font-family: 'Space Grotesk'; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--secondary); margin-top: 5px; font-weight: 700; }
 
+.container { max-width:500px; margin:auto; padding:0 15px 40px; }
+
+/* WARNING BOX */
 .disclaimer-box {
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
   backdrop-filter: blur(10px); padding: 12px; border-radius: 14px; margin-bottom: 20px;
   font-size: 11px; text-align: center; color: #fca5a5; animation: blink 2s infinite ease-in-out;
 }
-
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-
-.container { max-width:500px; margin:auto; padding:0 15px 40px; }
 
 .card { background:var(--card); border:1px solid var(--border); border-radius:22px; padding:20px; margin-bottom:15px; }
 
 .title-text { font-family:'Space Grotesk'; font-size:16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+
+/* RANK ONLY DISPLAY */
+.rank-card-box { text-align: center; padding: 10px 0; }
+.rank-val { font-size: 32px; font-weight: 800; color: var(--primary); font-family: 'Space Grotesk'; }
+.rank-label { font-size: 12px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; display: block; }
 
 button {
   width:100%; padding:18px; border:none; border-radius:16px;
@@ -64,17 +69,18 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 .row:last-child { border-bottom: none; }
 #timer { font-size:14px; color:var(--secondary); font-weight: 800; }
 
+/* WALLET WARNING */
 .wallet-warning {
     background: rgba(239, 68, 68, 0.15); border: 1px dashed var(--red);
     padding: 10px; border-radius: 10px; font-size: 11px; color: #ff9999;
-    margin-top: 10px; line-height: 1.4;
+    margin-top: 10px; line-height: 1.4; text-align: left;
 }
 
 #walletModal {
   position:fixed; inset:0; background:rgba(0,0,0,0.92);
   display:none; align-items:center; justify-content:center; z-index:3000; padding: 20px;
 }
-.modal-box { background:#0b0d18; padding:30px; border-radius:28px; border:1px solid var(--border); width:100%; max-width:400px; }
+.modal-box { background:#0b0d18; padding:30px; border-radius:28px; border:1px solid var(--border); width:100%; max-width:400px; text-align: center; }
 .modal-box input { width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); background:#05060d; color:white; margin: 15px 0 5px; box-sizing: border-box; text-align: center; outline: none; }
 
 #toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:14px 28px; border-radius:50px; font-weight:800; display:none; z-index:4000; font-size:13px; }
@@ -90,19 +96,24 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 
 <div class="hero">
     <h1>ONCHY<span>RA</span></h1>
-    <p id="dynamicContestName">Loading Contest...</p>
+    <p id="dynamicContestName">Loading...</p>
 </div>
 
 <div class="container">
 
   <div class="disclaimer-box">
-    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined after your registration will be counted. Previous team data is excluded for a fair war.
+    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined after your registration will be counted. Purging fake accounts will lead to permanent ban.
   </div>
 
   <div class="card">
     <div class="title-text">
         <span>Contest Timer</span>
         <div id="timer">...</div>
+    </div>
+    
+    <div class="rank-card-box">
+        <span class="rank-label">Your Current Rank</span>
+        <span class="rank-val" id="myRank">--</span>
     </div>
   </div>
 
@@ -126,7 +137,8 @@ button:disabled { opacity:.4; cursor: not-allowed; }
   </div>
 
   <div class="card">
-    <div class="title-text" style="margin-bottom: 15px;">Leaderboard (Top 10)</div>
+    <div class="title-text">Leaderboard (Top 10)</div>
+    <div style="font-size:10px; color:var(--red); margin: 5px 0 15px; font-weight: 600;">Minimum 1 direct is compulsory to qualify</div>
     <div id="leaderboard">
         <div class="empty-state">Loading rankings...</div>
     </div>
@@ -140,7 +152,7 @@ button:disabled { opacity:.4; cursor: not-allowed; }
     <input id="walletInput" placeholder="0x...">
     
     <div class="wallet-warning">
-        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. If you enter an incorrect address, your fund will be lost and you won't get any reward.
+        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. If you enter an incorrect address, your rewards will be lost forever.
     </div>
 
     <button id="submitWalletBtn" style="margin-top: 15px;">Confirm and Join</button>
@@ -174,8 +186,7 @@ function startTimer(){
     if(diff <= 0){
       timerLabel.innerText = "ENDED";
       document.getElementById("joinBtn").disabled = true;
-      clearInterval(interval);
-      return;
+      clearInterval(interval); return;
     }
     const d = Math.floor(diff / 86400000);
     const h = Math.floor((diff % 86400000) / 3600000);
@@ -188,86 +199,87 @@ onAuthStateChanged(auth, async (user)=>{
   if(!user) { window.location = "login.html"; return; }
   currentUser = user;
   
-  // 1. Fetch User Data & Set Referral Link
-  const uDocRef = doc(db, "users", user.uid);
-  const uSnap = await getDoc(uDocRef);
-  const userData = uSnap.data() || {};
-  const refCode = userData.referralCode || user.uid;
-  const baseUrl = window.location.origin;
-  document.getElementById("referralLink").value = `${baseUrl}/register.html?ref=${refCode}`;
+  // Real-time Sync for User Referrals
+  onSnapshot(doc(db, "users", user.uid), async (uSnap) => {
+    if(!uSnap.exists()) return;
+    const userData = uSnap.data();
+    const refCode = userData.referralCode || user.uid;
+    document.getElementById("referralLink").value = `${window.location.origin}/register.html?ref=${refCode}`;
 
-  // 2. Get Active Contest
+    if(contestId) {
+        const pRef = doc(db, "contestParticipants", contestId + "_" + user.uid);
+        const pSnap = await getDoc(pRef);
+        if(pSnap.exists()){
+            const pData = pSnap.data();
+            const curTotal = Number(userData.refLevel1 || 0);
+            const baseJoin = Number(pData.joinReferrals || 0);
+            let score = curTotal - baseJoin;
+            if(score < 0) score = 0;
+            
+            if(score !== Number(pData.contestReferrals)) {
+                await updateDoc(pRef, { contestReferrals: score });
+            }
+        }
+    }
+  });
+
   const qC = query(collection(db,"contests"), where("active","==",true), limit(1));
   const sC = await getDocs(qC);
-
-  if(sC.empty){
-    document.getElementById("dynamicContestName").innerText = "No Active Contest";
-    document.getElementById("leaderboard").innerHTML = '<div class="empty-state">No active contest.</div>';
-    document.getElementById("joinBtn").innerText = "Closed";
-    return;
-  }
+  if(sC.empty) return;
 
   const cDoc = sC.docs[0];
   contestId = cDoc.id;
-  const cData = cDoc.data();
-  document.getElementById("dynamicContestName").innerText = cData.name || "Referral Contest";
-  endTimeMs = cData.endTime.seconds * 1000 || cData.endTime;
+  document.getElementById("dynamicContestName").innerText = cDoc.data().name || "Referral Contest";
+  endTimeMs = cDoc.data().endTime.seconds * 1000 || cDoc.data().endTime;
   startTimer();
 
-  // 3. Check Participation & Auto-Sync Score
   participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);
   const pSnap = await getDoc(participantRef);
 
   if(pSnap.exists()){
-    const pData = pSnap.data();
     setJoinedUI();
-
-    // 🔥 SYNC SCORE: (Current Total - Base Total at Join)
-    const currentTotalRef = userData.refLevel1 || 0;
-    const joinedAtRef = pData.joinReferrals || 0;
-    const newContestScore = currentTotalRef - joinedAtRef;
-
-    if(newContestScore !== pData.contestReferrals && newContestScore >= 0) {
-        await updateDoc(participantRef, { contestReferrals: newContestScore });
-    }
   } else {
-    const joinBtn = document.getElementById("joinBtn");
-    joinBtn.innerText = "Join Referral War";
-    joinBtn.disabled = false;
-    joinBtn.onclick = () => document.getElementById("walletModal").style.display = "flex";
+    const jb = document.getElementById("joinBtn");
+    jb.innerText = "Join Referral War"; jb.disabled = false;
+    jb.onclick = () => document.getElementById("walletModal").style.display = "flex";
   }
 
-  // 4. Leaderboard Listener (Requires Index)
-  const qL = query(
-    collection(db,"contestParticipants"),
-    where("contestId","==",contestId),
-    where("contestReferrals", ">=", 1),
-    orderBy("contestReferrals","desc"),
-    limit(10)
-  );
-
-  onSnapshot(qL, (snap) => {
-    if(snap.empty){ 
-      document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>'; 
-      return; 
+  // Leaderboard Listener
+  const qL = query(collection(db, "contestParticipants"), where("contestId", "==", contestId), where("contestReferrals", ">=", 1), orderBy("contestReferrals", "desc"), limit(100));
+  
+  onSnapshot(qL, async (snap) => {
+    if (snap.empty) {
+      document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>';
+      document.getElementById("myRank").innerText = "NR"; return;
     }
-    let html = ""; let rank = 1;
-    snap.forEach(d => {
-      const data = d.data();
-      html += `<div class="row"><div>Rank ${rank} - User_${data.userId.slice(0,5)}</div><div style="font-weight:700; color:var(--primary);">${data.contestReferrals}</div></div>`;
-      rank++;
-    });
-    document.getElementById("leaderboard").innerHTML = html;
+
+    let userRank = "NR";
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i++) {
+        if(docs[i].data().userId === user.uid) userRank = (i + 1);
+    }
+    document.getElementById("myRank").innerText = userRank !== "NR" ? "#" + userRank : "NR";
+
+    const results = [];
+    const topLimit = Math.min(docs.length, 10);
+    for(let i=0; i < topLimit; i++) {
+        const res = docs[i].data();
+        let name = "User_" + res.userId.slice(0,5);
+        const uS = await getDoc(doc(db, "users", res.userId));
+        if(uS.exists()) name = uS.data().name || uS.data().referralCode || name;
+        
+        let html_row = `<div class="row"><div><span style="color:var(--primary); font-weight:800; margin-right:8px;">#${i + 1}</span> ${name}</div><div style="font-weight:700; color:var(--primary);">${res.contestReferrals}</div></div>`;
+        results.push(html_row);
+    }
+    document.getElementById("leaderboard").innerHTML = results.join("");
   });
 });
 
 function setJoinedUI() {
-    const joinBtn = document.getElementById("joinBtn");
-    joinBtn.innerText = "Joined Successfully";
-    joinBtn.disabled = true;
-    joinBtn.style.background = "rgba(255,255,255,0.05)";
-    joinBtn.style.color = "rgba(255,255,255,0.3)";
-    joinBtn.style.border = "1px solid var(--border)";
+    const jb = document.getElementById("joinBtn");
+    jb.innerText = "Joined Successfully"; jb.disabled = true;
+    jb.style.background = "rgba(255,255,255,0.05)";
+    jb.style.color = "rgba(255,255,255,0.3)";
     document.getElementById("inviteSection").style.display = "block";
 }
 
@@ -275,33 +287,28 @@ document.getElementById("submitWalletBtn").onclick = async () => {
   const wallet = document.getElementById("walletInput").value.trim();
   if(wallet.length < 20) { showToast("Invalid wallet address"); return; }
   
-  const qW = query(collection(db,"contestParticipants"), where("contestId","==",contestId), where("walletAddress","==",wallet));
-  const sW = await getDocs(qW);
-  if(!sW.empty) { showToast("Wallet already used"); return; }
+  const uSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+  const currentRef = Number(uSnap.data().refLevel1 || 0);
+  
+  // Jo tune kaha tha "Abhi hi aya hai" toh usko count karne ke liye baseValue handle ki hai
+  const baseValue = currentRef > 0 ? currentRef - 1 : 0;
 
-  const uSnap = await getDoc(doc(db,"users",currentUser.uid));
-  const userData = uSnap.data() || {};
-  const currentRef = userData.refLevel1 || 0;
-
-  await setDoc(participantRef, {
-    contestId, 
-    userId: currentUser.uid, 
-    walletAddress: wallet,
-    joinTime: Date.now(), 
-    joinReferrals: currentRef, 
-    contestReferrals: 0
+  await setDoc(participantRef, { 
+      contestId, 
+      userId: auth.currentUser.uid, 
+      walletAddress: wallet, 
+      joinTime: Date.now(), 
+      joinReferrals: baseValue, 
+      contestReferrals: 1 
   });
-
+  
   document.getElementById("walletModal").style.display = "none";
-  setJoinedUI();
-  showToast("Registration complete!");
+  setJoinedUI(); showToast("Joined Successfully!");
 };
 
 window.copyLink = () => {
     const copyText = document.getElementById("referralLink");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(copyText.value);
+    copyText.select(); navigator.clipboard.writeText(copyText.value);
     showToast("Link Copied!");
 };
 
