@@ -152,7 +152,7 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -188,14 +188,15 @@ onAuthStateChanged(auth, async (user)=>{
   if(!user) { window.location = "login.html"; return; }
   currentUser = user;
   
-  // Referral Code Fetch
-  const uSnap = await getDoc(doc(db,"users",user.uid));
+  // 1. Fetch User Data & Set Referral Link
+  const uDocRef = doc(db, "users", user.uid);
+  const uSnap = await getDoc(uDocRef);
   const userData = uSnap.data() || {};
   const refCode = userData.referralCode || user.uid;
-  
   const baseUrl = window.location.origin;
   document.getElementById("referralLink").value = `${baseUrl}/register.html?ref=${refCode}`;
 
+  // 2. Get Active Contest
   const qC = query(collection(db,"contests"), where("active","==",true), limit(1));
   const sC = await getDocs(qC);
 
@@ -209,17 +210,26 @@ onAuthStateChanged(auth, async (user)=>{
   const cDoc = sC.docs[0];
   contestId = cDoc.id;
   const cData = cDoc.data();
-  
   document.getElementById("dynamicContestName").innerText = cData.name || "Referral Contest";
-  
   endTimeMs = cData.endTime.seconds * 1000 || cData.endTime;
   startTimer();
 
+  // 3. Check Participation & Auto-Sync Score
   participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);
   const pSnap = await getDoc(participantRef);
 
   if(pSnap.exists()){
+    const pData = pSnap.data();
     setJoinedUI();
+
+    // 🔥 SYNC SCORE: (Current Total - Base Total at Join)
+    const currentTotalRef = userData.refLevel1 || 0;
+    const joinedAtRef = pData.joinReferrals || 0;
+    const newContestScore = currentTotalRef - joinedAtRef;
+
+    if(newContestScore !== pData.contestReferrals && newContestScore >= 0) {
+        await updateDoc(participantRef, { contestReferrals: newContestScore });
+    }
   } else {
     const joinBtn = document.getElementById("joinBtn");
     joinBtn.innerText = "Join Referral War";
@@ -227,9 +237,20 @@ onAuthStateChanged(auth, async (user)=>{
     joinBtn.onclick = () => document.getElementById("walletModal").style.display = "flex";
   }
 
-  const qL = query(collection(db,"contestParticipants"), where("contestId","==",contestId), where("contestReferrals", ">=", 1), orderBy("contestReferrals","desc"), limit(10));
+  // 4. Leaderboard Listener (Requires Index)
+  const qL = query(
+    collection(db,"contestParticipants"),
+    where("contestId","==",contestId),
+    where("contestReferrals", ">=", 1),
+    orderBy("contestReferrals","desc"),
+    limit(10)
+  );
+
   onSnapshot(qL, (snap) => {
-    if(snap.empty){ document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>'; return; }
+    if(snap.empty){ 
+      document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>'; 
+      return; 
+    }
     let html = ""; let rank = 1;
     snap.forEach(d => {
       const data = d.data();
