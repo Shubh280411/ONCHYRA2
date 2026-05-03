@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Referral Contest</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red: #ef4444; }
+
+body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit-tap-highlight-color: transparent; }
+
+.header-nav {
+  display: flex; align-items: center; padding: 15px 20px;
+  position: fixed; top: 0; width: 100%; background: rgba(3, 4, 10, 0.6);
+  backdrop-filter: blur(10px); z-index: 1000; box-sizing: border-box;
+}
+
+.back-arrow { text-decoration: none; color: white; font-size: 24px; font-weight: 300; }
+
+.hero { padding: 100px 20px 30px; text-align: center; }
+.hero h1 { font-family: 'Space Grotesk'; font-size: 48px; font-weight: 800; margin: 0; letter-spacing: -2px; color: #ffffff; }
+.hero h1 span { color: var(--primary); }
+#dynamicContestName { font-family: 'Space Grotesk'; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--secondary); margin-top: 5px; font-weight: 700; }
+
+.disclaimer-box {
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(10px); padding: 12px; border-radius: 14px; margin-bottom: 20px;
+  font-size: 11px; text-align: center; color: #fca5a5; animation: blink 2s infinite ease-in-out;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+.container { max-width:500px; margin:auto; padding:0 15px 40px; }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:22px; padding:20px; margin-bottom:15px; }
+
+.title-text { font-family:'Space Grotesk'; font-size:16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+
+button {
+  width:100%; padding:18px; border:none; border-radius:16px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  font-weight:800; color:#000; font-size: 15px; cursor: pointer;
+}
+button:disabled { opacity:.4; cursor: not-allowed; }
+
+#inviteSection { display: none; margin-top: 15px; text-align: center; }
+.link-box {
+  display: flex; align-items: center; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border); padding: 10px; border-radius: 12px; margin-top: 10px;
+}
+.link-box input {
+  background: transparent; border: none; color: #fff; font-size: 12px;
+  width: 100%; outline: none; padding: 5px; pointer-events: none;
+}
+.copy-btn {
+  background: var(--primary); color: #000; padding: 8px 15px;
+  border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+
+.row { display:flex; justify-content:space-between; align-items: center; padding:14px 10px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
+.row:last-child { border-bottom: none; }
+#timer { font-size:14px; color:var(--secondary); font-weight: 800; }
+
+.wallet-warning {
+    background: rgba(239, 68, 68, 0.15); border: 1px dashed var(--red);
+    padding: 10px; border-radius: 10px; font-size: 11px; color: #ff9999;
+    margin-top: 10px; line-height: 1.4;
+}
+
+#walletModal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.92);
+  display:none; align-items:center; justify-content:center; z-index:3000; padding: 20px;
+}
+.modal-box { background:#0b0d18; padding:30px; border-radius:28px; border:1px solid var(--border); width:100%; max-width:400px; }
+.modal-box input { width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); background:#05060d; color:white; margin: 15px 0 5px; box-sizing: border-box; text-align: center; outline: none; }
+
+#toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:14px 28px; border-radius:50px; font-weight:800; display:none; z-index:4000; font-size:13px; }
+.empty-state { text-align: center; padding: 30px 10px; opacity: 0.4; font-size: 12px; }
+</style>
+</head>
+
+<body>
+
+<nav class="header-nav">
+    <a href="dashboard.html" class="back-arrow">←</a>
+</nav>
+
+<div class="hero">
+    <h1>ONCHY<span>RA</span></h1>
+    <p id="dynamicContestName">Loading Contest...</p>
+</div>
+
+<div class="container">
+
+  <div class="disclaimer-box">
+    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined after your registration will be counted. Previous team data is excluded for a fair war.
+  </div>
+
+  <div class="card">
+    <div class="title-text">
+        <span>Contest Timer</span>
+        <div id="timer">...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button id="joinBtn" disabled>Checking eligibility...</button>
+    
+    <div id="inviteSection">
+        <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 10px;">Your Invite Link</div>
+        <div class="link-box">
+            <input type="text" id="referralLink" value="Loading...">
+            <div class="copy-btn" onclick="copyLink()">Copy</div>
+        </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px; margin-bottom:12px; color: var(--primary); font-weight: 800; letter-spacing: 1px;">PRIZE POOL</div>
+    <div class="row"><div>Rank 1</div><b>15 POL</b></div>
+    <div class="row"><div>Rank 2</div><b>10 POL</b></div>
+    <div class="row"><div>Rank 3</div><b>5 POL</b></div>
+  </div>
+
+  <div class="card">
+    <div class="title-text" style="margin-bottom: 15px;">Leaderboard (Top 10)</div>
+    <div id="leaderboard">
+        <div class="empty-state">Loading rankings...</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="walletModal">
+  <div class="modal-box">
+    <div style="font-family:'Space Grotesk'; font-size: 18px; font-weight: 800; text-align: center;">Payout Address</div>
+    <input id="walletInput" placeholder="0x...">
+    
+    <div class="wallet-warning">
+        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. If you enter an incorrect address, your fund will be lost and you won't get any reward.
+    </div>
+
+    <button id="submitWalletBtn" style="margin-top: 15px;">Confirm and Join</button>
+    <div style="margin-top: 15px; font-size: 12px; opacity: 0.4; text-align: center; cursor: pointer;" onclick="document.getElementById('walletModal').style.display='none'">Cancel</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let contestId = null, participantRef = null, currentUser = null, endTimeMs = 0;
+
+function startTimer(){
+  const timerLabel = document.getElementById("timer");
+  const interval = setInterval(()=>{
+    const diff = endTimeMs - Date.now();
+    if(diff <= 0){
+      timerLabel.innerText = "ENDED";
+      document.getElementById("joinBtn").disabled = true;
+      clearInterval(interval);
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    timerLabel.innerText = `${d}d ${h}h ${m}m`;
+  }, 1000);
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) { window.location = "login.html"; return; }
+  currentUser = user;
+  
+  // Referral Code Fetch
+  const uSnap = await getDoc(doc(db,"users",user.uid));
+  const userData = uSnap.data() || {};
+  const refCode = userData.referralCode || user.uid;
+  
+  const baseUrl = window.location.origin;
+  document.getElementById("referralLink").value = `${baseUrl}/register.html?ref=${refCode}`;
+
+  const qC = query(collection(db,"contests"), where("active","==",true), limit(1));
+  const sC = await getDocs(qC);
+
+  if(sC.empty){
+    document.getElementById("dynamicContestName").innerText = "No Active Contest";
+    document.getElementById("leaderboard").innerHTML = '<div class="empty-state">No active contest.</div>';
+    document.getElementById("joinBtn").innerText = "Closed";
+    return;
+  }
+
+  const cDoc = sC.docs[0];
+  contestId = cDoc.id;
+  const cData = cDoc.data();
+  
+  document.getElementById("dynamicContestName").innerText = cData.name || "Referral Contest";
+  
+  endTimeMs = cData.endTime.seconds * 1000 || cData.endTime;
+  startTimer();
+
+  participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);
+  const pSnap = await getDoc(participantRef);
+
+  if(pSnap.exists()){
+    setJoinedUI();
+  } else {
+    const joinBtn = document.getElementById("joinBtn");
+    joinBtn.innerText = "Join Referral War";
+    joinBtn.disabled = false;
+    joinBtn.onclick = () => document.getElementById("walletModal").style.display = "flex";
+  }
+
+  const qL = query(collection(db,"contestParticipants"), where("contestId","==",contestId), where("contestReferrals", ">=", 1), orderBy("contestReferrals","desc"), limit(10));
+  onSnapshot(qL, (snap) => {
+    if(snap.empty){ document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>'; return; }
+    let html = ""; let rank = 1;
+    snap.forEach(d => {
+      const data = d.data();
+      html += `<div class="row"><div>Rank ${rank} - User_${data.userId.slice(0,5)}</div><div style="font-weight:700; color:var(--primary);">${data.contestReferrals}</div></div>`;
+      rank++;
+    });
+    document.getElementById("leaderboard").innerHTML = html;
+  });
+});
+
+function setJoinedUI() {
+    const joinBtn = document.getElementById("joinBtn");
+    joinBtn.innerText = "Joined Successfully";
+    joinBtn.disabled = true;
+    joinBtn.style.background = "rgba(255,255,255,0.05)";
+    joinBtn.style.color = "rgba(255,255,255,0.3)";
+    joinBtn.style.border = "1px solid var(--border)";
+    document.getElementById("inviteSection").style.display = "block";
+}
+
+document.getElementById("submitWalletBtn").onclick = async () => {
+  const wallet = document.getElementById("walletInput").value.trim();
+  if(wallet.length < 20) { showToast("Invalid wallet address"); return; }
+  
+  const qW = query(collection(db,"contestParticipants"), where("contestId","==",contestId), where("walletAddress","==",wallet));
+  const sW = await getDocs(qW);
+  if(!sW.empty) { showToast("Wallet already used"); return; }
+
+  const uSnap = await getDoc(doc(db,"users",currentUser.uid));
+  const userData = uSnap.data() || {};
+  const currentRef = userData.refLevel1 || 0;
+
+  await setDoc(participantRef, {
+    contestId, 
+    userId: currentUser.uid, 
+    walletAddress: wallet,
+    joinTime: Date.now(), 
+    joinReferrals: currentRef, 
+    contestReferrals: 0
+  });
+
+  document.getElementById("walletModal").style.display = "none";
+  setJoinedUI();
+  showToast("Registration complete!");
+};
+
+window.copyLink = () => {
+    const copyText = document.getElementById("referralLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    showToast("Link Copied!");
+};
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.innerText = msg; t.style.display = "block";
+  setTimeout(()=> t.style.display = "none", 2500);
+}
+</script>
+
+</body>
+</html>
