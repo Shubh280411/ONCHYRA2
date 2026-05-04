@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Admin Notifications</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red:#ef4444; --green:#22c55e; --yellow:#eab308; }
+
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Inter'; background:var(--bg); color:white; }
+
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+  background: rgba(10,12,25,0.95); border-right: 1px solid var(--border);
+  padding: 20px 0; z-index: 100;
+}
+.sidebar h2 { font-family:'Space Grotesk'; font-size: 22px; font-weight: 800; padding: 0 20px; margin: 0 0 30px; letter-spacing: -1px; }
+.sidebar h2 span { color: var(--primary); }
+.nav-item {
+  padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
+  color: rgba(255,255,255,0.5); transition: 0.2s; display: flex; align-items: center; gap: 10px;
+}
+.nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { border-right: 3px solid var(--primary); }
+
+.main { margin-left: 240px; padding: 30px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+
+.page-title { font-family:'Space Grotesk'; font-size: 28px; font-weight: 800; margin: 0 0 25px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.stat-card .label { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.stat-card .value { font-family:'Space Grotesk'; font-size: 32px; font-weight: 800; margin-top: 5px; }
+.stat-card .value.purple { color: var(--primary); }
+.stat-card .value.blue { color: var(--secondary); }
+.stat-card .value.green { color: var(--green); }
+.stat-card .value.yellow { color: var(--yellow); }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.card-title { font-family:'Space Grotesk'; font-size: 18px; font-weight: 700; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 12px 10px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+.badge-blue { background: rgba(96,165,250,0.15); color: var(--secondary); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--primary); }
+
+button {
+  padding: 10px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;
+}
+.btn-primary { background: linear-gradient(135deg,var(--primary),var(--secondary)); color: #000; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+.btn-secondary { background: rgba(255,255,255,0.08); color: white; }
+.btn-secondary:hover { background: rgba(255,255,255,0.12); }
+.btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+
+input, select, textarea {
+  width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03); color: white; font-size: 14px; font-family: 'Inter'; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+textarea { resize: vertical; min-height: 80px; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: rgba(255,255,255,0.6); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none;
+  align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #0b0d18; border: 1px solid var(--border); border-radius: 24px;
+  padding: 30px; width: 100%; max-width: 500px;
+}
+.modal h3 { font-family:'Space Grotesk'; font-size: 20px; font-weight: 800; margin: 0 0 20px; }
+
+.toast {
+  position: fixed; bottom: 30px; right: 30px; background: var(--green); color: #000;
+  padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 13px;
+  display: none; z-index: 3000; animation: slideIn 0.3s ease;
+}
+.toast.error { background: var(--red); color: white; }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } }
+
+.search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+.search-box input { max-width: 300px; }
+
+.empty-state { text-align: center; padding: 40px; color: rgba(255,255,255,0.3); font-size: 14px; }
+
+.noti-preview {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px; margin-top: 15px;
+}
+.noti-preview .preview-label { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+.noti-preview .preview-type { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.noti-preview .preview-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.noti-preview .preview-msg { font-size: 12px; opacity: 0.5; }
+
+.quick-btns { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+.quick-btn {
+  padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  color: rgba(255,255,255,0.7); cursor: pointer; transition: 0.2s;
+}
+.quick-btn:hover { background: rgba(167,139,250,0.1); border-color: var(--primary); color: var(--primary); }
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar h2, .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 15px; }
+  .main { margin-left: 60px; padding: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>ONCHY<span>RA</span></h2>
+  <div class="nav-item active" onclick="showPage('send')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+    <span>Send</span>
+  </div>
+  <div class="nav-item" onclick="showPage('history')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 3"/></svg>
+    <span>History</span>
+  </div>
+  <div class="nav-item" onclick="showPage('users')">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Users</span>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- SEND NOTIFICATION -->
+  <div id="send" class="page active">
+    <h1 class="page-title">Send Notification</h1>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total Sent</div><div class="value purple" id="statTotal">0</div></div>
+      <div class="stat-card"><div class="label">Today</div><div class="value blue" id="statToday">0</div></div>
+      <div class="stat-card"><div class="label">All Users</div><div class="value green" id="statUsers">0</div></div>
+      <div class="stat-card"><div class="label">Avg Read Rate</div><div class="value yellow" id="statRead">0%</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:15px;">Quick Templates</div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="useTemplate('update')">📢 Update</button>
+        <button class="quick-btn" onclick="useTemplate('poll')">📊 Poll</button>
+        <button class="quick-btn" onclick="useTemplate('contest')">🏆 Contest</button>
+        <button class="quick-btn" onclick="useTemplate('warning')">⚠️ Warning</button>
+        <button class="quick-btn" onclick="useTemplate('personal')">💬 Personal</button>
+      </div>
+
+      <div class="form-group"><label>Target</label>
+        <select id="notiTarget">
+          <option value="all">🌐 All Users</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Type</label>
+        <select id="notiType">
+          <option value="update">📢 Update</option>
+          <option value="poll">📊 Poll</option>
+          <option value="personal">💬 Personal</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Title</label><input id="notiTitle" placeholder="Notification title" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Message</label><textarea id="notiMsg" placeholder="What do you want to tell users?" oninput="updatePreview()"></textarea></div>
+      <div class="form-group"><label>Redirect Link (optional)</label><input id="notiLink" placeholder="e.g., updates.html"></div>
+
+      <div class="noti-preview" id="notiPreview" style="display:none;">
+        <div class="preview-label">PREVIEW</div>
+        <div class="preview-type" id="previewType">UPDATE</div>
+        <div class="preview-title" id="previewTitle"></div>
+        <div class="preview-msg" id="previewMsg"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="btn-primary" onclick="sendNotification()">🚀 Send Now</button>
+        <button class="btn-secondary" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="history" class="page">
+    <h1 class="page-title">Notification History</h1>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Read / Total</th><th>Time</th><th>Actions</th></tr></thead>
+        <tbody id="historyTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div id="users" class="page">
+    <h1 class="page-title">User Directory</h1>
+    <div class="card">
+      <div class="search-box">
+        <input type="text" id="searchUsers" placeholder="Search by name, email, or ID..." oninput="filterUsers()">
+      </div>
+      <table>
+        <thead><tr><th>User</th><th>Email</th><th>UID</th><th>Balance</th></tr></thead>
+        <tbody id="usersTable"><tr><td colspan="4" class="empty-state">Loading users...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allUsers = [];
+
+window.showPage = (page) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  document.querySelectorAll('.nav-item')[['send','history','users'].indexOf(page)].classList.add('active');
+  if(page === 'send') loadStats();
+  if(page === 'history') loadHistory();
+  if(page === 'users') loadUsers();
+};
+
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.innerText = msg; t.className = 'toast' + (error ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ── STATS ──
+async function loadStats() {
+  const notiSnap = await getDocs(collection(db, 'notifications'));
+  const usersSnap = await getDocs(collection(db, 'users'));
+
+  document.getElementById('statTotal').innerText = notiSnap.size;
+  document.getElementById('statUsers').innerText = usersSnap.size;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  let todayCount = 0, readTotal = 0;
+  notiSnap.forEach(d => {
+    const n = d.data();
+    const createdAt = n.createdAt?.toDate ? n.createdAt.toDate() : new Date(n.createdAt);
+    if (createdAt >= today) todayCount++;
+    if (n.read) readTotal++;
+  });
+  document.getElementById('statToday').innerText = todayCount;
+  document.getElementById('statRead').innerText = notiSnap.size > 0 ? Math.round((readTotal / notiSnap.size) * 100) + '%' : '0%';
+
+  const s = document.getElementById('notiTarget');
+  s.innerHTML = '<option value="all">🌐 All Users</option>';
+  allUsers = [];
+  usersSnap.forEach(d => {
+    const u = d.data();
+    allUsers.push({ id: d.id, name: u.name || 'Unknown', email: u.email || '-' });
+    s.innerHTML += `<option value="${d.id}">👤 ${u.name || u.email || d.id.slice(0,8)}</option>`;
+  });
+}
+
+// ── TEMPLATES ──
+window.useTemplate = (type) => {
+  const templates = {
+    update: { type: 'update', title: 'Protocol Update', msg: 'A new update has been posted. Check the Updates section for details.', link: 'updates.html' },
+    poll: { type: 'poll', title: 'New Poll is Live!', msg: 'Your vote matters! Cast your vote on the latest community poll now.', link: '' },
+    contest: { type: 'update', title: '🏆 Referral Contest Active!', msg: 'The referral contest is live. Invite friends and climb the leaderboard to win POL rewards!', link: 'contests.html' },
+    warning: { type: 'personal', title: '⚠️ Important Notice', msg: 'Please review your account settings. Action required.', link: '' },
+    personal: { type: 'personal', title: 'Message from Admin', msg: 'Hello! This is a personal message from the ONCHYRA team.', link: '' }
+  };
+  const t = templates[type];
+  document.getElementById('notiType').value = t.type;
+  document.getElementById('notiTitle').value = t.title;
+  document.getElementById('notiMsg').value = t.msg;
+  document.getElementById('notiLink').value = t.link;
+  updatePreview();
+};
+
+window.updatePreview = () => {
+  const title = document.getElementById('notiTitle').value;
+  const msg = document.getElementById('notiMsg').value;
+  const type = document.getElementById('notiType');
+  const typeText = type.options[type.selectedIndex].text;
+  const preview = document.getElementById('notiPreview');
+
+  if (title || msg) {
+    preview.style.display = 'block';
+    document.getElementById('previewType').innerText = typeText.toUpperCase();
+    document.getElementById('previewTitle').innerText = title || '(no title)';
+    document.getElementById('previewMsg').innerText = msg || '(no message)';
+  } else {
+    preview.style.display = 'none';
+  }
+};
+
+window.clearForm = () => {
+  document.getElementById('notiTitle').value = '';
+  document.getElementById('notiMsg').value = '';
+  document.getElementById('notiLink').value = '';
+  document.getElementById('notiTarget').value = 'all';
+  document.getElementById('notiPreview').style.display = 'none';
+};
+
+window.sendNotification = async () => {
+  const target = document.getElementById('notiTarget').value;
+  const type = document.getElementById('notiType').value;
+  const title = document.getElementById('notiTitle').value.trim();
+  const msg = document.getElementById('notiMsg').value.trim();
+  const link = document.getElementById('notiLink').value.trim();
+
+  if (!title || !msg) { showToast('Title and message are required', true); return; }
+
+  try {
+    await setDoc(doc(collection(db, 'notifications')), {
+      userId: target,
+      type,
+      title,
+      message: msg,
+      link: link || '',
+      read: false,
+      createdAt: serverTimestamp()
+    });
+    showToast(target === 'all' ? 'Notification sent to all users!' : 'Notification sent successfully!');
+    clearForm();
+    loadStats();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+// ── HISTORY ──
+function loadHistory() {
+  const q = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(100));
+  onSnapshot(q, (snap) => {
+    const tbody = document.getElementById('historyTable');
+    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No notifications yet</td></tr>'; return; }
+    let html = '';
+    snap.forEach(d => {
+      const n = d.data();
+      const typeBadge = n.type === 'update' ? '<span class="badge badge-blue">Update</span>' : n.type === 'poll' ? '<span class="badge badge-green">Poll</span>' : '<span class="badge badge-yellow">Personal</span>';
+      const target = n.userId === 'all' ? '<span class="badge badge-green">All</span>' : `<span class="badge badge-purple">${n.userId.slice(0,8)}...</span>`;
+      const time = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString() : '-';
+      html += `<tr>
+        <td>${typeBadge}</td>
+        <td style="font-weight:700;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.title || '-'}</td>
+        <td>${target}</td>
+        <td><span class="badge ${n.read ? 'badge-green' : 'badge-yellow'}">${n.read ? 'Read' : 'Unread'}</span></td>
+        <td style="font-size:11px;opacity:0.5;white-space:nowrap">${time}</td>
+        <td><button class="btn-sm btn-danger" onclick="deleteNoti('${d.id}')">Delete</button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  });
+}
+
+window.deleteNoti = async (id) => {
+  if(!confirm('Delete this notification?')) return;
+  try {
+    await deleteDoc(doc(db, 'notifications', id));
+    showToast('Deleted!');
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+// ── USERS ──
+function loadUsers() {
+  const tbody = document.getElementById('usersTable');
+  if (!allUsers.length) {
+    getDocs(query(collection(db, 'users'), limit(200))).then(snap => {
+      allUsers = [];
+      snap.forEach(d => {
+        const u = d.data();
+        allUsers.push({ id: d.id, name: u.name || 'Unknown', email: u.email || '-', balance: (u.balance || 0).toFixed(2) });
+      });
+      renderUsers();
+    });
+  } else {
+    renderUsers();
+  }
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('usersTable');
+  let html = '';
+  allUsers.forEach(u => {
+    html += `<tr>
+      <td style="font-weight:700">${u.name}</td>
+      <td style="font-size:12px;opacity:0.5">${u.email}</td>
+      <td style="font-size:10px;font-family:monospace;opacity:0.4">${u.id}</td>
+      <td style="font-weight:700;color:var(--primary)">${u.balance}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html || '<tr><td colspan="4" class="empty-state">No users found</td></tr>';
+}
+
+window.filterUsers = () => {
+  const search = document.getElementById('searchUsers').value.toLowerCase();
+  const rows = document.querySelectorAll('#usersTable tr');
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+  });
+};
+
+loadStats();
+</script>
+
+</body>
+</html>
