@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
-:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red: #ef4444; }
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red: #ef4444; --pol:#8247e5; }
 
 body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit-tap-highlight-color: transparent; }
 
@@ -27,7 +27,6 @@ body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit
 
 .container { max-width:500px; margin:auto; padding:0 15px 40px; }
 
-/* WARNING BOX */
 .disclaimer-box {
   background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
   backdrop-filter: blur(10px); padding: 12px; border-radius: 14px; margin-bottom: 20px;
@@ -39,7 +38,6 @@ body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit
 
 .title-text { font-family:'Space Grotesk'; font-size:16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
 
-/* RANK ONLY DISPLAY */
 .rank-card-box { text-align: center; padding: 10px 0; }
 .rank-val { font-size: 32px; font-weight: 800; color: var(--primary); font-family: 'Space Grotesk'; }
 .rank-label { font-size: 12px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; display: block; }
@@ -69,7 +67,6 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 .row:last-child { border-bottom: none; }
 #timer { font-size:14px; color:var(--secondary); font-weight: 800; }
 
-/* WALLET WARNING */
 .wallet-warning {
     background: rgba(239, 68, 68, 0.15); border: 1px dashed var(--red);
     padding: 10px; border-radius: 10px; font-size: 11px; color: #ff9999;
@@ -85,6 +82,8 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 
 #toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:14px 28px; border-radius:50px; font-weight:800; display:none; z-index:4000; font-size:13px; }
 .empty-state { text-align: center; padding: 30px 10px; opacity: 0.4; font-size: 12px; }
+
+.pol-icon { width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; }
 </style>
 </head>
 
@@ -102,7 +101,7 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 <div class="container">
 
   <div class="disclaimer-box">
-    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined after your registration will be counted. Purging fake accounts will lead to permanent ban.
+    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined AFTER your registration will be counted. Purging fake accounts will lead to permanent ban.
   </div>
 
   <div class="card">
@@ -131,14 +130,32 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 
   <div class="card">
     <div style="font-size:11px; margin-bottom:12px; color: var(--primary); font-weight: 800; letter-spacing: 1px;">PRIZE POOL</div>
-    <div class="row"><div>Rank 1</div><b>15 POL</b></div>
-    <div class="row"><div>Rank 2</div><b>10 POL</b></div>
-    <div class="row"><div>Rank 3</div><b>5 POL</b></div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:var(--primary);">Rank 1</span>
+      </div>
+      <b style="color:#ffd700;">15 POL</b>
+    </div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:#c0c0c0;">Rank 2</span>
+      </div>
+      <b style="color:#e0e0e0;">10 POL</b>
+    </div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:#cd7f32;">Rank 3</span>
+      </div>
+      <b style="color:#cd7f32;">5 POL</b>
+    </div>
   </div>
 
   <div class="card">
     <div class="title-text">Leaderboard (Top 10)</div>
-    <div style="font-size:10px; color:var(--red); margin: 5px 0 15px; font-weight: 600;">Minimum 1 direct is compulsory to qualify</div>
+    <div style="font-size:10px; color:var(--red); margin: 5px 0 15px; font-weight: 600;">Minimum 1 direct referral AFTER joining is required to qualify</div>
     <div id="leaderboard">
         <div class="empty-state">Loading rankings...</div>
     </div>
@@ -151,8 +168,8 @@ button:disabled { opacity:.4; cursor: not-allowed; }
     <div style="font-family:'Space Grotesk'; font-size: 18px; font-weight: 800; text-align: center;">Payout Address</div>
     <input id="walletInput" placeholder="0x...">
     
-    <div class="wallet-warning">
-        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. If you enter an incorrect address, your rewards will be lost forever.
+    <div class="wallet-warning" id="walletWarning">
+        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. Each address can only be used ONCE. If you try to use an already registered address, you will be <strong>BANNED</strong> permanently.
     </div>
 
     <button id="submitWalletBtn" style="margin-top: 15px;">Confirm and Join</button>
@@ -199,7 +216,6 @@ onAuthStateChanged(auth, async (user)=>{
   if(!user) { window.location = "login.html"; return; }
   currentUser = user;
   
-  // Real-time Sync for User Referrals
   onSnapshot(doc(db, "users", user.uid), async (uSnap) => {
     if(!uSnap.exists()) return;
     const userData = uSnap.data();
@@ -244,7 +260,6 @@ onAuthStateChanged(auth, async (user)=>{
     jb.onclick = () => document.getElementById("walletModal").style.display = "flex";
   }
 
-  // Leaderboard Listener
   const qL = query(collection(db, "contestParticipants"), where("contestId", "==", contestId), where("contestReferrals", ">=", 1), orderBy("contestReferrals", "desc"), limit(100));
   
   onSnapshot(qL, async (snap) => {
@@ -268,7 +283,19 @@ onAuthStateChanged(auth, async (user)=>{
         const uS = await getDoc(doc(db, "users", res.userId));
         if(uS.exists()) name = uS.data().name || uS.data().referralCode || name;
         
-        let html_row = `<div class="row"><div><span style="color:var(--primary); font-weight:800; margin-right:8px;">#${i + 1}</span> ${name}</div><div style="font-weight:700; color:var(--primary);">${res.contestReferrals}</div></div>`;
+        const rankColors = ['#ffd700', '#c0c0c0', '#cd7f32'];
+        const rankColor = i < 3 ? rankColors[i] : 'var(--primary)';
+        
+        let html_row = `<div class="row">
+          <div>
+            <svg class="pol-icon" viewBox="0 0 32 32" fill="none" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+              <path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/>
+              <path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/>
+            </svg>
+            <span style="font-weight:800;color:${rankColor};margin-right:6px;">#${i + 1}</span> ${name}
+          </div>
+          <div style="font-weight:700;color:${rankColor};">${res.contestReferrals}</div>
+        </div>`;
         results.push(html_row);
     }
     document.getElementById("leaderboard").innerHTML = results.join("");
@@ -284,14 +311,18 @@ function setJoinedUI() {
 }
 
 document.getElementById("submitWalletBtn").onclick = async () => {
-  const wallet = document.getElementById("walletInput").value.trim();
+  const wallet = document.getElementById("walletInput").value.trim().toLowerCase();
   if(wallet.length < 20) { showToast("Invalid wallet address"); return; }
+  
+  const walletCheck = await getDocs(query(collection(db, "contestParticipants"), where("walletAddress", "==", wallet)));
+  if(!walletCheck.empty) {
+    showToast("This address has already been used! Use a different address or you will be banned permanently.", true);
+    return;
+  }
   
   const uSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
   const currentRef = Number(uSnap.data().refLevel1 || 0);
-  
-  // Jo tune kaha tha "Abhi hi aya hai" toh usko count karne ke liye baseValue handle ki hai
-  const baseValue = currentRef > 0 ? currentRef - 1 : 0;
+  const baseValue = currentRef;
 
   await setDoc(participantRef, { 
       contestId, 
@@ -299,11 +330,11 @@ document.getElementById("submitWalletBtn").onclick = async () => {
       walletAddress: wallet, 
       joinTime: Date.now(), 
       joinReferrals: baseValue, 
-      contestReferrals: 1 
+      contestReferrals: 0 
   });
   
   document.getElementById("walletModal").style.display = "none";
-  setJoinedUI(); showToast("Joined Successfully!");
+  setJoinedUI(); showToast("Joined Successfully! Only referrals after joining will be counted.");
 };
 
 window.copyLink = () => {
@@ -312,10 +343,12 @@ window.copyLink = () => {
     showToast("Link Copied!");
 };
 
-function showToast(msg){
+function showToast(msg, error = false){
   const t = document.getElementById("toast");
   t.innerText = msg; t.style.display = "block";
-  setTimeout(()=> t.style.display = "none", 2500);
+  t.style.background = error ? "#ef4444" : "#fff";
+  t.style.color = error ? "#fff" : "#000";
+  setTimeout(()=> { t.style.display = "none"; }, 4000);
 }
 </script>
 
