@@ -144,6 +144,30 @@
             background: none; border: none; cursor: pointer; font-weight: 600;
         }
         .popup-later:hover { color: rgba(255,255,255,0.4); }
+
+        /* NOTIFICATION BELL */
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .bell-wrap { position: relative; cursor: pointer; padding: 4px; }
+        .bell-badge { position: absolute; top: -2px; right: -4px; width: 16px; height: 16px; background: #ef4444; border-radius: 50%; font-size: 9px; font-weight: 800; color: white; display: none; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+        .bell-badge.show { display: flex; }
+        .bell-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 320px; max-height: 400px; background: #0b0d18; border: 1px solid var(--border); border-radius: 20px; overflow-y: auto; display: none; z-index: 2000; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .bell-dropdown.open { display: block; animation: dropIn 0.2s ease; }
+        @keyframes dropIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+        .bell-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+        .bell-header span { font-family: 'Space Grotesk'; font-weight: 700; font-size: 14px; }
+        .bell-clear { font-size: 10px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 700; }
+        .noti-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.15s; }
+        .noti-item:hover { background: rgba(255,255,255,0.02); }
+        .noti-item.unread { border-left: 3px solid var(--primary); }
+        .noti-item .noti-type { font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .noti-type-update { color: var(--secondary); }
+        .noti-type-poll { color: #22c55e; }
+        .noti-type-personal { color: #fbbf24; }
+        .noti-item .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .noti-item .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
+        .noti-item .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
+        .noti-empty { padding: 40px 20px; text-align: center; font-size: 12px; opacity: 0.3; }
+        @media (max-width: 600px) { .bell-dropdown { width: calc(100vw - 40px); right: -60px; } }
     </style>
 </head>
 <body>
@@ -176,8 +200,21 @@
             <svg width="24" height="24" stroke="white" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </div>
         <div style="font-family:'Space Grotesk';font-weight:900;">ONCHYRA</div>
-        <div onclick="window.location='profile.html'" style="cursor:pointer;">
-            <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div class="nav-right">
+            <div class="bell-wrap" onclick="toggleNotiDropdown(event)">
+                <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <div class="bell-badge" id="notiBadge">0</div>
+                <div class="bell-dropdown" id="notiDropdown">
+                    <div class="bell-header">
+                        <span>Notifications</span>
+                        <button class="bell-clear" onclick="markAllRead(event)">Mark all read</button>
+                    </div>
+                    <div id="notiList"><div class="noti-empty">No notifications</div></div>
+                </div>
+            </div>
+            <div onclick="window.location='profile.html'" style="cursor:pointer;">
+                <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
         </div>
     </div>
 </div>
@@ -260,11 +297,16 @@
             <div style="font-family:'Space Grotesk';font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">ONCHYRA</div>
             <div style="font-size:10px;opacity:0.4;letter-spacing:3px;margin-bottom:6px;">DECENTRALIZED VALIDATION NETWORK</div>
             <div style="font-size:10px;opacity:0.3;margin-bottom:24px;">Mine The Future.</div>
-            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
-                <a href="updates.html" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-decoration:none;padding:8px 18px;border:1px solid rgba(255,255,255,0.08);border-radius:20px;">Updates</a>
-                <a href="leaderboard.html" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-decoration:none;padding:8px 18px;border:1px solid rgba(255,255,255,0.08);border-radius:20px;">Leaderboard</a>
-                <a href="referrals.html" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-decoration:none;padding:8px 18px;border:1px solid rgba(255,255,255,0.08);border-radius:20px;">Referrals</a>
-                <a href="profile.html" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-decoration:none;padding:8px 18px;border:1px solid rgba(255,255,255,0.08);border-radius:20px;">Profile</a>
+            <div style="display:flex;justify-content:center;gap:16px;margin-bottom:24px;">
+                <a href="https://t.me/onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#60a5fa"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.216s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                </a>
+                <a href="https://youtube.com/@onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+                <a href="https://instagram.com/onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="url(#igGrad)"><defs><linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#feda75"/><stop offset="25%" stop-color="#fa7e1e"/><stop offset="50%" stop-color="#d62976"/><stop offset="75%" stop-color="#962fbf"/><stop offset="100%" stop-color="#4f5bd5"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+                </a>
             </div>
             <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
             <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
@@ -372,15 +414,13 @@ onAuthStateChanged(auth, async (user) => {
     fetchStats();
     loadPoll();
     fetchLatestUpdate();
+    loadNotifications();
 
-    // Show contest popup 1 second after login — only ONCE per session
-    const hasSeenPopup = localStorage.getItem('onchyra_contest_popup');
-    if (!hasSeenPopup) {
+    const cameFromContest = document.referrer.includes('contests.html');
+    if (!cameFromContest) {
         setTimeout(() => {
-            const popup = document.getElementById('contestPopup');
-            popup.classList.add('show');
+            document.getElementById('contestPopup').classList.add('show');
         }, 1000);
-        localStorage.setItem('onchyra_contest_popup', 'seen');
     }
 });
 
@@ -564,6 +604,84 @@ window.toggleMenu = () => {
 window.logout = () => {
     signOut(auth).then(() => window.location = "login.html");
 };
+
+// ── NOTIFICATIONS ──
+function timeAgoNoti(t) {
+    if (!t) return "Just now";
+    try {
+        const d = t.toDate ? t.toDate() : new Date(t);
+        const s = Math.floor((new Date() - d) / 1000);
+        if (s < 60) return "Just now";
+        if (s < 3600) return Math.floor(s / 60) + "m ago";
+        if (s < 86400) return Math.floor(s / 3600) + "h ago";
+        return Math.floor(s / 86400) + "d ago";
+    } catch (e) { return "Recently"; }
+}
+
+function loadNotifications() {
+    const notiQ = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50));
+    onSnapshot(notiQ, (snap) => {
+        let unread = 0;
+        let html = '';
+        if (snap.empty) {
+            html = '<div class="noti-empty">No notifications</div>';
+        } else {
+            snap.forEach(d => {
+                const n = d.data();
+                const isUser = n.userId === uid || n.userId === "all";
+                if (!isUser) return;
+                if (!n.read) unread++;
+                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : 'noti-type-personal';
+                const typeLabel = n.type === 'update' ? '📢 Update' : n.type === 'poll' ? '📊 Poll' : '💬 Personal';
+                html += `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="readNoti('${d.id}', '${n.link || ''}')">
+                    <div class="noti-type ${typeClass}">${typeLabel}</div>
+                    <div class="noti-title">${n.title || ''}</div>
+                    <div class="noti-msg">${n.message || ''}</div>
+                    <div class="noti-time">${timeAgoNoti(n.createdAt)}</div>
+                </div>`;
+            });
+            if (!html) html = '<div class="noti-empty">No notifications</div>';
+        }
+        document.getElementById('notiList').innerHTML = html;
+        const badge = document.getElementById('notiBadge');
+        if (unread > 0) {
+            badge.classList.add('show');
+            badge.innerText = unread > 9 ? '9+' : unread;
+        } else {
+            badge.classList.remove('show');
+        }
+    });
+}
+
+window.toggleNotiDropdown = (e) => {
+    e.stopPropagation();
+    document.getElementById('notiDropdown').classList.toggle('open');
+};
+
+window.markAllRead = async (e) => {
+    e.stopPropagation();
+    const q = query(collection(db, "notifications"), where("read", "==", false));
+    const snap = await getDocs(q);
+    const batch = [];
+    snap.forEach(d => {
+        const n = d.data();
+        if (n.userId === uid || n.userId === "all") {
+            batch.push(updateDoc(doc(db, "notifications", d.id), { read: true }));
+        }
+    });
+    await Promise.all(batch);
+};
+
+window.readNoti = async (id, link) => {
+    await updateDoc(doc(db, "notifications", id), { read: true });
+    if (link) window.location = link;
+};
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notiDropdown');
+    if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
+});
 </script>
 </body>
 </html>
