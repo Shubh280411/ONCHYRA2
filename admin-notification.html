@@ -129,6 +129,13 @@ textarea { resize: vertical; min-height: 80px; }
 </head>
 <body>
 
+<div id="loginScreen" style="position:fixed;inset:0;background:#03040a;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;">
+  <div class="spinner" style="width:40px;height:40px;border:3px solid rgba(167,139,250,0.1);border-top:3px solid #a78bfa;border-radius:50%;animation:spin 1s linear infinite;"></div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;font-weight:700;">Verifying Admin...</div>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 <nav class="sidebar">
   <h2>ONCHY<span>RA</span></h2>
   <div class="nav-item active" onclick="showPage('send')">
@@ -229,6 +236,7 @@ textarea { resize: vertical; min-height: 80px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -238,9 +246,21 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 let allUsers = [];
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location = "login.html"; return; }
+  const uSnap = await getDoc(doc(db, 'users', user.uid));
+  if (!uSnap.exists() || uSnap.data().role !== 'admin') {
+    document.getElementById('loginScreen').innerHTML = '<div style="font-family:Space Grotesk;font-size:24px;font-weight:900;color:#ef4444;">Access Denied</div><div style="font-size:12px;opacity:0.4;margin-top:8px;">Admin access required</div>';
+    return;
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  loadStats();
+});
 
 window.showPage = (page) => {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -430,8 +450,6 @@ window.filterUsers = () => {
     row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
   });
 };
-
-loadStats();
 </script>
 
 </body>
