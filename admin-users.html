@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        /* Auth confirm hone tak body hide rahegi */
         body { font-family: 'Inter', sans-serif; background: #05060f; color: white; padding: 20px; display: none; }
         .container { max-width: 500px; margin: auto; }
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; backdrop-filter: blur(10px); }
@@ -35,6 +34,10 @@
         .unban-btn { background: #22c55e; color: white; }
         .quick-btn { background: rgba(255,255,255,0.1); color: white; font-size: 11px; padding: 8px; }
         .quick-btn:hover { background: #60a5fa; }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 13px; display: none; z-index: 3000; }
+        .toast.success { background: #22c55e; color: white; }
+        .toast.error { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
@@ -71,9 +74,11 @@
     </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, updateDoc, collection, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, updateDoc, collection, getDocs, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -90,19 +95,31 @@
     const auth = getAuth(app);
 
     let currentUID = null;
+    let currentUserData = null;
+    let adminUID = null;
 
-    // --- Strict Auth & Redirect Logic ---
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.replace("admin-login.html");
+            window.location.replace("login.html");
         } else {
-            document.body.style.display = "block";
+            try {
+                const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+                if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                    document.body.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;font-family:Inter;"><h2>Access Denied</h2><p style="opacity:0.4;margin-top:8px;">Admin access required.</p></div>';
+                    document.body.style.display = 'block';
+                    return;
+                }
+                adminUID = user.uid;
+                document.body.style.display = "block";
+            } catch(e) {
+                console.error(e);
+            }
         }
     });
 
     window.logout = () => {
         signOut(auth).then(() => {
-            window.location.replace("admin-login.html");
+            window.location.replace("login.html");
         });
     };
 
@@ -124,7 +141,6 @@
             snap.forEach(d => {
                 const u = d.data();
                 const sk = val.toLowerCase();
-                // Search logic updated for Name, Email, and Referral Code
                 const nameMatch = u.name && u.name.toLowerCase().includes(sk);
                 const emailMatch = u.email && u.email.toLowerCase().includes(sk);
                 const refMatch = u.referralCode && u.referralCode.toLowerCase().includes(sk);
@@ -151,6 +167,7 @@
 
     function selectUser(uid, data) {
         currentUID = uid;
+        currentUserData = data;
         document.getElementById("searchResults").style.display = "none";
         document.getElementById("search").value = data.name;
         document.getElementById("info").style.display = "block";
@@ -189,26 +206,57 @@
         `;
     }
 
+    function showToast(msg, error = false) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.className = 'toast ' + (error ? 'error' : 'success');
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
     window.updateOnc = async (isAdd) => {
         const amtInput = document.getElementById("amount");
         const amt = parseFloat(amtInput.value);
         if (!currentUID || isNaN(amt)) {
-            alert("Please enter a valid amount");
+            showToast("Please enter a valid amount", true);
             return;
         }
-        if(confirm(`Confirm ${isAdd ? 'Add' : 'Remove'} ${amt} ONC?`)) {
-            await updateDoc(doc(db, "users", currentUID), { balance: increment(isAdd ? amt : -amt) });
-            alert("Balance Updated!");
-            location.reload(); 
+        if (!confirm(`Confirm ${isAdd ? 'Add' : 'Remove'} ${amt} ONC for ${currentUserData?.name || 'user'}?`)) return;
+
+        try {
+            // Step 1: Save transaction to admin_transactions (audit trail)
+            await setDoc(doc(collection(db, "admin_transactions")), {
+                adminId: adminUID,
+                targetUserId: currentUID,
+                targetUserName: currentUserData?.name || 'Unknown',
+                amount: amt,
+                type: isAdd ? 'add' : 'remove',
+                previousBalance: currentUserData?.balance || 0,
+                newBalance: (currentUserData?.balance || 0) + (isAdd ? amt : -amt),
+                createdAt: serverTimestamp()
+            });
+
+            // Step 2: Update balance
+            await updateDoc(doc(db, "users", currentUID), {
+                balance: increment(isAdd ? amt : -amt)
+            });
+
+            showToast(`${amt} ONC ${isAdd ? 'added' : 'removed'} successfully!`);
+            amtInput.value = '';
+        } catch(e) {
+            showToast('Error: ' + e.message, true);
         }
     };
 
     window.handleBan = async (newStatus) => {
         if (!currentUID) return;
-        if(confirm(`Are you sure you want to ${newStatus ? 'BAN' : 'UNBAN'}?`)) {
+        if (!confirm(`Are you sure you want to ${newStatus ? 'BAN' : 'UNBAN'} ${currentUserData?.name}?`)) return;
+        try {
             await updateDoc(doc(db, "users", currentUID), { banned: newStatus });
-            alert("Status Updated!");
-            location.reload();
+            showToast(`User ${newStatus ? 'banned' : 'unbanned'}!`);
+            currentUserData.banned = newStatus;
+            selectUser(currentUID, currentUserData);
+        } catch(e) {
+            showToast('Error: ' + e.message, true);
         }
     };
 </script>
