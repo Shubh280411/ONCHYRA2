@@ -340,7 +340,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     getFirestore, doc, onSnapshot, updateDoc, collection,
-    query, limit, orderBy, getDoc, setDoc, getCountFromServer
+    query, limit, orderBy, getDoc, setDoc, getCountFromServer, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -555,8 +555,25 @@ window.claim = async () => {
             newStreak = 1;
         }
 
+        const newBalance = (userData.balance || 0) + 0.10;
+
+        // Step 1: Create claim record in claims collection (audit trail)
+        await setDoc(doc(collection(db, "claims"), uid + "_" + now), {
+            userId: uid,
+            createdAt: serverTimestamp(),
+            clientTimestamp: now,
+            previousBalance: userData.balance || 0,
+            claimedBalance: newBalance,
+            claimedAmount: 0.10,
+            previousStreak: userData.streak || 0,
+            claimedStreak: newStreak,
+            timeSinceLastClaim: timeSinceLast,
+            status: "completed"
+        });
+
+        // Step 2: Update user balance (Firestore rules will validate)
         await updateDoc(doc(db, "users", uid), {
-            balance: (userData.balance || 0) + 0.10,
+            balance: newBalance,
             lastClaim: now,
             streak: newStreak
         });
