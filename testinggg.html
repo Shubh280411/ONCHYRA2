@@ -396,9 +396,25 @@ onAuthStateChanged(auth, async (user) => {
             window.location = "banned.html";
             return;
         }
-    } catch(e) { console.error("Ban check error:", e); }
+        // Load data immediately from getDoc (for blocked onSnapshot fallback)
+        const data = initialSnap.data();
+        if (data) {
+            userData = data;
+            updateUI();
+            checkMining();
+            let code = userData.referralCode;
+            if (!code) {
+                code = uid.substring(0, 6).toUpperCase();
+                updateDoc(doc(db, "users", uid), { referralCode: code });
+            }
+            document.getElementById('refCodeText').innerText = code;
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('dashboardData').style.display = "grid";
+        }
+    } catch(e) { console.error("Init error:", e); }
 
-    onSnapshot(doc(db, "users", uid), (snap) => {
+    // Real-time listener (some extensions block this)
+    const unsub = onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
             const data = snap.data();
             if (data.banned === true) {
@@ -419,7 +435,25 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('loader').style.display = "none";
             document.getElementById('dashboardData').style.display = "grid";
         }
+    }, (err) => {
+        console.warn("Realtime listener error, using fallback polling:", err);
     });
+
+    // Fallback polling (every 15s) for when onSnapshot is blocked
+    setInterval(async () => {
+        try {
+            const snap = await getDoc(doc(db, "users", uid));
+            if (snap.exists()) {
+                const d = snap.data();
+                if (d.banned) { window.location = "banned.html"; return; }
+                if (d.lastClaim !== userData?.lastClaim || d.balance !== userData?.balance || d.streak !== userData?.streak) {
+                    userData = d;
+                    updateUI();
+                    checkMining();
+                }
+            }
+        } catch(e) {}
+    }, 15000);
 
     fetchStats();
     loadPoll();
@@ -589,10 +623,18 @@ window.claim = async () => {
             lastClaim: now,
             streak: newStreak
         });
-        showToast("0.10 ONC MINED");
-    } catch (e) {
-        showToast("Error mining");
+
+        // Step 3: Manual update (in case onSnapshot is blocked)
+        userData.balance = newBalance;
+        userData.lastClaim = now;
+        userData.streak = newStreak;
+        updateUI();
         checkMining();
+        showToast("0.10 ONC MINED ✅");
+    } catch (e) {
+        checkMining();
+        showToast("⚠ " + e.message);
+        console.error("Claim Error:", e);
     }
 };
 
