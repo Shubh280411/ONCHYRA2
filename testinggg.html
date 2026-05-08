@@ -350,7 +350,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     getFirestore, doc, onSnapshot, updateDoc, collection,
-    query, limit, orderBy, getDoc, setDoc, getCountFromServer, serverTimestamp
+    query, limit, orderBy, getDoc, setDoc, serverTimestamp,
+    initializeFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -364,7 +365,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
 let uid, userData, currentPollId, currentPollData;
 let miningTimer = null;
