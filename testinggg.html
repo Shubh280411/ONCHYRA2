@@ -350,7 +350,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     getFirestore, doc, onSnapshot, updateDoc, collection,
-    query, limit, orderBy, getDoc, setDoc, serverTimestamp,
+    query, limit, orderBy, getDoc, setDoc, serverTimestamp, getCountFromServer,
     initializeFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -437,29 +437,16 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('dashboardData').style.display = "grid";
         }
     }, (err) => {
-        console.warn("Realtime listener error, using fallback polling:", err);
+        console.warn("Realtime listener error:", err);
     });
-
-    // Fallback polling (every 15s) for when onSnapshot is blocked
-    setInterval(async () => {
-        try {
-            const snap = await getDoc(doc(db, "users", uid));
-            if (snap.exists()) {
-                const d = snap.data();
-                if (d.banned) { window.location = "banned.html"; return; }
-                if (d.lastClaim !== userData?.lastClaim || d.balance !== userData?.balance || d.streak !== userData?.streak) {
-                    userData = d;
-                    updateUI();
-                    checkMining();
-                }
-            }
-        } catch(e) {}
-    }, 15000);
 
     fetchStats();
     loadPoll();
     fetchLatestUpdate();
     loadNotifications();
+
+    // Periodic refresh (every 20s) — backup for when onSnapshot is blocked
+    setInterval(() => { refreshDashboard(); }, 20000);
 
     if (sessionStorage.getItem('contestPopupSeen')) return;
     const cameFromContest = document.referrer.includes('contests.html');
@@ -476,12 +463,13 @@ window.closeContestPopup = () => {
 };
 
 async function fetchStats() {
-    onSnapshot(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)), (snap) => {
+    try {
+        const topSnap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
         const lb = document.getElementById('miniLeaderboard');
         lb.innerHTML = "";
         let rank = 1;
         const rankLabels = ["#1", "#2", "#3"];
-        snap.forEach(d => {
+        topSnap.forEach(d => {
             lb.innerHTML += `<div class="lb-row">
                 <span class="user-name">
                     <span style="color:var(--primary);font-size:10px;margin-right:6px;">${rankLabels[rank-1]}</span>
@@ -491,38 +479,42 @@ async function fetchStats() {
             </div>`;
             rank++;
         });
-    });
+    } catch(e) { console.error("Stats error:", e); }
 
-    onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)), (snap) => {
+    try {
+        const recentSnap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)));
         const list = document.getElementById('liveFeedList');
         list.innerHTML = "";
-        snap.forEach(d => {
+        recentSnap.forEach(d => {
             list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name || "Anonymous"}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
         });
-    });
+    } catch(e) { console.error("Feed error:", e); }
 
     try {
         const uCount = await getCountFromServer(collection(db, "users"));
         document.getElementById('totalUsers').innerText = uCount.data().count.toLocaleString();
     } catch (e) { console.error("Count error:", e); }
 
-    onSnapshot(collection(db, "users"), (snap) => {
+    try {
+        const allSnap = await getDocs(collection(db, "users"));
         let sum = 0;
-        snap.forEach(d => sum += (d.data().balance || 0));
+        allSnap.forEach(d => sum += (d.data().balance || 0));
         document.getElementById('totalMined').innerText = sum.toFixed(2);
-    });
+    } catch(e) { console.error("Sum error:", e); }
 }
 
 async function fetchLatestUpdate() {
-    onSnapshot(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)), (snap) => {
+    try {
+        const snap = await getDocs(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)));
         if (!snap.empty) {
             document.getElementById('latestUpdateTitle').innerText = snap.docs[0].data().title;
         }
-    });
+    } catch(e) { console.error("Update error:", e); }
 }
 
 async function loadPoll() {
-    onSnapshot(query(collection(db, "polls"), limit(1)), async (snap) => {
+    try {
+        const snap = await getDocs(query(collection(db, "polls"), limit(1)));
         if (!snap.empty) {
             const pDoc = snap.docs[0];
             currentPollId = pDoc.id;
@@ -709,8 +701,13 @@ function timeAgoNoti(t) {
 }
 
 function loadNotifications() {
-    const notiQ = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50));
-    onSnapshot(notiQ, (snap) => {
+    refreshNotifications();
+}
+
+async function refreshNotifications() {
+    try {
+        const notiQ = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50));
+        const snap = await getDocs(notiQ);
         let unread = 0;
         let html = '';
         if (snap.empty) {
@@ -740,7 +737,25 @@ function loadNotifications() {
         } else {
             badge.classList.remove('show');
         }
-    });
+    } catch(e) { console.error("Notifications error:", e); }
+}
+
+async function refreshDashboard() {
+    try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (snap.exists()) {
+            const d = snap.data();
+            if (d.banned) { window.location = "banned.html"; return; }
+            if (d.lastClaim !== userData?.lastClaim || d.balance !== userData?.balance || d.streak !== userData?.streak) {
+                userData = d;
+                updateUI();
+                checkMining();
+            }
+        }
+    } catch(e) {}
+    fetchStats();
+    fetchLatestUpdate();
+    refreshNotifications();
 }
 
 window.toggleNotiDropdown = (e) => {
