@@ -350,7 +350,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     doc, onSnapshot, updateDoc, collection,
-    query, limit, orderBy, getDoc, setDoc, getCountFromServer, serverTimestamp,
+    query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
+    increment, where,
     initializeFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -587,15 +588,23 @@ window.claim = async () => {
             status: "completed"
         });
 
-        // Step 2: Update user balance (Firestore rules will validate)
+        // Step 2: Update user balance (delta-safe with increment)
         await updateDoc(doc(db, "users", uid), {
-            balance: newBalance,
+            balance: increment(0.10),
             lastClaim: now,
             streak: newStreak
         });
+
+        // Step 3: manual local sync (works even if realtime channel is blocked)
+        userData.balance = newBalance;
+        userData.lastClaim = now;
+        userData.streak = newStreak;
+        updateUI();
+        checkMining();
         showToast("0.10 ONC MINED");
     } catch (e) {
-        showToast("Error mining");
+        showToast("Error mining: " + (e?.message || "unknown"));
+        console.error("Claim Error:", e);
         checkMining();
     }
 };
