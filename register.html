@@ -16,47 +16,86 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
+  padding:20px;
 }
 .card{
-  width:360px;
-  padding:40px;
-  border-radius:18px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
+  width:380px;
+  padding:40px 36px;
+  border-radius:24px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
   text-align:center;
+  backdrop-filter:blur(20px);
 }
 h1{
   font-family:'Manrope';
-  margin-bottom:20px;
+  font-size:28px;
+  margin-bottom:4px;
   background:linear-gradient(90deg,#a78bfa,#60a5fa);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
-input{
-  width:100%;
-  padding:14px;
-  margin-top:12px;
-  border-radius:10px;
-  border:none;
-  background:rgba(255,255,255,0.08);
-  color:white;
+.sub{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:24px;letter-spacing:1px;}
+.input-wrap{
+  position:relative;
+  margin-top:14px;
 }
-button{
+.input-wrap input{
   width:100%;
-  margin-top:18px;
-  padding:14px;
+  padding:16px 18px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.05);
+  color:white;
+  font-size:14px;
+  outline:none;
+  transition:0.25s;
+}
+.input-wrap input:focus{
+  border-color:rgba(167,139,250,0.4);
+  background:rgba(255,255,255,0.07);
+}
+.input-wrap input::placeholder{color:rgba(255,255,255,0.25);}
+.pass-toggle{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
   border:none;
-  border-radius:12px;
+  color:rgba(255,255,255,0.3);
+  cursor:pointer;
+  padding:4px;
+  display:flex;
+  transition:0.2s;
+}
+.pass-toggle:hover{color:rgba(255,255,255,0.6);}
+button[type="submit"]{
+  width:100%;
+  margin-top:22px;
+  padding:16px;
+  border:none;
+  border-radius:14px;
   background:linear-gradient(135deg,#a78bfa,#60a5fa);
   color:#0b0b20;
-  font-weight:700;
+  font-weight:800;
+  font-size:14px;
   cursor:pointer;
+  transition:0.25s;
 }
-button:disabled{
-  opacity:0.6;
-  cursor:not-allowed;
+button[type="submit"]:hover{opacity:0.9;transform:translateY(-1px);}
+button[type="submit"]:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.login-link{
+  display:block;
+  margin-top:20px;
+  font-size:13px;
+  color:rgba(255,255,255,0.35);
+  text-decoration:none;
+  transition:0.2s;
 }
+.login-link:hover{color:var(--primary);}
+.login-link span{color:#a78bfa;font-weight:600;}
 </style>
 </head>
 
@@ -64,17 +103,38 @@ button:disabled{
 
 <div class="card">
   <h1>ONCHYRA</h1>
-  <input id="name" placeholder="Full Name">
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <input id="referral" placeholder="Referral Code (Optional)">
-  <button id="regBtn" onclick="registerUser()">Create Account</button>
+  <div class="sub">CREATE YOUR MINING ACCOUNT</div>
+
+  <div class="input-wrap">
+    <input type="text" id="name" placeholder="Full Name" autocomplete="name">
+  </div>
+  
+  <div class="input-wrap">
+    <input type="email" id="email" placeholder="Email" autocomplete="email">
+  </div>
+  
+  <div class="input-wrap">
+    <input type="password" id="password" placeholder="Password" autocomplete="new-password">
+    <button class="pass-toggle" id="passToggle" type="button" onclick="togglePass()" tabindex="-1">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path id="eyeIcon" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle id="eyeDot" cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="input-wrap">
+    <input type="text" id="referral" placeholder="Referral Code (Optional)" autocomplete="off">
+  </div>
+
+  <button type="submit" id="regBtn" onclick="registerUser()">Create Account</button>
+  
+  <a href="login.html" class="login-link">Already have an account? <span>Sign In</span></a>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -87,23 +147,34 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
 let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
 localStorage.setItem("onc_device", deviceId);
 
-// 🔥 AUTO REF FROM LINK
+// Auto-fill referral from URL
 window.addEventListener("DOMContentLoaded", () => {
   const ref = new URLSearchParams(window.location.search).get("ref");
-  if(ref){
-    document.getElementById("referral").value = ref.toUpperCase();
-  }
+  if(ref) document.getElementById("referral").value = ref.toUpperCase();
 });
 
-window.registerUser = async function(){
+window.togglePass = () => {
+  const p = document.getElementById("password");
+  const icon = document.getElementById("eyeIcon");
+  const dot = document.getElementById("eyeDot");
+  if (p.type === "password") {
+    p.type = "text";
+    icon.setAttribute("d", "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24");
+    dot.style.display = "none";
+  } else {
+    p.type = "password";
+    icon.setAttribute("d", "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z");
+    dot.style.display = "";
+  }
+};
 
+window.registerUser = async function() {
   const btn = document.getElementById("regBtn");
-
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -114,23 +185,16 @@ window.registerUser = async function(){
     return;
   }
 
-  // 🔒 prevent double click
   btn.disabled = true;
   btn.innerText = "Creating...";
 
   try {
-
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
-
     const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
 
-    let finalReferredBy = null;
-
-    // 🔥 CREATE USER FIRST (IMPORTANT)
     await setDoc(doc(db,"users",uid),{
-      name,email,uid,
-      deviceId,
+      name,email,uid,deviceId,
       balance:0,
       referralCode:myRefCode,
       referredBy: referralInput || null,
@@ -138,30 +202,24 @@ window.registerUser = async function(){
       refLevel1:0,
       refLevel2:0,
       refLevel3:0,
+      streak:0, lastClaim:0,
       createdAt: serverTimestamp()
     });
 
-    // 🔥 REFERRAL SYSTEM
     if(referralInput){
-
       const q1 = query(collection(db,"users"), where("referralCode","==",referralInput));
       const snap1 = await getDocs(q1);
 
       if(!snap1.empty){
-
         const l1Doc = snap1.docs[0];
         const l1Data = l1Doc.data();
 
-        finalReferredBy = referralInput;
-
-        // L1
         await updateDoc(doc(db,"users",l1Doc.id),{
           balance: increment(0.25),
           referrals: increment(1),
           refLevel1: increment(1)
         });
 
-        // L2
         if(l1Data.referredBy){
           const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
           const snap2 = await getDocs(q2);
@@ -175,7 +233,6 @@ window.registerUser = async function(){
               refLevel2: increment(1)
             });
 
-            // L3
             if(l2Data.referredBy){
               const q3 = query(collection(db,"users"), where("referralCode","==",l2Data.referredBy));
               const snap3 = await getDocs(q3);
