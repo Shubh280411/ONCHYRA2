@@ -332,7 +332,7 @@ let uid = null;
 let userName = '';
 let userBalance = 0;
 let recipientId = null;
-let recipientName = '';
+let recipientDisplayName = '';
 let unsubHistory = null;
 
 // ── Toast ──
@@ -400,7 +400,7 @@ async function lookupRecipient(code) {
         const data = rDoc.data();
         const name = data.name || data.referralCode || 'User';
         const initial = name.charAt(0).toUpperCase();
-        recipientName = name;
+        recipientDisplayName = name;
 
         recipientAvatar.textContent = initial;
         recipientName.textContent = name;
@@ -481,7 +481,7 @@ sendBtn.addEventListener('click', async () => {
         // 1. Create audit record with names
         await addDoc(collection(db, "transfers"), {
             from: uid, to: recipientId, toCode: recipientCode,
-            fromName: userName, toName: recipientName,
+            fromName: userName, toName: recipientDisplayName,
             amount: amt, burn: burn, receive: receive,
             timestamp: serverTimestamp(), status: 'completed'
         });
@@ -497,13 +497,13 @@ sendBtn.addEventListener('click', async () => {
 
         showToast(`
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-            Sent ${receive.toFixed(2)} ONC to ${recipientName}
+            Sent ${receive.toFixed(2)} ONC to ${recipientDisplayName}
         `, 'success');
 
         recipientInput.value = '';
         amountInput.value = '';
         recipientId = null;
-        recipientName = '';
+        recipientDisplayName = '';
         recipientUidEl.textContent = '';
         recipientCard.classList.remove('show');
         setLookupStatus('idle', 'Type a referral code to search');
