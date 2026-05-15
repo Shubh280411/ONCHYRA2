@@ -558,8 +558,38 @@ async function loadHistorySide(uid) {
         const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
         const all = [];
-        snap1.forEach(d => all.push({ id: d.id, ...d.data(), dir: 'sent' }));
-        snap2.forEach(d => all.push({ id: d.id, ...d.data(), dir: 'received' }));
+        const nameFetchUids = new Set();
+        snap1.forEach(d => {
+            const tx = { id: d.id, ...d.data(), dir: 'sent' };
+            all.push(tx);
+            if (!tx.toName && tx.to) nameFetchUids.add(tx.to);
+        });
+        snap2.forEach(d => {
+            const tx = { id: d.id, ...d.data(), dir: 'received' };
+            all.push(tx);
+            if (!tx.fromName && tx.from) nameFetchUids.add(tx.from);
+        });
+
+        // Batch-fetch missing names via getDoc
+        const nameMap = {};
+        if (nameFetchUids.size > 0) {
+            const uids = [...nameFetchUids];
+            const fetches = uids.map(id => getDoc(doc(db, "users", id)));
+            const snaps = await Promise.all(fetches);
+            snaps.forEach(snap => {
+                if (snap.exists()) {
+                    nameMap[snap.id] = snap.data().name || snap.data().referralCode || snap.id.slice(0, 6).toUpperCase();
+                } else {
+                    nameMap[snap.id] = snap.id.slice(0, 6).toUpperCase();
+                }
+            });
+        }
+
+        // Attach names to transfers
+        all.forEach(tx => {
+            if (tx.dir === 'sent' && !tx.toName && tx.to) tx.toName = nameMap[tx.to] || tx.to.slice(0, 6).toUpperCase();
+            if (tx.dir === 'received' && !tx.fromName && tx.from) tx.fromName = nameMap[tx.from] || tx.from.slice(0, 6).toUpperCase();
+        });
 
         all.sort((a, b) => {
             const ta = a.timestamp?.toMillis?.() || 0;
@@ -602,7 +632,6 @@ function renderHistory(items) {
         const cls = isSent ? 'negative' : 'positive';
 
         const counterparty = isSent ? (tx.toName || tx.toCode || tx.to.slice(0,6).toUpperCase()) : (tx.fromName || tx.fromCode || tx.from.slice(0,6).toUpperCase());
-        const label = isSent ? 'To' : 'From';
         const displayAmt = isSent ? tx.amount : tx.receive;
 
         return `
@@ -617,7 +646,7 @@ function renderHistory(items) {
                 <div class="tx-info">
                     <div class="tx-title">${isSent ? 'Sent' : 'Received'}</div>
                     <div class="tx-meta">
-                        ${label} ${counterparty}
+                        ${isSent ? 'To' : 'From'} ${counterparty}
                         &middot; ${timeAgo(tx.timestamp)}
                     </div>
                 </div>
