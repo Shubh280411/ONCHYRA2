@@ -184,6 +184,11 @@
 <div class="menu" id="menu">
     <div style="font-family:'Space Grotesk';font-size:24px;font-weight:900;color:var(--primary);padding:25px;">ONCHYRA</div>
     <a href="dashboard.html" class="menu-item active">Dashboard</a>
+    <a href="p2p-transfer.html" class="menu-item" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(96,165,250,0.06));border:1px solid rgba(167,139,250,0.15);margin-bottom:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        <span style="flex:1;">P2P Transfer</span>
+        <span style="font-size:7px;background:var(--primary);color:#000;padding:2px 8px;border-radius:100px;font-weight:900;letter-spacing:0.5px;">LIVE</span>
+    </a>
     <a href="referrals.html" class="menu-item">Referrals</a>
     <a href="contests.html" class="menu-item hot">Referral Contest ★</a>
     <a href="leaderboard.html" class="menu-item">Leaderboard</a>
@@ -282,6 +287,54 @@
             </div>
         </div>
 
+        <!-- ── P2P Quick Transfer ── -->
+        <div class="card full-width" style="position:relative;overflow:visible;border:1px solid rgba(167,139,250,0.2);">
+            <div style="position:absolute;top:0;left:15%;width:70%;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.3),rgba(96,165,250,0.4),transparent);"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <h3 style="font-size:12px;font-family:'Space Grotesk';display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    Quick Send
+                </h3>
+                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW →</a>
+            </div>
+
+            <!-- Compact two-column inputs -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                <div>
+                    <div style="font-size:8px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;">Network ID</div>
+                    <input id="dashP2pRecipient" type="text" placeholder="Referral code" maxlength="12" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:13px;color:white;outline:none;transition:0.2s;" autocomplete="off">
+                </div>
+                <div>
+                    <div style="font-size:8px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;">Amount</div>
+                    <input id="dashP2pAmount" type="text" inputmode="decimal" placeholder="ONC" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:13px;color:white;outline:none;transition:0.2s;" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Recipient status -->
+            <div id="dashP2pStatus" style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.25);margin-bottom:12px;min-height:16px;display:flex;align-items:center;gap:6px;"></div>
+
+            <!-- Breakdown mini -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Total</div>
+                    <div id="dashTotal" style="font-size:12px;font-weight:800;color:var(--secondary);">0.00</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Burn 10%</div>
+                    <div id="dashBurn" style="font-size:12px;font-weight:800;color:#f472b6;">0.00</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Receive</div>
+                    <div id="dashReceive" style="font-size:12px;font-weight:800;color:#22c55e;">0.00</div>
+                </div>
+            </div>
+
+            <button id="dashP2pBtn" disabled style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-family:'Space Grotesk';font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(167,139,250,0.2);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Send ONC
+            </button>
+        </div>
+
         <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
                 <h3 style="font-size:13px;font-family:'Space Grotesk';">TOP VALIDATORS</h3>
@@ -349,7 +402,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-    doc, onSnapshot, updateDoc, collection,
+    doc, onSnapshot, updateDoc, collection, addDoc,
     query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
     increment, where,
     initializeFirestore
@@ -742,6 +795,114 @@ document.addEventListener('click', (e) => {
     const dd = document.getElementById('notiDropdown');
     if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
 });
+
+// ── DASHBOARD P2P QUICK SEND ──
+const dashRecipient = document.getElementById('dashP2pRecipient');
+const dashAmount = document.getElementById('dashP2pAmount');
+const dashTotal = document.getElementById('dashTotal');
+const dashBurn = document.getElementById('dashBurn');
+const dashReceive = document.getElementById('dashReceive');
+const dashStatus = document.getElementById('dashP2pStatus');
+const dashBtn = document.getElementById('dashP2pBtn');
+
+let dashRecipientId = null;
+let dashLookupTimer = null;
+
+function parseDashAmount(v) {
+    const c = v.replace(/[^0-9.]/g, '');
+    const n = parseFloat(c);
+    return isNaN(n) ? 0 : n;
+}
+
+function updateDashBreakdown() {
+    const a = parseDashAmount(dashAmount.value);
+    dashTotal.textContent = a.toFixed(2);
+    dashBurn.textContent = (a * 0.1).toFixed(2);
+    dashReceive.textContent = (a * 0.9).toFixed(2);
+    validateDash();
+}
+dashAmount.addEventListener('input', updateDashBreakdown);
+
+dashRecipient.addEventListener('input', () => {
+    clearTimeout(dashLookupTimer);
+    dashRecipientId = null;
+    const val = dashRecipient.value.trim().toUpperCase();
+    if (val.length < 3) {
+        dashStatus.innerHTML = '';
+        validateDash();
+        return;
+    }
+    dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4V8"/></svg> Searching...';
+    dashLookupTimer = setTimeout(() => lookupDashRecipient(val), 500);
+});
+
+async function lookupDashRecipient(code) {
+    try {
+        const q = query(collection(db, "users"), where("referralCode", "==", code));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Not found';
+            return;
+        }
+        if (snap.docs[0].id === uid) {
+            dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Cannot send to yourself';
+            return;
+        }
+        dashRecipientId = snap.docs[0].id;
+        const n = snap.docs[0].data().name || code;
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + n;
+        validateDash();
+    } catch (e) {
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Error';
+    }
+}
+
+function validateDash() {
+    const a = parseDashAmount(dashAmount.value);
+    const bal = userData ? (userData.balance || 0) : 0;
+    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= bal);
+}
+
+dashBtn.addEventListener('click', async () => {
+    const amt = parseDashAmount(dashAmount.value);
+    const burn = amt * 0.1;
+    const receive = amt - burn;
+    const code = dashRecipient.value.trim().toUpperCase();
+
+    if (!dashRecipientId) return;
+    if (amt < 1 || amt > (userData?.balance || 0)) return;
+
+    dashBtn.disabled = true;
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending';
+
+    try {
+        await addDoc(collection(db, "transfers"), {
+            from: uid, to: dashRecipientId, toCode: code,
+            amount: amt, burn: burn, receive: receive,
+            timestamp: serverTimestamp(), status: 'completed'
+        });
+        await updateDoc(doc(db, "users", uid), { balance: increment(-amt) });
+        await updateDoc(doc(db, "users", dashRecipientId), { balance: increment(receive) });
+
+        if (userData) userData.balance = (userData.balance || 0) - amt;
+        document.getElementById('balance').innerText = (userData?.balance || 0).toFixed(2);
+
+        showToast('Sent ' + receive.toFixed(2) + ' ONC');
+        dashRecipient.value = '';
+        dashAmount.value = '';
+        dashRecipientId = null;
+        dashStatus.innerHTML = '';
+        updateDashBreakdown();
+    } catch (e) {
+        showToast('Transfer failed');
+    }
+
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+    validateDash();
+});
+
+dashRecipient.addEventListener('keydown', (e) => { if (e.key === 'Enter') dashAmount.focus(); });
+dashAmount.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !dashBtn.disabled) dashBtn.click(); });
 </script>
 </body>
 </html>
