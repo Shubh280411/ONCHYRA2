@@ -284,6 +284,17 @@
 
 <div id="toast"></div>
 
+<!-- Loader fallback: runs even if Firebase module fails to load -->
+<script>
+setTimeout(function() {
+    var el = document.getElementById('loader');
+    if (el && el.style.display !== 'none') {
+        el.style.display = 'none';
+        console.warn('Loader fallback: Firebase module may not have loaded');
+    }
+}, 6000);
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -624,12 +635,6 @@ function renderHistory(items) {
             </div>`;
     }).join('');
 }
-
-// ── Loader fallback timeout ──
-setTimeout(() => {
-    const l = document.getElementById('loader');
-    if (l) l.style.display = 'none';
-}, 8000);
 
 // ── Auth ──
 onAuthStateChanged(auth, async (user) => {
