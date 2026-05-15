@@ -10,11 +10,12 @@
         * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
         body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; display:flex; flex-direction:column; align-items:center; padding:20px 16px; }
 
-        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:15px; }
+        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:15px; animation:loaderFade 7s forwards; }
         .spinner { width:45px; height:45px; border:3px solid rgba(167,139,250,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
         #loadingText { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:800; text-transform:uppercase; animation:pulse 1.5s infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        @keyframes loaderFade { 0%,85% { opacity:1; visibility:visible; } 100% { opacity:0; visibility:hidden; } }
 
         .phone-frame { position:relative; width:100%; max-width:400px; display:flex; flex-direction:column; gap:16px; padding-top:12px; }
 
@@ -283,17 +284,6 @@
 </div>
 
 <div id="toast"></div>
-
-<!-- Loader fallback: runs even if Firebase module fails to load -->
-<script>
-setTimeout(function() {
-    var el = document.getElementById('loader');
-    if (el && el.style.display !== 'none') {
-        el.style.display = 'none';
-        console.warn('Loader fallback: Firebase module may not have loaded');
-    }
-}, 6000);
-</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
