@@ -329,6 +329,18 @@
                 </div>
             </div>
 
+            <!-- Limits mini -->
+            <div style="display:flex;gap:6px;margin-bottom:14px;">
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Max / Tx</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--secondary);">500 ONC</div>
+                </div>
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Daily</div>
+                    <div style="font-size:10px;font-weight:700;color:#f472b6;">3 / 24h</div>
+                </div>
+            </div>
+
             <button id="dashP2pBtn" disabled style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-family:'Space Grotesk';font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(167,139,250,0.2);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 Send ONC
@@ -806,6 +818,7 @@ const dashStatus = document.getElementById('dashP2pStatus');
 const dashBtn = document.getElementById('dashP2pBtn');
 
 let dashRecipientId = null;
+let dashRecipientName = '';
 let dashLookupTimer = null;
 
 function parseDashAmount(v) {
@@ -849,8 +862,9 @@ async function lookupDashRecipient(code) {
             return;
         }
         dashRecipientId = snap.docs[0].id;
-        const n = snap.docs[0].data().name || code;
-        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + n;
+        const dashName = snap.docs[0].data().name || code;
+        dashRecipientName = dashName;
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + dashName;
         validateDash();
     } catch (e) {
         dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Error';
@@ -860,7 +874,14 @@ async function lookupDashRecipient(code) {
 function validateDash() {
     const a = parseDashAmount(dashAmount.value);
     const bal = userData ? (userData.balance || 0) : 0;
-    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= bal);
+    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= 500 && a <= bal);
+}
+
+async function dashCheckDaily() {
+    const cutoff = new Date(Date.now() - 86400000);
+    const q = query(collection(db, "transfers"), where("from", "==", uid), where("timestamp", ">=", cutoff));
+    const snap = await getDocs(q);
+    return snap.size;
 }
 
 dashBtn.addEventListener('click', async () => {
@@ -868,16 +889,30 @@ dashBtn.addEventListener('click', async () => {
     const burn = amt * 0.1;
     const receive = amt - burn;
     const code = dashRecipient.value.trim().toUpperCase();
+    const myName = userData?.name || userData?.referralCode || 'User';
 
     if (!dashRecipientId) return;
-    if (amt < 1 || amt > (userData?.balance || 0)) return;
+    if (amt < 1) { showToast('Min 1 ONC'); return; }
+    if (amt > 500) { showToast('Max 500 ONC per transfer'); return; }
+    if (amt > (userData?.balance || 0)) { showToast('Insufficient balance'); return; }
 
     dashBtn.disabled = true;
-    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending';
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Checking...';
 
     try {
+        const daily = await dashCheckDaily();
+        if (daily >= 3) {
+            showToast('Daily limit: 3 transfers per 24h');
+            dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+            dashBtn.disabled = false;
+            return;
+        }
+
+        dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending...';
+
         await addDoc(collection(db, "transfers"), {
             from: uid, to: dashRecipientId, toCode: code,
+            fromName: myName, toName: dashRecipientName,
             amount: amt, burn: burn, receive: receive,
             timestamp: serverTimestamp(), status: 'completed'
         });
@@ -887,10 +922,11 @@ dashBtn.addEventListener('click', async () => {
         if (userData) userData.balance = (userData.balance || 0) - amt;
         document.getElementById('balance').innerText = (userData?.balance || 0).toFixed(2);
 
-        showToast('Sent ' + receive.toFixed(2) + ' ONC');
+        showToast('Sent ' + receive.toFixed(2) + ' ONC to ' + dashRecipientName);
         dashRecipient.value = '';
         dashAmount.value = '';
         dashRecipientId = null;
+        dashRecipientName = '';
         dashStatus.innerHTML = '';
         updateDashBreakdown();
     } catch (e) {
