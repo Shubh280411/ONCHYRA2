@@ -484,24 +484,16 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !sendBtn.disabled) sendBtn.click();
 });
 
-// ── History ──
+// ── History (no composite indexes needed — client-side sort) ──
+let historyPollTimer = null;
+
 function loadHistory() {
     if (!uid) return;
-    if (unsubHistory) unsubHistory();
-
-    const q = query(
-        collection(db, "transfers"),
-        where("from", "in", [uid, uid]),
-        orderBy("timestamp", "desc"),
-        limit(50)
-    );
-
-    // Actually we need: from == uid OR to == uid
-    // Firestore doesn't support OR, so we query both separately
-    // Simpler: just query all transfers where from == uid, and also where to == uid
-    // For now, let's use a combined approach
-
     loadHistorySide(uid);
+
+    // Poll every 15s as fallback (avoids onSnapshot + composite index requirement)
+    if (historyPollTimer) clearInterval(historyPollTimer);
+    historyPollTimer = setInterval(() => loadHistorySide(uid), 15000);
 }
 
 async function loadHistorySide(uid) {
@@ -509,14 +501,12 @@ async function loadHistorySide(uid) {
         const q1 = query(
             collection(db, "transfers"),
             where("from", "==", uid),
-            orderBy("timestamp", "desc"),
-            limit(25)
+            limit(30)
         );
         const q2 = query(
             collection(db, "transfers"),
             where("to", "==", uid),
-            orderBy("timestamp", "desc"),
-            limit(25)
+            limit(30)
         );
 
         const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
@@ -525,31 +515,15 @@ async function loadHistorySide(uid) {
         snap1.forEach(d => all.push({ id: d.id, ...d.data(), dir: 'sent' }));
         snap2.forEach(d => all.push({ id: d.id, ...d.data(), dir: 'received' }));
 
-        // Sort by timestamp desc
         all.sort((a, b) => {
             const ta = a.timestamp?.toMillis?.() || 0;
             const tb = b.timestamp?.toMillis?.() || 0;
             return tb - ta;
         });
 
-        const top = all.slice(0, 30);
-        renderHistory(top);
-
-        // Subscribe to new transfers for real-time update
-        if (unsubHistory) unsubHistory();
-        const realtimeQ = query(
-            collection(db, "transfers"),
-            where("from", "==", uid),
-            orderBy("timestamp", "desc"),
-            limit(5)
-        );
-        unsubHistory = onSnapshot(realtimeQ, () => {
-            // Refresh on new outbound transfers
-            loadHistorySide(uid);
-        });
+        renderHistory(all.slice(0, 30));
     } catch (e) {
         console.error('History error:', e);
-        historyList.innerHTML = '<div class="tx-empty">Failed to load history</div>';
     }
 }
 
