@@ -30,7 +30,7 @@ async function runCampaign(recipients, subject, customHtml, label) {
 
         try {
             await transporter.sendMail({
-                from: `"ONCHYRA" <${process.env.GMAIL_USER}>`,
+                from: transporter.mailSettings.sender,
                 to: r.email,
                 subject,
                 html
@@ -121,7 +121,7 @@ const sendCustomBulk = async (req, res) => {
 
             try {
                 await transporter.sendMail({
-                    from: `"ONCHYRA" <${process.env.GMAIL_USER}>`,
+                    from: transporter.mailSettings.sender,
                     to: r.email,
                     subject,
                     html
@@ -194,7 +194,7 @@ const sendManual = async (req, res) => {
 
             try {
                 await transporter.sendMail({
-                    from: `"ONCHYRA" <${process.env.GMAIL_USER}>`,
+                    from: transporter.mailSettings.sender,
                     to: r.email,
                     subject,
                     html
@@ -273,7 +273,7 @@ const sendCsv = async (req, res) => {
 
             try {
                 await transporter.sendMail({
-                    from: `"ONCHYRA" <${process.env.GMAIL_USER}>`,
+                    from: transporter.mailSettings.sender,
                     to: r.email,
                     subject,
                     html

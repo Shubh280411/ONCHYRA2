@@ -68,9 +68,9 @@ exports.send = async (req, res) => {
 
         const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
-        console.log(`[OTP] Sending to ${email} via ${process.env.OTP_GMAIL_USER}...`);
+        console.log(`[OTP] Sending to ${email} via ${otpTransporter.mailSettings.providerLabel}...`);
         await otpTransporter.sendMail({
-            from: `"ONCHYRA Verify" <${process.env.OTP_GMAIL_USER}>`,
+            from: otpTransporter.mailSettings.sender,
             to: email,
             subject,
             html: getTemplate(purpose, otp)
