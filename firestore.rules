@@ -1,8 +1,160 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    // ── Users ──
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Admins ──
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Withdrawals ──
+    match /withdrawals/{withdrawalId} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isLoggedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Deposits ──
+    match /deposits/{depositId} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isLoggedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Package Purchases ──
+    match /packagePurchases/{id} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Commissions ──
+    match /commissions/{id} {
+      allow read: if isOwner(resource.data.uid) || isOwner(resource.data.toUid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Achievement Bonuses ──
+    match /achievementBonuses/{id} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Leadership Rewards ──
+    match /leadershipRewards/{id} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Transfers ──
+    match /transfers/{id} {
+      allow read: if isOwner(resource.data.from) || isAdmin();
+      allow create: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Predictions ──
+    match /predictions/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Prediction Bets ──
+    match /prediction_bets/{id} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Contests ──
+    match /contests/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Contest Participants ──
+    match /contestParticipants/{id} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Settings ──
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── OTPs ──
+    match /otps/{id} {
+      allow read: if isAdmin();
+      allow write: if isLoggedIn();
+    }
+
+    // ── Notifications ──
+    match /notifications/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Claims ──
+    match /claims/{id} {
+      allow read: if isAdmin();
+      allow write: if isLoggedIn();
+    }
+
+    // ── Polls ──
+    match /polls/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Admin Transactions ──
+    match /admin_transactions/{id} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Audit Logs ──
+    match /auditLogs/{id} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Updates ──
+    match /updates/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Deny everything else by default ──
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }
