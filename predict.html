@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Predict — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --success:#22c55e; --danger:#ef4444; }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; display:flex; flex-direction:column; align-items:center; padding:20px 16px; }
+
+        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; animation:loaderFade 7s forwards; gap:16px; }
+        .spinner { width:45px; height:45px; border:3px solid rgba(167,139,250,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes loaderFade { 0%,85% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
+        .loader-text { font-size:11px; color:rgba(255,255,255,0.3); font-weight:600; letter-spacing:0.5px; animation:pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:0.8; } }
+
+        .phone-frame { width:100%; max-width:580px; display:flex; flex-direction:column; gap:14px; padding-top:12px; margin:0 auto; }
+
+        .header { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 16px; }
+        .back-btn { width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; cursor:pointer; color:white; text-decoration:none; flex-shrink:0; }
+        .logo { font-family:'Space Grotesk'; font-weight:900; font-size:18px; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; flex:1; }
+        .bal-pill { font-size:11px; font-weight:700; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.15); padding:6px 14px; border-radius:100px; white-space:nowrap; cursor:pointer; }
+        .bal-pill .num { font-family:'Space Grotesk'; color:var(--primary); }
+        .countdown-bar { display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.12); border-radius:14px; padding:10px 16px; }
+        .countdown-bar .cd-icon { font-size:16px; }
+        .countdown-bar .cd-text { font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); }
+        .countdown-bar .cd-num { font-family:'Space Grotesk'; font-size:18px; font-weight:800; color:var(--primary); min-width:28px; text-align:center; }
+        .countdown-bar .cd-label { font-size:8px; font-weight:600; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.5px; }
+        .countdown-bar .cd-sep { font-size:14px; font-weight:700; color:rgba(255,255,255,0.15); }
+        .countdown-bar .cd-goal { font-size:9px; font-weight:700; color:var(--secondary); }
+
+        @media (min-width:640px) {
+            body { padding:30px 24px; }
+            .phone-frame { max-width:580px; }
+            .round-card { padding:24px; }
+            .rc-price-big .val { font-size:28px; }
+            .rc-chart-wrap svg { height:100px; }
+            .hist-item { padding:12px 16px; }
+        }
+
+        .seg-tabs { display:flex; gap:6px; }
+        .seg-tab { flex:1; padding:10px; text-align:center; border-radius:12px; font-size:11px; font-weight:800; letter-spacing:0.5px; cursor:pointer; transition:0.2s; background:var(--card); border:1px solid var(--border); color:rgba(255,255,255,0.4); }
+        .seg-tab.active { background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.2); color:var(--primary); }
+        .seg-tab .sub { display:block; font-size:8px; font-weight:600; opacity:0.5; margin-top:2px; }
+
+        .asset-tabs { display:flex; gap:6px; margin-top:2px; }
+        .asset-tab { flex:1; padding:8px 10px; text-align:center; border-radius:10px; font-size:10px; font-weight:700; cursor:pointer; transition:0.2s; background:var(--card); border:1px solid var(--border); color:rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; gap:5px; }
+        .asset-tab.active { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); color:white; }
+        .asset-tab .dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+        .asset-tab .a-sym { font-weight:800; }
+
+        .round-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:20px; position:relative; overflow:hidden; }
+        .round-card::before { content:''; position:absolute; top:-60%;left:-60%;width:220%;height:220%;background:radial-gradient(circle at 30% 20%,rgba(167,139,250,0.04) 0%,transparent 60%);pointer-events:none; }
+
+        .rc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+        .rc-asset { display:flex; align-items:center; gap:8px; }
+        .rc-asset .icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .rc-asset .icon img { width:22px; height:22px; border-radius:0; }
+        .rc-asset .icon.btc { background:rgba(247,147,26,0.15); }
+        .rc-asset .icon.eth { background:rgba(130,71,229,0.15); color:#8247e5; }
+        .rc-asset .icon.sol { background:rgba(0,186,124,0.15); color:#00ba7c; }
+        .rc-asset .aname { font-weight:700; font-size:15px; }
+        .rc-asset .asym { font-size:10px; color:rgba(255,255,255,0.3); }
+
+        .rc-price-big { text-align:right; }
+        .rc-price-big .val { font-family:'Space Grotesk'; font-size:24px; font-weight:800; line-height:1; transition:color 0.4s ease; }
+        .rc-price-big .val.up { color:var(--success); }
+        .rc-price-big .val.down { color:var(--danger); }
+        .rc-price-big .change { font-size:11px; font-weight:700; margin-top:2px; transition:color 0.4s ease; }
+        .rc-price-big .change.up { color:var(--success); }
+        .rc-price-big .change.down { color:var(--danger); }
+
+        .rc-chart-wrap { margin:10px 0 14px; background:rgba(255,255,255,0.015); border-radius:14px; position:relative; overflow:hidden; touch-action:none; }
+        .rc-chart-wrap svg { width:100%; height:80px; display:block; }
+        .rc-chart-wrap .chart-label { position:absolute; bottom:4px; left:12px; font-size:7px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.15); pointer-events:none; }
+        .chart-price-axis { font-size:7px; font-weight:700; fill:rgba(255,255,255,0.15); }
+        .chart-crosshair-line { stroke:rgba(255,255,255,0.2); stroke-width:1; stroke-dasharray:3,3; pointer-events:none; }
+        .chart-crosshair-dot { r:3; stroke:#03040a; stroke-width:1.5; pointer-events:none; }
+        .chart-tooltip-bg { fill:rgba(11,13,24,0.9); rx:4; }
+        .chart-tooltip-text { font-size:8px; font-weight:700; fill:white; pointer-events:none; }
+
+        .rc-timer { text-align:center; padding:10px; margin-bottom:12px; background:rgba(255,255,255,0.02); border-radius:14px; }
+        .rc-timer .tval { font-family:'Space Grotesk'; font-size:26px; font-weight:800; letter-spacing:2px; }
+        .rc-timer .tval.danger { color:var(--danger); }
+        .rc-timer .tlabel { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.3); margin-top:2px; }
+
+        .rc-arrow { display:flex; gap:10px; margin-bottom:12px; }
+        .rc-arrow button { flex:1; padding:16px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:white; cursor:pointer; transition:0.2s; font-family:'Space Grotesk'; font-size:15px; font-weight:800; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:8px; }
+        .rc-arrow button:hover { background:rgba(255,255,255,0.05); }
+        .rc-arrow button.selected.up { background:rgba(34,197,94,0.12); border-color:var(--success); color:var(--success); }
+        .rc-arrow button.selected.down { background:rgba(239,68,68,0.12); border-color:var(--danger); color:var(--danger); }
+
+        .rc-bet-row { display:flex; gap:10px; align-items:center; }
+        .rc-bet-row input { flex:1; padding:14px 16px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:white; font-size:16px; font-family:'Inter'; text-align:center; }
+        .rc-bet-row input:focus { border-color:var(--primary); }
+        .rc-bet-row button { padding:14px 24px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; font-weight:800; font-size:13px; cursor:pointer; transition:0.2s; white-space:nowrap; }
+        .rc-bet-row button:disabled { opacity:0.3; cursor:default; }
+        .rc-bet-row button:hover:not(:disabled) { transform:translateY(-1px); }
+        .quick-bets { display:flex; gap:6px; justify-content:center; margin-top:8px; }
+        .quick-bets span { font-size:10px; font-weight:700; padding:5px 12px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:rgba(255,255,255,0.4); cursor:pointer; transition:0.15s; }
+        .quick-bets span:hover { background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.2); color:var(--primary); }
+
+        .rc-info { display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,0.35); margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+
+        .rc-start-ref { display:flex; justify-content:space-between; font-size:9px; color:rgba(255,255,255,0.2); margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.04); }
+
+        .warning-banner { display:flex; align-items:flex-start; gap:10px; padding:14px 16px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.12); border-radius:16px; margin-top:6px; }
+        .warning-banner .w-icon { flex-shrink:0; margin-top:1px; }
+        .warning-banner .w-text { font-size:10px; color:rgba(255,255,255,0.5); line-height:1.5; }
+        .warning-banner .w-text strong { color:var(--danger); }
+
+        .hist-wrap { margin-top:6px; }
+        .hist-header { display:flex; align-items:center; justify-content:space-between; padding:8px 4px; }
+        .hist-header h3 { font-family:'Space Grotesk'; font-size:14px; font-weight:800; display:flex; align-items:center; gap:6px; }
+
+        .hist-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:14px; margin-bottom:6px; }
+        .hist-item .h-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+        .hist-item .h-icon svg { width:14px; height:14px; }
+        .hist-item .h-icon.win { background:rgba(34,197,94,0.12); color:var(--success); }
+        .hist-item .h-icon.lose { background:rgba(239,68,68,0.12); color:var(--danger); }
+        .hist-item .h-icon.pending { background:rgba(167,139,250,0.1); color:#a78bfa; }
+        .hist-item .h-info { flex:1; min-width:0; }
+        .hist-item .h-info .htop { font-size:11px; font-weight:700; }
+        .hist-item .h-info .hbot { font-size:9px; color:rgba(255,255,255,0.3); }
+        .hist-item .h-amt { font-family:'Space Grotesk'; font-size:12px; font-weight:800; }
+        .hist-item .h-amt.win { color:var(--success); }
+        .hist-item .h-amt.lose { color:var(--danger); }
+        .hist-empty { text-align:center; padding:24px; color:rgba(255,255,255,0.2); font-size:12px; }
+        .filter-chip { font-size:9px; font-weight:700; padding:4px 10px; border-radius:8px; cursor:pointer; background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.3); border:1px solid var(--border); transition:0.15s; }
+        .filter-chip.active { background:rgba(167,139,250,0.15); color:var(--primary); border-color:rgba(167,139,250,0.2); }
+        .filter-chip:hover { background:rgba(255,255,255,0.06); }
+        select.filter-chip { padding:4px 8px; color:rgba(255,255,255,0.4); }
+        select.filter-chip option { background:#03040a; color:rgba(255,255,255,0.7); }
+        .stat-card { flex:1; background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:10px; text-align:center; }
+        .stat-card .num { font-family:'Space Grotesk'; font-size:18px; font-weight:800; margin-top:2px; }
+        .stat-card .lbl { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.2); }
+
+        .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:#0b0d18; border:1px solid var(--border); padding:14px 24px; border-radius:16px; font-size:12px; font-weight:600; color:white; box-shadow:0 8px 40px rgba(0,0,0,0.6); opacity:0; transition:all 0.4s cubic-bezier(0.16,1,0.3,1); z-index:100; pointer-events:none; display:flex; align-items:center; gap:10px; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        .empty-state { text-align:center; padding:40px; color:rgba(255,255,255,0.2); font-size:13px; }
+
+        @media (max-width:420px) {
+            .rc-timer .tval { font-size:22px; }
+            .rc-price-big .val { font-size:20px; }
+            .rc-bet-row { flex-wrap:wrap; gap:8px; }
+            .rc-bet-row input { min-width:0; width:100%; padding:12px; font-size:14px; }
+            .rc-bet-row button { width:100%; padding:12px; font-size:12px; }
+            .quick-bets span { padding:4px 8px; font-size:9px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loaderText">Loading market data...</div>
+</div>
+
+<script>
+    const msgs = ['Loading market data...','Fetching live prices...','Preparing predictions...','Connecting to Onchyra...','Almost there...'];
+    let mi = 0;
+    setInterval(() => {
+        const el = document.getElementById('loaderText');
+        if (el) { mi = (mi + 1) % msgs.length; el.textContent = msgs[mi]; }
+    }, 1200);
+</script>
+
+<div class="phone-frame">
+
+    <div class="header">
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="logo">ONCHYRA</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span id="usdToggle" style="font-size:9px;font-weight:700;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:4px 8px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.3);letter-spacing:0.5px;">USD</span>
+            <div class="bal-pill">Balance <span class="num" id="balance">0.00</span></div>
+        </div>
+    </div>
+
+    <div class="countdown-bar" id="countdownBar">
+        <span class="cd-icon">🚀</span>
+        <span class="cd-text">Countdown to June 10</span>
+        <span class="cd-num" id="cdDays">00</span><span class="cd-label">days</span>
+        <span class="cd-sep">:</span>
+        <span class="cd-num" id="cdHours">00</span><span class="cd-label">hrs</span>
+        <span class="cd-sep">:</span>
+        <span class="cd-num" id="cdMins">00</span><span class="cd-label">min</span>
+        <span class="cd-sep">:</span>
+        <span class="cd-num" id="cdSecs">00</span><span class="cd-label">sec</span>
+    </div>
+
+    <div style="text-align:center;padding:4px 0;">
+        <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--primary);">Crypto Trading</div>
+        <div style="font-size:20px;font-family:'Space Grotesk';font-weight:800;margin-top:2px;">UP or DOWN?</div>
+    </div>
+
+    <div class="seg-tabs" id="segTabs">
+        <div class="seg-tab active" data-seg="15min">15 MIN<div class="sub">1.6x</div></div>
+        <div class="seg-tab" data-seg="1hr">1 HR<div class="sub">1.4x</div></div>
+        <div class="seg-tab" data-seg="1day">1 DAY<div class="sub">1.2x</div></div>
+    </div>
+
+    <div class="asset-tabs" id="assetTabs">
+        <div class="asset-tab active" data-asset="bitcoin"><span class="dot" style="background:#f7931a;"></span><span class="a-sym">BTC</span></div>
+        <div class="asset-tab" data-asset="ethereum"><span class="dot" style="background:#8247e5;"></span><span class="a-sym">ETH</span></div>
+        <div class="asset-tab" data-asset="solana"><span class="dot" style="background:#00ba7c;"></span><span class="a-sym">SOL</span></div>
+    </div>
+
+    <div id="volumeRow" style="display:flex;gap:4px;justify-content:center;padding:2px 0 6px;font-size:8px;color:rgba(255,255,255,0.15);font-weight:600;letter-spacing:0.3px;"></div>
+
+    <div id="roundContainer"></div>
+
+    <div class="hist-wrap">
+        <div id="statsRow" style="display:none;gap:6px;margin-bottom:10px;">
+            <div class="stat-card"><div class="lbl">Total</div><div class="num" style="color:white;" id="statTotal">0</div></div>
+            <div class="stat-card"><div class="lbl">Win Rate</div><div class="num" id="statWinRate">0%</div></div>
+            <div class="stat-card"><div class="lbl">Closed</div><div class="num" style="color:#22c55e;" id="statClosed">0</div></div>
+            <div class="stat-card"><div class="lbl">Pending</div><div class="num" style="color:#a78bfa;" id="statPending">0</div></div>
+        </div>
+
+        <div id="filterRow" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+            <span class="filter-chip active" data-filter="all">All</span>
+            <span class="filter-chip" data-filter="won">Won</span>
+            <span class="filter-chip" data-filter="lost">Lost</span>
+            <span class="filter-chip" data-filter="pending">Pending</span>
+            <span class="filter-chip" data-filter="cancelled">Cancelled</span>
+            <span style="flex:1;"></span>
+            <select id="coinFilter" class="filter-chip" style="font-family:'Inter';cursor:pointer;border-radius:8px;">
+                <option value="all">All Coins</option>
+                <option value="BTC">BTC</option>
+                <option value="ETH">ETH</option>
+                <option value="SOL">SOL</option>
+            </select>
+        </div>
+        <div class="hist-header">
+            <h3>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                My Trades
+            </h3>
+        </div>
+        <div id="histList"><div class="hist-empty">No trades yet</div></div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.04);border-radius:16px;padding:14px 16px;margin-top:4px;">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            How Trading Works
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.3);line-height:1.6;">
+            Predict if the price will go <b style="color:#22c55e;">UP</b> or <b style="color:#ef4444;">DOWN</b> before the timer ends.
+            If your prediction is correct, you earn your stake back + a share of the losers' stakes.
+            If wrong, you lose your stake (redistributed to winners).
+            No position to hold — just pure price prediction.
+        </div>
+    </div>
+
+    <div class="warning-banner">
+        <div class="w-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="w-text">
+            <strong>Risk Warning:</strong> Crypto trading is a high-risk activity. Past performance does not guarantee future results. Only trade what you can afford to lose. ONCHYRA is not a financial advisor.
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, getDocs, collection, query, where,
+    limit, addDoc, updateDoc, increment, setDoc, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Maintenance check
+(async () => {
+    try {
+        const ms = await getDoc(doc(db, 'settings', 'maintenance'));
+        if (ms.exists() && ms.data().enabled) {
+            window.location.replace('maintenance.html?msg=' + encodeURIComponent(ms.data().message || ''));
+        }
+    } catch(e) {}
+})();
+
+// ── Constants ──
+const ASSETS = [
+    { id: 'bitcoin',  sym: 'BTC', color: '#f7931a' },
+    { id: 'ethereum', sym: 'ETH', color: '#8247e5' },
+    { id: 'solana',   sym: 'SOL', color: '#00ba7c' }
+];
+const SEG_MS = { '15min': 15*60*1000, '1hr': 60*60*1000, '1day': 24*60*60*1000 };
+
+// ── State ──
+let uid = null, userBalance = 0;
+let currentSeg = '15min', currentAsset = 'bitcoin';
+let activeRound = null;
+let timerInterval = null, priceInterval = null;
+let myBets = [], priceHistory = [];
+
+let currentFilter = 'all', currentCoinFilter = 'all';
+
+let roundInfoCache = {}, knownRoundIds = new Set();
+let selectedPred = null;
+
+// ── Toast ──
+function showToast(msg, err) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.className = 'toast show' + (err ? ' error' : '');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Live Prices (Binance, no cache) ──
+async function getPrices() {
+    try {
+        const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
+        if (!r.ok) return null;
+        const d = await r.json();
+        if (!Array.isArray(d)) return null;
+        const map = { BTCUSDT:'bitcoin', ETHUSDT:'ethereum', SOLUSDT:'solana' };
+        const result = {};
+        d.forEach(item => { if (map[item.symbol]) result[map[item.symbol]] = { usd: parseFloat(item.price) }; });
+        return result;
+    } catch(e) { return null; }
+}
+
+function getPriceFor(prices, assetId) {
+    try { return prices?.[assetId]?.usd || null; } catch(e) { return null; }
+}
+
+// ── Round ID (deterministic doc ID = 0 index needed) ──
+function getRoundStart(seg, ts = Date.now()) {
+    return Math.floor(ts / SEG_MS[seg]) * SEG_MS[seg];
+}
+function makeRoundId(assetId, seg, start) {
+    return assetId + '_' + seg + '_' + start;
+}
+
+// ── Ensure current round exists in Firestore ──
+async function ensureRound(assetId, seg) {
+    const now = Date.now();
+    const start = getRoundStart(seg, now);
+    const id = makeRoundId(assetId, seg, start);
+    const ref = doc(db, "predictions", id);
+
+    // Try getDoc first — 1 read
+    const snap = await getDoc(ref);
+    if (snap.exists()) return { id: snap.id, ...snap.data() };
+
+    // Doesn't exist — create it
+    const prices = await getPrices();
+    const price = getPriceFor(prices, assetId);
+    if (!price) return null;
+
+    const data = {
+        assetId, seg,
+        symbol: ASSETS.find(a => a.id === assetId)?.sym || '?',
+        segment: seg,
+        startTime: start,
+        endTime: start + SEG_MS[seg],
+        startPrice: price, endPrice: null,
+        outcome: null, status: 'active',
+        upPool: 0, downPool: 0, upCount: 0, downCount: 0,
+        totalPool: 0, totalBets: 0, createdAt: now
+    };
+    try { await setDoc(ref, data); } catch(e) { console.warn('setDoc:', e.message); }
+    return { id, ...data };
+}
+
+// ── Load & show current round ──
+async function loadRounds(seg) {
+    const container = document.getElementById('roundContainer');
+    if (!container) return;
+    container.innerHTML = '<div class="empty-state">Loading round...</div>';
+
+    try {
+        const round = await ensureRound(currentAsset, seg);
+        if (!round) {
+            container.innerHTML = '<div class="empty-state">Price unavailable. Retrying...</div>';
+            setTimeout(() => loadRounds(seg), 5000);
+            return;
+        }
+        activeRound = round;
+        renderRound(container, round);
+        startTimer(round.endTime);
+        startPriceTracking(round);
+    } catch(e) {
+        console.error('loadRounds:', e);
+        container.innerHTML = '<div class="empty-state">Error: ' + e.message + '</div>';
+    }
+}
+
+// ── Resolve a round when timer hits 0 ──
+async function resolveRound(r, prices) {
+    const price = getPriceFor(prices, r.assetId);
+    if (!price) return;
+    const outcome = price >= r.startPrice ? 'up' : 'down';
+    try {
+        await updateDoc(doc(db, "predictions", r.id), { endPrice: price, outcome, status: 'resolved' });
+        await payoutRound(r.id, outcome, r.symbol || '?', r.segment || '');
+    } catch(e) { console.error('resolve:', e); }
+}
+
+async function payoutRound(roundId, outcome, assetSym, segLabel) {
+    try {
+        const betsSnap = await getDocs(query(collection(db, "prediction_bets"), where("roundId", "==", roundId)));
+        if (betsSnap.empty) return;
+
+        const winners = [], losers = [];
+        betsSnap.forEach(d => {
+            const b = { id: d.id, ...d.data() };
+            if (!b.cancelled) {
+                if (b.prediction === outcome) winners.push(b);
+                else losers.push(b);
+            }
+        });
+
+        const batch = writeBatch(db);
+        const losersTotal = losers.reduce((s, b) => s + Number(b.stake || 0), 0);
+
+        if (winners.length > 0) {
+            const perWinner = losersTotal / winners.length;
+            for (const w of winners) {
+                const payout = Math.round((Number(w.stake || 0) + perWinner) * 100) / 100;
+                batch.update(doc(db, "prediction_bets", w.id), { payout, claimed: true });
+                batch.update(doc(db, "users", w.userId), { balance: increment(payout) });
+            }
+        }
+        // Mark losers
+        for (const l of losers) {
+            batch.update(doc(db, "prediction_bets", l.id), { payout: 0 });
+        }
+        await batch.commit();
+    } catch(e) { console.error('payout:', e); }
+}
+
+// ── Render round card ──
+function renderRound(container, r) {
+    const asset = ASSETS.find(a => a.id === r.assetId) || ASSETS[0];
+
+    if (!priceHistory.length || priceHistory[0]?.rid !== r.id) {
+        priceHistory = [{ rid: r.id, price: r.startPrice, ts: Date.now() }];
+    }
+
+    const cur = priceHistory[priceHistory.length - 1];
+    const curPrice = cur?.price || r.startPrice;
+    const change = curPrice - r.startPrice;
+    const changePct = r.startPrice ? ((change / r.startPrice) * 100) : 0;
+    const isUp = change >= 0;
+    const col = isUp ? '#22c55e' : '#ef4444';
+
+    container.innerHTML = `
+        <div class="round-card">
+            <div class="rc-top">
+                <div class="rc-asset">
+                    <div class="icon ${asset.sym.toLowerCase()}">
+                        <img src="https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/${asset.sym.toLowerCase()}.svg"
+                             alt="${asset.sym}" width="22" height="22"
+                             onerror="this.style.display='none'">
+                    </div>
+                    <div>
+                        <div class="aname">${asset.sym}/USD</div>
+                        <div class="asym">${r.segment === '15min' ? '15 MIN' : r.segment === '1hr' ? '1 HOUR' : '1 DAY'}</div>
+                    </div>
+                </div>
+                <div class="rc-price-big">
+                    <div class="val ${isUp ? 'up' : 'down'}" id="livePrice">$${Number(curPrice).toLocaleString()}</div>
+                    <div class="change ${isUp ? 'up' : 'down'}" id="liveChange">${isUp ? '+' : ''}${changePct.toFixed(2)}%</div>
+                </div>
+            </div>
+
+            <div class="rc-chart-wrap">
+                <svg id="chartSvg" viewBox="0 0 300 80" width="100%" height="80" style="cursor:crosshair;">
+                    <defs>
+                        <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${col}" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path id="chartGrid" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" stroke-dasharray="2,4" fill="none"/>
+                    <g id="priceAxis" class="chart-price-axis"></g>
+                    <path id="chartFill" fill="url(#cg)"/>
+                    <polyline id="sparkPoly" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle id="sparkDot" r="3" fill="${col}" stroke="#03040a" stroke-width="1.5"/>
+                    <rect id="chartOverlay" width="100%" height="100%" fill="transparent" style="cursor:crosshair;pointer-events:all;"/>
+                    <g id="crosshairGroup" display="none" style="pointer-events:none;">
+                        <line id="crosshairLine" class="chart-crosshair-line" y1="0" y2="80"/>
+                        <circle id="crosshairDot" class="chart-crosshair-dot"/>
+                        <rect id="tooltipBg" class="chart-tooltip-bg" width="60" height="16" rx="4"/>
+                        <text id="tooltipText" class="chart-tooltip-text" x="5" y="11">$0</text>
+                    </g>
+                </svg>
+                <div class="chart-label">LIVE</div>
+            </div>
+
+            <div class="rc-timer">
+                <div class="tval" id="timerDisplay">--:--</div>
+                <div class="tlabel">Remaining</div>
+            </div>
+
+            <div class="rc-arrow" id="arrowBtns">
+                <button class="up" data-pred="up" onclick="selectPred(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+                    UP
+                </button>
+                <button class="down" data-pred="down" onclick="selectPred(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+                    DOWN
+                </button>
+            </div>
+
+            <div class="rc-bet-row">
+                <input type="text" id="betAmount" inputmode="decimal" placeholder="0.10 min" autocomplete="off">
+                <button id="betBtn" onclick="placeBet()" disabled>Trade ONC</button>
+            </div>
+            <div class="quick-bets">
+                <span onclick="setQuickBet(1)">1 ONC</span>
+                <span onclick="setQuickBet(5)">5 ONC</span>
+                <span onclick="setQuickBet(10)">10 ONC</span>
+                <span onclick="setQuickBet(25)">25 ONC</span>
+            </div>
+            <div id="payoutDisplay" style="text-align:center;font-size:11px;color:rgba(255,255,255,0.3);margin-top:6px;min-height:16px;"></div>
+
+            <div class="rc-info">
+                <span>Pool: <b>${(r.totalPool || 0).toFixed(2)} ONC</b></span>
+                <span>UP: <b style="color:#22c55e;">${r.upCount || 0}</b> / DOWN: <b style="color:#ef4444;">${r.downCount || 0}</b></span>
+            </div>
+            <div class="rc-start-ref" id="startRef">
+                <span>Start: $${Number(r.startPrice).toLocaleString()}</span>
+                <span>${isUp ? '+' : ''}${change.toFixed(2)}</span>
+            </div>
+        </div>
+    `;
+
+    requestAnimationFrame(() => { drawChart(); setupChartInteraction(); });
+}
+
+// ── Chart ──
+let crosshairX = -1;
+function drawChart() {
+    const svg = document.getElementById('chartSvg');
+    const poly = document.getElementById('sparkPoly');
+    const fill = document.getElementById('chartFill');
+    const dot  = document.getElementById('sparkDot');
+    const grid = document.getElementById('chartGrid');
+    const axisG = document.getElementById('priceAxis');
+    if (!svg || !poly || !fill) return;
+
+    const w = svg.clientWidth || 300, h = svg.clientHeight || 80;
+    const pad = 6, axPad = 40;
+    const prices = priceHistory.map(p => p.price);
+    if (!prices.length) return;
+
+    const plotPrices = prices.length === 1 ? [prices[0], prices[0]] : prices;
+    const mn = Math.min(...plotPrices), mx = Math.max(...plotPrices);
+    const range = mx - mn || 1;
+    const scaleY = p => h - ((p - mn) / range) * (h - pad * 2) - pad;
+    const scaleX = i => axPad + (i / (plotPrices.length - 1)) * (w - axPad);
+
+    const pts = plotPrices.map((p, i) => `${scaleX(i)},${scaleY(p)}`);
+    poly.setAttribute('points', pts.join(' '));
+
+    const isUp = plotPrices[plotPrices.length-1] >= plotPrices[0];
+    const col = isUp ? '#22c55e' : '#ef4444';
+    poly.setAttribute('stroke', col);
+
+    if (dot && pts.length) {
+        const [lx, ly] = pts[pts.length-1].split(',');
+        dot.setAttribute('cx', lx); dot.setAttribute('cy', ly);
+        dot.setAttribute('fill', col);
+    }
+    if (fill) {
+        const d = `M${scaleX(0)},${h} L${pts.join(' L')} L${scaleX(plotPrices.length-1)},${h} Z`;
+        fill.setAttribute('d', d);
+    }
+    document.querySelectorAll('#cg stop').forEach(s => s.setAttribute('stop-color', col));
+
+    if (grid) {
+        const mid = scaleY((mn + mx) / 2);
+        grid.setAttribute('d', `M${axPad},${mid} L${w},${mid} M${axPad},${pad} L${w},${pad} M${axPad},${h-pad} L${w},${h-pad}`);
+    }
+    if (axisG) {
+        axisG.innerHTML = `
+            <text x="${axPad-4}" y="${pad+3}" text-anchor="end">${mx.toFixed(0)}</text>
+            <text x="${axPad-4}" y="${scaleY((mn+mx)/2)+2}" text-anchor="end" opacity="0.5">${((mn+mx)/2).toFixed(0)}</text>
+            <text x="${axPad-4}" y="${h-pad+3}" text-anchor="end">${mn.toFixed(0)}</text>
+        `;
+    }
+    // Crosshair
+    const grp = document.getElementById('crosshairGroup');
+    if (!grp || crosshairX < 0) { if (grp) grp.setAttribute('display','none'); return; }
+    const cx = Math.max(axPad, Math.min(w, crosshairX));
+    const frac = (cx - axPad) / (w - axPad);
+    const ci = Math.max(0, Math.min(plotPrices.length-1, Math.round(frac*(plotPrices.length-1))));
+    const cy = scaleY(plotPrices[ci]);
+    grp.setAttribute('display', null);
+    document.getElementById('crosshairLine').setAttribute('x1', cx); document.getElementById('crosshairLine').setAttribute('x2', cx);
+    document.getElementById('crosshairLine').setAttribute('y1', pad); document.getElementById('crosshairLine').setAttribute('y2', h-pad);
+    document.getElementById('crosshairDot').setAttribute('cx', cx); document.getElementById('crosshairDot').setAttribute('cy', cy);
+    const label = '$' + Number(plotPrices[ci]).toLocaleString();
+    const tText = document.getElementById('tooltipText');
+    const tBg = document.getElementById('tooltipBg');
+    tText.textContent = label;
+    const tw = 60, th = 16;
+    let tx = cx + 8, ty = cy - th - 4;
+    if (cx > w - 80) tx = cx - tw - 10;
+    if (ty < pad) ty = cy + 8;
+    tBg.setAttribute('x', Math.round(tx)); tBg.setAttribute('y', Math.round(ty));
+    tText.setAttribute('x', Math.round(tx+5)); tText.setAttribute('y', Math.round(ty+11));
+}
+
+function setupChartInteraction() {
+    const overlay = document.getElementById('chartOverlay');
+    if (!overlay) return;
+    const getX = e => {
+        const rect = overlay.getBoundingClientRect();
+        return (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    };
+    overlay.addEventListener('mousemove', e => { crosshairX = getX(e); drawChart(); });
+    overlay.addEventListener('mouseleave', () => { crosshairX = -1; drawChart(); });
+    overlay.addEventListener('touchstart', e => { crosshairX = getX(e); drawChart(); }, { passive:true });
+    overlay.addEventListener('touchmove', e => { crosshairX = getX(e); drawChart(); }, { passive:true });
+    overlay.addEventListener('touchend', () => { crosshairX = -1; setTimeout(drawChart, 100); });
+}
+
+// ── Timer ──
+function fmtTime(ms) {
+    if (ms <= 0) return '00:00';
+    const s = Math.floor(ms/1000), m = Math.floor(s/60), h = Math.floor(m/60);
+    if (h > 0) return `${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    return `${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function startTimer(endTime) {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const el = document.getElementById('timerDisplay');
+        if (!el) { clearInterval(timerInterval); return; }
+        const rem = Math.max(0, endTime - Date.now());
+        el.textContent = fmtTime(rem);
+        el.className = 'tval' + (rem < 60000 ? ' danger' : '');
+        if (rem === 0) {
+            clearInterval(timerInterval);
+            // Auto-advance to next round
+            setTimeout(async () => {
+                if (activeRound) {
+                    const prices = await getPrices();
+                    if (prices) await resolveRound(activeRound, prices);
+                    activeRound = null;
+                }
+                await loadRounds(currentSeg);
+                loadMyBets();
+            }, 2000);
+        }
+    }, 1000);
+}
+
+// ── Live price tracking ──
+function startPriceTracking(r) {
+    if (priceInterval) clearInterval(priceInterval);
+    let poolCounter = 0;
+    const doFetch = async () => {
+        if (!activeRound || activeRound.id !== r.id) { clearInterval(priceInterval); return; }
+        const prices = await getPrices();
+        if (!prices) return;
+        const price = getPriceFor(prices, r.assetId);
+        if (!price) return;
+
+        priceHistory.push({ rid: r.id, price, ts: Date.now() });
+        if (priceHistory.length > 100) priceHistory.shift();
+
+        const change = price - r.startPrice;
+        const changePct = r.startPrice ? (change / r.startPrice) * 100 : 0;
+        const isUp = change >= 0;
+
+        const priceEl = document.getElementById('livePrice');
+        const changeEl = document.getElementById('liveChange');
+        const refEl = document.getElementById('startRef');
+        if (priceEl) { priceEl.textContent = '$' + Number(price).toLocaleString(); priceEl.className = 'val '+(isUp?'up':'down'); }
+        if (changeEl) { changeEl.textContent = (isUp?'+':'')+changePct.toFixed(2)+'%'; changeEl.className = 'change '+(isUp?'up':'down'); }
+        if (refEl) refEl.innerHTML = `<span>Start: $${Number(r.startPrice).toLocaleString()}</span><span>${isUp?'+':''}${change.toFixed(2)}</span>`;
+        drawChart();
+
+        poolCounter++;
+        if (poolCounter % 10 === 0) {
+            try {
+                const snap = await getDoc(doc(db, "predictions", activeRound.id));
+                if (!snap.exists()) return;
+                const d = snap.data();
+                activeRound.totalPool = d.totalPool || 0;
+                activeRound.upPool = d.upPool || 0;
+                activeRound.downPool = d.downPool || 0;
+                activeRound.upCount = d.upCount || 0;
+                activeRound.downCount = d.downCount || 0;
+                const infoEl = document.querySelector('.rc-info');
+                if (infoEl) infoEl.innerHTML = `<span>Pool: <b>${(d.totalPool||0).toFixed(2)} ONC</b></span><span>UP: <b style="color:#22c55e">${d.upCount||0}</b> / DOWN: <b style="color:#ef4444">${d.downCount||0}</b></span>`;
+                const amt = parseFloat(document.getElementById('betAmount')?.value||'0');
+                updatePayoutEstimate(amt);
+            } catch(e) {}
+        }
+    };
+    doFetch();
+    priceInterval = setInterval(doFetch, 3000);
+}
+
+// ── Bet selection ──
+window.selectPred = (btn) => {
+    document.querySelectorAll('#arrowBtns button').forEach(b => b.className = b.dataset.pred);
+    btn.classList.add('selected', btn.dataset.pred);
+    selectedPred = btn.dataset.pred;
+    validateBet();
+};
+
+function validateBet() {
+    const amt = parseFloat(document.getElementById('betAmount')?.value || '0');
+    const btn = document.getElementById('betBtn');
+    if (!btn) return;
+    const valid = selectedPred && amt >= 0.10 && amt <= userBalance && activeRound && activeRound.endTime > Date.now() + 30000;
+    btn.disabled = !valid;
+    updatePayoutEstimate(amt);
+}
+
+function updatePayoutEstimate(amt) {
+    const el = document.getElementById('payoutDisplay');
+    if (!el || !activeRound || !selectedPred || amt < 0.10) { if (el) el.textContent = ''; return; }
+    const upPool = activeRound.upPool || 0, downPool = activeRound.downPool || 0;
+    const myPool = selectedPred === 'up' ? upPool : downPool;
+    const oppPool = selectedPred === 'up' ? downPool : upPool;
+    let mult = oppPool > 0 && myPool > 0 ? Math.min(1 + oppPool/myPool, 3) : (oppPool > 0 ? 2 : 1);
+    el.innerHTML = `Potential Win: <b style="color:#22c55e;">${(amt*mult).toFixed(2)} ONC</b> <span style="opacity:0.3">(${mult.toFixed(2)}x)</span>`;
+}
+
+document.getElementById('roundContainer')?.addEventListener('input', e => {
+    if (e.target.id === 'betAmount') validateBet();
+});
+
+// ── Place bet ──
+window.placeBet = async () => {
+    const amt = Math.round(parseFloat(document.getElementById('betAmount').value) * 100) / 100;
+    if (!selectedPred || isNaN(amt) || amt < 0.10 || amt > userBalance || !activeRound) return;
+    if (activeRound.endTime < Date.now() + 30000) { showToast('Round closing soon', true); return; }
+
+    const btn = document.getElementById('betBtn');
+    btn.disabled = true; btn.textContent = 'Processing...';
+
+    try {
+        const field = selectedPred === 'up' ? 'upPool' : 'downPool';
+        const countField = selectedPred === 'up' ? 'upCount' : 'downCount';
+
+        await addDoc(collection(db, "prediction_bets"), {
+            roundId: activeRound.id, userId: uid,
+            prediction: selectedPred, stake: amt,
+            payout: null, claimed: false, timestamp: Date.now()
+        });
+        await updateDoc(doc(db, "users", uid), { balance: increment(-amt) });
+        await updateDoc(doc(db, "predictions", activeRound.id), {
+            [field]: increment(amt), [countField]: increment(1),
+            totalPool: increment(amt), totalBets: increment(1)
+        });
+
+        // Update local pool immediately (no re-read needed)
+        activeRound[field] = (activeRound[field] || 0) + amt;
+        activeRound[countField] = (activeRound[countField] || 0) + 1;
+        activeRound.totalPool = (activeRound.totalPool || 0) + amt;
+        activeRound.totalBets = (activeRound.totalBets || 0) + 1;
+        const infoEl = document.querySelector('.rc-info');
+        if (infoEl) infoEl.innerHTML = `<span>Pool: <b>${activeRound.totalPool.toFixed(2)} ONC</b></span><span>UP: <b style="color:#22c55e">${activeRound.upCount||0}</b> / DOWN: <b style="color:#ef4444">${activeRound.downCount||0}</b></span>`;
+
+        userBalance = Math.max(0, userBalance - amt);
+        document.getElementById('balance').textContent = userBalance.toFixed(2);
+
+        showToast('Trade placed: ' + selectedPred.toUpperCase() + ' ' + amt.toFixed(2) + ' ONC');
+        document.getElementById('betAmount').value = '';
+        selectedPred = null;
+        document.querySelectorAll('#arrowBtns button').forEach(b => b.className = b.dataset.pred);
+        validateBet();
+        loadMyBets();
+    } catch(e) {
+        console.error(e);
+        showToast('Trade failed: ' + e.message, true);
+    }
+    btn.textContent = 'Trade ONC';
+    btn.disabled = false;
+    validateBet();
+};
+
+window.setQuickBet = n => {
+    const input = document.getElementById('betAmount');
+    if (input) { input.value = n; validateBet(); }
+};
+
+// ── Segment / Asset switch ──
+window.switchSeg = el => {
+    if (!el?.dataset?.seg) return;
+    document.querySelectorAll('.seg-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentSeg = el.dataset.seg;
+    if (priceInterval) clearInterval(priceInterval);
+    priceHistory = []; activeRound = null;
+    loadRounds(currentSeg);
+    loadVolume();
+};
+
+window.switchAsset = el => {
+    if (!el?.dataset?.asset) return;
+    document.querySelectorAll('.asset-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentAsset = el.dataset.asset;
+    if (priceInterval) clearInterval(priceInterval);
+    priceHistory = []; activeRound = null;
+    loadRounds(currentSeg);
+};
+
+// ── My trades history ──
+async function loadMyBets() {
+    if (!uid) return;
+    try {
+        const snap = await getDocs(query(
+            collection(db, "prediction_bets"),
+            where("userId", "==", uid),
+            limit(20)
+        ));
+
+        myBets = [];
+        const roundIds = new Set();
+        snap.forEach(d => {
+            myBets.push({ id: d.id, ...d.data() });
+            roundIds.add(d.data().roundId);
+        });
+        myBets.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        // Only fetch round info for rounds we haven't seen before
+        const newIds = [...roundIds].filter(rid => !knownRoundIds.has(rid));
+        if (newIds.length > 0) {
+            const entries = await Promise.all(newIds.map(rid =>
+                getDoc(doc(db, "predictions", rid)).catch(() => null)
+            ));
+            entries.forEach((rd, i) => {
+                if (rd?.exists()) roundInfoCache[newIds[i]] = rd.data();
+            });
+            newIds.forEach(rid => knownRoundIds.add(rid));
+        }
+
+        // Stats
+        let wins=0, losses=0, pending=0, cancelled=0;
+        myBets.forEach(b => {
+            if (b.cancelled) { cancelled++; return; }
+            const r = roundInfoCache[b.roundId];
+            if (b.payout != null) { if (b.payout > 0) wins++; else losses++; }
+            else if (r?.outcome) { if (r.outcome === b.prediction) wins++; else losses++; }
+            else pending++;
+        });
+        const closed = wins + losses;
+        const winRate = closed > 0 ? (wins/closed)*100 : 0;
+        const statsRow = document.getElementById('statsRow');
+        if (statsRow && myBets.length) {
+            statsRow.style.display = 'flex';
+            document.getElementById('statTotal').textContent = myBets.length;
+            const wrEl = document.getElementById('statWinRate');
+            wrEl.textContent = winRate.toFixed(0)+'%';
+            wrEl.style.color = winRate >= 50 ? '#22c55e' : '#ef4444';
+            document.getElementById('statClosed').textContent = closed;
+            document.getElementById('statPending').textContent = pending;
+        }
+
+        renderBets();
+    } catch(e) { console.error('loadMyBets:', e); }
+}
+
+function timeAgo(t) {
+    if (!t) return '';
+    const s = Math.floor((Date.now()-t)/1000);
+    if (s < 60) return s+'s ago';
+    if (s < 3600) return Math.floor(s/60)+'m ago';
+    if (s < 86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+}
+
+function renderBets() {
+    const list = document.getElementById('histList');
+    if (!list) return;
+    if (!myBets.length) { list.innerHTML = '<div class="hist-empty">No trades yet</div>'; return; }
+
+    let filtered = myBets.filter(b => {
+        const r = roundInfoCache[b.roundId];
+        if (currentFilter === 'cancelled') return b.cancelled;
+        if (b.cancelled && currentFilter !== 'all') return false;
+        if (currentFilter === 'won') return !b.cancelled && (b.payout > 0 || (b.payout == null && r?.outcome === b.prediction));
+        if (currentFilter === 'lost') return !b.cancelled && (b.payout === 0 || (b.payout == null && r?.outcome && r.outcome !== b.prediction));
+        if (currentFilter === 'pending') return !b.cancelled && b.payout == null && !r?.outcome;
+        return true;
+    });
+    if (currentCoinFilter !== 'all') filtered = filtered.filter(b => roundInfoCache[b.roundId]?.symbol === currentCoinFilter);
+    if (!filtered.length) { list.innerHTML = '<div class="hist-empty">No trades match filter</div>'; return; }
+
+    list.innerHTML = filtered.slice(0, 20).map(b => {
+        const r = roundInfoCache[b.roundId];
+        const isCancelled = b.cancelled;
+        const isPaid = b.payout != null;
+        const winState = !isCancelled && (isPaid ? b.payout > 0 : r?.outcome === b.prediction);
+        const isPending = !isCancelled && !isPaid && !r?.outcome;
+
+        let label, icon, cls;
+        if (isCancelled) {
+            label='Cancelled'; cls='lose';
+            icon=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+        } else if (isPending) {
+            label='Pending'; cls='pending';
+            icon=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+        } else if (winState) {
+            label='Won'; cls='win';
+            icon=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        } else {
+            label='Lost'; cls='lose';
+            icon=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        }
+
+        const amt = isCancelled ? b.stake : (b.payout || b.stake);
+        const asset = r?.symbol || '?';
+        const segLabel = r?.segment || '';
+        const elapsedPct = b.timestamp ? (Date.now() - b.timestamp) / (r ? (r.endTime - r.startTime) : 1) : 1;
+        const canCancel = isPending && activeRound?.id === b.roundId && elapsedPct < 0.5;
+
+        return `<div class="hist-item">
+            <div class="h-icon ${cls}">${icon}</div>
+            <div class="h-info">
+                <div class="htop">${asset} ${b.prediction?.toUpperCase()} — ${label}</div>
+                <div class="hbot">${segLabel} · ${timeAgo(b.timestamp)}</div>
+            </div>
+            <div class="h-amt ${isCancelled ? 'lose' : (winState?'win':'lose')}">${isCancelled?'':(winState?'+':'-')}${Number(amt).toFixed(2)}</div>
+            ${canCancel ? `<button onclick="cancelTrade('${b.id}','${b.roundId}')" style="font-size:8px;font-weight:700;padding:4px 8px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.1);color:#ef4444;cursor:pointer;white-space:nowrap;font-family:Inter">Cancel</button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+// ── Volume row ──
+let volumeCache = { data: null, seg: '', ts: 0 };
+async function loadVolume() {
+    if (volumeCache.data && volumeCache.seg === currentSeg && Date.now() - volumeCache.ts < 120000) return;
+    try {
+        const snap = await getDocs(query(
+            collection(db, "predictions"),
+            where("segment", "==", currentSeg),
+            limit(15)
+        ));
+        const vols = {};
+        snap.forEach(d => {
+            const r = d.data();
+            if (r.status === 'active') {
+                const sym = r.symbol || '?';
+                vols[sym] = (vols[sym] || 0) + (r.totalPool || 0);
+            }
+        });
+        volumeCache = { data: vols, seg: currentSeg, ts: Date.now() };
+        const el = document.getElementById('volumeRow');
+        if (el) el.innerHTML = Object.keys(vols).map(sym =>
+            `<span style="margin:0 6px;">${sym}: <b style="color:rgba(255,255,255,0.4)">${vols[sym].toFixed(1)}</b> ONC</span>`
+        ).join('') || '';
+    } catch(e) {}
+}
+
+// ── Cancel trade ──
+window.cancelTrade = async (betId, roundId) => {
+    try {
+        const [betSnap, roundSnap] = await Promise.all([
+            getDoc(doc(db, "prediction_bets", betId)),
+            getDoc(doc(db, "predictions", roundId))
+        ]);
+        if (!betSnap.exists() || !roundSnap.exists()) { showToast('Not found', true); return; }
+        const bet = betSnap.data(), round = roundSnap.data();
+        if (bet.userId !== uid) { showToast('Not your trade', true); return; }
+        if (bet.cancelled) { showToast('Already cancelled', true); return; }
+        if (round.status !== 'active') { showToast('Round already resolved', true); return; }
+        const elapsed = bet.timestamp ? Date.now() - bet.timestamp : Date.now() - round.startTime;
+        const duration = round.endTime - round.startTime;
+        if (elapsed / duration > 0.5) { showToast('Cancel window closed (50% elapsed)', true); return; }
+
+        const field = bet.prediction === 'up' ? 'upPool' : 'downPool';
+        const countField = bet.prediction === 'up' ? 'upCount' : 'downCount';
+
+        const batch = writeBatch(db);
+        batch.update(doc(db, "prediction_bets", betId), { cancelled: true });
+        batch.update(doc(db, "predictions", roundId), {
+            [field]: increment(-bet.stake), [countField]: increment(-1),
+            totalPool: increment(-bet.stake), totalBets: increment(-1)
+        });
+        batch.update(doc(db, "users", uid), { balance: increment(bet.stake) });
+        await batch.commit();
+
+        userBalance += bet.stake;
+        document.getElementById('balance').textContent = userBalance.toFixed(2);
+        showToast(`Cancelled — ${bet.stake.toFixed(2)} ONC refunded`);
+
+        // Update local state instead of re-querying Firestore
+        const localBet = myBets.find(b => b.id === betId);
+        if (localBet) localBet.cancelled = true;
+        if (activeRound) {
+            activeRound[field] -= bet.stake;
+            activeRound[countField] -= 1;
+            activeRound.totalPool -= bet.stake;
+            activeRound.totalBets -= 1;
+        }
+        renderBets();
+    } catch(e) { showToast('Cancel failed: ' + e.message, true); }
+};
+
+// ── Event listeners ──
+document.getElementById('segTabs')?.addEventListener('click', e => {
+    const tab = e.target.closest('.seg-tab');
+    if (tab?.dataset?.seg) switchSeg(tab);
+});
+document.getElementById('assetTabs')?.addEventListener('click', e => {
+    const tab = e.target.closest('.asset-tab');
+    if (tab?.dataset?.asset) switchAsset(tab);
+});
+document.addEventListener('click', e => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    currentFilter = chip.dataset.filter;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    renderBets();
+});
+document.addEventListener('change', e => {
+    if (e.target.id === 'coinFilter') { currentCoinFilter = e.target.value; renderBets(); }
+});
+document.getElementById('usdToggle')?.addEventListener('click', () => showToast('Coming soon'));
+
+// ── Countdown to June 10 ──
+const TARGET = new Date('2026-06-10T00:00:00').getTime();
+function updateCountdown() {
+    const diff = TARGET - Date.now();
+    if (diff <= 0) { document.getElementById('countdownBar').innerHTML = '<span style="font-size:12px;font-weight:800;color:var(--primary)">🚀 June 10 is HERE!</span>'; return; }
+    document.getElementById('cdDays').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('cdHours').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('cdMins').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('cdSecs').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+// ── Auth ──
+onAuthStateChanged(auth, async user => {
+    if (!user) { window.location = 'login.html'; return; }
+    uid = user.uid;
+
+    try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (!snap.exists()) { window.location = 'login.html'; return; }
+        const data = snap.data();
+        if (data.banned === true) { window.location = 'banned.html'; return; }
+        userBalance = parseFloat(data.balance) || 0;
+        document.getElementById('balance').textContent = userBalance.toFixed(2);
+    } catch(e) {
+        console.error('Auth user fetch failed:', e.message);
+        // Still show page even if balance fetch fails
+    }
+
+    document.getElementById('loader').style.display = 'none';
+
+    // Load everything in parallel
+    await loadRounds(currentSeg);
+    loadVolume();
+    loadMyBets();
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment
+backend/.env
+backend/serviceAccountKey.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Withdraw — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--red:#ef4444;--amber:#f59e0b}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.06) 0%,transparent 60%)}
+.phone-frame{width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px}
+.header{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:14px 16px}
+.back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1}
+.bal{font-size:11px;font-weight:700;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15);padding:6px 14px;border-radius:100px;white-space:nowrap}
+.bal .num{font-family:'Space Grotesk';color:var(--primary)}
+.page-title{font-family:'Space Grotesk';font-weight:800;font-size:22px;margin:4px 0 2px}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:4px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:24px 20px;backdrop-filter:blur(20px)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.25);margin-bottom:16px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.s-item{text-align:center;padding:8px}
+.s-item .s-val{font-family:'Space Grotesk';font-weight:900;font-size:15px}
+.s-item .s-lbl{font-size:8px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+.s-item .s-val.green{color:var(--green)}
+.s-item .s-val.amber{color:var(--amber)}
+.s-item .s-val.white{color:#fff}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.3);margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:14px 16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;color:white;font-size:14px;font-family:'Inter';transition:0.2s}
+.form-group input:focus{border-color:rgba(167,139,250,0.35);background:rgba(255,255,255,0.06)}
+.form-group input::placeholder{color:rgba(255,255,255,0.15)}
+.form-group input:disabled,.form-group select:disabled{opacity:0.4}
+.network-badge{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12);border-radius:12px;margin-bottom:14px;font-size:12px}
+.network-badge svg{flex-shrink:0}
+.network-badge span{color:rgba(255,255,255,0.4)}
+.network-badge strong{color:var(--primary)}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
+.info-row:last-child{border-bottom:none}
+.info-row .lbl{color:rgba(255,255,255,0.35)}
+.info-row .val{font-weight:700;font-family:'Space Grotesk'}
+.info-row .val.green{color:var(--green)}
+.info-row .val.red{color:var(--red)}
+.otp-row{display:flex;gap:8px;margin-top:8px}
+.otp-row input{flex:1;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:white;font-size:20px;font-weight:900;font-family:'Space Grotesk';text-align:center;letter-spacing:6px;transition:0.2s}
+.otp-row input:focus{border-color:rgba(167,139,250,0.35)}
+.otp-row input::placeholder{font-size:12px;letter-spacing:1px;font-weight:500}
+.otp-row button{padding:10px 18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:11px;cursor:pointer;font-family:'Inter';transition:0.25s;white-space:nowrap}
+.otp-row button:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{width:100%;margin-top:12px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter';transition:0.25s}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-outline{width:100%;padding:14px;border:1px solid var(--border);border-radius:14px;background:transparent;color:rgba(255,255,255,0.4);font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter';transition:0.2s;margin-top:8px}
+.btn-outline:hover{border-color:rgba(167,139,250,0.3);color:var(--primary)}
+.history-card{background:var(--card);border:1px solid var(--border);border-radius:24px;overflow:hidden}
+.history-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 0}
+.history-header .hh-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.25)}
+.history-header .hh-count{font-size:10px;color:rgba(255,255,255,0.15)}
+.h-item{display:grid;grid-template-columns:70px 1fr 80px;gap:8px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center}
+.h-item:last-child{border-bottom:none}
+.h-item .h-amount{font-family:'Space Grotesk';font-weight:900;font-size:14px}
+.h-item .h-meta{font-size:10px;color:rgba(255,255,255,0.25);line-height:1.3}
+.h-item .h-status{text-align:right;font-size:10px;font-weight:800;text-transform:uppercase;padding:4px 10px;border-radius:100px;display:inline-block;justify-self:end}
+.h-status.pending{color:var(--amber);background:rgba(245,158,11,0.08)}
+.h-status.processing{color:var(--primary);background:rgba(167,139,250,0.08)}
+.h-status.completed{color:var(--green);background:rgba(34,197,94,0.08)}
+.h-status.rejected{color:var(--red);background:rgba(239,68,68,0.08)}
+.empty-state{padding:32px;text-align:center;font-size:12px;color:rgba(255,255,255,0.15)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;font-family:'Inter';animation:slideUp 0.3s;white-space:nowrap}
+.toast.success{background:var(--green);color:#000}
+.toast.error{background:var(--red);color:#fff}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}}
+.rules-box{font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;padding:12px 14px;background:rgba(255,255,255,0.02);border-radius:12px;margin-top:12px}
+.rules-box strong{color:rgba(255,255,255,0.5)}
+.warning-card{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;margin-top:12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;font-size:11px;line-height:1.5;color:rgba(255,255,255,0.6);animation:blink-warn 2s ease-in-out infinite}
+.warning-card svg{flex-shrink:0;margin-top:1px;color:#ef4444}
+.warning-card strong{color:#ef4444}
+@keyframes blink-warn{0%,100%{opacity:1;border-color:rgba(239,68,68,0.2)}50%{opacity:0.6;border-color:rgba(239,68,68,0.5)}}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="header">
+    <a href="dashboard.html" class="back-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="logo">ONCHYRA</div>
+    <div class="bal">Commission <span class="num" id="balance">0.00</span></div>
+  </div>
+
+  <div class="page-title">Withdraw</div>
+  <div class="page-sub">BEP20 — Min $10 | 5% fee | Above $50 needs approval</div>
+
+  <div class="card" style="padding:16px 12px;">
+    <div class="summary-grid">
+      <div class="s-item"><div class="s-val white" id="availBal">$0.00</div><div class="s-lbl" id="availBalLabel">Commission</div></div>
+      <div class="s-item"><div class="s-val green" id="totalWithdrawn">$0.00</div><div class="s-lbl">Withdrawn</div></div>
+      <div class="s-item"><div class="s-val amber" id="pendingWithdrawals">$0.00</div><div class="s-lbl">Pending</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Withdrawal Request</div>
+
+    <div class="network-badge">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#26a17b"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>Network: <strong>BEP20</strong> • Asset: <strong>USDT</strong></span>
+    </div>
+
+    <div class="warning-card">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span><strong>⚠ Verify your wallet address carefully.</strong> Funds sent to a wrong address <u>cannot be recovered</u>. Double-check before submitting.</span>
+    </div>
+
+    <div class="form-group">
+      <label>Wallet Address</label>
+      <input type="text" id="wdWallet" placeholder="0x..." oninput="checkForm()">
+    </div>
+
+    <div class="form-group">
+      <label>Amount (USDT)</label>
+      <input type="number" id="wdAmount" placeholder="10.00" min="10" step="0.01" oninput="calcWithdraw();checkForm();">
+    </div>
+
+    <div class="info-row"><span class="lbl">Amount</span><span class="val" id="calcAmount">$0.00</span></div>
+    <div class="info-row"><span class="lbl">Fee (5%)</span><span class="val red" id="calcFee">$0.00</span></div>
+    <div class="info-row"><span class="lbl">You Receive</span><span class="val green" id="calcReceive">$0.00</span></div>
+
+    <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+
+    <div class="otp-row" id="otpRow" style="display:none;">
+      <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+      <button id="verifyOtpBtn" onclick="verifyOtp()">Verify</button>
+    </div>
+
+    <button class="btn-primary" id="wdBtn" onclick="submitWithdraw()" style="display:none;">Withdraw</button>
+
+    <div class="rules-box">
+      <strong>Rules:</strong> Min $10 • Auto-process $10-$50 • Above $50 needs admin approval<br>
+      Insufficient balance or invalid address will be rejected.
+    </div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-header">
+      <div class="hh-title">Withdrawal History</div>
+      <div class="hh-count" id="historyCount">0</div>
+    </div>
+    <div id="historyList"><div class="empty-state">No withdrawals yet</div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra",
+  storageBucket: "onchyra.firebasestorage.app",
+  messagingSenderId: "441822770982",
+  appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra.netlify.app/api');
+
+let uid, userEmail, walletBalance = 0, otpVerified = false;
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (isError ? 'error' : 'success');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+window.calcWithdraw = () => {
+  const amt = parseFloat(document.getElementById('wdAmount').value) || 0;
+  const fee = amt * 0.05;
+  const net = amt - fee;
+  document.getElementById('calcAmount').textContent = '$' + amt.toFixed(2);
+  document.getElementById('calcFee').textContent = '$' + fee.toFixed(2);
+  document.getElementById('calcReceive').textContent = '$' + net.toFixed(2);
+};
+
+function checkForm() {
+  const amt = parseFloat(document.getElementById('wdAmount').value) || 0;
+  const wallet = document.getElementById('wdWallet').value.trim();
+  const btn = document.getElementById('sendOtpBtn');
+    if (wallet.startsWith('0x') && wallet.length >= 20 && amt >= 10 && amt <= walletBalance) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+}
+
+window.sendOtp = async () => {
+  if (!userEmail) { showToast('User email not found', true); return; }
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    const res = await fetch(API + '/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail, purpose: 'withdrawal' })
+    });
+    const bodyText = await res.text();
+    let result;
+    try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+    showToast('OTP sent to your email!');
+    btn.style.display = 'none';
+    document.getElementById('otpRow').style.display = 'flex';
+    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('otpInput').focus();
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Send OTP';
+  }
+};
+
+window.verifyOtp = async () => {
+  const otp = document.getElementById('otpInput').value.trim();
+  if (!otp || otp.length !== 6) { showToast('Enter the 6-digit OTP', true); return; }
+  if (!userEmail) { showToast('User email not found', true); return; }
+  const btn = document.getElementById('verifyOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  try {
+    const res = await fetch(API + '/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail, otp })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Verification failed');
+    otpVerified = true;
+    showToast('OTP verified!');
+    document.getElementById('otpInput').disabled = true;
+    btn.textContent = 'Verified';
+    document.getElementById('wdBtn').style.display = 'block';
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Verify';
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
+  }
+};
+
+window.submitWithdraw = async () => {
+  if (!otpVerified) { showToast('Please verify OTP first', true); return; }
+  const amount = parseFloat(document.getElementById('wdAmount').value) || 0;
+  const wallet = document.getElementById('wdWallet').value.trim();
+  if (amount < 10) { showToast('Minimum withdrawal is 10 USDT', true); return; }
+  if (amount > walletBalance) { showToast('Insufficient balance', true); return; }
+  if (!wallet.startsWith('0x') || wallet.length < 20) { showToast('Invalid BEP20 wallet address', true); return; }
+
+  const btn = document.getElementById('wdBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  try {
+    const res = await fetch(API + '/withdraw/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, amount, wallet, network: 'BEP20' })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+    const isAuto = result.status === 'processing';
+    showToast(isAuto ? 'Auto-processing withdrawal!' : 'Withdrawal pending admin approval');
+    walletBalance -= amount;
+    document.getElementById('balance').textContent = walletBalance.toFixed(2);
+    document.getElementById('availBal').textContent = '$' + walletBalance.toFixed(2);
+    document.getElementById('wdAmount').value = '';
+    document.getElementById('wdWallet').value = '';
+    document.getElementById('wdBtn').style.display = 'none';
+    document.getElementById('sendOtpBtn').style.display = 'block';
+    document.getElementById('otpRow').style.display = 'none';
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').disabled = false;
+    document.getElementById('verifyOtpBtn').textContent = 'Verify';
+    document.getElementById('verifyOtpBtn').disabled = false;
+    otpVerified = false;
+    calcWithdraw();
+    loadHistory();
+    loadSummary();
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Withdraw';
+  }
+};
+
+async function loadHistory() {
+  const container = document.getElementById('historyList');
+  const countEl = document.getElementById('historyCount');
+  try {
+    const res = await fetch(API + '/withdrawals/' + uid);
+    if (!res.ok) { container.innerHTML = '<div class="empty-state">Failed to load history</div>'; return; }
+    const list = await res.json();
+    countEl.textContent = list.length;
+    if (list.length === 0) {
+      container.innerHTML = '<div class="empty-state">No withdrawals yet</div>';
+      return;
+    }
+    container.innerHTML = list.map(w => {
+      const date = new Date(w.createdAt).toLocaleDateString();
+      const statusClass = w.status === 'pending' ? 'pending' : w.status === 'processing' ? 'processing' : w.status === 'completed' ? 'completed' : 'rejected';
+      const txLink = w.txHash ? `<a href="https://bscscan.com/tx/${w.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:10px;">TX: ${w.txHash.slice(0,8)}...</a>` : '';
+      return `<div class="h-item">
+        <div class="h-amount">$${w.amount.toFixed(2)}</div>
+        <div class="h-meta">Fee: $${(w.fee||0).toFixed(2)} • Net: $${(w.netAmount||0).toFixed(2)}<br>${date}${txLink ? '<br>' + txLink : ''}</div>
+        <div class="h-status ${statusClass}">${w.status}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state">Error loading history</div>';
+  }
+}
+
+async function loadSummary() {
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    walletBalance = data.commissionBalance || 0;
+    document.getElementById('balance').textContent = walletBalance.toFixed(2);
+    document.getElementById('availBal').textContent = '$' + walletBalance.toFixed(2);
+
+    const res = await fetch(API + '/withdrawals/' + uid);
+    if (!res.ok) return;
+    const list = await res.json();
+    let totalWithdrawn = 0, pendingTotal = 0;
+    list.forEach(w => {
+      if (w.status === 'completed' || w.status === 'approved') totalWithdrawn += w.amount;
+      if (w.status === 'pending' || w.status === 'processing') pendingTotal += w.amount;
+    });
+    document.getElementById('totalWithdrawn').textContent = '$' + totalWithdrawn.toFixed(2);
+    document.getElementById('pendingWithdrawals').textContent = '$' + pendingTotal.toFixed(2);
+  } catch(e) {
+    console.error('loadSummary error:', e);
+  }
+}
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location = 'register.html'; return; }
+  uid = user.uid;
+  const snap = await getDoc(doc(db, 'users', uid));
+  if (!snap.exists()) { window.location = 'register.html'; return; }
+  userEmail = snap.data().email;
+  await loadSummary();
+  await loadHistory();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Referrals — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --red:#ef4444; --amber:#f59e0b; }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:20px 16px; background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.06) 0%,transparent 60%); }
+        .phone-frame { width:100%; max-width:480px; display:flex; flex-direction:column; gap:14px; }
+        .header { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 16px; }
+        .back-btn { width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0;}
+        .logo { font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1;}
+
+        .ref-hero { background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(96,165,250,0.05));border:1px solid rgba(167,139,250,0.12);border-radius:24px;padding:24px 20px;text-align:center;position:relative;overflow:hidden; }
+        .ref-hero::before { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(167,139,250,0.08);filter:blur(40px);pointer-events:none; }
+        .ref-hero .ref-code { font-family:'Space Grotesk';font-weight:900;font-size:32px;letter-spacing:6px;background:linear-gradient(135deg,#fff 20%,rgba(167,139,250,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0; }
+        .ref-hero .ref-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.25); }
+        .copy-btn { width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter';margin-top:12px; }
+
+        .stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+        .stat-card { background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px; }
+        .stat-card .sc-icon { width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .stat-card .sc-val { font-family:'Space Grotesk';font-weight:900;font-size:17px; }
+        .stat-card .sc-lbl { font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px; }
+
+        .tabs { display:flex;gap:6px; }
+        .tab { flex:1;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--card);text-align:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);cursor:pointer;transition:0.2s; }
+        .tab.active { border-color:var(--primary);color:#fff;background:rgba(167,139,250,0.06); }
+
+        .list-card { background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden; }
+        .list-item { display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px; }
+        .list-item:last-child { border-bottom:none; }
+        .list-item .li-left { display:flex;align-items:center;gap:10px; }
+        .list-item .li-name { font-weight:700;font-size:13px; }
+        .list-item .li-meta { font-size:9px;color:rgba(255,255,255,0.25);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap; }
+        .badge-pkg { font-size:7px;font-weight:800;padding:2px 7px;border-radius:5px;background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.15);text-transform:uppercase; }
+        .badge-nopkg { font-size:7px;font-weight:800;padding:2px 7px;border-radius:5px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.15);text-transform:uppercase; }
+        .li-amount { font-weight:800;color:var(--green); }
+
+        .empty-state { padding:40px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2); }
+        .toast { position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;background:var(--green);color:#000;animation:slideUp 0.3s;white-space:nowrap; }
+        @keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0;} }
+    </style>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="header">
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="logo">ONCHYRA</div>
+        <div style="width:36px;"></div>
+    </div>
+
+    <div class="ref-hero">
+        <div class="ref-label">Your Referral Code</div>
+        <div class="ref-code" id="refCode">---</div>
+        <button class="copy-btn" onclick="copyLink()">COPY INVITE LINK</button>
+    </div>
+
+    <div class="list-card" style="padding:16px;">
+        <div class="stat-grid">
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(167,139,250,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div><div class="sc-val" id="totalNetwork">0</div><div class="sc-lbl">Network</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(96,165,250,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div><div class="sc-val" id="totalBiz">$0</div><div class="sc-lbl">Business</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(245,158,11,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div><div class="sc-val" id="totalOncDisplay">0 ONC</div><div class="sc-lbl">ONC Bonus</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(34,197,94,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div><div class="sc-val" id="totalCommDisplay">$0.00</div><div class="sc-lbl">Commission</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="list-card" style="padding:16px;">
+        <div class="stat-grid">
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(167,139,250,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <div><div class="sc-val" id="totalDirectDisplay">0/0</div><div class="sc-lbl">Active / Total Direct</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(34,197,94,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div><div class="sc-val" id="legABiz">$0.00</div><div class="sc-lbl">Leg A</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(245,158,11,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div><div class="sc-val" id="legBBiz">$0.00</div><div class="sc-lbl">Leg B</div></div>
+            </div>
+            <div class="stat-card" style="border:none;background:transparent;padding:8px;">
+                <div class="sc-icon" style="background:rgba(34,197,94,0.12);">
+                    <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div><div class="sc-val" id="todayEarnings">$0.00</div><div class="sc-lbl">Today's Earnings</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" id="tabTeam" onclick="switchTab('team')">Network</div>
+        <div class="tab" id="tabComm" onclick="switchTab('comm')">Commissions</div>
+    </div>
+
+    <div id="teamView">
+        <select id="lvlFilter" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:white;font-size:12px;font-weight:700;outline:none;margin-bottom:8px;">
+            <option value="1">Vanguard (L1)</option>
+            <option value="2">Guardians (L2)</option>
+            <option value="3">Seekers (L3)</option>
+        </select>
+        <div class="list-card" id="teamList"></div>
+        <button id="loadMoreBtn" onclick="loadMore()" style="display:none;width:100%;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--primary);font-weight:800;font-size:11px;cursor:pointer;margin-top:6px;">LOAD MORE +</button>
+    </div>
+
+    <div id="commView" style="display:none;">
+        <div class="list-card" id="commList"></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid, refCode, userData;
+let teamData = { 1: [], 2: [], 3: [] };
+let pageSize = { 1: 10, 2: 10, 3: 10 };
+let allCommissions = [];
+let l1BizCache = {};
+
+function fmtDate(ts) {
+    if (!ts) return '-';
+    try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        if (isNaN(d.getTime())) return '-';
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+    } catch(e) { return '-'; }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast';
+    t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
+}
+
+window.copyLink = () => {
+    const link = window.location.origin + '/register.html?ref=' + refCode;
+    navigator.clipboard.writeText(link);
+    showToast('Invite link copied!');
+};
+
+window.switchTab = (tab) => {
+    document.getElementById('tabTeam').className = tab === 'team' ? 'tab active' : 'tab';
+    document.getElementById('tabComm').className = tab === 'comm' ? 'tab active' : 'tab';
+    document.getElementById('teamView').style.display = tab === 'team' ? 'block' : 'none';
+    document.getElementById('commView').style.display = tab === 'comm' ? 'block' : 'none';
+};
+
+async function loadTeam() {
+    if (!refCode) return;
+    const s1 = await getDocs(query(collection(db, 'users'), where('referredBy', '==', refCode)));
+    teamData[1] = s1.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const l1Codes = teamData[1].map(u => u.referralCode).filter(Boolean);
+    for (let i = 0; i < l1Codes.length; i += 10) {
+        const s2 = await getDocs(query(collection(db, 'users'), where('referredBy', 'in', l1Codes.slice(i, i + 10))));
+        teamData[2].push(...s2.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+    const l2Codes = teamData[2].map(u => u.referralCode).filter(Boolean);
+    for (let i = 0; i < l2Codes.length; i += 10) {
+        const s3 = await getDocs(query(collection(db, 'users'), where('referredBy', 'in', l2Codes.slice(i, i + 10))));
+        teamData[3].push(...s3.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+    l1BizCache = {};
+    for (const u of teamData[1]) {
+        let biz = u.totalPackageSpend || 0;
+        for (const v of teamData[2]) {
+            if (v.referredBy === u.referralCode) {
+                biz += v.totalPackageSpend || 0;
+                for (const w of teamData[3]) {
+                    if (w.referredBy === v.referralCode) {
+                        biz += w.totalPackageSpend || 0;
+                    }
+                }
+            }
+        }
+        l1BizCache[u.referralCode] = biz;
+    }
+    renderTeam();
+    renderLegs();
+}
+
+function renderLegs() {
+    const l1 = teamData[1] || [];
+    const l2 = teamData[2] || [];
+    const l3 = teamData[3] || [];
+
+    const activeDirects = l1.filter(u => u.activePackage).length;
+    const totalDirects = l1.length;
+    document.getElementById('totalDirectDisplay').textContent = activeDirects + '/' + totalDirects;
+
+    const legBiz = [];
+    for (const u of l1) {
+        let biz = u.totalPackageSpend || 0;
+        for (const v of l2) {
+            if (v.referredBy === u.referralCode) {
+                biz += v.totalPackageSpend || 0;
+                for (const w of l3) {
+                    if (w.referredBy === v.referralCode) {
+                        biz += w.totalPackageSpend || 0;
+                    }
+                }
+            }
+        }
+        legBiz.push({ name: u.name || 'User', biz });
+    }
+
+    legBiz.sort((a, b) => b.biz - a.biz);
+    const legA = legBiz.length > 0 ? legBiz[0].biz : 0;
+    const legB = legBiz.slice(1).reduce((s, x) => s + x.biz, 0);
+
+    document.getElementById('legABiz').textContent = '$' + legA.toFixed(2);
+    document.getElementById('legBBiz').textContent = '$' + legB.toFixed(2);
+}
+
+async function loadCommissions() {
+    try {
+        const snap = await getDocs(query(collection(db, 'commissions'), where('uid', '==', uid), limit(100)));
+        allCommissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allCommissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (e) {
+        console.error('Commissions load error:', e);
+        allCommissions = [];
+    }
+    renderCommissions();
+    renderTodayEarnings();
+}
+
+function renderTodayEarnings() {
+    let todayTotal = 0;
+    const todayStr = new Date().toDateString();
+    for (const c of allCommissions) {
+        const cDate = c.createdAt ? new Date(c.createdAt).toDateString() : null;
+        if (cDate === todayStr) {
+            todayTotal += c.amount || 0;
+        }
+    }
+    document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
+}
+
+function renderTeam() {
+    const lvl = document.getElementById('lvlFilter').value;
+    const list = teamData[lvl] || [];
+    const visible = list.slice(0, pageSize[lvl]);
+    const container = document.getElementById('teamList');
+
+    if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state">No members in this level</div>';
+        document.getElementById('loadMoreBtn').style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = visible.map(u => {
+        const date = fmtDate(u.createdAt);
+        const teamCount = (u.refLevel1||0) + (u.refLevel2||0) + (u.refLevel3||0);
+        const biz = l1BizCache[u.referralCode] ?? (u.totalPackageSpend || 0);
+        const hasPkg = u.activePackage ? true : false;
+        const badge = hasPkg ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name || 'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${teamCount}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
+    }).join('');
+
+    document.getElementById('loadMoreBtn').style.display = list.length > visible.length ? 'block' : 'none';
+}
+
+function renderCommissions() {
+    const container = document.getElementById('commList');
+    if (allCommissions.length === 0) {
+        container.innerHTML = '<div class="empty-state">No commissions yet</div>';
+        return;
+    }
+    container.innerHTML = allCommissions.map(c => {
+        const date = fmtDate(c.createdAt);
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span>${c.packageName || 'Package'}</span><span>Level ${c.level}</span><span>${date}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
+    }).join('');
+}
+
+window.loadMore = () => {
+    const lvl = document.getElementById('lvlFilter').value;
+    pageSize[lvl] += 10;
+    renderTeam();
+};
+
+document.getElementById('lvlFilter').addEventListener('change', () => {
+    pageSize = { 1: 10, 2: 10, 3: 10 };
+    renderTeam();
+});
+
+async function loadStats() {
+    const userSnap = await getDoc(doc(db, 'users', uid));
+    userData = userSnap.data();
+
+    refCode = userData.referralCode || uid.substring(0, 6).toUpperCase();
+    document.getElementById('refCode').textContent = refCode;
+
+    const l1 = userData.refLevel1 || 0;
+    const l2 = userData.refLevel2 || 0;
+    const l3 = userData.refLevel3 || 0;
+    document.getElementById('totalNetwork').textContent = l1 + l2 + l3;
+
+    const totalOnc = (l1 * 0.25) + (l2 * 0.10) + (l3 * 0.05);
+
+    const totalComm = userData.totalCommissions || 0;
+    document.getElementById('totalOncDisplay').textContent = totalOnc.toFixed(2) + ' ONC';
+    document.getElementById('totalCommDisplay').textContent = '$' + totalComm.toFixed(2);
+}
+
+async function loadBiz() {
+    let biz = 0;
+    for (const lvl of [1, 2, 3]) {
+        for (const u of teamData[lvl]) {
+            biz += u.totalPackageSpend || 0;
+        }
+    }
+    document.getElementById('totalBiz').textContent = '$' + biz.toFixed(2);
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location = 'register.html'; return; }
+    uid = user.uid;
+    await loadStats();
+    await loadTeam();
+    loadBiz();
+    loadCommissions();
+});
+</script>
+</body>
+</html>

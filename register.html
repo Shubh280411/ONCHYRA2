@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Join — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.08) 0%,transparent 60%)}
+.phone-frame{width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:22px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;letter-spacing:-0.5px}
+.logo-sub{font-size:10px;color:rgba(255,255,255,0.2);text-align:center;text-transform:uppercase;letter-spacing:3px;margin-top:2px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px 28px;backdrop-filter:blur(20px)}
+.card-title{font-size:15px;font-weight:800;text-align:center;margin-bottom:4px}
+.card-sub{font-size:10px;color:rgba(255,255,255,0.25);text-align:center;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px}
+.input-wrap{position:relative;margin-top:14px}
+.input-wrap input{width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:white;font-size:13px;font-family:'Inter';outline:none;transition:0.25s}
+.input-wrap input:focus{border-color:rgba(167,139,250,0.35);background:rgba(255,255,255,0.06)}
+.input-wrap input::placeholder{color:rgba(255,255,255,0.2);font-weight:500}
+.input-wrap input:disabled{opacity:0.4}
+.pass-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:4px;display:flex;transition:0.2s}
+.pass-toggle:hover{color:rgba(255,255,255,0.6)}
+.ref-badge{display:flex;align-items:center;gap:8px;margin-top:14px;padding:12px 16px;border-radius:12px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12)}
+.ref-badge svg{flex-shrink:0}
+.ref-badge span{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.4}
+.ref-badge strong{color:var(--primary)}
+.otp-row{display:flex;gap:8px;margin-top:14px}
+.otp-row input{flex:1;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:white;font-size:20px;font-weight:900;font-family:'Space Grotesk';outline:none;transition:0.25s;text-align:center;letter-spacing:6px}
+.otp-row input:focus{border-color:rgba(167,139,250,0.35)}
+.otp-row input::placeholder{font-size:13px;letter-spacing:1px;font-weight:500}
+.otp-row button{padding:10px 18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:11px;cursor:pointer;font-family:'Inter';transition:0.25s;white-space:nowrap}
+.otp-row button:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{width:100%;margin-top:16px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter';transition:0.25s;letter-spacing:0.3px}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-outline{width:100%;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:transparent;color:rgba(255,255,255,0.4);font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter';transition:0.2s}
+.btn-outline:hover{border-color:rgba(167,139,250,0.3);color:var(--primary)}
+.footer-link{display:block;margin-top:18px;text-align:center;font-size:12px;color:rgba(255,255,255,0.25);text-decoration:none;transition:0.2s}
+.footer-link:hover{color:var(--primary)}
+.footer-link span{color:var(--primary);font-weight:700}
+.input-error{border-color:rgba(239,68,68,0.4)!important}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;font-family:'Inter';animation:slideUp 0.3s;white-space:nowrap}
+.toast.success{background:var(--green);color:#000}
+.toast.error{background:var(--red);color:#fff}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="logo">ONCHYRA</div>
+  <div class="logo-sub">Create Your Account</div>
+
+  <div class="card">
+    <div class="card-title">Get Started</div>
+    <div class="card-sub">Join the mining revolution</div>
+
+    <div class="input-wrap">
+      <input type="text" id="name" placeholder="Full Name" autocomplete="name">
+    </div>
+
+    <div class="input-wrap">
+      <input type="email" id="email" placeholder="Email Address" autocomplete="email">
+    </div>
+
+    <div class="input-wrap">
+      <input type="password" id="password" placeholder="Password" autocomplete="new-password">
+      <button class="pass-toggle" id="passToggle" type="button" onclick="togglePass()" tabindex="-1">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path id="eyeIcon" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle id="eyeDot" cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="input-wrap">
+      <input type="text" id="referral" placeholder="Referral Code *" autocomplete="off">
+    </div>
+
+    <div class="ref-badge">
+      <svg width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Referral code is <strong>required</strong> — you must have an inviter to join</span>
+    </div>
+
+    <div id="otpRow" style="display:none;">
+      <div class="otp-row">
+        <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+      </div>
+      <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOtp()" style="margin-top:10px;">Verify</button>
+      <button class="btn-outline" id="resendBtn" onclick="sendOtp()" style="margin-top:8px;display:none;">Resend OTP (60s)</button>
+    </div>
+
+    <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+    <div style="margin-top:14px;">
+      <a href="login.html" class="footer-link">Already have an account? <span>Login</span></a>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra",
+  storageBucket: "onchyra.firebasestorage.app",
+  messagingSenderId: "441822770982",
+  appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra.netlify.app/api');
+let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
+localStorage.setItem("onc_device", deviceId);
+let otpVerified = false;
+let refValid = false;
+let refChecked = false;
+
+const referralInput = document.getElementById('referral');
+const refStatus = document.createElement('div');
+refStatus.style.cssText = 'font-size:10px;font-weight:700;margin-top:6px;padding-left:4px;display:none;';
+referralInput.parentNode.appendChild(refStatus);
+
+// Real-time referral check
+referralInput.addEventListener('input', async () => {
+  const code = referralInput.value.trim().toUpperCase();
+  referralInput.value = code;
+  if (code.length < 3) { refStatus.style.display = 'none'; refValid = false; refChecked = false; return; }
+  refStatus.style.display = 'block';
+  refStatus.style.color = 'rgba(255,255,255,0.3)';
+  refStatus.textContent = 'Checking...';
+  refChecked = false;
+  refValid = false;
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', code)));
+    if (!snap.empty) {
+      refValid = true; refChecked = true;
+      refStatus.style.color = '#22c55e';
+      refStatus.textContent = '✅ Valid referral code';
+    } else {
+      refValid = false; refChecked = true;
+      refStatus.style.color = '#ef4444';
+      refStatus.textContent = '❌ Invalid referral code';
+    }
+  } catch(e) {
+    refValid = false; refChecked = false;
+    refStatus.style.display = 'none';
+  }
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  if(ref) { referralInput.value = ref.toUpperCase(); referralInput.dispatchEvent(new Event('input')); }
+});
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (isError ? 'error' : 'success');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+window.togglePass = () => {
+  const p = document.getElementById("password");
+  const icon = document.getElementById("eyeIcon");
+  const dot = document.getElementById("eyeDot");
+  if (p.type === "password") {
+    p.type = "text";
+    icon.setAttribute("d", "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24");
+    dot.style.display = "none";
+  } else {
+    p.type = "password";
+    icon.setAttribute("d", "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z");
+    dot.style.display = "";
+  }
+};
+
+function validateForm() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const refCode = referralInput.value.trim().toUpperCase();
+
+  if(!name || !email || !password) {
+    showToast("Please fill in all fields", true);
+    return null;
+  }
+  if(!refCode) {
+    referralInput.classList.add('input-error');
+    setTimeout(() => referralInput.classList.remove('input-error'), 2000);
+    showToast("Referral code is required", true);
+    return null;
+  }
+  if (!refChecked || !refValid) {
+    showToast("Referral code is invalid or not verified", true);
+    return null;
+  }
+  return { name, email, password, refCode };
+}
+
+window.sendOtp = async () => {
+  const data = validateForm();
+  if (!data) return;
+
+  const btn = document.getElementById('sendOtpBtn');
+
+  try {
+    // Check if email already registered
+    const methods = await fetchSignInMethodsForEmail(auth, data.email);
+    if (methods.length > 0) {
+      showToast('This email is already registered. Please login.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    const res = await fetch(API + '/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email })
+    });
+    const bodyText = await res.text();
+    let result;
+    try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+
+    showToast('OTP sent to your email!');
+    document.getElementById('sendOtpBtn').style.display = 'none';
+    document.getElementById('otpRow').style.display = 'block';
+    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('verifyOtpBtn').textContent = 'Verify';
+    document.getElementById('otpInput').focus();
+
+    // Resend countdown
+    const resendBtn = document.getElementById('resendBtn');
+    resendBtn.style.display = 'block';
+    resendBtn.disabled = true;
+    let count = 60;
+    resendBtn.textContent = 'Resend OTP (' + count + 's)';
+    const timer = setInterval(() => {
+      count--;
+      if (count <= 0) {
+        clearInterval(timer);
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend OTP';
+      } else {
+        resendBtn.textContent = 'Resend OTP (' + count + 's)';
+      }
+    }, 1000);
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Send OTP';
+  }
+};
+
+window.verifyOtp = async () => {
+  const otp = document.getElementById('otpInput').value.trim();
+  const email = document.getElementById('email').value.trim();
+  if (!otp || otp.length !== 6) {
+    showToast('Enter the 6-digit OTP', true);
+    return;
+  }
+
+  const btn = document.getElementById('verifyOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+
+  try {
+    console.log('Verifying OTP for:', email);
+    const res = await fetch(API + '/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+    console.log('Verify response status:', res.status);
+    const result = await res.json();
+    console.log('Verify response body:', result);
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+
+    otpVerified = true;
+    showToast('OTP verified! Registering...');
+    document.getElementById('otpInput').disabled = true;
+    document.getElementById('verifyOtpBtn').textContent = 'Verified';
+    document.getElementById('verifyOtpBtn').disabled = true;
+    registerUser();
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Verify';
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
+  }
+};
+
+window.registerUser = async function() {
+  if (!otpVerified) return;
+
+  const data = validateForm();
+  if (!data) return;
+
+  document.getElementById('sendOtpBtn').style.display = 'none';
+  document.getElementById('otpRow').style.display = 'none';
+
+  try {
+    const refSnap = await getDocs(query(collection(db,"users"), where("referralCode","==",data.refCode)));
+
+    const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+    const uid = userCred.user.uid;
+    const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
+
+    await setDoc(doc(db,"users",uid),{
+      name: data.name, email: data.email, uid, deviceId,
+      balance:0, status:'inactive',
+      referralCode: myRefCode,
+      referredBy: data.refCode,
+      referrals:0,
+      refLevel1:0, refLevel2:0, refLevel3:0,
+      totalPackageSpend:0, teamBusiness:0,
+      totalDirects:0, activeDirects:0,
+      commissionBalance:0,
+      streak:0, lastClaim:0,
+      createdAt: serverTimestamp()
+    });
+
+    const l1Ref = refSnap.docs[0];
+    const l1Data = l1Ref.data();
+
+    await updateDoc(doc(db,"users",l1Ref.id),{
+      balance: increment(0.25),
+      referrals: increment(1),
+      refLevel1: increment(1),
+      totalDirects: increment(1)
+    });
+
+    if(l1Data.referredBy){
+      const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
+      const snap2 = await getDocs(q2);
+      if(!snap2.empty){
+        const l2Doc = snap2.docs[0];
+        const l2Data = l2Doc.data();
+        await updateDoc(doc(db,"users",l2Doc.id),{
+          balance: increment(0.10),
+          refLevel2: increment(1)
+        });
+        if(l2Data.referredBy){
+          const q3 = query(collection(db,"users"), where("referralCode","==",l2Data.referredBy));
+          const snap3 = await getDocs(q3);
+          if(!snap3.empty){
+            await updateDoc(doc(db,"users",snap3.docs[0].id),{
+              balance: increment(0.05),
+              refLevel3: increment(1)
+            });
+          }
+        }
+      }
+    }
+
+    showToast("Registration Successful!");
+    setTimeout(() => window.location.href = "dashboard.html", 800);
+  } catch(e){
+    showToast(e.message, true);
+    otpVerified = false;
+    document.getElementById('otpInput').disabled = false;
+    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('verifyOtpBtn').textContent = 'Verify';
+    document.getElementById('otpInput').value = '';
+  }
+};
+</script>
+</body>
+</html>

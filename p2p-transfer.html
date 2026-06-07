@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>P2P Transfer | ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; display:flex; flex-direction:column; align-items:center; padding:20px 16px; }
+
+        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:15px; animation:loaderFade 7s forwards; }
+        .spinner { width:45px; height:45px; border:3px solid rgba(167,139,250,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+        #loadingText { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:800; text-transform:uppercase; animation:pulse 1.5s infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        @keyframes loaderFade { 0%,85% { opacity:1; visibility:visible; } 100% { opacity:0; visibility:hidden; } }
+
+        .phone-frame { position:relative; width:100%; max-width:400px; display:flex; flex-direction:column; gap:16px; padding-top:12px; }
+
+        /* ── Header ── */
+        .header { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 18px; }
+        .header .logo { font-family:'Space Grotesk'; font-weight:900; font-size:18px; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .header .spacer { flex:1; }
+        .header .back-btn { width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; cursor:pointer; color:white; text-decoration:none; transition:0.2s; }
+        .header .back-btn:hover { background:rgba(255,255,255,0.08); }
+
+        /* ── Top Label ── */
+        .top-section { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+        .top-label .badge { font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--primary); background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); padding:5px 14px; border-radius:100px; display:inline-flex; align-items:center; gap:6px; width:fit-content; }
+        .top-label .badge .dot { width:5px; height:5px; border-radius:50%; background:var(--primary); box-shadow:0 0 8px var(--primary); animation:pulse 1.5s infinite; }
+        .fire-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.15); border-radius:12px; flex-shrink:0; }
+
+        .main-heading { font-family:'Space Grotesk'; font-size:30px; font-weight:800; letter-spacing:-0.5px; line-height:1.1; }
+
+        .balance-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.15); border-radius:100px; padding:8px 18px; font-size:13px; font-weight:600; margin-top:6px; width:fit-content; }
+        .balance-pill .num { font-family:'Space Grotesk'; font-weight:800; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:16px; }
+
+        /* ── Transfer Card ── */
+        .transfer-card { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:28px; padding:24px 20px; position:relative; overflow:hidden; }
+        .transfer-card::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at 30% 20%,rgba(167,139,250,0.03) 0%,transparent 60%); pointer-events:none; }
+        .transfer-card::after { content:''; position:absolute; top:0; left:15%; width:70%; height:1px; background:linear-gradient(90deg,transparent,rgba(167,139,250,0.2),rgba(96,165,250,0.3),transparent); }
+
+        .input-group { margin-bottom:18px; }
+        .input-group:last-of-type { margin-bottom:0; }
+        .input-label { font-size:9px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+        .input-label .bar { width:16px; height:2px; background:var(--primary); border-radius:2px; box-shadow:0 0 8px rgba(167,139,250,0.3); }
+
+        .input-field { width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:15px 16px; font-family:'Inter',sans-serif; font-size:15px; color:white; outline:none; transition:border-color 0.25s ease,box-shadow 0.25s ease; touch-action:manipulation; }
+        .input-field::placeholder { color:rgba(255,255,255,0.2); font-weight:400; font-size:13px; }
+        .input-field:focus { border-color:rgba(167,139,250,0.3); box-shadow:0 0 0 1px rgba(167,139,250,0.1),0 0 30px rgba(167,139,250,0.05); background:rgba(255,255,255,0.06); }
+
+        /* ── Recipient Card ── */
+        #recipientCard { display:none; margin-top:12px; padding:14px 16px; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.15); border-radius:16px; align-items:center; gap:14px; animation:fadeSlide 0.3s ease; }
+        #recipientCard.show { display:flex; }
+        @keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        #recipientCard .avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Space Grotesk'; font-weight:800; font-size:18px; color:#fff; }
+        #recipientCard .info { flex:1; min-width:0; }
+        #recipientCard .info .name { font-size:14px; font-weight:700; }
+        #recipientCard .info .code { font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; font-family:'Inter',monospace; letter-spacing:1px; }
+
+        .lookup-status { font-size:10px; font-weight:600; margin-top:8px; min-height:18px; display:flex; align-items:center; gap:6px; }
+        .lookup-status .status-icon { display:inline-flex; }
+        .lookup-status .status-icon svg { vertical-align:middle; }
+        .lookup-status.idle { color:rgba(255,255,255,0.2); }
+        .lookup-status.searching { color:var(--secondary); }
+        .lookup-status.found { color:#22c55e; }
+        .lookup-status.error { color:#f87171; }
+
+        /* ── Breakdown ── */
+        .breakdown { margin-top:18px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:14px 16px; }
+        .breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:13px; }
+        .breakdown-row .label { color:rgba(255,255,255,0.45); font-weight:500; display:flex; align-items:center; gap:6px; }
+        .breakdown-row .value { font-weight:700; font-family:'Space Grotesk',monospace; }
+        .breakdown-row .value.blue { color:var(--secondary); }
+        .breakdown-row .value.pink { color:#f472b6; }
+        .breakdown-row .value.green { color:#22c55e; }
+        .breakdown-divider { height:1px; background:rgba(255,255,255,0.04); margin:7px 0; }
+        .breakdown-row.total .label { font-weight:700; color:rgba(255,255,255,0.8); }
+        .breakdown-row.total .value { font-size:17px; font-weight:800; color:white; }
+
+        /* ── Button ── */
+        .send-btn { margin-top:22px; width:100%; padding:18px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; font-family:'Space Grotesk'; font-size:14px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; position:relative; overflow:hidden; box-shadow:0 4px 30px rgba(167,139,250,0.25); transition:transform 0.3s ease,box-shadow 0.3s ease; display:flex; align-items:center; justify-content:center; gap:10px; touch-action:manipulation; }
+        .send-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,var(--secondary),var(--primary)); opacity:0; transition:opacity 0.4s ease; }
+        .send-btn:hover::before { opacity:1; }
+        .send-btn:hover { box-shadow:0 6px 40px rgba(167,139,250,0.4); transform:translateY(-1px); }
+        .send-btn:active { transform:translateY(0); }
+        .send-btn span, .send-btn svg { position:relative; z-index:1; }
+        .send-btn:disabled { background:#1a1a1a; color:#444; cursor:not-allowed; box-shadow:none; transform:none; }
+        .send-btn:disabled::before { display:none; }
+
+        /* ── Bottom Links ── */
+        .bottom-links { display:flex; align-items:center; justify-content:center; gap:18px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); padding:8px 0 4px; }
+        .bottom-links a { color:rgba(255,255,255,0.4); text-decoration:none; transition:0.2s; display:flex; align-items:center; gap:6px; }
+        .bottom-links a:hover { color:var(--primary); }
+        .bottom-links .sep { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.15); }
+
+        /* ── History ── */
+        .history-wrap { margin-top:4px; }
+        .history-header { display:flex; align-items:center; justify-content:space-between; padding:12px 4px 8px; }
+        .history-header h3 { font-family:'Space Grotesk'; font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+        .history-header .count { font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); background:var(--card); border:1px solid var(--border); padding:2px 10px; border-radius:100px; }
+        #historyList { display:flex; flex-direction:column; gap:6px; max-height:380px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.05) transparent; }
+        #historyList::-webkit-scrollbar { width:4px; }
+        #historyList::-webkit-scrollbar-track { background:transparent; }
+        #historyList::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.05); border-radius:4px; }
+
+        .tx-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:14px; transition:background 0.15s; }
+        .tx-item:hover { background:rgba(255,255,255,0.03); }
+        .tx-item .tx-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .tx-item .tx-icon.sent { background:rgba(244,114,182,0.12); }
+        .tx-item .tx-icon.received { background:rgba(34,197,94,0.12); }
+        .tx-item .tx-info { flex:1; min-width:0; }
+        .tx-item .tx-info .tx-title { font-size:12px; font-weight:700; }
+        .tx-item .tx-info .tx-meta { font-size:10px; color:rgba(255,255,255,0.35); margin-top:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+        .tx-item .tx-info .tx-meta .code-tag { font-family:monospace; background:rgba(255,255,255,0.04); padding:0 6px; border-radius:4px; }
+        .tx-item .tx-amount { font-family:'Space Grotesk'; font-size:13px; font-weight:800; text-align:right; }
+        .tx-item .tx-amount.negative { color:#f472b6; }
+        .tx-item .tx-amount.positive { color:#22c55e; }
+        .tx-empty { text-align:center; padding:28px 16px; color:rgba(255,255,255,0.2); font-size:12px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+        .tx-loading { text-align:center; padding:16px; color:rgba(255,255,255,0.2); font-size:11px; }
+
+        /* ── Toast ── */
+        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:#0b0d18; border:1px solid var(--border); padding:14px 24px; border-radius:16px; font-size:12px; font-weight:600; color:white; box-shadow:0 8px 40px rgba(0,0,0,0.6); opacity:0; transition:opacity 0.4s cubic-bezier(0.16,1,0.3,1),transform 0.4s cubic-bezier(0.16,1,0.3,1); z-index:100; pointer-events:none; display:flex; align-items:center; gap:10px; }
+        #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+        #toast.error { border-color:rgba(239,68,68,0.3); }
+        #toast.success { border-color:rgba(34,197,94,0.3); }
+
+        @media (max-width:420px) { .transfer-card { padding:20px 16px; } .main-heading { font-size:26px; } }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="loadingText">Securing Channel</div>
+</div>
+
+<div class="phone-frame">
+
+    <!-- Header -->
+    <div class="header">
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="logo">ONCHYRA</div>
+        <div class="spacer"></div>
+        <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.25);letter-spacing:1px;">P2P</div>
+    </div>
+
+    <!-- Top Section -->
+    <div class="top-section">
+        <div class="top-label">
+            <div class="badge"><span class="dot"></span> P2P TRANSFER</div>
+        </div>
+        <div class="fire-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 23c-4.97 0-9-3.58-9-8 0-3.07 2.25-5.74 3.84-7.54C8.29 5.86 9.5 4.2 9.5 2c0 0 1.5 1 3 3.5C14 8 15 10 15 12c0-1 1-3 3-4.5.5 1.5.5 3.5.5 5.5 0 5.52-2.91 10-6.5 10z" fill="rgba(251,191,36,0.15)"/>
+                <path d="M12 20c-2.76 0-5-2.24-5-5 0-2.15 1.65-3.86 2.5-4.8.8-1.06 1.5-2.2 1.5-3.7 0 0 0.8 1.1 1.5 2.7.7 1.6 1.5 3.2 1.5 4.8 0-0.7 0.7-2 2.5-3.2.3 0.9.3 2 0.3 3.2 0 3.31-2.02 6-4.8 6z" fill="#fbbf24" opacity="0.9"/>
+            </svg>
+        </div>
+    </div>
+    <div class="main-heading">Send ONC</div>
+    <div class="balance-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Balance <span class="num" id="balanceDisplay">0.00</span> ONC
+    </div>
+
+    <!-- Transfer Card -->
+    <div class="transfer-card">
+
+        <!-- Recipient -->
+        <div class="input-group">
+            <div class="input-label"><span class="bar"></span> Recipient Network ID</div>
+            <input class="input-field" id="recipientInput" type="text" placeholder="Enter referral code" maxlength="12" autocomplete="off" spellcheck="false">
+            <div id="recipientCard" class="">
+                <div class="avatar" id="recipientAvatar">U</div>
+                <div class="info">
+                    <div class="name" id="recipientName">User</div>
+                    <div class="code" id="recipientCode">CODE</div>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            </div>
+            <div class="lookup-status idle" id="lookupStatus">
+                <span class="status-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                </span>
+                <span id="lookupText">Type a referral code to search</span>
+            </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="input-group">
+            <div class="input-label"><span class="bar"></span> Amount</div>
+            <input class="input-field" id="amountInput" type="text" inputmode="decimal" placeholder="Minimum 1 ONC" autocomplete="off">
+        </div>
+
+        <!-- Breakdown -->
+        <div class="breakdown">
+            <div class="breakdown-row">
+                <span class="label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Total Amount
+                </span>
+                <span class="value blue" id="totalDisplay">0.00 ONC</span>
+            </div>
+            <div class="breakdown-row">
+                <span class="label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    10% Network Burn
+                </span>
+                <span class="value pink" id="burnDisplay">0.00 ONC</span>
+            </div>
+            <div class="breakdown-divider"></div>
+            <div class="breakdown-row total">
+                <span class="label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    Receivable Amount
+                </span>
+                <span class="value green" id="receiveDisplay">0.00 ONC</span>
+            </div>
+        </div>
+
+        <!-- Limit info -->
+        <div style="display:flex;gap:8px;margin-top:16px;">
+            <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:8px 10px;text-align:center;">
+                <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Max / Tx</div>
+                <div style="font-size:11px;font-weight:700;color:var(--secondary);margin-top:2px;">500 ONC</div>
+            </div>
+            <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:8px 10px;text-align:center;">
+                <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Daily Limit</div>
+                <div style="font-size:11px;font-weight:700;color:#f472b6;margin-top:2px;">3 / 24h</div>
+            </div>
+        </div>
+
+        <!-- Hidden -->
+        <div style="display:none;" id="senderUid"></div>
+        <div style="display:none;" id="recipientUid"></div>
+
+        <!-- Send Button -->
+        <button class="send-btn" id="sendBtn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Send ONC
+        </button>
+
+    </div>
+
+    <!-- Bottom Links -->
+    <div class="bottom-links">
+        <a href="dashboard.html">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+        </a>
+        <span class="sep"></span>
+        <a href="#" id="maxLink">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            Max
+        </a>
+        <span class="sep"></span>
+        <a href="#" id="clearLink">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clear
+        </a>
+    </div>
+
+    <!-- History -->
+    <div class="history-wrap">
+        <div class="history-header">
+            <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Transfer History
+            </h3>
+            <span class="count" id="txCount">0</span>
+        </div>
+        <div id="historyList">
+            <div class="tx-empty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3;"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                No transfers yet
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    doc, getDoc, updateDoc, collection, addDoc,
+    query, where, getDocs, limit,
+    increment, serverTimestamp,
+    initializeFirestore
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+
+// Maintenance check
+(async () => {
+    try {
+        const ms = await getDoc(doc(db, 'settings', 'maintenance'));
+        if (ms.exists() && ms.data().enabled) {
+            window.location.replace('maintenance.html?msg=' + encodeURIComponent(ms.data().message || ''));
+        }
+    } catch(e) {}
+})();
+
+// ── DOM refs ──
+const recipientInput = document.getElementById('recipientInput');
+const amountInput = document.getElementById('amountInput');
+const balanceDisplay = document.getElementById('balanceDisplay');
+const totalDisplay = document.getElementById('totalDisplay');
+const burnDisplay = document.getElementById('burnDisplay');
+const receiveDisplay = document.getElementById('receiveDisplay');
+const sendBtn = document.getElementById('sendBtn');
+const toast = document.getElementById('toast');
+const lookupStatus = document.getElementById('lookupStatus');
+const lookupText = document.getElementById('lookupText');
+const recipientCard = document.getElementById('recipientCard');
+const recipientAvatar = document.getElementById('recipientAvatar');
+const recipientName = document.getElementById('recipientName');
+const recipientCode = document.getElementById('recipientCode');
+const senderUidEl = document.getElementById('senderUid');
+const recipientUidEl = document.getElementById('recipientUid');
+const historyList = document.getElementById('historyList');
+const txCount = document.getElementById('txCount');
+
+let uid = null;
+let userName = '';
+let userBalance = 0;
+let recipientId = null;
+let recipientDisplayName = '';
+let unsubHistory = null;
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg, type) {
+    clearTimeout(toastTimer);
+    toast.innerHTML = msg;
+    toast.className = 'toast ' + (type || '') + ' show';
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function parseAmount(val) {
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+}
+
+// ── Update breakdown ──
+function updateBreakdown() {
+    const amt = parseAmount(amountInput.value);
+    const burn = amt * 0.1;
+    const receive = amt - burn;
+    totalDisplay.textContent = amt.toFixed(2) + ' ONC';
+    burnDisplay.textContent = burn.toFixed(2) + ' ONC';
+    receiveDisplay.textContent = receive.toFixed(2) + ' ONC';
+}
+amountInput.addEventListener('input', updateBreakdown);
+
+// ── Lookup recipient ──
+let lookupTimeout = null;
+recipientInput.addEventListener('input', () => {
+    clearTimeout(lookupTimeout);
+    recipientId = null;
+    recipientUidEl.textContent = '';
+    recipientCard.classList.remove('show');
+    const val = recipientInput.value.trim().toUpperCase();
+    if (val.length < 3) {
+        setLookupStatus('idle', 'Type a referral code to search');
+        return;
+    }
+    setLookupStatus('searching', 'Looking up...');
+    lookupTimeout = setTimeout(() => lookupRecipient(val), 500);
+});
+
+function setLookupStatus(type, text) {
+    lookupStatus.className = 'lookup-status ' + type;
+    lookupText.textContent = text;
+}
+
+async function lookupRecipient(code) {
+    try {
+        const q = query(collection(db, "users"), where("referralCode", "==", code));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            setLookupStatus('error', 'Network ID not found');
+            return;
+        }
+        const rDoc = snap.docs[0];
+        if (rDoc.id === uid) {
+            setLookupStatus('error', 'Cannot send to yourself');
+            return;
+        }
+        recipientId = rDoc.id;
+        recipientUidEl.textContent = recipientId;
+        const data = rDoc.data();
+        const name = data.name || data.referralCode || 'User';
+        const initial = name.charAt(0).toUpperCase();
+        recipientDisplayName = name;
+
+        recipientAvatar.textContent = initial;
+        recipientName.textContent = name;
+        recipientCode.textContent = code;
+        recipientCard.classList.add('show');
+
+        setLookupStatus('found', 'Recipient verified');
+        validateForm();
+    } catch (e) {
+        console.error('Lookup error:', e);
+        setLookupStatus('error', 'Error looking up ID');
+    }
+}
+
+// ── Validate ──
+function validateForm() {
+    const amt = parseAmount(amountInput.value);
+    const ok = uid && recipientId && amt >= 1 && amt <= 500 && amt <= userBalance;
+    sendBtn.disabled = !ok;
+}
+[recipientInput, amountInput].forEach(el => el.addEventListener('input', validateForm));
+
+// ── Max / Clear ──
+document.getElementById('maxLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (userBalance < 1) { showToast('Insufficient balance', 'error'); return; }
+    amountInput.value = Math.min(userBalance, 500).toFixed(2);
+    updateBreakdown();
+    validateForm();
+});
+document.getElementById('clearLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    amountInput.value = '';
+    updateBreakdown();
+    validateForm();
+});
+
+// ── Daily limit check (client-side filter, no composite index needed) ──
+async function getDailyTxCount() {
+    const cutoff = Date.now() - 86400000;
+    const q = query(collection(db, "transfers"), where("from", "==", uid));
+    const snap = await getDocs(q);
+    let count = 0;
+    snap.forEach(d => {
+        const ts = d.data().timestamp;
+        const ms = ts?.toMillis ? ts.toMillis() : (ts instanceof Date ? ts.getTime() : 0);
+        if (ms >= cutoff) count++;
+    });
+    return count;
+}
+
+// ── Send ──
+sendBtn.addEventListener('click', async () => {
+    if (sendBtn.disabled) return;
+    const amt = parseAmount(amountInput.value);
+    const burn = amt * 0.1;
+    const receive = amt - burn;
+    const recipientCode = recipientInput.value.trim().toUpperCase();
+
+    if (!recipientId) { showToast('Recipient not found', 'error'); return; }
+    if (amt < 1) { showToast('Minimum transfer is 1 ONC', 'error'); return; }
+    if (amt > 500) { showToast('Maximum 500 ONC per transfer', 'error'); return; }
+    if (amt > userBalance) { showToast('Insufficient balance', 'error'); return; }
+
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Checking limits...';
+
+    try {
+        const dailyCount = await getDailyTxCount();
+        if (dailyCount >= 3) {
+            showToast('Daily limit reached: 3 transfers per 24 hours', 'error');
+            resetBtn();
+            return;
+        }
+
+        sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Processing';
+
+        // 1. Create audit record with names
+        await addDoc(collection(db, "transfers"), {
+            from: uid, to: recipientId, toCode: recipientCode,
+            fromName: userName, toName: recipientDisplayName,
+            amount: amt, burn: burn, receive: receive,
+            timestamp: serverTimestamp(), status: 'completed'
+        });
+
+        // 2. Deduct from sender
+        await updateDoc(doc(db, "users", uid), { balance: increment(-amt) });
+
+        // 3. Add to recipient
+        await updateDoc(doc(db, "users", recipientId), { balance: increment(receive) });
+
+        userBalance -= amt;
+        balanceDisplay.textContent = userBalance.toFixed(2);
+
+        showToast(`
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            Sent ${receive.toFixed(2)} ONC to ${recipientDisplayName}
+        `, 'success');
+
+        recipientInput.value = '';
+        amountInput.value = '';
+        recipientId = null;
+        recipientDisplayName = '';
+        recipientUidEl.textContent = '';
+        recipientCard.classList.remove('show');
+        setLookupStatus('idle', 'Type a referral code to search');
+        updateBreakdown();
+        loadHistory();
+    } catch (e) {
+        console.error('Transfer error:', e);
+        showToast(`
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Transfer failed
+        `, 'error');
+    }
+
+    resetBtn();
+    validateForm();
+});
+
+function resetBtn() {
+    sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+    sendBtn.disabled = false;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !sendBtn.disabled) sendBtn.click();
+});
+
+// ── History (no composite indexes needed — client-side sort) ──
+let historyPollTimer = null;
+
+function loadHistory() {
+    if (!uid) return;
+    loadHistorySide(uid);
+
+    // Poll every 15s as fallback (avoids onSnapshot + composite index requirement)
+    if (historyPollTimer) clearInterval(historyPollTimer);
+    historyPollTimer = setInterval(() => loadHistorySide(uid), 15000);
+}
+
+async function loadHistorySide(uid) {
+    try {
+        const q1 = query(
+            collection(db, "transfers"),
+            where("from", "==", uid),
+            limit(30)
+        );
+        const q2 = query(
+            collection(db, "transfers"),
+            where("to", "==", uid),
+            limit(30)
+        );
+
+        const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+        const all = [];
+        const nameFetchUids = new Set();
+        snap1.forEach(d => {
+            const tx = { id: d.id, ...d.data(), dir: 'sent' };
+            all.push(tx);
+            if (!tx.toName && tx.to) nameFetchUids.add(tx.to);
+        });
+        snap2.forEach(d => {
+            const tx = { id: d.id, ...d.data(), dir: 'received' };
+            all.push(tx);
+            if (!tx.fromName && tx.from) nameFetchUids.add(tx.from);
+        });
+
+        // Batch-fetch missing names via getDoc
+        const nameMap = {};
+        if (nameFetchUids.size > 0) {
+            const uids = [...nameFetchUids];
+            const fetches = uids.map(id => getDoc(doc(db, "users", id)));
+            const snaps = await Promise.all(fetches);
+            snaps.forEach(snap => {
+                if (snap.exists()) {
+                    nameMap[snap.id] = snap.data().name || snap.data().referralCode || snap.id.slice(0, 6).toUpperCase();
+                } else {
+                    nameMap[snap.id] = snap.id.slice(0, 6).toUpperCase();
+                }
+            });
+        }
+
+        // Attach names to transfers
+        all.forEach(tx => {
+            if (tx.dir === 'sent' && !tx.toName && tx.to) tx.toName = nameMap[tx.to] || tx.to.slice(0, 6).toUpperCase();
+            if (tx.dir === 'received' && !tx.fromName && tx.from) tx.fromName = nameMap[tx.from] || tx.from.slice(0, 6).toUpperCase();
+        });
+
+        all.sort((a, b) => {
+            const ta = a.timestamp?.toMillis?.() || 0;
+            const tb = b.timestamp?.toMillis?.() || 0;
+            return tb - ta;
+        });
+
+        renderHistory(all.slice(0, 30));
+    } catch (e) {
+        console.error('History error:', e);
+    }
+}
+
+function timeAgo(t) {
+    if (!t) return '';
+    const d = t.toDate ? t.toDate() : new Date(t);
+    const s = Math.floor((new Date() - d) / 1000);
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+}
+
+let lastRenderedHistory = '';
+function renderHistory(items) {
+    if (!items.length) {
+        const html = '<div class="tx-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3;"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>No transfers yet</div>';
+        if (lastRenderedHistory === html) return;
+        lastRenderedHistory = html;
+        historyList.innerHTML = html;
+        txCount.textContent = '0';
+        return;
+    }
+
+    txCount.textContent = items.length;
+    const html = items.map(tx => {
+        const isSent = tx.from === uid;
+        const iconBg = isSent ? 'sent' : 'received';
+        const sign = isSent ? '-' : '+';
+        const cls = isSent ? 'negative' : 'positive';
+        const counterparty = isSent ? (tx.toName || tx.toCode || tx.to.slice(0,6).toUpperCase()) : (tx.fromName || tx.fromCode || tx.from.slice(0,6).toUpperCase());
+        const displayAmt = isSent ? tx.amount : tx.receive;
+        return `<div class="tx-item"><div class="tx-icon ${iconBg}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${isSent ? '#f472b6' : '#22c55e'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isSent ? '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>' : '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z" transform="rotate(180,12,12)"/>'}</svg></div><div class="tx-info"><div class="tx-title">${isSent ? 'Sent' : 'Received'}</div><div class="tx-meta">${isSent ? 'To' : 'From'} ${counterparty} &middot; ${timeAgo(tx.timestamp)}</div></div><div class="tx-amount ${cls}">${sign}${Number(displayAmt).toFixed(2)} ONC</div></div>`;
+    }).join('');
+
+    if (lastRenderedHistory === html) return;
+    lastRenderedHistory = html;
+    historyList.innerHTML = html;
+}
+
+// ── Auth ──
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location = 'login.html'; return; }
+    uid = user.uid;
+    senderUidEl.textContent = uid;
+
+    try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (snap.exists()) {
+            if (snap.data().banned === true) { window.location = 'banned.html'; return; }
+            userBalance = snap.data().balance || 0;
+            userName = snap.data().name || snap.data().referralCode || 'User';
+            balanceDisplay.textContent = userBalance.toFixed(2);
+        }
+    } catch (e) {
+        console.error('Error loading user:', e);
+        showToast('Error loading profile', 'error');
+    }
+
+    document.getElementById('loader').style.display = 'none';
+    loadHistory();
+    validateForm();
+});
+</script>
+
+</body>
+</html>

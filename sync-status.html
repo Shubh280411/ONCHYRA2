@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Sync Status</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red:#ef4444; --green:#22c55e; --yellow:#eab308; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Inter'; background:var(--bg); color:#fff; margin:0; }
+.sidebar { position:fixed; left:0; top:0; bottom:0; width:240px; background:rgba(10,12,25,0.95); border-right:1px solid var(--border); padding:20px 0; z-index:100; }
+.sidebar h2 { font-family:'Space Grotesk'; font-size:22px; font-weight:800; padding:0 20px; margin:0 0 30px; letter-spacing:-1px; }
+.sidebar h2 span { color:var(--primary); }
+.nav-item { padding:12px 20px; cursor:pointer; font-size:14px; font-weight:600; color:rgba(255,255,255,0.5); transition:0.2s; display:flex; align-items:center; gap:10px; text-decoration:none; }
+.nav-item:hover, .nav-item.active { color:#fff; background:rgba(255,255,255,0.05); }
+.nav-item.active { border-right:3px solid var(--primary); }
+.main { margin-left:240px; padding:30px; min-height:100vh; }
+.page-title { font-family:'Space Grotesk'; font-size:28px; font-weight:800; margin:0 0 25px; }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; margin-bottom:20px; max-width:600px; }
+.card-icon { margin-bottom:12px; }
+.card-title { font-family:'Space Grotesk'; font-size:18px; font-weight:700; }
+.card-desc { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.7; margin:8px 0 20px; }
+
+.status-grid { display:flex; gap:10px; margin-bottom:20px; }
+.stat { flex:1; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; padding:14px 8px; text-align:center; }
+.stat-num { font-family:'Space Grotesk'; font-size:22px; font-weight:800; }
+.stat-lbl { font-size:9px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+
+.btn { padding:12px 20px; border:none; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:8px; font-family:'Inter'; width:100%; justify-content:center; }
+.btn-primary { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; }
+.btn-primary:hover { opacity:0.9; }
+.btn-primary:disabled { opacity:0.3; cursor:not-allowed; }
+.btn .spinner { display:none; width:15px; height:15px; border:2px solid rgba(0,0,0,0.15); border-top:2px solid #000; border-radius:50%; animation:spin 0.7s linear infinite; }
+.btn.loading .spinner { display:inline-block; }
+.btn.loading .btn-text { display:none; }
+.btn.loading .btn-loading { display:inline; }
+.btn .btn-loading { display:none; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.log { display:none; margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; max-height:200px; overflow-y:auto; text-align:left; }
+.log.show { display:block; }
+.log-item { font-size:10px; color:rgba(255,255,255,0.5); padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.02); font-family:monospace; }
+.log-item:last-child { border-bottom:none; }
+.log-item.active { color:var(--green); }
+.log-item.inactive { color:var(--red); }
+.log-item.skipped { color:rgba(255,255,255,0.3); }
+.log-item.done { color:var(--secondary); font-weight:600; }
+.log-item.err { color:var(--red); }
+
+.notif { display:none; margin-top:16px; padding:12px 14px; border-radius:12px; font-size:12px; line-height:1.5; border:1px solid; }
+.notif.show { display:block; animation:fadeIn 0.3s ease; }
+.notif.success { background:rgba(34,197,94,0.06); border-color:rgba(34,197,94,0.15); color:var(--green); }
+.notif.error { background:rgba(239,68,68,0.06); border-color:rgba(239,68,68,0.15); color:var(--red); }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+@media (max-width:768px) {
+  .sidebar { width:60px; }
+  .sidebar h2, .nav-item span { display:none; }
+  .nav-item { justify-content:center; padding:15px; }
+  .main { margin-left:60px; padding:20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>ONCHY<span>RA</span></h2>
+  <a class="nav-item" href="admin.html">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="10" y="3" width="7" height="7" rx="1"/><rect x="3" y="10" width="7" height="7" rx="1"/><rect x="10" y="10" width="7" height="7" rx="1"/></svg>
+    <span>Dashboard</span>
+  </a>
+  <a class="nav-item" href="admin-polls.html">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>Polls</span>
+  </a>
+  <a class="nav-item active" href="sync-status.html">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <span>Sync Status</span>
+  </a>
+</nav>
+
+<div class="main">
+  <h1 class="page-title">Sync Status</h1>
+
+  <div class="card">
+    <div class="card-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </div>
+    <div class="card-title">Sync User Status</div>
+    <div class="card-desc">
+      Scans all users and sets <strong>status</strong> based on their last claim:<br/>
+      <strong style="color:var(--green);">active</strong> = claimed in last 7 days<br/>
+      <strong style="color:var(--red);">inactive</strong> = no claim in 7+ days<br/>
+      <span style="color:rgba(255,255,255,0.3);">Admins (<code style="color:var(--yellow);">role === 'admin'</code>) are skipped.</span>
+    </div>
+
+    <div class="status-grid" id="statsGrid" style="display:none;">
+      <div class="stat"><div class="stat-num" style="color:var(--green);" id="statActive">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--red);" id="statInactive">0</div><div class="stat-lbl">Inactive</div></div>
+      <div class="stat"><div class="stat-num" style="color:rgba(255,255,255,0.4);" id="statSkipped">0</div><div class="stat-lbl">Skipped</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--secondary);" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
+    </div>
+
+    <button class="btn btn-primary" id="syncBtn" onclick="syncStatus()" disabled>
+      <span class="spinner"></span>
+      <span class="btn-text">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sync Status
+      </span>
+      <span class="btn-loading">Syncing...</span>
+    </button>
+  </div>
+
+  <div class="log" id="log"></div>
+  <div class="notif" id="notif"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+let authReady = false;
+
+onAuthStateChanged(auth, (user) => {
+  authReady = true;
+  if (!user) {
+    document.getElementById('syncBtn').disabled = true;
+    showNotif('Please log in from admin panel first.', 'error');
+    return;
+  }
+  document.getElementById('syncBtn').disabled = false;
+});
+
+function log(msg, cls) {
+  const el = document.getElementById('log');
+  if (!el.classList.contains('show')) el.classList.add('show');
+  const d = document.createElement('div');
+  d.className = 'log-item' + (cls ? ' ' + cls : '');
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function showNotif(msg, type) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = 'notif show ' + type;
+}
+
+window.syncStatus = async () => {
+  if (!authReady) { showNotif('Auth not ready, try again.', 'error'); return; }
+  if (!auth.currentUser) { showNotif('You must be logged in.', 'error'); return; }
+
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  document.getElementById('notif').classList.remove('show');
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('log').classList.remove('show');
+
+  try {
+    log('Fetching all users...');
+    const snap = await getDocs(collection(db, 'users'));
+    const now = Date.now();
+    let active = 0, inactive = 0, skipped = 0, total = 0;
+
+    const batches = [];
+    let currentBatch = writeBatch(db);
+    let opCount = 0;
+
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      total++;
+
+      if (data.role === 'admin') {
+        skipped++;
+        log('SKIP ' + docSnap.id + ' (admin)', 'skipped');
+        return;
+      }
+
+      const lastClaim = data.lastClaim || 0;
+      const claimedRecently = lastClaim > 0 && (now - lastClaim) < SEVEN_DAYS;
+      const newStatus = claimedRecently ? 'active' : 'inactive';
+
+      if (claimedRecently) active++;
+      else inactive++;
+
+      currentBatch.update(docSnap.ref, { status: newStatus });
+      opCount++;
+
+      log((claimedRecently ? 'ACTIVE' : 'INACTIVE') + ' ' + docSnap.id + ' (lastClaim: ' + (lastClaim || 'never') + ')', claimedRecently ? 'active' : 'inactive');
+
+      if (opCount >= 500) {
+        batches.push(currentBatch.commit());
+        currentBatch = writeBatch(db);
+        opCount = 0;
+      }
+    });
+
+    if (opCount > 0) {
+      batches.push(currentBatch.commit());
+    }
+
+    document.getElementById('statsGrid').style.display = 'flex';
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statInactive').textContent = inactive;
+    document.getElementById('statSkipped').textContent = skipped;
+    document.getElementById('statTotal').textContent = total;
+
+    log('Committing updates...');
+    await Promise.all(batches);
+
+    const msg = active + ' active, ' + inactive + ' inactive, ' + skipped + ' admins skipped';
+    log('Done! ' + msg, 'done');
+    showNotif('Sync complete. ' + msg, 'success');
+  } catch (err) {
+    log('Error: ' + err.message, 'err');
+    showNotif('Error: ' + err.message, 'error');
+    console.error(err);
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+};
+</script>
+</body>
+</html>

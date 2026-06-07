@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Income — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+#loading{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.3)}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.05);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style><style>
+:root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--red:#ef4444;--amber:#f59e0b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.06) 0%,transparent 60%)}
+.phone-frame{width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px}
+.header{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:14px 16px}
+.back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1}
+.page-title{font-family:'Space Grotesk';font-weight:800;font-size:22px;margin:4px 0 2px}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.4)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;backdrop-filter:blur(20px)}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,0.02);border-radius:14px;padding:4px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:11px;font-size:11px;font-weight:700;cursor:pointer;transition:0.2s;color:rgba(255,255,255,0.3)}
+.tab.active{background:rgba(167,139,250,0.12);color:var(--primary)}
+.item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
+.item:last-child{border-bottom:none}
+.item .left .name{font-weight:700;font-size:13px}
+.item .left .src{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px}
+.item .right{text-align:right}
+.item .right .amt{font-weight:800;font-family:'Space Grotesk';font-size:14px}
+.item .right .date{font-size:9px;color:rgba(255,255,255,0.2);margin-top:2px}
+.empty{text-align:center;padding:40px;font-size:12px;color:rgba(255,255,255,0.15)}
+.big-total{font-family:'Space Grotesk';font-weight:900;font-size:36px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.big-lbl{font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.filter-btn{padding:5px 12px;border-radius:10px;font-size:9px;font-weight:800;cursor:pointer;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.03);border:1px solid transparent;transition:0.2s;letter-spacing:0.5px}
+.filter-btn.active{color:var(--primary);background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2)}
+.filter-btn:hover{color:rgba(255,255,255,0.6)}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="header">
+    <a href="dashboard.html" class="back-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="logo">ONCHYRA</div>
+    <div style="width:36px;"></div>
+  </div>
+
+  <div class="page-title">Income</div>
+  <div class="page-sub">Your earnings overview</div>
+
+  <div id="loading"><div class="spinner"></div>Loading your income...</div>
+  <div id="pageContent" style="display:none;flex-direction:column;gap:14px;">
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" onclick="switchTab('referral')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/><path d="M2 20h20"/><path d="M2 14l4-4 4 4 6-6 4 4"/></svg>
+      Referral
+    </div>
+    <div class="tab" onclick="switchTab('leadership')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Leadership
+    </div>
+    <div class="tab" onclick="switchTab('matching')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Matching
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+    <div class="card" style="text-align:center;padding:14px 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/><path d="M2 20h20"/><path d="M2 14l4-4 4 4 6-6 4 4"/></svg>
+      <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Referral</div>
+      <div id="totalReferral" style="font-weight:800;font-size:14px;color:#a78bfa;font-family:'Space Grotesk';margin-top:3px;">$0</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Leadership</div>
+      <div id="totalLeadership" style="font-weight:800;font-size:14px;color:#fbbf24;font-family:'Space Grotesk';margin-top:3px;">$0</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Matching</div>
+      <div id="totalMatching" style="font-weight:800;font-size:14px;color:#22c55e;font-family:'Space Grotesk';margin-top:3px;">$0</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:6px;justify-content:flex-end;">
+    <div id="filter24h" class="filter-btn active" onclick="setFilter('24h')">24H</div>
+    <div id="filter7d" class="filter-btn" onclick="setFilter('7d')">7D</div>
+    <div id="filter30d" class="filter-btn" onclick="setFilter('30d')">30D</div>
+    <div id="filterAll" class="filter-btn" onclick="setFilter('all')">ALL</div>
+  </div>
+
+  <div class="card" style="text-align:center;padding:24px;">
+    <div class="big-total" id="totalEarned">0.00</div>
+    <div class="big-lbl" id="totalLabel">Total Referral Income</div>
+  </div>
+
+  <div class="card" style="padding:0;">
+    <div id="incomeList"><div class="empty">Select a tab to view</div></div>
+  </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid, currentTab = 'referral';
+function show(el) { const e = document.getElementById(el); if (el === 'pageContent') e.style.display = 'flex'; else e.style.display = ''; }
+function hide(el) { document.getElementById(el).style.display = 'none'; }
+
+function timeAgo(t) {
+  if (!t) return '';
+  const d = typeof t === 'number' ? new Date(t) : t.toDate ? t.toDate() : new Date(t);
+  const s = Math.floor((Date.now() - d) / 1000);
+  if (s < 60) return 'Just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+function formatDate(t) {
+  if (!t) return '';
+  const d = typeof t === 'number' ? new Date(t) : t.toDate ? t.toDate() : new Date(t);
+  return d.toLocaleDateString();
+}
+
+let timeFilter = 'all';
+
+window.setFilter = (f) => {
+  timeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
+  loadData();
+};
+
+function getTimeCutoff() {
+  const now = Date.now();
+  if (timeFilter === '24h') return now - 86400000;
+  if (timeFilter === '7d') return now - 7 * 86400000;
+  if (timeFilter === '30d') return now - 30 * 86400000;
+  return 0;
+}
+
+function isInRange(t) {
+  if (!t) return true;
+  const cutoff = getTimeCutoff();
+  if (cutoff === 0) return true;
+  const ts = typeof t === 'number' ? t : t.toDate ? t.toDate().getTime() : new Date(t).getTime();
+  return ts >= cutoff;
+}
+
+async function loadAllTotals() {
+  hide('loading');
+  show('pageContent');
+  // Referral total
+  let refTotal = 0;
+  try { (await getDocs(query(collection(db, 'commissions'), where('uid', '==', uid)))).forEach(d => { const c = d.data(); if (c.type === 'package_commission') refTotal += c.amount || 0; }); } catch(e) {}
+  try { (await getDocs(query(collection(db, 'commissions'), where('toUid', '==', uid)))).forEach(d => { const c = d.data(); if (c.type === 'package_commission') refTotal += c.amount || 0; }); } catch(e) {}
+  document.getElementById('totalReferral').textContent = '$' + refTotal.toFixed(2);
+
+  // Leadership total
+  let leadTotal = 0;
+  try { (await getDocs(query(collection(db, 'achievementBonuses'), where('uid', '==', uid)))).forEach(d => { const c = d.data(); leadTotal += c.amount || 0; }); } catch(e) {}
+  document.getElementById('totalLeadership').textContent = '$' + leadTotal.toFixed(2);
+
+  // Matching total
+  let matchTotal = 0;
+  try { (await getDocs(query(collection(db, 'commissions'), where('uid', '==', uid)))).forEach(d => { const c = d.data(); if (c.type === 'matching_bonus') matchTotal += c.amount || 0; }); } catch(e) {}
+  try { (await getDocs(query(collection(db, 'commissions'), where('toUid', '==', uid)))).forEach(d => { const c = d.data(); if (c.type === 'matching_bonus') matchTotal += c.amount || 0; }); } catch(e) {}
+  try {
+    const userSnap = await getDoc(doc(db, 'users', uid));
+    const u = userSnap.data();
+    if (u && u.totalMatchingBonus > matchTotal) matchTotal = u.totalMatchingBonus;
+  } catch(e) {}
+  document.getElementById('totalMatching').textContent = '$' + matchTotal.toFixed(2);
+}
+
+window.switchTab = (tab) => {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[['referral','leadership','matching'].indexOf(tab)].classList.add('active');
+  loadData();
+};
+
+async function loadData() {
+  if (!uid) return;
+  const list = document.getElementById('incomeList');
+  const totalEl = document.getElementById('totalEarned');
+  const labelEl = document.getElementById('totalLabel');
+
+  let items = [], total = 0;
+
+  if (currentTab === 'referral') {
+    labelEl.textContent = 'Total Referral Income';
+    const docs = [];
+    try { (await getDocs(query(collection(db, 'commissions'), where('uid', '==', uid)))).forEach(d => docs.push(d.data())); } catch(e) {}
+    try { (await getDocs(query(collection(db, 'commissions'), where('toUid', '==', uid)))).forEach(d => docs.push(d.data())); } catch(e) {}
+    docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    docs.forEach(c => {
+      if (c.type === 'package_commission') {
+        items.push({ amt: c.amount, src: c.fromName || 'User', detail: 'L' + c.level + ' - ' + (c.packageName || ''), date: c.createdAt });
+        total += c.amount || 0;
+      }
+    });
+  } else if (currentTab === 'leadership') {
+    labelEl.textContent = 'Total Leadership Income';
+    const leadDocs = [];
+    try { (await getDocs(query(collection(db, 'achievementBonuses'), where('uid', '==', uid)))).forEach(d => leadDocs.push(d.data())); } catch(e) {}
+    leadDocs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    leadDocs.forEach(c => {
+      items.push({ amt: c.amount, src: c.rank || 'Rank', detail: 'Achievement Bonus', date: c.createdAt });
+      total += c.amount || 0;
+    });
+    const rewDocs = [];
+    try { (await getDocs(query(collection(db, 'leadershipRewards'), where('uid', '==', uid)))).forEach(d => rewDocs.push(d.data())); } catch(e) {}
+    rewDocs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    rewDocs.forEach(c => {
+      items.push({ amt: c.amount, src: c.rank || 'Rank', detail: 'Day ' + (c.day || '') + ' Reward', date: c.createdAt });
+      total += c.amount || 0;
+    });
+    items.sort((a, b) => (b.date || 0) - (a.date || 0));
+  } else if (currentTab === 'matching') {
+    labelEl.textContent = 'Total Matching Bonus';
+    const docs2 = [];
+    try { (await getDocs(query(collection(db, 'commissions'), where('uid', '==', uid)))).forEach(d => docs2.push(d.data())); } catch(e) {}
+    try { (await getDocs(query(collection(db, 'commissions'), where('toUid', '==', uid)))).forEach(d => docs2.push(d.data())); } catch(e) {}
+    docs2.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    docs2.forEach(c => {
+      if (c.type === 'matching_bonus') {
+        items.push({ amt: c.amount, src: c.fromName || 'User', detail: 'Matching Bonus', date: c.createdAt });
+        total += c.amount || 0;
+      }
+    });
+  }
+
+  // Apply time filter
+  if (timeFilter !== 'all') {
+    items = items.filter(i => isInRange(i.date));
+    total = items.reduce((s, i) => s + i.amt, 0);
+  }
+
+  totalEl.textContent = total.toFixed(2);
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">No income yet</div>';
+    return;
+  }
+
+  const iconSvg = currentTab === 'referral'
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/><path d="M2 20h20"/><path d="M2 14l4-4 4 4 6-6 4 4"/></svg>'
+    : currentTab === 'leadership'
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+
+  list.innerHTML = items.map(i => `
+    <div class="item">
+      <div class="left" style="display:flex;align-items:center;gap:10px;">
+        ${iconSvg}
+        <div>
+          <div class="name">+$${i.amt.toFixed(2)}</div>
+          <div class="src">${i.src} · ${i.detail}</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="date">${formatDate(i.date)}</div>
+        <div class="date" style="color:var(--green);">Completed</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+setTimeout(() => { if (!uid) document.getElementById('incomeList').innerHTML = '<div class="empty">Auth check stuck. Refresh or open via localhost.</div>'; }, 8000);
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location = 'register.html'; return; }
+  uid = user.uid;
+  loadAllTotals();
+  loadData();
+});
+</script>
+</body>
+</html>
