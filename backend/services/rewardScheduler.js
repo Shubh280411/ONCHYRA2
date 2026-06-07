@@ -1,8 +1,8 @@
 const admin = require('firebase-admin');
 const db = admin.firestore();
 
-const REWARD_INTERVAL = parseInt(process.env.REWARD_INTERVAL || '60000');
-const MAX_PER_CYCLE = 50;
+const REWARD_INTERVAL = parseInt(process.env.REWARD_INTERVAL || '3600000');
+const MAX_PER_CYCLE = 200;
 
 const RANKS = [
   { name: 'Ignition',   reqDirect: 3,  reqTeam: 1000,   reqLeg: 500,   bonus: 25,   rewardDay: 5,   rewardDays: 5  },
@@ -22,7 +22,8 @@ function todayStr() { return new Date().toISOString().slice(0,10); }
 async function distribute() {
   const today = todayStr();
   const now = Date.now();
-  const snap = await db.collection('users').limit(MAX_PER_CYCLE).get();
+  const rankNames = RANKS.map(r => r.name);
+  const snap = await db.collection('users').where('rank', 'in', rankNames).limit(MAX_PER_CYCLE).get();
 
   console.log(`[REWARD] Checking ${snap.docs.length} users (${today})...`);
   let distributed = 0;

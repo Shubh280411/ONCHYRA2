@@ -152,7 +152,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let uid, currentNetwork = 'BEP20', currentAddress = null;
-const API_BASE = 'http://localhost:5000';
+const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
 
 function showToast(msg, isErr) {
     const t = document.getElementById('toast');
@@ -207,25 +207,7 @@ window.openDeposit = async (network) => {
         // Start listening for this deposit
         listenForDeposit(data.address, network);
     } catch(e) {
-        // Fallback
-        try {
-            const hash = await sha256(uid + network + Date.now());
-            const addr = '0x' + hash.substring(0, 40);
-            currentAddress = addr;
-            mc.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
-                    <div style="background:white;border-radius:16px;padding:12px;display:inline-block;margin-bottom:12px;">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(addr)}" alt="QR" style="width:200px;height:200px;display:block;">
-                    </div>
-                    <div class="m-badge" style="display:inline-flex;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);margin-bottom:12px;">Offline</div>
-                    <div class="m-address">${addr}</div>
-                    <button class="m-copy" onclick="copyModalAddr()" style="display:block;margin:0 auto;background:var(--primary);color:#000;">Copy Address</button>
-                    <div class="m-warn">Network: ${network}</div>
-                </div>
-            `;
-        } catch(e2) {
-            mc.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:#ef4444;">Failed to generate address. Try again.</div>';
-        }
+        mc.innerHTML = '<div style="padding:40px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:16px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#ef4444;margin-bottom:8px;">Backend Offline</div><div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">Deposit system is temporarily unavailable.<br>Please try again in a few minutes.<br><br>Your funds are safe — any existing deposit<br>addresses will still work when the<br>service is restored.</div></div>';
     }
 };
 

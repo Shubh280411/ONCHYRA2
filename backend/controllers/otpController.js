@@ -68,17 +68,19 @@ exports.send = async (req, res) => {
 
         const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
+        console.log(`[OTP] Sending to ${email} via ${process.env.OTP_GMAIL_USER}...`);
         await otpTransporter.sendMail({
             from: `"ONCHYRA Verify" <${process.env.OTP_GMAIL_USER}>`,
             to: email,
             subject,
             html: getTemplate(purpose, otp)
         });
+        console.log(`[OTP] Sent to ${email}`);
 
         res.json({ success: true, message: 'OTP sent to your email' });
     } catch (e) {
-        console.error('OTP send error:', e);
-        res.status(500).json({ error: 'Failed to send OTP' });
+        console.error('OTP send error:', e.message, e.code);
+        res.status(500).json({ error: 'Failed to send OTP', detail: e.message });
     }
 };
 
