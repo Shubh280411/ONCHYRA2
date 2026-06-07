@@ -275,7 +275,7 @@
         document.getElementById("feedBody").innerHTML = feedList.map(u => `
             <div class="feed-item">
                 <span><span class="status-dot" style="background:${u.active ? 'var(--success)' : 'var(--text-dim)'}"></span><span class="name">${u.name}</span> claimed</span>
-                <span class="time">${new Date(u.lastClaim).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span class="time">${new Date(u.lastClaim).toLocaleDateString()} ${new Date(u.lastClaim).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
         `).join('');
 
