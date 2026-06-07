@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Withdrawals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            display: none;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .header .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-family: 'Space Grotesk'; font-weight: 900; font-size: 18px;
+        }
+        .header .logo svg { width: 36px; height: 36px; }
+        .header .logo span { background: linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .actions { display: flex; align-items: center; gap: 12px; }
+        .header .badge { font-size: 11px; color: var(--text-dim); background: var(--card); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+        .btn {
+            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 12px;
+            cursor: pointer; border: none; font-family: 'Inter'; transition: all .2s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-sm { padding: 6px 12px; font-size: 11px; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { opacity: .85; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-success { background: var(--success); color: #000; }
+        .btn-success:hover { opacity: .85; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { opacity: .85; }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .tabs {
+            display: flex; gap: 4px; margin-bottom: 20px;
+            background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border);
+        }
+        .tab {
+            flex: 1; padding: 10px; text-align: center; border-radius: 8px;
+            font-weight: 600; font-size: 12px; cursor: pointer; transition: all .2s;
+            color: var(--text-dim); border: none; background: transparent; font-family: 'Inter';
+        }
+        .tab.active { background: var(--primary); color: #000; }
+        .tab:hover:not(.active) { color: var(--text); }
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 14px; text-align: center;
+        }
+        .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); margin-bottom: 4px; }
+        .stat-card .value { font-family: 'Space Grotesk'; font-weight: 800; font-size: 20px; }
+        .stat-card .value.pending { color: var(--warning); }
+        .stat-card .value.completed { color: var(--success); }
+        .stat-card .value.rejected { color: var(--danger); }
+        .stat-card .value.total { color: var(--primary); }
+        .search-bar {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .search-bar input {
+            flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--card); color: white; font-size: 13px; font-family: 'Inter'; outline: none;
+        }
+        .search-bar input:focus { border-color: var(--primary); }
+        .search-bar input::placeholder { color: var(--text-dim); }
+        .table-wrap {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+        }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 800px; }
+        thead th {
+            padding: 12px 14px; text-align: left; font-weight: 600; font-size: 10px;
+            text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim);
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background .2s; }
+        tbody tr:hover { background: var(--card-hover); }
+        tbody td { padding: 12px 14px; vertical-align: middle; }
+        .status {
+            display: inline-block; padding: 3px 10px; border-radius: 100px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+        }
+        .status.pending { color: var(--warning); background: rgba(245,158,11,0.08); }
+        .status.processing { color: var(--primary); background: rgba(167,139,250,0.08); }
+        .status.completed { color: var(--success); background: rgba(34,197,94,0.08); }
+        .status.rejected { color: var(--danger); background: rgba(239,68,68,0.08); }
+        .status.failed { color: var(--danger); background: rgba(239,68,68,0.08); }
+        .wallet-addr { font-family: 'Space Grotesk'; font-size: 11px; color: var(--text-dim); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+        .amount-cell { font-family: 'Space Grotesk'; font-weight: 700; font-size: 13px; }
+        .action-btns { display: flex; gap: 4px; }
+        .empty-state { padding: 48px 20px; text-align: center; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+        .empty-state svg { width: 48px; height: 48px; opacity: .2; margin-bottom: 12px; }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #0d0d23; border: 1px solid var(--border); border-radius: 20px;
+            padding: 28px 32px; max-width: 420px; width: 100%;
+            animation: modalIn .25s ease;
+        }
+        @keyframes modalIn { from { transform: scale(.95); opacity: 0; } }
+        .modal h3 { font-family: 'Space Grotesk'; font-weight: 800; font-size: 18px; margin-bottom: 8px; }
+        .modal p { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 20px; }
+        .modal .detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+        .modal .detail-row .label { color: var(--text-dim); }
+        .modal .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+        .modal .modal-actions .btn { flex: 1; justify-content: center; padding: 12px; font-size: 13px; }
+        .toast-wrap {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 3000; display: flex; flex-direction: column; gap: 8px; align-items: center;
+        }
+        .toast {
+            padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 13px;
+            font-family: 'Inter'; animation: slideUp .3s ease; white-space: nowrap;
+        }
+        .toast.success { background: var(--success); color: #000; }
+        .toast.error { background: var(--danger); color: #fff; }
+        .toast.info { background: var(--primary); color: #000; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .refresh-bar {
+            display: flex; justify-content: flex-end; margin-bottom: 12px;
+        }
+        .refresh-bar .btn { font-size: 11px; }
+        .error-msg {
+            padding: 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 12px; font-size: 12px; color: var(--danger); text-align: center; margin-bottom: 16px;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 12px 60px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: 11px; min-width: 650px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="mainContainer" style="display:none">
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><text x="18" y="24" text-anchor="middle" fill="#000" font-family="'Space Grotesk'" font-weight="900" font-size="18">W</text></svg>
+            <span>Withdrawals</span>
+        </div>
+        <div class="actions">
+            <span class="badge" id="adminBadge">Admin</span>
+            <a href="admin.html" class="btn btn-outline btn-sm">Panel</a>
+            <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('pending')" id="tabPending">Pending</button>
+        <button class="tab" onclick="switchTab('all')" id="tabAll">All History</button>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><div class="label">Pending</div><div class="value pending" id="statPending">0</div></div>
+        <div class="stat-card"><div class="label">Processing</div><div class="value pending" id="statProcessing">0</div></div>
+        <div class="stat-card"><div class="label">Completed</div><div class="value completed" id="statCompleted">0</div></div>
+        <div class="stat-card"><div class="label">Rejected</div><div class="value rejected" id="statRejected">0</div></div>
+        <div class="stat-card"><div class="label">Total</div><div class="value total" id="statTotal">0</div></div>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by UID, wallet, or name..." oninput="filterTable()">
+        <button class="btn btn-outline" onclick="loadWithdrawals()">&#x21bb;</button>
+    </div>
+
+    <div class="tab-content active" id="contentPending">
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr>
+                    <th>Date</th><th>User</th><th>Amount</th><th>Fee</th><th>Net</th><th>Wallet</th><th>Status</th><th>Actions</th>
+                </tr></thead><tbody id="pendingBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="pendingEmpty">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><br>No pending withdrawals
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="contentAll">
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr>
+                    <th>Date</th><th>User</th><th>Amount</th><th>Fee</th><th>Net</th><th>Wallet</th><th>Status</th><th>Tx</th>
+                </tr></thead><tbody id="allBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="allEmpty">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><br>No withdrawals found
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <h3 id="modalTitle">Confirm</h3>
+        <div id="modalBody">
+            <div class="detail-row"><span class="label">User</span><span id="mUser">-</span></div>
+            <div class="detail-row"><span class="label">Amount</span><span id="mAmount">-</span></div>
+            <div class="detail-row"><span class="label">Net</span><span id="mNet">-</span></div>
+            <div class="detail-row"><span class="label">Wallet</span><span id="mWallet">-</span></div>
+        </div>
+        <p id="modalNote"></p>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn" id="modalConfirmBtn" onclick="confirmAction()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const API = localStorage.getItem('onc_api') ||
+        (location.hostname === 'localhost' || location.protocol === 'file:'
+            ? 'http://localhost:5000/api'
+            : 'https://onchyra-backend.onrender.com/api');
+
+    let allWithdrawals = [];
+    let currentAction = null;
+
+    window.switchTab = function(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (tab === 'pending') {
+            document.getElementById('tabPending').classList.add('active');
+            document.getElementById('contentPending').classList.add('active');
+        } else {
+            document.getElementById('tabAll').classList.add('active');
+            document.getElementById('contentAll').classList.add('active');
+        }
+    };
+
+    window.filterTable = function() {
+        renderTables();
+    };
+
+    function getSearchTerm() {
+        return document.getElementById('searchInput').value.toLowerCase().trim();
+    }
+
+    function matchesSearch(w, term) {
+        if (!term) return true;
+        return (w.uid && w.uid.toLowerCase().includes(term)) ||
+               (w.wallet && w.wallet.toLowerCase().includes(term)) ||
+               (w.userName && w.userName.toLowerCase().includes(term)) ||
+               (w.id && w.id.toLowerCase().includes(term));
+    }
+
+    function formatDate(ts) {
+        if (!ts) return '-';
+        const d = new Date(ts);
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatRelative(ts) {
+        if (!ts) return '-';
+        const s = Math.floor((Date.now() - ts) / 1000);
+        if (s < 60) return 'Just now';
+        if (s < 3600) return Math.floor(s / 60) + 'm ago';
+        if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+        return Math.floor(s / 86400) + 'd ago';
+    }
+
+    function shortWallet(addr) {
+        if (!addr || addr.length < 10) return addr || '-';
+        return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+
+    function statusClass(s) {
+        if (s === 'pending') return 'pending';
+        if (s === 'processing') return 'processing';
+        if (s === 'completed') return 'completed';
+        return 'rejected';
+    }
+
+    function toast(msg, type) {
+        const wrap = document.getElementById('toastWrap');
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        wrap.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    window.closeModal = function() {
+        document.getElementById('confirmModal').classList.remove('open');
+        currentAction = null;
+    };
+
+    window.openApprove = function(id) {
+        const w = allWithdrawals.find(x => x.id === id);
+        if (!w) return;
+        document.getElementById('modalTitle').textContent = 'Approve Withdrawal';
+        document.getElementById('mUser').textContent = w.userName || w.uid;
+        document.getElementById('mAmount').textContent = w.amount + ' USDT';
+        document.getElementById('mNet').textContent = (w.netAmount || (w.amount - w.fee)) + ' USDT';
+        document.getElementById('mWallet').textContent = w.wallet;
+        document.getElementById('modalNote').textContent = 'USDT will be sent to the wallet above. This cannot be undone.';
+        document.getElementById('modalConfirmBtn').className = 'btn btn-success';
+        document.getElementById('modalConfirmBtn').textContent = 'Approve & Send';
+        currentAction = { type: 'approve', id };
+        document.getElementById('confirmModal').classList.add('open');
+    };
+
+    window.openReject = function(id) {
+        const w = allWithdrawals.find(x => x.id === id);
+        if (!w) return;
+        document.getElementById('modalTitle').textContent = 'Reject Withdrawal';
+        document.getElementById('mUser').textContent = w.userName || w.uid;
+        document.getElementById('mAmount').textContent = w.amount + ' USDT';
+        document.getElementById('mNet').textContent = (w.netAmount || (w.amount - w.fee)) + ' USDT';
+        document.getElementById('mWallet').textContent = w.wallet;
+        document.getElementById('modalNote').textContent = 'Full amount will be refunded to the user\'s balance.';
+        document.getElementById('modalConfirmBtn').className = 'btn btn-danger';
+        document.getElementById('modalConfirmBtn').textContent = 'Reject & Refund';
+        currentAction = { type: 'reject', id };
+        document.getElementById('confirmModal').classList.add('open');
+    };
+
+    window.confirmAction = async function() {
+        if (!currentAction) return;
+        const btn = document.getElementById('modalConfirmBtn');
+        btn.disabled = true;
+        btn.textContent = currentAction.type === 'approve' ? 'Sending...' : 'Refunding...';
+
+        try {
+            const endpoint = currentAction.type === 'approve' ? '/api/withdraw/approve' : '/api/withdraw/reject';
+            const res = await fetch(API + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: currentAction.id })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || data.details || 'Request failed');
+
+            toast(data.message || (currentAction.type === 'approve' ? 'Approved and sent!' : 'Rejected and refunded!'), 'success');
+            closeModal();
+            loadWithdrawals();
+        } catch (e) {
+            toast(e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = currentAction.type === 'approve' ? 'Approve & Send' : 'Reject & Refund';
+        }
+    };
+
+    function renderTables() {
+        const term = getSearchTerm();
+        const filtered = term ? allWithdrawals.filter(w => matchesSearch(w, term)) : allWithdrawals;
+        const pending = filtered.filter(w => w.status === 'pending');
+        const rest = filtered.filter(w => w.status !== 'pending');
+
+        renderBody('pendingBody', 'pendingEmpty', pending, true);
+        renderBody('allBody', 'allEmpty', filtered, false);
+    }
+
+    function renderBody(bodyId, emptyId, items, showActions) {
+        const body = document.getElementById(bodyId);
+        const empty = document.getElementById(emptyId);
+
+        if (!items.length) {
+            body.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+
+        body.innerHTML = items.map(w => {
+            const net = w.netAmount || (w.amount - (w.fee || 0));
+            const txLink = w.txHash ? `<a href="https://bscscan.com/tx/${w.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;">${w.txHash.slice(0,8)}...</a>` : '-';
+
+            const actions = showActions ? `
+                <td>
+                    <div class="action-btns">
+                        <button class="btn btn-success btn-sm" onclick="openApprove('${w.id}')">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="openReject('${w.id}')">Reject</button>
+                    </div>
+                </td>` : `<td style="font-size:10px;color:var(--text-dim)">${txLink}</td>`;
+
+            return `<tr>
+                <td style="white-space:nowrap">${formatRelative(w.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(w.createdAt)}</span></td>
+                <td>
+                    <strong style="font-size:11px">${w.userName || '??'}</strong><br>
+                    <span style="font-size:9px;color:var(--text-dim);font-family:monospace">${(w.uid || '').slice(0,12)}...</span>
+                </td>
+                <td class="amount-cell">${w.amount} <span style="font-size:10px;font-weight:400;color:var(--text-dim)">USDT</span></td>
+                <td style="color:var(--danger);font-size:11px">${w.fee || 0}</td>
+                <td class="amount-cell" style="color:var(--success)">${net}</td>
+                <td><span class="wallet-addr" title="${w.wallet || ''}">${shortWallet(w.wallet)}</span></td>
+                <td><span class="status ${statusClass(w.status)}">${w.status}</span></td>
+                ${actions}
+            </tr>`;
+        }).join('');
+    }
+
+    function updateStats() {
+        const pending = allWithdrawals.filter(w => w.status === 'pending').length;
+        const processing = allWithdrawals.filter(w => w.status === 'processing').length;
+        const completed = allWithdrawals.filter(w => w.status === 'completed').length;
+        const rejected = allWithdrawals.filter(w => w.status === 'rejected' || w.status === 'failed').length;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statProcessing').textContent = processing;
+        document.getElementById('statCompleted').textContent = completed;
+        document.getElementById('statRejected').textContent = rejected;
+        document.getElementById('statTotal').textContent = allWithdrawals.length;
+    }
+
+    window.loadWithdrawals = async function() {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+
+        try {
+            const q = query(collection(db, 'withdrawals'), orderBy('createdAt', 'desc'), limit(100));
+            const snap = await getDocs(q);
+            const list = [];
+
+            for (const d of snap.docs) {
+                const w = d.data();
+                let userName = '?';
+                try {
+                    const uSnap = await getDoc(doc(db, 'users', w.uid));
+                    if (uSnap.exists()) {
+                        const u = uSnap.data();
+                        userName = u.name || u.referralCode || u.email || '?';
+                    }
+                } catch (_) {}
+                list.push({ id: d.id, ...w, userName });
+            }
+
+            allWithdrawals = list;
+            updateStats();
+            renderTables();
+        } catch (e) {
+            console.error('Load withdrawals error:', e);
+            errorMsg.textContent = 'Failed to load withdrawals: ' + e.message;
+            errorMsg.style.display = 'block';
+        }
+    };
+
+    window.handleLogout = function() {
+        signOut(auth);
+        window.location.replace('admin-login.html');
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.replace('admin-login.html');
+            return;
+        }
+        try {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+                document.body.style.display = 'block';
+                return;
+            }
+            document.getElementById('adminBadge').textContent = user.email || 'Admin';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.body.style.display = 'block';
+            loadWithdrawals();
+        } catch (e) {
+            console.error(e);
+        }
+    });
+</script>
+</body>
+</html>
