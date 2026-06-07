@@ -133,6 +133,7 @@
         .modal .detail-row .label { color: var(--text-dim); }
         .modal .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
         .modal .modal-actions .btn { flex: 1; justify-content: center; padding: 12px; font-size: 13px; }
+        .modal input:focus { border-color: var(--primary) !important; }
         .toast-wrap {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             z-index: 3000; display: flex; flex-direction: column; gap: 8px; align-items: center;
@@ -241,12 +242,29 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="txModal">
+    <div class="modal">
+        <h3>Set Transaction Hash</h3>
+        <div id="txModalBody">
+            <div class="detail-row"><span class="label">User</span><span id="txUser">-</span></div>
+            <div class="detail-row"><span class="label">Amount</span><span id="txAmount">-</span></div>
+            <div class="detail-row"><span class="label">Wallet</span><span id="txWallet">-</span></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">Enter the BSC transaction hash to mark as completed:</p>
+        <input type="text" id="txHashInput" placeholder="0x..." style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:white;font-size:13px;font-family:'Space Grotesk';outline:none;">
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeTxModal()">Cancel</button>
+            <button class="btn btn-success" id="txConfirmBtn" onclick="confirmSetTx()">Mark Completed</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -395,6 +413,50 @@
         }
     };
 
+    window.openSetTx = function(id) {
+        const w = allWithdrawals.find(x => x.id === id);
+        if (!w) return;
+        document.getElementById('txUser').textContent = w.userName || w.uid;
+        document.getElementById('txAmount').textContent = w.amount + ' USDT';
+        document.getElementById('txWallet').textContent = w.wallet;
+        document.getElementById('txHashInput').value = w.txHash || '';
+        currentAction = { type: 'sett x', id };
+        document.getElementById('txModal').classList.add('open');
+        document.getElementById('txHashInput').focus();
+    };
+
+    window.closeTxModal = function() {
+        document.getElementById('txModal').classList.remove('open');
+        currentAction = null;
+    };
+
+    window.confirmSetTx = async function() {
+        if (!currentAction) return;
+        const hash = document.getElementById('txHashInput').value.trim();
+        if (!hash) { toast('Enter a transaction hash', 'error'); return; }
+        if (!hash.startsWith('0x')) { toast('Hash must start with 0x', 'error'); return; }
+
+        const btn = document.getElementById('txConfirmBtn');
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+
+        try {
+            await updateDoc(doc(db, 'withdrawals', currentAction.id), {
+                txHash: hash,
+                status: 'completed',
+                completedAt: Date.now()
+            });
+            toast('Marked as completed with tx hash', 'success');
+            closeTxModal();
+            loadWithdrawals();
+        } catch (e) {
+            toast('Failed: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Mark Completed';
+        }
+    };
+
     function renderTables() {
         const term = getSearchTerm();
         const filtered = term ? allWithdrawals.filter(w => matchesSearch(w, term)) : allWithdrawals;
@@ -425,6 +487,7 @@
                     <div class="action-btns">
                         <button class="btn btn-success btn-sm" onclick="openApprove('${w.id}')">Approve</button>
                         <button class="btn btn-danger btn-sm" onclick="openReject('${w.id}')">Reject</button>
+                        <button class="btn btn-outline btn-sm" onclick="openSetTx('${w.id}')" title="Set tx hash">Tx</button>
                     </div>
                 </td>` : `<td style="font-size:10px;color:var(--text-dim)">${txLink}</td>`;
 
