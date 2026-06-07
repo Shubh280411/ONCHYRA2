@@ -229,7 +229,7 @@ window.copyModalAddr = async () => {
 };
 
 function listenForDeposit(address, network) {
-    const q = query(collection(db, 'deposits'), where('address', '==', address.toLowerCase()), limit(1));
+    const q = query(collection(db, 'deposits'), where('uid', '==', uid), where('address', '==', address.toLowerCase()), limit(1));
     onSnapshot(q, (snap) => {
         snap.docChanges().forEach(change => {
             if (change.type === 'added') {
