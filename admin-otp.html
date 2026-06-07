@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — OTP Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            display: none;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .header .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-family: 'Space Grotesk'; font-weight: 900; font-size: 18px;
+        }
+        .header .logo svg { width: 36px; height: 36px; }
+        .header .logo span { background: linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .actions { display: flex; align-items: center; gap: 12px; }
+        .header .badge { font-size: 11px; color: var(--text-dim); background: var(--card); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+        .btn {
+            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 12px;
+            cursor: pointer; border: none; font-family: 'Inter'; transition: all .2s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-sm { padding: 6px 12px; font-size: 11px; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { opacity: .85; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-success { background: var(--success); color: #000; }
+        .btn-success:hover { opacity: .85; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { opacity: .85; }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 14px; text-align: center;
+        }
+        .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); margin-bottom: 4px; }
+        .stat-card .value { font-family: 'Space Grotesk'; font-weight: 800; font-size: 20px; }
+        .stat-card .value.verified { color: var(--success); }
+        .stat-card .value.pending { color: var(--warning); }
+        .stat-card .value.expired { color: var(--danger); }
+        .search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+        .search-bar input {
+            flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--card); color: white; font-size: 13px; font-family: 'Inter'; outline: none;
+        }
+        .search-bar input:focus { border-color: var(--primary); }
+        .search-bar input::placeholder { color: var(--text-dim); }
+        .table-wrap {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+        }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+        thead th {
+            padding: 12px 14px; text-align: left; font-weight: 600; font-size: 10px;
+            text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim);
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background .2s; }
+        tbody tr:hover { background: var(--card-hover); }
+        tbody td { padding: 12px 14px; vertical-align: middle; }
+        .status {
+            display: inline-block; padding: 3px 10px; border-radius: 100px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+        }
+        .status.verified { color: var(--success); background: rgba(34,197,94,0.08); }
+        .status.pending { color: var(--warning); background: rgba(245,158,11,0.08); }
+        .status.expired { color: var(--danger); background: rgba(239,68,68,0.08); }
+        .status.used { color: var(--primary); background: rgba(167,139,250,0.08); }
+        .empty-state { padding: 48px 20px; text-align: center; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+        .empty-state svg { width: 48px; height: 48px; opacity: .2; margin-bottom: 12px; }
+        .toast-wrap {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 3000; display: flex; flex-direction: column; gap: 8px; align-items: center;
+        }
+        .toast {
+            padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 13px;
+            font-family: 'Inter'; animation: slideUp .3s ease; white-space: nowrap;
+        }
+        .toast.success { background: var(--success); color: #000; }
+        .toast.error { background: var(--danger); color: #fff; }
+        .toast.info { background: var(--primary); color: #000; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } }
+        .error-msg {
+            padding: 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 12px; font-size: 12px; color: var(--danger); text-align: center; margin-bottom: 16px;
+            display: none;
+        }
+        .send-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 20px; margin-bottom: 20px;
+        }
+        .send-card h3 { font-family: 'Space Grotesk'; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+        .send-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .send-row input {
+            flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--bg); color: white; font-size: 13px; font-family: 'Inter'; outline: none;
+        }
+        .send-row input:focus { border-color: var(--primary); }
+        .send-row select {
+            padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--bg); color: white; font-size: 13px; font-family: 'Inter'; outline: none; cursor: pointer;
+        }
+        .send-row select:focus { border-color: var(--primary); }
+        @media (max-width: 600px) {
+            .container { padding: 12px 12px 60px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            table { min-width: 550px; }
+            .send-row { flex-direction: column; }
+            .send-row input { min-width: 100%; width: 100%; }
+            .send-row select { width: 100%; }
+            .send-row .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="mainContainer" style="display:none">
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><text x="18" y="24" text-anchor="middle" fill="#000" font-family="'Space Grotesk'" font-weight="900" font-size="18">O</text></svg>
+            <span>OTP Logs</span>
+        </div>
+        <div class="actions">
+            <span class="badge" id="adminBadge">Admin</span>
+            <a href="admin.html" class="btn btn-outline btn-sm">Panel</a>
+            <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="send-card">
+        <h3>Send OTP Manually</h3>
+        <div class="send-row">
+            <input type="email" id="sendOtpEmail" placeholder="user@email.com">
+            <select id="sendOtpPurpose">
+                <option value="registration">Registration</option>
+                <option value="withdrawal">Withdrawal</option>
+            </select>
+            <button class="btn btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+        </div>
+        <div id="sendOtpResult" style="font-size:11px;color:var(--text-dim);margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><div class="label">Verified</div><div class="value verified" id="statVerified">0</div></div>
+        <div class="stat-card"><div class="label">Pending</div><div class="value pending" id="statPending">0</div></div>
+        <div class="stat-card"><div class="label">Expired</div><div class="value expired" id="statExpired">0</div></div>
+        <div class="stat-card"><div class="label">Total</div><div class="value" id="statTotal" style="color:var(--primary)">0</div></div>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by email or OTP..." oninput="filterTable()">
+        <button class="btn btn-outline" onclick="loadOtps()">&#x21bb;</button>
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-scroll">
+            <table><thead><tr>
+                <th>Email</th><th>OTP</th><th>Sent</th><th>Expires</th><th>Status</th><th>Used At</th>
+            </tr></thead><tbody id="otpBody"></tbody></table>
+        </div>
+        <div class="empty-state" id="otpEmpty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><br>No OTP records found
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const API = localStorage.getItem('onc_api') ||
+        (location.hostname === 'localhost' || location.protocol === 'file:'
+            ? 'http://localhost:5000/api'
+            : 'https://onchyra-backend.onrender.com/api');
+
+    let allOtps = [];
+
+    function formatDate(ts) {
+        if (!ts) return '-';
+        const d = new Date(ts);
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatRelative(ts) {
+        if (!ts) return '-';
+        const s = Math.floor((Date.now() - ts) / 1000);
+        if (s < 60) return 'Just now';
+        if (s < 3600) return Math.floor(s / 60) + 'm ago';
+        if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+        return Math.floor(s / 86400) + 'd ago';
+    }
+
+    function getOtpStatus(otp) {
+        if (otp.verified) return 'verified';
+        if (otp.usedAt) return 'used';
+        if (Date.now() > otp.expiresAt) return 'expired';
+        return 'pending';
+    }
+
+    function toast(msg, type) {
+        const wrap = document.getElementById('toastWrap');
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        wrap.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    window.filterTable = function() {
+        renderTable();
+    };
+
+    function renderTable() {
+        const term = document.getElementById('searchInput').value.toLowerCase().trim();
+        const filtered = term ? allOtps.filter(o =>
+            (o.email && o.email.toLowerCase().includes(term)) ||
+            (o.otp && o.otp.includes(term))
+        ) : allOtps;
+
+        const body = document.getElementById('otpBody');
+        const empty = document.getElementById('otpEmpty');
+
+        if (!filtered.length) {
+            body.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+
+        body.innerHTML = filtered.map(o => {
+            const st = getOtpStatus(o);
+            return `<tr>
+                <td><strong style="font-size:11px">${o.email}</strong></td>
+                <td style="font-family:'Space Grotesk';font-weight:700;letter-spacing:2px;font-size:13px">${o.otp}</td>
+                <td style="white-space:nowrap">${formatRelative(o.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(o.createdAt)}</span></td>
+                <td style="white-space:nowrap;font-size:11px">${o.expiresAt ? formatRelative(o.expiresAt) : '-'}</td>
+                <td><span class="status ${st}">${st}</span></td>
+                <td style="font-size:11px;color:var(--text-dim)">${o.usedAt ? formatDate(o.usedAt) : '-'}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function updateStats() {
+        const verified = allOtps.filter(o => o.verified).length;
+        const pending = allOtps.filter(o => !o.verified && !o.usedAt && Date.now() <= o.expiresAt).length;
+        const expired = allOtps.filter(o => !o.verified && Date.now() > o.expiresAt).length;
+        document.getElementById('statVerified').textContent = verified;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statExpired').textContent = expired;
+        document.getElementById('statTotal').textContent = allOtps.length;
+    }
+
+    window.loadOtps = async function() {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        try {
+            const q = query(collection(db, 'otps'), orderBy('createdAt', 'desc'), limit(200));
+            const snap = await getDocs(q);
+            allOtps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            updateStats();
+            renderTable();
+        } catch (e) {
+            console.error('Load OTPs error:', e);
+            errorMsg.textContent = 'Failed to load OTPs: ' + e.message;
+            errorMsg.style.display = 'block';
+        }
+    };
+
+    window.sendOtp = async function() {
+        const email = document.getElementById('sendOtpEmail').value.trim();
+        const purpose = document.getElementById('sendOtpPurpose').value;
+        const btn = document.getElementById('sendOtpBtn');
+        const result = document.getElementById('sendOtpResult');
+
+        if (!email) { toast('Enter an email address', 'error'); return; }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        result.style.display = 'none';
+
+        try {
+            const res = await fetch(API + '/api/otp/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, purpose })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || data.detail || 'Failed');
+            result.textContent = 'OTP sent to ' + email;
+            result.style.color = 'var(--success)';
+            result.style.display = 'block';
+            toast('OTP sent!', 'success');
+            setTimeout(() => loadOtps(), 1000);
+        } catch (e) {
+            result.textContent = 'Error: ' + e.message;
+            result.style.color = 'var(--danger)';
+            result.style.display = 'block';
+            toast(e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send OTP';
+        }
+    };
+
+    window.handleLogout = function() {
+        signOut(auth);
+        window.location.replace('admin-login.html');
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.replace('admin-login.html');
+            return;
+        }
+        try {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+                document.body.style.display = 'block';
+                return;
+            }
+            document.getElementById('adminBadge').textContent = user.email || 'Admin';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.body.style.display = 'block';
+            loadOtps();
+        } catch (e) {
+            console.error(e);
+        }
+    });
+</script>
+</body>
+</html>
