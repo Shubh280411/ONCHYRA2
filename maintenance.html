@@ -65,17 +65,18 @@ async function loadMaint() {
             const d = snap.data();
             if (d.message) document.getElementById('maintenanceMsg').textContent = d.message;
             const startedAt = toMillis(d.startedAt);
-            const durationMs = (d.durationHours || 2) * 3600000;
-            if (startedAt > 0) {
-                endTime = startedAt + durationMs;
-                const now = Date.now();
-                if (endTime > now) {
-                    document.getElementById('countdownWrap').style.display = 'block';
-                    tick();
-                } else {
-                    document.getElementById('countdownWrap').style.display = 'none';
-                    document.getElementById('doneMsg').style.display = 'block';
-                }
+            const endAt = toMillis(d.endAt);
+            if (endAt > 0) {
+                endTime = endAt;
+            } else if (startedAt > 0) {
+                endTime = startedAt + (d.durationHours || 2) * 3600000;
+            }
+            if (endTime > Date.now()) {
+                document.getElementById('countdownWrap').style.display = 'block';
+                tick();
+            } else if (endTime > 0) {
+                document.getElementById('countdownWrap').style.display = 'none';
+                document.getElementById('doneMsg').style.display = 'block';
             }
         }
     } catch(e) {}

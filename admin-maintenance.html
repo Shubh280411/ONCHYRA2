@@ -51,8 +51,9 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <div class="card">
-  <label>Duration (hours) <span style="color:rgba(255,255,255,0.2);font-weight:400;">— custom value supported</span></label>
-  <input type="number" id="durationHours" class="input" value="2" step="0.1" min="0.1" max="720" style="width:100%;">
+  <label>End Date & Time</label>
+  <input type="datetime-local" id="endDatetime" class="input" style="width:100%;color-scheme:dark;">
+  <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.2);margin-top:6px;">Set the exact date & time when maintenance should end</div>
 </div>
 
 <div class="card">
@@ -108,6 +109,20 @@ function showToast(m) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+function toMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts === 'object' && ts.toMillis) return ts.toMillis();
+  if (typeof ts === 'number') return ts;
+  return Date.parse(ts) || 0;
+}
+
+function toLocalDatetime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
 async function loadMaint() {
   try {
     const snap = await getDoc(doc(db, 'settings', 'maintenance'));
@@ -131,8 +146,11 @@ async function loadMaint() {
         document.getElementById('maintMsg').value = currentData.message;
         document.getElementById('previewMsg').textContent = currentData.message;
       }
-      if (currentData.durationHours) {
-        document.getElementById('durationHours').value = currentData.durationHours;
+      if (currentData.endAt) {
+        document.getElementById('endDatetime').value = toLocalDatetime(toMillis(currentData.endAt));
+      } else if (currentData.startedAt && currentData.durationHours) {
+        const endTs = toMillis(currentData.startedAt) + (currentData.durationHours * 3600000);
+        document.getElementById('endDatetime').value = toLocalDatetime(endTs);
       }
       updatePreview();
     }
@@ -140,15 +158,28 @@ async function loadMaint() {
 }
 
 function updatePreview() {
-  const hrs = parseFloat(document.getElementById('durationHours').value) || 2;
-  let label;
-  if (hrs < 1) { const m = Math.round(hrs * 60); label = m + ' min'; }
-  else if (hrs % 1 === 0) label = hrs + ' hour' + (hrs !== 1 ? 's' : '');
-  else label = hrs + ' hours';
-  document.getElementById('previewTimer').textContent = '~' + label + ' estimated';
+  const val = document.getElementById('endDatetime').value;
+  if (!val) {
+    document.getElementById('previewTimer').textContent = 'No end time set';
+    return;
+  }
+  const endMs = new Date(val).getTime();
+  const now = Date.now();
+  const diff = endMs - now;
+  if (diff <= 0) {
+    document.getElementById('previewTimer').textContent = 'End time is in the past!';
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hrs = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  let label = '';
+  if (days > 0) label += days + 'd ';
+  label += hrs + 'h ' + mins + 'm';
+  document.getElementById('previewTimer').textContent = 'Ends in ' + label;
 }
 
-document.getElementById('durationHours').addEventListener('change', updatePreview);
+document.getElementById('endDatetime').addEventListener('change', updatePreview);
 document.getElementById('maintMsg').addEventListener('input', function() {
   document.getElementById('previewMsg').textContent = this.value || 'We are currently performing scheduled maintenance...';
 });
@@ -157,8 +188,15 @@ window.toggleMaintenance = async () => {
   const enabled = !currentData.enabled;
   const updates = { enabled };
   if (enabled) {
+    const val = document.getElementById('endDatetime').value;
+    if (!val) { showToast('Please set an end date & time first!'); return; }
+    const endMs = new Date(val).getTime();
+    const now = Date.now();
+    if (endMs <= now) { showToast('End time must be in the future!'); return; }
+    const durationHours = (endMs - now) / 3600000;
     updates.startedAt = serverTimestamp();
-    updates.durationHours = parseFloat(document.getElementById('durationHours').value) || 2;
+    updates.durationHours = durationHours;
+    updates.endAt = endMs;
     updates.message = document.getElementById('maintMsg').value.trim() || 'We are currently performing scheduled maintenance to improve your experience. Please check back shortly.';
   }
   await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
@@ -168,8 +206,13 @@ window.toggleMaintenance = async () => {
 
 window.saveSettings = async () => {
   const msg = document.getElementById('maintMsg').value.trim();
-  const hrs = parseFloat(document.getElementById('durationHours').value) || 2;
-  await setDoc(doc(db, 'settings', 'maintenance'), { message: msg, durationHours: hrs }, { merge: true });
+  const val = document.getElementById('endDatetime').value;
+  const updates = { message: msg };
+  if (val) {
+    const endMs = new Date(val).getTime();
+    updates.endAt = endMs;
+  }
+  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
   showToast('Settings saved!');
   loadMaint();
 };
