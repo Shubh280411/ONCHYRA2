@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONCHYRA � Global Node</title>
+    <title>ONCHYRA — Testing</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
@@ -17,6 +17,11 @@
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
         @keyframes fire-glow { 0%,100% { filter:drop-shadow(0 0 6px rgba(251,191,36,0.4)) drop-shadow(0 0 12px rgba(251,191,36,0.2)); } 50% { filter:drop-shadow(0 0 10px rgba(251,191,36,0.7)) drop-shadow(0 0 20px rgba(251,191,36,0.4)); } }
         @keyframes streak-ignite { 0% { background:rgba(251,191,36,0.05); box-shadow:0 0 0 0 rgba(251,191,36,0); } 100% { background:rgba(251,191,36,0.12); box-shadow:0 0 25px 5px rgba(251,191,36,0.2); } }
+        @keyframes tacho-pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+        @keyframes needle-shake { 0%,100% { transform-origin:100px 120px; } 25% { transform-origin:100px 120px; } 75% { transform-origin:100px 120px; } }
+        @keyframes redzone-flicker { 0%,100% { opacity:0.5; } 20% { opacity:1; } 40% { opacity:0.3; } 60% { opacity:0.9; } 80% { opacity:0.4; } }
+        .tacho-red .tacho-spike { animation:tacho-pulse 0.8s ease-in-out infinite; }
+        .tacho-red { animation:redzone-flicker 2s ease-in-out infinite; }
 
         .nav-container { position:fixed; top:0; left:0; right:0; z-index:1000; padding:15px; background:linear-gradient(to bottom,var(--bg) 90%,transparent); }
         .nav { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:rgba(255,255,255,0.03); border-radius:22px; border:1px solid var(--border); backdrop-filter:blur(25px); }
@@ -30,6 +35,8 @@
         .container { max-width:1200px; margin:0 auto; padding:100px 15px 40px; }
         .dashboard-grid { display:grid; grid-template-columns:1fr; gap:18px; }
         @media (min-width:992px) { .dashboard-grid { grid-template-columns:1fr 1fr; } .full-width { grid-column:span 2; } }
+        .mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        @media (max-width:480px) { .mini-grid { grid-template-columns:1fr 1fr; } .mini-grid .card:last-child:nth-child(odd) { grid-column:span 2; } }
         .card { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:25px; position:relative; overflow:hidden; }
 
         #rankTag { font-size:9px; font-weight:900; padding:4px 12px; border-radius:6px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:10px; }
@@ -165,6 +172,8 @@
         .noti-type-update { color: var(--secondary); }
         .noti-type-poll { color: #22c55e; }
         .noti-type-personal { color: #fbbf24; }
+        .noti-type-trade_won { color: var(--success); }
+        .noti-type-trade_lost { color: var(--danger); }
         .noti-item .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
         .noti-item .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
         .noti-item .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
@@ -184,20 +193,16 @@
 <div class="menu" id="menu">
     <div style="font-family:'Space Grotesk';font-size:24px;font-weight:900;color:var(--primary);padding:25px;">ONCHYRA</div>
     <a href="dashboard.html" class="menu-item active">Dashboard</a>
-    <a href="p2p-transfer.html" class="menu-item" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(96,165,250,0.06));border:1px solid rgba(167,139,250,0.15);margin-bottom:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        <span style="flex:1;">P2P Transfer</span>
-        <span style="font-size:7px;background:var(--primary);color:#000;padding:2px 8px;border-radius:100px;font-weight:900;letter-spacing:0.5px;">LIVE</span>
-    </a>
+    <a href="p2p-transfer.html" class="menu-item">P2P Transfer</a>
     <a href="referrals.html" class="menu-item">Referrals</a>
-    <a href="contests.html" class="menu-item hot">Referral Contest ?</a>
+    <a href="packages.html" class="menu-item">Packages</a>
+    <a href="income.html" class="menu-item">Income</a>
+    <a href="leadership.html" class="menu-item">Leadership</a>
+    <a href="deposit.html" class="menu-item">Deposit</a>
+    <a href="withdraw.html" class="menu-item">Withdraw</a>
+    <a href="contests.html" class="menu-item">Contest</a>
     <a href="leaderboard.html" class="menu-item">Leaderboard</a>
     <a href="updates.html" class="menu-item">Updates</a>
-    <a href="powerdrop.html" class="menu-item">PowerDrop</a>
-    <a href="roadmap.html" class="menu-item">Roadmap</a>
-    <a href="tokenomics.html" class="menu-item">Tokenomics</a>
-    <a href="presale.html" class="menu-item">Presale</a>
-    <a href="streaks.html" class="menu-item">Streaks</a>
     <a onclick="logout()" class="menu-item" style="color:#ef4444;margin-top:auto;padding-bottom:30px;">Logout</a>
 </div>
 
@@ -243,43 +248,211 @@
             </div>
         </div>
 
-        <div class="card">
-            <div style="display:flex;justify-content:space-around;align-items:center;height:100%;">
-                <div style="text-align:center;">
-                    <div style="font-size:10px;opacity:0.6;">VALIDATORS</div>
-                    <div id="totalUsers" style="font-weight:800;font-size:22px;">...</div>
+        <!-- Row: 3 mini cards (Wallet, Daily Claim, Withdraw) -->
+        <div class="mini-grid">
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(34,197,94,0.15);background:linear-gradient(180deg,rgba(34,197,94,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Wallet</div>
+                <div id="walletBalance" style="font-weight:800;font-size:16px;color:#22c55e;font-family:'Space Grotesk';">$0.00</div>
+                <a href="deposit.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:7px;font-weight:800;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(34,197,94,0.2);">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    DEPOSIT
+                </a>
+            </div>
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(251,191,36,0.15);background:linear-gradient(180deg,rgba(251,191,36,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Daily Claim</div>
+                <div style="font-weight:800;font-size:16px;color:#fbbf24;font-family:'Space Grotesk';"><span id="dailyClaimAmount">0.05</span> ONC</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.2);margin-top:2px;">+<span id="dailyClaimBoost">0</span>x boost</div>
+            </div>
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(239,68,68,0.15);background:linear-gradient(180deg,rgba(239,68,68,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Withdraw</div>
+                <div id="withdrawBalance" style="font-weight:800;font-size:16px;color:#ef4444;font-family:'Space Grotesk';">$0.00</div>
+                <a href="withdraw.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:7px;font-weight:800;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(239,68,68,0.2);">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    WITHDRAW
+                </a>
+            </div>
+        </div>
+        <!-- Row: Active Directs / Team Business -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+            <div class="card" style="text-align:center;padding:14px 10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Active Directs</div>
+                <div style="font-weight:800;font-size:22px;font-family:'Space Grotesk';">
+                    <span id="activeDirectsNum" style="color:#22c55e;">0</span>
+                    <span style="opacity:0.3;">/</span>
+                    <span id="totalDirectsNum" style="color:#60a5fa;">0</span>
                 </div>
-                <div style="width:1px;height:40px;background:var(--border);"></div>
-                <div style="text-align:center;">
-                    <div style="font-size:10px;opacity:0.6;">TOTAL MINED</div>
-                    <div id="totalMined" style="font-weight:800;font-size:22px;">0.00</div>
+            </div>
+            <div class="card" style="text-align:center;padding:14px 10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Team Business</div>
+                <div id="teamBizAmount" style="font-weight:800;font-size:18px;color:#f59e0b;font-family:'Space Grotesk';display:flex;align-items:center;justify-content:center;gap:6px;min-height:22px;">
+                    <span id="teamBizText">$0</span>
+                    <span id="teamBizLoader" style="display:none;width:14px;height:14px;border:2px solid rgba(245,158,11,0.2);border-top:2px solid #f59e0b;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
                 </div>
+            </div>
+        </div>
+        <!-- Row: Mining Boost, Rank, Package -->
+        <div class="mini-grid" style="margin-top:10px;">
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Mining Boost</div>
+                <div id="miningBoost" style="font-weight:800;font-size:15px;color:#22c55e;font-family:'Space Grotesk';">1x</div>
+            </div>
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 8 5 9 7v2"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 16 5 15 7v2"/><path d="M4 22h16"/><path d="M10 22V8h4v14"/><path d="M12 2v3"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Rank</div>
+                <div id="userRank" style="font-weight:800;font-size:15px;color:#fbbf24;font-family:'Space Grotesk';">-</div>
+            </div>
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Package</div>
+                <div id="dashPkg" style="font-weight:800;font-size:15px;color:#a78bfa;font-family:'Space Grotesk';">-</div>
+                <span id="dashPkgStatus" style="font-size:6px;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:2px;background:rgba(34,197,94,0.1);color:#22c55e;">Active</span>
+            </div>
+        </div>
+
+        <!-- Cap Tachometer -->
+        <div class="card full-width" style="text-align:center;padding:18px 16px 14px;" id="tachocard">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:6px;font-size:8px;opacity:0.4;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="url(#tachoRainbow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span style="background:linear-gradient(90deg,#a78bfa,#60a5fa,#22c55e,#eab308);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Cap Earnings</span>
+                </div>
+                <div>
+                    <span id="tachoPkg" style="font-size:8px;font-weight:700;color:var(--primary);">-</span>
+                    <span id="tachoStatus" style="font-size:7px;font-weight:800;padding:2px 7px;border-radius:5px;margin-left:6px;background:rgba(34,197,94,0.1);color:#22c55e;">Active</span>
+                </div>
+            </div>
+            <div style="position:relative;display:inline-block;width:200px;height:120px;overflow:hidden;margin:0 auto 4px;">
+                <svg width="200" height="130" viewBox="0 0 200 130" style="display:block;">
+                    <defs>
+                        <linearGradient id="tachoRainbow" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#8b5cf6"/>
+                            <stop offset="20%" stop-color="#3b82f6"/>
+                            <stop offset="40%" stop-color="#06b6d4"/>
+                            <stop offset="55%" stop-color="#22c55e"/>
+                            <stop offset="70%" stop-color="#eab308"/>
+                            <stop offset="85%" stop-color="#f97316"/>
+                            <stop offset="100%" stop-color="#ef4444"/>
+                        </linearGradient>
+                        <linearGradient id="needleGrad" x1="0" y1="1" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#a78bfa"/>
+                            <stop offset="50%" stop-color="#f472b6"/>
+                            <stop offset="100%" stop-color="#60a5fa"/>
+                        </linearGradient>
+                        <filter id="needleGlow">
+                            <feGaussianBlur stdDeviation="3" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="arcGlow">
+                            <feGaussianBlur stdDeviation="6"/>
+                        </filter>
+                    </defs>
+
+                    <!-- glow behind arc -->
+                    <path d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="url(#tachoRainbow)" stroke-width="18" stroke-linecap="round" opacity="0.08" filter="url(#arcGlow)"/>
+
+                    <!-- background arc -->
+                    <path d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="12" stroke-linecap="round"/>
+
+                    <!-- rainbow arc -->
+                    <path id="tachoArc" d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="url(#tachoRainbow)" stroke-width="12" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="267" style="transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s"/>
+
+                    <!-- tick marks (spikes) in 10% steps -->
+                    <g stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round">
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-90 100 120)" stroke="#8b5cf6" opacity="0.4"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-63 100 120)" stroke="#3b82f6" opacity="0.5"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-36 100 120)" stroke="#06b6d4" opacity="0.5"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-9 100 120)" stroke="#22c55e" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(18 100 120)" stroke="#65a30d" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(45 100 120)" stroke="#eab308" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(72 100 120)" stroke="#f97316" opacity="0.7"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(99 100 120)" stroke="#ef4444" opacity="0.7"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(126 100 120)" stroke="#ef4444" opacity="0.8"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(153 100 120)" stroke="#dc2626" opacity="0.8"/>
+                        <line x1="32" y1="38" x2="41" y2="49" transform="rotate(180 100 120)" stroke="#b91c1c" opacity="0.5"/>
+                    </g>
+
+                    <!-- red zone spikes with extra glow -->
+                    <g class="tacho-spike" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" opacity="0.8">
+                        <line x1="36" y1="42" x2="45" y2="53" transform="rotate(126 100 120)"/>
+                        <line x1="36" y1="42" x2="45" y2="53" transform="rotate(153 100 120)"/>
+                    </g>
+
+                    <!-- decorative inner arc dots -->
+                    <g fill="rgba(255,255,255,0.15)">
+                        <circle cx="42" cy="73" r="1.5"/>
+                        <circle cx="53" cy="50" r="1.5"/>
+                        <circle cx="72" cy="36" r="1.5"/>
+                        <circle cx="100" cy="29" r="1.5"/>
+                        <circle cx="128" cy="36" r="1.5"/>
+                        <circle cx="147" cy="50" r="1.5"/>
+                        <circle cx="158" cy="73" r="1.5"/>
+                    </g>
+
+                    <!-- needle -->
+                    <g id="tachoNeedle" transform="rotate(-90 100 120)" style="transform-origin:100px 120px;transition:transform 1.2s cubic-bezier(0.4,0,0.2,1)">
+                        <line x1="100" y1="120" x2="100" y2="44" stroke="url(#needleGrad)" stroke-width="3" stroke-linecap="round" filter="url(#needleGlow)"/>
+                        <circle cx="100" cy="120" r="6" fill="#a78bfa" opacity="0.9" filter="url(#needleGlow)"/>
+                        <circle cx="100" cy="120" r="3" fill="#fff"/>
+                        <circle cx="100" cy="120" r="1.5" fill="#a78bfa"/>
+                        <line x1="100" y1="120" x2="100" y2="127" stroke="url(#needleGrad)" stroke-width="2.5" opacity="0.5"/>
+                    </g>
+                </svg>
+                <!-- center display -->
+                <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;">
+                    <div id="tachoPct" style="font-family:'Space Grotesk';font-weight:900;font-size:18px;line-height:1;color:white;">0%</div>
+                    <div style="font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:1px;">USED</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:20px;font-size:9px;">
+                <div><span style="opacity:0.4;">Used </span><span id="tachoUsed" style="font-weight:800;color:#a78bfa;">$0</span></div>
+                <div><span style="opacity:0.4;">Max </span><span id="tachoMax" style="font-weight:800;color:#60a5fa;">$0</span></div>
+                <div><span style="opacity:0.4;">Remaining </span><span id="tachoRemaining" style="font-weight:800;color:#22c55e;">$0</span></div>
             </div>
         </div>
 
         <div class="card full-width">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Mining Protocol</span>
+                <span id="dashPkgBoost" style="font-size:8px;font-weight:700;margin-left:auto;background:rgba(34,197,94,0.1);color:#22c55e;padding:2px 8px;border-radius:5px;">0x Boost</span>
+            </div>
             <div style="background:#111;height:8px;border-radius:20px;overflow:hidden;margin-bottom:18px;">
-                <div id="progressBar" style="height:100%;width:0%;background:var(--primary);transition:1s linear;"></div>
+                <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#60a5fa,#22c55e);transition:1s linear;"></div>
             </div>
             <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
         </div>
 
         <div class="contest-card full-width" onclick="window.location='contests.html'">
-            <div class="contest-live-dot">LIVE NOW</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div class="contest-live-dot">LIVE NOW</div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+            </div>
             <div class="contest-title">Referral Contest is Live!</div>
-            <div class="contest-sub">The ONCHYRA referral contest has officially started ?Start inviting and climb the leaderboard to win rewards.</div>
-            <a href="contests.html" class="contest-join-btn">JOIN CONTEST ?</a>
+            <div class="contest-sub">The ONCHYRA referral contest has officially started ⚡Start inviting and climb the leaderboard to win rewards.</div>
+            <a href="contests.html" class="contest-join-btn">JOIN CONTEST →</a>
         </div>
 
         <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary);cursor:pointer;">
-            <div style="font-size:9px;font-weight:800;color:var(--primary);">PROTOCOL UPDATE</div>
-            <div id="latestUpdateTitle" style="font-size:14px;font-weight:600;margin-top:4px;">Searching for updates...</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <div style="font-size:9px;font-weight:800;color:var(--primary);">PROTOCOL UPDATE</div>
+            </div>
+            <div id="latestUpdateTitle" style="font-size:14px;font-weight:600;margin-top:6px;">Searching for updates...</div>
         </div>
 
         <div class="card full-width" style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(96,165,250,0.06));border-color:rgba(167,139,250,0.25);">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2 2"/><polyline points="22,6 12,13 2,6"/></svg>
+                <div style="font-size:9px;font-weight:800;color:var(--primary);letter-spacing:2px;text-transform:uppercase;">Your Referral Code</div>
+            </div>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
                 <div>
-                    <div style="font-size:9px;font-weight:800;color:var(--primary);letter-spacing:2px;margin-bottom:8px;">YOUR REFERRAL CODE</div>
                     <div id="refCodeText" style="font-family:'Space Grotesk';font-weight:900;color:#fff;letter-spacing:5px;font-size:24px;">...</div>
                     <div style="font-size:10px;opacity:0.45;margin-top:6px;">Share & earn bonus ONC for every friend who joins</div>
                 </div>
@@ -287,7 +460,7 @@
             </div>
         </div>
 
-        <!-- -- P2P Quick Transfer -- -->
+        <!-- ── P2P Quick Transfer ── -->
         <div class="card full-width" style="position:relative;overflow:visible;border:1px solid rgba(167,139,250,0.2);">
             <div style="position:absolute;top:0;left:15%;width:70%;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.3),rgba(96,165,250,0.4),transparent);"></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
@@ -295,7 +468,7 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                     Quick Send
                 </h3>
-                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW ?</a>
+                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW →</a>
             </div>
 
             <!-- Compact two-column inputs -->
@@ -329,6 +502,18 @@
                 </div>
             </div>
 
+            <!-- Limits mini -->
+            <div style="display:flex;gap:6px;margin-bottom:14px;">
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Max / Tx</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--secondary);">500 ONC</div>
+                </div>
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Daily</div>
+                    <div style="font-size:10px;font-weight:700;color:#f472b6;">3 / 24h</div>
+                </div>
+            </div>
+
             <button id="dashP2pBtn" disabled style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-family:'Space Grotesk';font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(167,139,250,0.2);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 Send ONC
@@ -337,20 +522,27 @@
 
         <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                <h3 style="font-size:13px;font-family:'Space Grotesk';">TOP VALIDATORS</h3>
-                <a href="leaderboard.html" class="view-all-btn">VIEW ALL ?</a>
+                <h3 style="font-size:13px;font-family:'Space Grotesk';display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    TOP VALIDATORS
+                </h3>
+                <a href="leaderboard.html" class="view-all-btn">VIEW ALL →</a>
             </div>
             <div id="miniLeaderboard"></div>
         </div>
 
         <div class="card">
+            <h3 style="font-size:12px;margin-bottom:15px;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                <span>COMMUNITY POLL</span>
+            </h3>
             <h3 id="pollQuestion" style="font-size:14px;font-family:'Space Grotesk';margin-bottom:15px;">...</h3>
             <div id="pollOptions"></div>
         </div>
 
         <div class="card full-width">
             <h3 style="font-size:12px;margin-bottom:15px;display:flex;align-items:center;gap:8px;">
-                <div style="width:8px;height:8px;background:#10b981;border-radius:50%;box-shadow:0 0 8px #10b981;"></div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 LIVE ACTIVITY
             </h3>
             <div id="liveFeedList"></div>
@@ -372,7 +564,7 @@
                 </a>
             </div>
             <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
-            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">� 2026 ONCHYRA PROTOCOL � ALL RIGHTS RESERVED</div>
+            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
         </div>
 
     </div>
@@ -381,8 +573,8 @@
 <!-- CONTEST POPUP -->
 <div id="contestPopup">
     <div class="popup-box">
-        <button class="popup-close" onclick="closeContestPopup()">?</button>
-        <span class="popup-emoji">??</span>
+        <button class="popup-close" onclick="closeContestPopup()">✕</button>
+        <span class="popup-emoji">🏆</span>
         <div class="popup-badge">LIMITED EVENT</div>
         <div class="popup-title">Referral Contest</div>
         <p class="popup-sub">Invite friends, climb the leaderboard & win <b style="color:#fbbf24;">30 POL</b> in rewards</p>
@@ -391,7 +583,7 @@
             <div class="popup-prize"><div class="rank">2nd</div><div class="amount">10</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
             <div class="popup-prize"><div class="rank">3rd</div><div class="amount">5</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
         </div>
-        <button class="popup-join-btn" onclick="window.location='contests.html'">JOIN NOW ?</button>
+        <button class="popup-join-btn" onclick="window.location='contests.html'">JOIN NOW →</button>
         <button class="popup-later" onclick="closeContestPopup()">Maybe later</button>
     </div>
 </div>
@@ -423,6 +615,8 @@ const db = initializeFirestore(app, {
     experimentalAutoDetectLongPolling: true,
     useFetchStreams: false
 });
+
+
 
 let uid, userData, currentPollId, currentPollData;
 let miningTimer = null;
@@ -456,14 +650,6 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch(e) { console.error("Ban check error:", e); }
 
-    try {
-        const maintSnap = await getDoc(doc(db, 'settings', 'maintenance'));
-        if (maintSnap.exists() && maintSnap.data().enabled === true) {
-            window.location.replace('maintenance.html?msg=' + encodeURIComponent(maintSnap.data().message || ''));
-            return;
-        }
-    } catch(e) {}
-
     onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
             const data = snap.data();
@@ -472,6 +658,11 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
             userData = data;
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+            const lastClaim = data.lastClaim || 0;
+            if (data.status === 'active' && lastClaim > 0 && Date.now() - lastClaim > sevenDays) {
+                updateDoc(doc(db, "users", uid), { status: 'inactive' }).catch(() => {});
+            }
             updateUI();
             checkMining();
 
@@ -481,6 +672,9 @@ onAuthStateChanged(auth, async (user) => {
                 updateDoc(doc(db, "users", uid), { referralCode: code });
             }
             document.getElementById('refCodeText').innerText = code;
+
+            // Fetch directs & team biz
+            loadDirects(code);
 
             document.getElementById('loader').style.display = "none";
             document.getElementById('dashboardData').style.display = "grid";
@@ -633,7 +827,8 @@ window.claim = async () => {
             newStreak = 1;
         }
 
-        const newBalance = (userData.balance || 0) + 0.10;
+        const claimAmt = 0.05 * (userData.packageBoost || 1);
+        const newBalance = (userData.balance || 0) + claimAmt;
 
         // Step 1: Create claim record in claims collection (audit trail)
         await setDoc(doc(collection(db, "claims"), uid + "_" + now), {
@@ -642,7 +837,7 @@ window.claim = async () => {
             clientTimestamp: now,
             previousBalance: userData.balance || 0,
             claimedBalance: newBalance,
-            claimedAmount: 0.10,
+            claimedAmount: claimAmt,
             previousStreak: userData.streak || 0,
             claimedStreak: newStreak,
             timeSinceLastClaim: timeSinceLast,
@@ -651,9 +846,10 @@ window.claim = async () => {
 
         // Step 2: Update user balance (delta-safe with increment)
         await updateDoc(doc(db, "users", uid), {
-            balance: increment(0.10),
+            balance: increment(claimAmt),
             lastClaim: now,
-            streak: newStreak
+            streak: newStreak,
+            status: 'active'
         });
 
         // Step 3: manual local sync (works even if realtime channel is blocked)
@@ -662,7 +858,7 @@ window.claim = async () => {
         userData.streak = newStreak;
         updateUI();
         checkMining();
-        showToast("0.10 ONC MINED");
+        showToast(claimAmt.toFixed(3) + " ONC MINED");
     } catch (e) {
         showToast("Error mining: " + (e?.message || "unknown"));
         console.error("Claim Error:", e);
@@ -705,6 +901,130 @@ function updateUI() {
     } else {
         fi.style.opacity = "0.3";
     }
+    // Wallet balance
+    const wb = document.getElementById('walletBalance');
+    if (wb) wb.textContent = '$' + ((userData.walletBalance || 0).toFixed(2));
+    // Withdraw balance (commission balance)
+    const wrb = document.getElementById('withdrawBalance');
+    if (wrb) wrb.textContent = '$' + ((userData.commissionBalance || 0).toFixed(2));
+    // Daily claim
+    const baseClaim = 0.05;
+    const boost = userData.packageBoost || 1;
+    const dc = document.getElementById('dailyClaimAmount');
+    if (dc) dc.textContent = (baseClaim * boost).toFixed(3);
+    const dcb = document.getElementById('dailyClaimBoost');
+    if (dcb) dcb.textContent = boost;
+    // Mining boost
+    const mb = document.getElementById('miningBoost');
+    if (mb) mb.textContent = boost + 'x';
+    const mpb = document.getElementById('dashPkgBoost');
+    if (mpb) mpb.textContent = boost + 'x Boost';
+    // Rank
+    const rk = document.getElementById('userRank');
+    if (rk) rk.textContent = userData.rank || '-';
+    // Package
+    const dp = document.getElementById('dashPkg');
+    if (dp) dp.textContent = userData.activePackage ? (userData.activePackage.charAt(0).toUpperCase() + userData.activePackage.slice(1)) : 'None';
+    const dps = document.getElementById('dashPkgStatus');
+    if (dps) {
+        const st = userData.packageStatus || 'none';
+        dps.textContent = st === 'expired' ? 'Expired' : userData.activePackage ? 'Active' : 'None';
+        dps.style.color = st === 'expired' ? '#ef4444' : userData.activePackage ? '#22c55e' : 'rgba(255,255,255,0.3)';
+        dps.style.background = st === 'expired' ? 'rgba(239,68,68,0.1)' : userData.activePackage ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)';
+    }
+    // Tachometer
+    const used = userData.packageUsage || 0;
+    const maxCap = userData.packageCap || 0;
+    const pct = maxCap > 0 ? Math.min(100, (used / maxCap) * 100) : 0;
+    document.getElementById('tachoUsed').textContent = '$' + used.toFixed(2);
+    document.getElementById('tachoMax').textContent = '$' + maxCap.toFixed(2);
+    document.getElementById('tachoRemaining').textContent = '$' + Math.max(0, maxCap - used).toFixed(2);
+    document.getElementById('tachoPct').textContent = pct.toFixed(0) + '%';
+    // Needle rotation: -180° (left, 0%) to 0° (right, 100%)
+    const needle = document.getElementById('tachoNeedle');
+    if (needle) needle.style.transform = 'rotate(' + (-180 + (pct / 100 * 180)) + 'deg)';
+    // Arc fill
+    const arc = document.getElementById('tachoArc');
+    const arcLen = 267; // π * 85
+    if (arc) arc.setAttribute('stroke-dashoffset', arcLen - (arcLen * pct / 100));
+    // Arc color + red zone class
+    const tc = document.getElementById('tachocard');
+    const pctEl = document.getElementById('tachoPct');
+    if (pctEl) {
+        const tcol = pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e';
+        pctEl.style.color = tcol;
+    }
+    if (tc) tc.className = 'card full-width' + (pct > 85 ? ' tacho-red' : '');
+    // Package info
+    document.getElementById('tachoPkg').textContent = userData.activePackage || '-';
+    const ts = document.getElementById('tachoStatus');
+    const st = userData.packageStatus || 'none';
+    ts.textContent = st === 'expired' ? 'Expired' : userData.activePackage ? 'Active' : 'None';
+    ts.style.color = st === 'expired' ? '#ef4444' : userData.activePackage ? '#22c55e' : 'rgba(255,255,255,0.3)';
+    ts.style.background = st === 'expired' ? 'rgba(239,68,68,0.1)' : userData.activePackage ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)';
+}
+
+async function loadDirects(code) {
+    try {
+        // Level 1 — direct referrals (fast)
+        const q1 = query(collection(db, "users"), where("referredBy", "==", code));
+        const snap1 = await getDocs(q1);
+        const total = snap1.size;
+        let active = 0;
+        let teamBiz = 0;
+        const l1Codes = [];
+
+        snap1.forEach(d => {
+            const d2 = d.data();
+            if (d2.packageStatus === 'active' || d2.packageStatus === 'expired' || d2.activePackage) active++;
+            teamBiz += (d2.totalPackageSpend || 0);
+            if (d2.referralCode) l1Codes.push(d2.referralCode);
+        });
+
+        // Show L1 stats immediately
+        document.getElementById('activeDirectsNum').textContent = active;
+        document.getElementById('totalDirectsNum').textContent = total;
+        document.getElementById('teamBizText').textContent = '$' + teamBiz.toFixed(2);
+
+        // Async BFS for deeper levels (doesn't block UI)
+        if (l1Codes.length > 0) {
+            const loader = document.getElementById('teamBizLoader');
+            if (loader) loader.style.display = 'inline-block';
+            loadTeamBizDeep(l1Codes, teamBiz);
+        }
+    } catch (e) { console.error("loadDirects error:", e); }
+}
+
+async function loadTeamBizDeep(codes, currentBiz) {
+    try {
+        const queue = [...codes];
+        const visited = new Set(queue);
+        let extraBiz = 0;
+
+        while (queue.length > 0 && visited.size < 500) {
+            const batch = queue.splice(0, 10);
+            const promises = batch.map(ref =>
+                getDocs(query(collection(db, "users"), where("referredBy", "==", ref)))
+            );
+            const results = await Promise.all(promises);
+            for (const snap of results) {
+                snap.forEach(d => {
+                    const d2 = d.data();
+                    extraBiz += (d2.totalPackageSpend || 0);
+                    if (d2.referralCode && !visited.has(d2.referralCode)) {
+                        visited.add(d2.referralCode);
+                        queue.push(d2.referralCode);
+                    }
+                });
+            }
+        }
+
+        document.getElementById('teamBizText').textContent = '$' + (currentBiz + extraBiz).toFixed(2);
+    } catch (e) { console.error("loadTeamBizDeep error:", e); }
+    finally {
+        const loader = document.getElementById('teamBizLoader');
+        if (loader) loader.style.display = 'none';
+    }
 }
 
 function showToast(m) {
@@ -726,7 +1046,7 @@ window.logout = () => {
     signOut(auth).then(() => window.location = "login.html");
 };
 
-// -- NOTIFICATIONS --
+// ── NOTIFICATIONS ──
 function timeAgoNoti(t) {
     if (!t) return "Just now";
     try {
@@ -752,8 +1072,8 @@ function loadNotifications() {
                 const isUser = n.userId === uid || n.userId === "all";
                 if (!isUser) return;
                 if (!n.read) unread++;
-                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : 'noti-type-personal';
-                const typeLabel = n.type === 'update' ? '?? Update' : n.type === 'poll' ? '?? Poll' : '?? Personal';
+                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : n.type === 'trade_won' ? 'noti-type-trade_won' : n.type === 'trade_lost' ? 'noti-type-trade_lost' : 'noti-type-personal';
+                const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : 'PERSONAL';
                 html += `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="readNoti('${d.id}', '${n.link || ''}')">
                     <div class="noti-type ${typeClass}">${typeLabel}</div>
                     <div class="noti-title">${n.title || ''}</div>
@@ -804,7 +1124,7 @@ document.addEventListener('click', (e) => {
     if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
 });
 
-// -- DASHBOARD P2P QUICK SEND --
+// ── DASHBOARD P2P QUICK SEND ──
 const dashRecipient = document.getElementById('dashP2pRecipient');
 const dashAmount = document.getElementById('dashP2pAmount');
 const dashTotal = document.getElementById('dashTotal');
@@ -814,6 +1134,7 @@ const dashStatus = document.getElementById('dashP2pStatus');
 const dashBtn = document.getElementById('dashP2pBtn');
 
 let dashRecipientId = null;
+let dashRecipientName = '';
 let dashLookupTimer = null;
 
 function parseDashAmount(v) {
@@ -857,8 +1178,9 @@ async function lookupDashRecipient(code) {
             return;
         }
         dashRecipientId = snap.docs[0].id;
-        const n = snap.docs[0].data().name || code;
-        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + n;
+        const dashName = snap.docs[0].data().name || code;
+        dashRecipientName = dashName;
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + dashName;
         validateDash();
     } catch (e) {
         dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Error';
@@ -868,7 +1190,20 @@ async function lookupDashRecipient(code) {
 function validateDash() {
     const a = parseDashAmount(dashAmount.value);
     const bal = userData ? (userData.balance || 0) : 0;
-    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= bal);
+    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= 500 && a <= bal);
+}
+
+async function dashCheckDaily() {
+    const cutoff = Date.now() - 86400000;
+    const q = query(collection(db, "transfers"), where("from", "==", uid));
+    const snap = await getDocs(q);
+    let count = 0;
+    snap.forEach(d => {
+        const ts = d.data().timestamp;
+        const ms = ts?.toMillis ? ts.toMillis() : (ts instanceof Date ? ts.getTime() : 0);
+        if (ms >= cutoff) count++;
+    });
+    return count;
 }
 
 dashBtn.addEventListener('click', async () => {
@@ -876,16 +1211,30 @@ dashBtn.addEventListener('click', async () => {
     const burn = amt * 0.1;
     const receive = amt - burn;
     const code = dashRecipient.value.trim().toUpperCase();
+    const myName = userData?.name || userData?.referralCode || 'User';
 
     if (!dashRecipientId) return;
-    if (amt < 1 || amt > (userData?.balance || 0)) return;
+    if (amt < 1) { showToast('Min 1 ONC'); return; }
+    if (amt > 500) { showToast('Max 500 ONC per transfer'); return; }
+    if (amt > (userData?.balance || 0)) { showToast('Insufficient balance'); return; }
 
     dashBtn.disabled = true;
-    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending';
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Checking...';
 
     try {
+        const daily = await dashCheckDaily();
+        if (daily >= 3) {
+            showToast('Daily limit: 3 transfers per 24h');
+            dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+            dashBtn.disabled = false;
+            return;
+        }
+
+        dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending...';
+
         await addDoc(collection(db, "transfers"), {
             from: uid, to: dashRecipientId, toCode: code,
+            fromName: myName, toName: dashRecipientName,
             amount: amt, burn: burn, receive: receive,
             timestamp: serverTimestamp(), status: 'completed'
         });
@@ -895,10 +1244,11 @@ dashBtn.addEventListener('click', async () => {
         if (userData) userData.balance = (userData.balance || 0) - amt;
         document.getElementById('balance').innerText = (userData?.balance || 0).toFixed(2);
 
-        showToast('Sent ' + receive.toFixed(2) + ' ONC');
+        showToast('Sent ' + receive.toFixed(2) + ' ONC to ' + dashRecipientName);
         dashRecipient.value = '';
         dashAmount.value = '';
         dashRecipientId = null;
+        dashRecipientName = '';
         dashStatus.innerHTML = '';
         updateDashBreakdown();
     } catch (e) {
