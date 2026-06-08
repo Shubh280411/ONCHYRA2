@@ -650,6 +650,14 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch(e) { console.error("Ban check error:", e); }
 
+    try {
+        const maintSnap = await getDoc(doc(db, 'settings', 'maintenance'));
+        if (maintSnap.exists() && maintSnap.data().enabled === true) {
+            window.location.replace('maintenance.html?msg=' + encodeURIComponent(maintSnap.data().message || ''));
+            return;
+        }
+    } catch(e) {}
+
     onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
             const data = snap.data();
