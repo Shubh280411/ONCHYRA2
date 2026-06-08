@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONCHYRA — Global Node</title>
+    <title>ONCHYRA ï¿½ Global Node</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
@@ -372,7 +372,7 @@
                 </a>
             </div>
             <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
-            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
+            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">ï¿½ 2026 ONCHYRA PROTOCOL ï¿½ ALL RIGHTS RESERVED</div>
         </div>
 
     </div>
@@ -455,6 +455,14 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
     } catch(e) { console.error("Ban check error:", e); }
+
+    try {
+        const maintSnap = await getDoc(doc(db, 'settings', 'maintenance'));
+        if (maintSnap.exists() && maintSnap.data().enabled === true) {
+            window.location.replace('maintenance.html?msg=' + encodeURIComponent(maintSnap.data().message || ''));
+            return;
+        }
+    } catch(e) {}
 
     onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
