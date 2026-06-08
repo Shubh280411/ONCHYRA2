@@ -49,8 +49,8 @@ h1{
 <body>
 
 <div class="container">
-  <h1>ONCHYRA Admin ??</h1>
-  <button onclick="sendEmails()">?? Send Inactive Emails</button>
+  <h1>ONCHYRA Admin 🔐</h1>
+  <button onclick="sendEmails()">📩 Send Inactive Emails</button>
   <p id="status">Ready</p>
 </div>
 
@@ -116,20 +116,20 @@ window.sendEmails = async function () {
           emailSent: true
         });
 
-        console.log("? Sent:", data.email);
+        console.log("✅ Sent:", data.email);
         success++;
 
       } catch (err) {
-        console.error("? Failed:", data.email, err);
+        console.error("❌ Failed:", data.email, err);
         failed++;
       }
     }
   }
 
   btn.disabled = false;
-  btn.innerText = "?? Send Inactive Emails";
+  btn.innerText = "📩 Send Inactive Emails";
 
-  status.innerText = `? ${success} Sent | ? ${failed} Failed`;
+  status.innerText = `✅ ${success} Sent | ❌ ${failed} Failed`;
 
 };
 </script>

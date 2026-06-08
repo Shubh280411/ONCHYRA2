@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA ó Referral Contest</title>
+<title>ONCHYRA ‚Äî Referral Contest</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 
@@ -90,7 +90,7 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 <body>
 
 <nav class="header-nav">
-    <a href="dashboard.html" class="back-arrow">?</a>
+    <a href="dashboard.html" class="back-arrow">‚Üê</a>
 </nav>
 
 <div class="hero">
@@ -245,7 +245,7 @@ onAuthStateChanged(auth, async (user)=>{
     jb.onclick = () => document.getElementById("walletModal").style.display = "flex";
   }
 
-  // 3. NOW listen for user doc changes ó contestId is already set
+  // 3. NOW listen for user doc changes ‚Äî contestId is already set
   onSnapshot(doc(db, "users", user.uid), async (uSnap) => {
     if(!uSnap.exists()) return;
     const userData = uSnap.data();

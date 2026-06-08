@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONCHYRA Admin � Transfers</title>
+    <title>ONCHYRA Admin — Transfers</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -312,7 +312,7 @@ function formatTime(t) {
     return d.toLocaleString();
 }
 
-// -- Load all transfers --
+// ── Load all transfers ──
 async function loadAllTransfers(isReset = true) {
     try {
         const tbody = document.getElementById('transfersTable');
@@ -400,7 +400,7 @@ async function loadAllTransfers(isReset = true) {
     }
 }
 
-// -- Render table --
+// ── Render table ──
 function renderTable() {
     const tbody = document.getElementById('transfersTable');
     const search = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -436,7 +436,7 @@ function renderTable() {
     `).join('');
 }
 
-// -- Stats --
+// ── Stats ──
 function computeStats() {
     const all = allTransfers;
     let count = all.length;
@@ -458,16 +458,16 @@ function computeStats() {
     document.getElementById('stat24h').textContent = count24h;
 
     document.getElementById('txSubtitle').textContent =
-        `Showing ${displayedTransfers.length} transfers � ${count} total loaded`;
+        `Showing ${displayedTransfers.length} transfers · ${count} total loaded`;
 }
 
-// -- Search --
+// ── Search ──
 window.filterTransfers = () => renderTable();
 
-// -- Load more --
+// ── Load more ──
 window.loadMore = () => loadAllTransfers(false);
 
-// -- Detail modal --
+// ── Detail modal ──
 window.openDetail = async (id) => {
     const tx = allTransfers.find(t => t.id === id) || displayedTransfers.find(t => t.id === id);
     if (!tx) { showToast('Transfer not found', true); return; }
@@ -511,7 +511,7 @@ window.openDetail = async (id) => {
 
 window.closeDetail = () => document.getElementById('detailModal').classList.remove('active');
 
-// -- Auth --
+// ── Auth ──
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.replace('login.html'); return; }
     try {

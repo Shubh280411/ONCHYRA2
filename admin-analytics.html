@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA Analytics � Admin Only</title>
+<title>ONCHYRA Analytics — Admin Only</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -30,10 +30,10 @@
 
 <body>
 <div class="container" id="adminContent">
-    <h1>ONCHYRA Command Center ???</h1>
+    <h1>ONCHYRA Command Center 🛰️</h1>
     <div style="display:flex; gap:10px;">
-        <button onclick="loadAnalytics()">?? Sync Live Data</button>
-        <button onclick="logoutAdmin()" style="background:#ef4444; color:white;">?? Logout</button>
+        <button onclick="loadAnalytics()">🔄 Sync Live Data</button>
+        <button onclick="logoutAdmin()" style="background:#ef4444; color:white;">🚪 Logout</button>
     </div>
 
     <div class="grid">
@@ -46,18 +46,18 @@
 
     <div class="main-layout">
         <div class="table-box">
-            <h3>?? Global Rich List</h3>
+            <h3>🏆 Global Rich List</h3>
             <table id="richTable"><thead><tr><th>Rank</th><th>User</th><th>Balance</th></tr></thead><tbody id="richBody"></tbody></table>
         </div>
         <div class="table-box">
-            <h3>?? Referral Kings</h3>
+            <h3>🔗 Referral Kings</h3>
             <table id="refsTable"><thead><tr><th>Rank</th><th>Influencer</th><th>Referrals</th></tr></thead><tbody id="refsBody"></tbody></table>
         </div>
     </div>
 
     <div class="main-layout">
-        <div class="chart-box"><h3>?? User Retention Graph</h3><canvas id="retentionChart"></canvas></div>
-        <div class="table-box"><h3>? Recent Activity</h3><table><tbody id="feedBody"></tbody></table></div>
+        <div class="chart-box"><h3>📊 User Retention Graph</h3><canvas id="retentionChart"></canvas></div>
+        <div class="table-box"><h3>⚡ Recent Activity</h3><table><tbody id="feedBody"></tbody></table></div>
     </div>
 </div>
 
@@ -80,7 +80,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 let rChart;
 
-// ??? SECURITY GUARD: Check if Admin is logged in
+// 🛡️ SECURITY GUARD: Check if Admin is logged in
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // User is signed in, show the page and load data

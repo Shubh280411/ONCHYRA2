@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA � Rank</title>
+<title>ONCHYRA — Rank</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 
@@ -73,7 +73,7 @@ opacity:0.6;
 <div class="rank" id="rankName">...</div>
 
 <div id="teamText">Team: 0</div>
-<div>? Boost: <span id="boostText">0%</span></div>
+<div>⚡ Boost: <span id="boostText">0%</span></div>
 
 <div class="progress">
 <div class="progress-bar" id="progressBar"></div>
@@ -106,21 +106,21 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 const ranks = [
-{ name:"INITIATE", icon:"?", min:0, max:10, boost:0 },
-{ name:"NODE", icon:"??", min:11, max:25, boost:2 },
-{ name:"LINKER", icon:"??", min:26, max:50, boost:4 },
-{ name:"EXPANDER", icon:"??", min:51, max:80, boost:6 },
-{ name:"OPERATOR", icon:"??", min:81, max:120, boost:8 },
-{ name:"ARCHITECT", icon:"???", min:121, max:180, boost:10 },
-{ name:"SYNCHRONIZER", icon:"??", min:181, max:260, boost:12 },
-{ name:"CONTROLLER", icon:"???", min:261, max:350, boost:14 },
-{ name:"DOMINATOR", icon:"??", min:351, max:500, boost:16 },
-{ name:"OVERSEER", icon:"???", min:501, max:700, boost:18 },
-{ name:"SUPREME NODE", icon:"??", min:701, max:1000, boost:20 },
-{ name:"QUANTUM CORE", icon:"??", min:1001, max:1500, boost:23 },
-{ name:"NETWORK LORD", icon:"??", min:1501, max:2200, boost:26 },
-{ name:"SYSTEM KING", icon:"??", min:2201, max:3000, boost:28 },
-{ name:"ONCHYRA TITAN", icon:"??", min:3001, max:999999, boost:30 }
+{ name:"INITIATE", icon:"⚪", min:0, max:10, boost:0 },
+{ name:"NODE", icon:"🔹", min:11, max:25, boost:2 },
+{ name:"LINKER", icon:"🔗", min:26, max:50, boost:4 },
+{ name:"EXPANDER", icon:"🌐", min:51, max:80, boost:6 },
+{ name:"OPERATOR", icon:"⚙️", min:81, max:120, boost:8 },
+{ name:"ARCHITECT", icon:"🏗️", min:121, max:180, boost:10 },
+{ name:"SYNCHRONIZER", icon:"🔄", min:181, max:260, boost:12 },
+{ name:"CONTROLLER", icon:"🎛️", min:261, max:350, boost:14 },
+{ name:"DOMINATOR", icon:"🔥", min:351, max:500, boost:16 },
+{ name:"OVERSEER", icon:"👁️", min:501, max:700, boost:18 },
+{ name:"SUPREME NODE", icon:"💠", min:701, max:1000, boost:20 },
+{ name:"QUANTUM CORE", icon:"⚛️", min:1001, max:1500, boost:23 },
+{ name:"NETWORK LORD", icon:"💎", min:1501, max:2200, boost:26 },
+{ name:"SYSTEM KING", icon:"👑", min:2201, max:3000, boost:28 },
+{ name:"ONCHYRA TITAN", icon:"🚀", min:3001, max:999999, boost:30 }
 ];
 
 onAuthStateChanged(auth, (user)=>{
@@ -190,7 +190,7 @@ document.getElementById("nextRank").innerText =
 "Next: " + next.name + " (Need " + needed + ")";
 }else{
 document.getElementById("progressBar").style.width = "100%";
-document.getElementById("nextRank").innerText = "MAX RANK ??";
+document.getElementById("nextRank").innerText = "MAX RANK 👑";
 }
 
 // RENDER LIST
@@ -206,13 +206,13 @@ let tag = "";
 // ACTIVE
 if(r.name === currentRank.name){
 tag = `<span style="background:#3b82f6;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;">
-ACTIVE ?</span>`;
+ACTIVE ⚡</span>`;
 }
 
 // FINISHED
 else if(achievements[r.name]){
 const date = new Date(achievements[r.name]).toLocaleDateString();
-tag = `<span class="achieved">FINISHED ?</span>
+tag = `<span class="achieved">FINISHED ✔</span>
 <span class="date">${date}</span>`;
 }
 

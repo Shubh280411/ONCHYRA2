@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONCHYRA Admin � Control Center</title>
+    <title>ONCHYRA Admin — Control Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -468,7 +468,7 @@
             <div class="header-logo">ON</div>
             <div>
                 <h1>ONCHYRA Control Center</h1>
-                <div class="header-sub">Admin Panel � User Management</div>
+                <div class="header-sub">Admin Panel — User Management</div>
             </div>
         </div>
         <button class="logout-btn" onclick="logout()">Logout</button>
@@ -477,15 +477,15 @@
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-label">Total Miners</div>
-            <div class="stat-value purple" id="statTotal">�</div>
+            <div class="stat-value purple" id="statTotal">—</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Banned</div>
-            <div class="stat-value yellow" id="statBanned">�</div>
+            <div class="stat-value yellow" id="statBanned">—</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total ONC</div>
-            <div class="stat-value blue" id="statOnc">�</div>
+            <div class="stat-value blue" id="statOnc">—</div>
         </div>
     </div>
 
@@ -551,7 +551,7 @@
         try {
             const adminSnap = await getDoc(doc(db, 'admins', user.uid));
             if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
-                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;"><div style="font-size:40px;margin-bottom:16px;">??</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;margin-top:8px;font-size:14px;">Admin privileges required.</p></div>';
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;"><div style="font-size:40px;margin-bottom:16px;">🔒</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;margin-top:8px;font-size:14px;">Admin privileges required.</p></div>';
                 document.body.style.display = 'block';
                 return;
             }
@@ -601,7 +601,7 @@
             const list = document.getElementById('txList');
 
             if (snap.empty) {
-                list.innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">??</div><div>No transactions yet</div></div>`;
+                list.innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">📋</div><div>No transactions yet</div></div>`;
                 return;
             }
 
@@ -612,7 +612,7 @@
                 const isAdd = t.type === 'add';
                 list.innerHTML += `
                     <div class="tx-item">
-                        <div class="tx-icon ${isAdd ? 'add' : 'remove'}">${isAdd ? '+' : '-'}</div>
+                        <div class="tx-icon ${isAdd ? 'add' : 'remove'}">${isAdd ? '+' : '−'}</div>
                         <div class="tx-info">
                             <div class="tx-user">${t.targetUserName || 'Unknown'}</div>
                             <div class="tx-date">${ts}</div>
@@ -622,7 +622,7 @@
                 `;
             });
         } catch(e) {
-            document.getElementById('txList').innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">??</div><div>Error loading transactions</div></div>`;
+            document.getElementById('txList').innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">⚠️</div><div>Error loading transactions</div></div>`;
         }
     }
 
@@ -667,7 +667,7 @@
                     <div class="sr-avatar">${initial}</div>
                     <div class="sr-info">
                         <div class="sr-name">${u.name || 'Unknown'}</div>
-                        <div class="sr-meta">${u.email || ''} � ${u.referralCode || 'No code'}</div>
+                        <div class="sr-meta">${u.email || ''} • ${u.referralCode || 'No code'}</div>
                     </div>
                     <div class="sr-badge ${u.banned ? 'badge-banned' : 'badge-active'}">${u.banned ? 'Banned' : 'Active'}</div>
                 </div>
@@ -704,7 +704,7 @@
                 <div class="profile-header">
                     <div class="profile-avatar">${initial}</div>
                     <div>
-                        <div class="profile-name">${u.name || 'Unknown'} ${u.streak ? '<span style="font-size:16px;">??</span>' : ''}</div>
+                        <div class="profile-name">${u.name || 'Unknown'} ${u.streak ? '<span style="font-size:16px;">🔥</span>' : ''}</div>
                         <div class="profile-ref">${refCode}</div>
                     </div>
                     <div class="profile-status">
@@ -719,7 +719,7 @@
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Streak</div>
-                        <div class="detail-value">${u.streak || 0} ?? days</div>
+                        <div class="detail-value">${u.streak || 0} 🔥 days</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Last Claimed</div>
@@ -745,7 +745,7 @@
 
             <div class="action-panel">
                 <div class="action-title">
-                    <div class="action-title-icon purple">??</div>
+                    <div class="action-title-icon purple">💰</div>
                     Adjust Balance
                 </div>
                 <div class="amount-input-wrap">
@@ -768,7 +768,7 @@
 
             <div class="action-panel">
                 <div class="action-title">
-                    <div class="action-title-icon danger">???</div>
+                    <div class="action-title-icon danger">🛡️</div>
                     User Status
                 </div>
                 <div class="action-btns">

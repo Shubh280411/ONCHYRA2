@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONCHYRA Admin � Recalculate Contest</title>
+    <title>ONCHYRA Admin — Recalculate Contest</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -272,7 +272,7 @@ function setProgress(pct, label) {
     document.getElementById('progressWrap').classList.add('active');
 }
 
-// -- Load contests --
+// ── Load contests ──
 async function loadContests() {
     const sel = document.getElementById('contestSelect');
     sel.innerHTML = '<option value="">-- Choose a contest --</option>';
@@ -420,7 +420,7 @@ async function loadContestInfo(contestId) {
     }
 }
 
-// -- Recalculate --
+// ── Recalculate ──
 window.startRecalc = async () => {
     if (isRunning || !selectedContestId || staleEntries.length === 0) return;
     isRunning = true;
@@ -464,7 +464,7 @@ window.startRecalc = async () => {
                     writeBatchOp.update(pRef, { contestReferrals: entry.expected });
                     batchCount++;
                     fixed++;
-                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... ' + entry.current + ' ? ' + entry.expected + ' (' + sign + diff + ')', 'fixed');
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... ' + entry.current + ' → ' + entry.expected + ' (' + sign + diff + ')', 'fixed');
                 }
 
                 if (entry.reason === 'wrong_reflevel') {
@@ -477,7 +477,7 @@ window.startRecalc = async () => {
                     writeBatchOp.update(pRef, { contestReferrals: newScore });
                     batchCount++;
                     fixed++;
-                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... L1:' + c.l1 + '?' + a.l1 + ' L2:' + c.l2 + '?' + a.l2 + ' L3:' + c.l3 + '?' + a.l3 + ' score:' + newScore, 'fixed');
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... L1:' + c.l1 + '→' + a.l1 + ' L2:' + c.l2 + '→' + a.l2 + ' L3:' + c.l3 + '→' + a.l3 + ' score:' + newScore, 'fixed');
                 }
 
                 if (entry.reason === 'error') {
@@ -510,7 +510,7 @@ window.startRecalc = async () => {
     isRunning = false;
 };
 
-// -- Auth --
+// ── Auth ──
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.replace('login.html'); return; }
     try {

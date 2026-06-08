@@ -90,13 +90,13 @@
             <label>Select Event</label>
             <select id="eventSelect"></select>
         </div>
-        <button class="btn btn-pick" onclick="pickWinners()">? Pick Winners</button>
-        <button class="btn btn-export" onclick="exportCSV()">?? Export CSV</button>
+        <button class="btn btn-pick" onclick="pickWinners()">✨ Pick Winners</button>
+        <button class="btn btn-export" onclick="exportCSV()">📤 Export CSV</button>
     </div>
 
     <!-- PARTICIPANTS -->
     <div class="card">
-        <h2>?? Participants <span id="participantBadge" style="font-size:12px;background:rgba(167,139,250,0.15);color:#A78BFA;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
+        <h2>👥 Participants <span id="participantBadge" style="font-size:12px;background:rgba(167,139,250,0.15);color:#A78BFA;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
         <div class="table-container">
             <table>
                 <thead>
@@ -114,7 +114,7 @@
 
     <!-- WINNERS -->
     <div class="card">
-        <h2>?? Winners <span id="winnerBadge" style="font-size:12px;background:rgba(124,58,237,0.15);color:#c084fc;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
+        <h2>🏆 Winners <span id="winnerBadge" style="font-size:12px;background:rgba(124,58,237,0.15);color:#c084fc;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
         <div class="table-container">
             <table>
                 <thead>
@@ -125,7 +125,7 @@
                 </thead>
                 <tbody id="winnerTable">
                     <tr class="loading-row"><td colspan="2">
-                        <div class="empty-state"><div>??</div>Pick winners to see results</div>
+                        <div class="empty-state"><div>🎲</div>Pick winners to see results</div>
                     </td></tr>
                 </tbody>
             </table>
@@ -186,7 +186,7 @@ eventSelect.addEventListener("change", () => loadParticipants(eventSelect.value)
 async function loadParticipants(eventId) {
     if (!eventId) return;
     participants = [];
-    tableBody.innerHTML = `<tr class="loading-row"><td colspan="2">? Syncing participants...</td></tr>`;
+    tableBody.innerHTML = `<tr class="loading-row"><td colspan="2">⏳ Syncing participants...</td></tr>`;
     document.getElementById('countTotal').innerText = "...";
     document.getElementById('participantBadge').innerText = "...";
 
@@ -194,7 +194,7 @@ async function loadParticipants(eventId) {
         const snap = await getDocs(collection(db, "powerdrops", eventId, "participants"));
 
         if (snap.empty) {
-            tableBody.innerHTML = `<tr class="loading-row"><td colspan="2"><div class="empty-state"><div>??</div>No participants yet</div></td></tr>`;
+            tableBody.innerHTML = `<tr class="loading-row"><td colspan="2"><div class="empty-state"><div>📭</div>No participants yet</div></td></tr>`;
             document.getElementById('countTotal').innerText = 0;
             document.getElementById('participantBadge').innerText = 0;
             return;
@@ -205,8 +205,8 @@ async function loadParticipants(eventId) {
 
         // Fetch each user's name using doc.id as uid
         const rows = await Promise.all(snap.docs.map(async (pDoc) => {
-            const uid = pDoc.id; // ? THE FIX: doc ID = uid
-            const address = pDoc.data().address || "�";
+            const uid = pDoc.id; // ← THE FIX: doc ID = uid
+            const address = pDoc.data().address || "—";
 
             // Try to get user name from users collection
             let name = "Miner #" + uid.slice(0, 6).toUpperCase();
@@ -236,7 +236,7 @@ async function loadParticipants(eventId) {
 
     } catch (e) {
         console.error("Load error:", e);
-        tableBody.innerHTML = `<tr class="loading-row"><td colspan="2" style="color:#f87171;">? Error loading data: ${e.message}</td></tr>`;
+        tableBody.innerHTML = `<tr class="loading-row"><td colspan="2" style="color:#f87171;">❌ Error loading data: ${e.message}</td></tr>`;
     }
 }
 

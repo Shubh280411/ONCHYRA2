@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deposit — ONCHYRA</title>
+    <title>Deposit â€” ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --bsc:#f0b90b; --pol:#8247e5; }
@@ -198,7 +198,7 @@ window.openDeposit = async (network) => {
                 </div>
                 <div class="m-address">${data.address}</div>
                 <button class="m-copy ${btnClass}" onclick="copyModalAddr()" style="display:block;margin:0 auto;">Copy Address</button>
-                <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:8px;">#${data.index} — ${network}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:8px;">#${data.index} â€” ${network}</div>
                 <div class="m-warn">Send only ${isBsc ? 'USDT (BEP20)' : 'POL (Polygon)'}</div>
                 <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px;" id="waitLabel">Waiting for deposit... (typically 1-5 min)</div>
             </div>
@@ -264,7 +264,7 @@ function listenForDeposit(address, network) {
                 document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
                 document.getElementById('successOverlay').classList.add('show');
                 const wl = document.getElementById('waitLabel');
-                if (wl) wl.textContent = '? Received';
+                if (wl) wl.textContent = 'âœ… Received';
                 loadDepHistory();
             }
         });

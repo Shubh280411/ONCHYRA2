@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Node � ONCHYRA</title>
+    <title>My Node — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -184,7 +184,7 @@
 <!-- PROFILE HEADER -->
 <div class="profile-header">
     <div class="avatar-ring">
-        <div class="avatar-inner" id="initials">�</div>
+        <div class="avatar-inner" id="initials">·</div>
     </div>
     <div id="rankBadge" class="rank-badge">ROOKIE NODE</div>
     <div class="name-row">
@@ -193,17 +193,17 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
     </div>
-    <div class="joined-txt" id="joinedDate">Node Activated �</div>
+    <div class="joined-txt" id="joinedDate">Node Activated —</div>
 </div>
 
 <!-- STATS -->
 <div class="stats-grid">
     <div class="stat-card">
-        <span class="stat-val" id="totalTeam">�</span>
+        <span class="stat-val" id="totalTeam">—</span>
         <span class="stat-label">Network Size</span>
     </div>
     <div class="stat-card">
-        <span class="stat-val" id="userBalance">�</span>
+        <span class="stat-val" id="userBalance">—</span>
         <span class="stat-label">ONC Mined</span>
     </div>
 </div>
@@ -212,19 +212,19 @@
 <div class="info-card">
     <div class="info-row">
         <span class="info-label"><span class="dot"></span>Node Address</span>
-        <span class="info-value" id="dispEmail">�</span>
+        <span class="info-value" id="dispEmail">—</span>
     </div>
     <div class="info-row">
         <span class="info-label"><span class="dot"></span>Invite Code</span>
-        <span class="info-value" style="color:var(--primary); letter-spacing:2px;" id="dispRef">�</span>
+        <span class="info-value" style="color:var(--primary); letter-spacing:2px;" id="dispRef">—</span>
     </div>
     <div class="info-row">
         <span class="info-label"><span class="dot"></span>Mining Streak</span>
-        <span class="info-value" id="dispStreak">�</span>
+        <span class="info-value" id="dispStreak">—</span>
     </div>
     <div class="info-row">
         <span class="info-label"><span class="dot"></span>Direct Referrals</span>
-        <span class="info-value" id="dispL1">�</span>
+        <span class="info-value" id="dispL1">—</span>
     </div>
 </div>
 
@@ -233,7 +233,7 @@
     <div class="ref-by-line"></div>
     <div>
         <div class="ref-by-label">Recruited By</div>
-        <div class="ref-by-name" id="refByName">�</div>
+        <div class="ref-by-name" id="refByName">—</div>
         <div class="ref-by-sub">They brought you into the ONCHYRA network</div>
     </div>
 </div>
@@ -285,7 +285,7 @@
         </div>
         <div class="s-text">
             <span class="s-name">YouTube</span>
-            <span class="s-desc">Tutorials � Announcements � Subscribe</span>
+            <span class="s-desc">Tutorials · Announcements · Subscribe</span>
         </div>
     </a>
 
@@ -325,7 +325,7 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadProfile(uid) {
     try {
-        // -- Only fetch THIS user's doc � no full collection scan --
+        // ── Only fetch THIS user's doc — no full collection scan ──
         const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) return;
         const d = snap.data();
@@ -338,7 +338,7 @@ async function loadProfile(uid) {
         document.getElementById("initials").innerText = name.charAt(0).toUpperCase();
 
         // Basic fields
-        document.getElementById("dispEmail").innerText   = d.email || "�";
+        document.getElementById("dispEmail").innerText   = d.email || "—";
         document.getElementById("dispRef").innerText     = myRefCode;
         document.getElementById("dispStreak").innerText  = (d.streak || 0) + " days";
         document.getElementById("userBalance").innerText = parseFloat(d.balance || 0).toFixed(2) + " ONC";
@@ -348,7 +348,7 @@ async function loadProfile(uid) {
             try {
                 const dateObj = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt.seconds * 1000);
                 const options = { day:'2-digit', month:'short', year:'numeric' };
-                document.getElementById("joinedDate").innerText = "Node Activated � " + dateObj.toLocaleDateString('en-IN', options);
+                document.getElementById("joinedDate").innerText = "Node Activated — " + dateObj.toLocaleDateString('en-IN', options);
             } catch(e) {}
         }
 
@@ -374,10 +374,10 @@ async function loadProfile(uid) {
         rankBadge.style.borderColor        = rankColor + "44";
         rankBadge.style.background         = rankColor + "11";
 
-        // -- REFERRED BY � use Firestore query (NOT full getDocs) --
+        // ── REFERRED BY — use Firestore query (NOT full getDocs) ──
         const referredByCode = d.referredBy || d.referralUsedCode || null;
         if (referredByCode) {
-            // Query only users whose referralCode matches � much faster
+            // Query only users whose referralCode matches — much faster
             const refQuery = query(
                 collection(db, "users"),
                 where("referralCode", "==", referredByCode)
@@ -389,12 +389,12 @@ async function loadProfile(uid) {
                 box.style.display = "flex";
                 if (!refSnap.empty) {
                     const referrer = refSnap.docs[0].data();
-                    nameEl.innerText = (referrer.name || "A Validator") + "  �  " + referredByCode;
+                    nameEl.innerText = (referrer.name || "A Validator") + "  ·  " + referredByCode;
                 } else {
                     nameEl.innerText = "Code: " + referredByCode;
                 }
             } catch(e) {
-                // Silently skip if query fails � don't block page
+                // Silently skip if query fails — don't block page
             }
         }
 
@@ -403,7 +403,7 @@ async function loadProfile(uid) {
     }
 }
 
-// -- EDIT NAME --
+// ── EDIT NAME ──
 window.enableEdit = () => {
     const input = document.getElementById("userNameInput");
     input.readOnly = false;
@@ -429,21 +429,21 @@ window.saveName = async () => {
     }
 };
 
-// -- COPY INVITE --
+// ── COPY INVITE ──
 window.copyLink = () => {
     const link = `${window.location.origin}/register.html?ref=${myRefCode}`;
     navigator.clipboard.writeText(link).catch(() => {});
     showToast("Invite link copied");
 };
 
-// -- LOGOUT --
+// ── LOGOUT ──
 window.logout = () => {
     if (confirm("Disconnect your node from ONCHYRA?")) {
         signOut(auth).then(() => window.location.href = "login.html");
     }
 };
 
-// -- TOAST --
+// ── TOAST ──
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.innerText = msg;

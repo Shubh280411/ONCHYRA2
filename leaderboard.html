@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Leaderboard � ONCHYRA</title>
+    <title>Global Leaderboard — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -193,20 +193,20 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
 
-// -- State --
+// ── State ──
 let topUsers = [];
 let myUid = null;
 let myUserData = null;
 let myExactRank = null;
 
-// -- SVG icons --
+// ── SVG icons ──
 const MEDAL_SVG = {
     gold: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/></svg>`,
     silver: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/></svg>`,
     bronze: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#d97706" stroke="#78350f" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#d97706" stroke="#78350f" stroke-width="1.5"/></svg>`
 };
 
-// -- Load --
+// ── Load ──
 onAuthStateChanged(auth, user => {
     myUid = user ? user.uid : null;
     loadLeaderboard();
@@ -274,7 +274,7 @@ function updateRankCard() {
     b.innerHTML = bal + ' ONC';
 }
 
-// -- Render --
+// ── Render ──
 function renderTable() {
     const container = document.getElementById("leaderboard");
     const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
@@ -318,16 +318,16 @@ function renderTable() {
     }).join('');
 }
 
-// -- Search --
+// ── Search ──
 window.filterLeaderboard = () => renderTable();
 
-// -- Scroll to me --
+// ── Scroll to me ──
 window.scrollToMe = () => {
     const el = document.getElementById('myRankItem');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-// -- Keyboard: Enter triggers search --
+// ── Keyboard: Enter triggers search ──
 document.getElementById('searchInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') filterLeaderboard();
 });

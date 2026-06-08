@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONCHYRA � Global Node</title>
+    <title>ONCHYRA — Global Node</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
@@ -190,7 +190,7 @@
         <span style="font-size:7px;background:var(--primary);color:#000;padding:2px 8px;border-radius:100px;font-weight:900;letter-spacing:0.5px;">LIVE</span>
     </a>
     <a href="referrals.html" class="menu-item">Referrals</a>
-    <a href="contests.html" class="menu-item hot">Referral Contest ?</a>
+    <a href="contests.html" class="menu-item hot">Referral Contest ★</a>
     <a href="leaderboard.html" class="menu-item">Leaderboard</a>
     <a href="updates.html" class="menu-item">Updates</a>
     <a href="powerdrop.html" class="menu-item">PowerDrop</a>
@@ -267,8 +267,8 @@
         <div class="contest-card full-width" onclick="window.location='contests.html'">
             <div class="contest-live-dot">LIVE NOW</div>
             <div class="contest-title">Referral Contest is Live!</div>
-            <div class="contest-sub">The ONCHYRA referral contest has officially started ?Start inviting and climb the leaderboard to win rewards.</div>
-            <a href="contests.html" class="contest-join-btn">JOIN CONTEST ?</a>
+            <div class="contest-sub">The ONCHYRA referral contest has officially started ⚡Start inviting and climb the leaderboard to win rewards.</div>
+            <a href="contests.html" class="contest-join-btn">JOIN CONTEST →</a>
         </div>
 
         <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary);cursor:pointer;">
@@ -287,7 +287,7 @@
             </div>
         </div>
 
-        <!-- -- P2P Quick Transfer -- -->
+        <!-- ── P2P Quick Transfer ── -->
         <div class="card full-width" style="position:relative;overflow:visible;border:1px solid rgba(167,139,250,0.2);">
             <div style="position:absolute;top:0;left:15%;width:70%;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.3),rgba(96,165,250,0.4),transparent);"></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
@@ -295,7 +295,7 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                     Quick Send
                 </h3>
-                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW ?</a>
+                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW →</a>
             </div>
 
             <!-- Compact two-column inputs -->
@@ -338,7 +338,7 @@
         <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
                 <h3 style="font-size:13px;font-family:'Space Grotesk';">TOP VALIDATORS</h3>
-                <a href="leaderboard.html" class="view-all-btn">VIEW ALL ?</a>
+                <a href="leaderboard.html" class="view-all-btn">VIEW ALL →</a>
             </div>
             <div id="miniLeaderboard"></div>
         </div>
@@ -372,7 +372,7 @@
                 </a>
             </div>
             <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
-            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">� 2026 ONCHYRA PROTOCOL � ALL RIGHTS RESERVED</div>
+            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
         </div>
 
     </div>
@@ -381,8 +381,8 @@
 <!-- CONTEST POPUP -->
 <div id="contestPopup">
     <div class="popup-box">
-        <button class="popup-close" onclick="closeContestPopup()">?</button>
-        <span class="popup-emoji">??</span>
+        <button class="popup-close" onclick="closeContestPopup()">✕</button>
+        <span class="popup-emoji">🏆</span>
         <div class="popup-badge">LIMITED EVENT</div>
         <div class="popup-title">Referral Contest</div>
         <p class="popup-sub">Invite friends, climb the leaderboard & win <b style="color:#fbbf24;">30 POL</b> in rewards</p>
@@ -391,7 +391,7 @@
             <div class="popup-prize"><div class="rank">2nd</div><div class="amount">10</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
             <div class="popup-prize"><div class="rank">3rd</div><div class="amount">5</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
         </div>
-        <button class="popup-join-btn" onclick="window.location='contests.html'">JOIN NOW ?</button>
+        <button class="popup-join-btn" onclick="window.location='contests.html'">JOIN NOW →</button>
         <button class="popup-later" onclick="closeContestPopup()">Maybe later</button>
     </div>
 </div>
@@ -718,7 +718,7 @@ window.logout = () => {
     signOut(auth).then(() => window.location = "login.html");
 };
 
-// -- NOTIFICATIONS --
+// ── NOTIFICATIONS ──
 function timeAgoNoti(t) {
     if (!t) return "Just now";
     try {
@@ -745,7 +745,7 @@ function loadNotifications() {
                 if (!isUser) return;
                 if (!n.read) unread++;
                 const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : 'noti-type-personal';
-                const typeLabel = n.type === 'update' ? '?? Update' : n.type === 'poll' ? '?? Poll' : '?? Personal';
+                const typeLabel = n.type === 'update' ? '📢 Update' : n.type === 'poll' ? '📊 Poll' : '💬 Personal';
                 html += `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="readNoti('${d.id}', '${n.link || ''}')">
                     <div class="noti-type ${typeClass}">${typeLabel}</div>
                     <div class="noti-title">${n.title || ''}</div>
@@ -796,7 +796,7 @@ document.addEventListener('click', (e) => {
     if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
 });
 
-// -- DASHBOARD P2P QUICK SEND --
+// ── DASHBOARD P2P QUICK SEND ──
 const dashRecipient = document.getElementById('dashP2pRecipient');
 const dashAmount = document.getElementById('dashP2pAmount');
 const dashTotal = document.getElementById('dashTotal');

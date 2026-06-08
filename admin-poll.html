@@ -125,15 +125,15 @@
 <div class="topbar">
     <div class="logo">ONCHYRA ADMIN</div>
     <div class="topbar-stats">
-        <div class="tstat"><span>Total Polls</span><b id="statPolls">�</b></div>
-        <div class="tstat"><span>Total Votes</span><b id="statVotes">�</b></div>
+        <div class="tstat"><span>Total Polls</span><b id="statPolls">—</b></div>
+        <div class="tstat"><span>Total Votes</span><b id="statVotes">—</b></div>
     </div>
 </div>
 
 <!-- CONFIRM DELETE MODAL -->
 <div id="confirmModal">
     <div class="modal-box">
-        <h3>??? Delete Poll?</h3>
+        <h3>🗑️ Delete Poll?</h3>
         <p id="modalPollName">This action cannot be undone.</p>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -148,7 +148,7 @@
     <!-- LEFT: CREATE FORM -->
     <div>
         <div class="card">
-            <h2>?? Create New Poll</h2>
+            <h2>✏️ Create New Poll</h2>
 
             <div class="field">
                 <label>Question</label>
@@ -160,24 +160,24 @@
                 <div class="options-list" id="optionsList">
                     <div class="option-row">
                         <input type="text" placeholder="Option 1" class="opt-input">
-                        <button class="remove-opt" onclick="removeOption(this)">�</button>
+                        <button class="remove-opt" onclick="removeOption(this)">×</button>
                     </div>
                     <div class="option-row">
                         <input type="text" placeholder="Option 2" class="opt-input">
-                        <button class="remove-opt" onclick="removeOption(this)">�</button>
+                        <button class="remove-opt" onclick="removeOption(this)">×</button>
                     </div>
                 </div>
-                <button class="add-opt-btn" onclick="addOption()">+ Add Option</button>
+                <button class="add-opt-btn" onclick="addOption()">＋ Add Option</button>
             </div>
 
-            <button class="btn btn-primary" onclick="createPoll()" style="margin-top:8px;">?? Publish Poll</button>
+            <button class="btn btn-primary" onclick="createPoll()" style="margin-top:8px;">🚀 Publish Poll</button>
         </div>
     </div>
 
     <!-- RIGHT: POLLS LIST -->
     <div>
         <div class="card">
-            <h2>?? Active Polls</h2>
+            <h2>📊 Active Polls</h2>
             <div id="pollsList"><div class="loader">LOADING POLLS...</div></div>
         </div>
     </div>
@@ -214,12 +214,12 @@ onAuthStateChanged(auth, user => {
     if (!user) window.location = "admin-login.html";
 });
 
-// -- REAL-TIME POLLS LISTENER --
+// ── REAL-TIME POLLS LISTENER ──
 onSnapshot(collection(db, "polls"), (snap) => {
     const container = document.getElementById('pollsList');
 
     if (snap.empty) {
-        container.innerHTML = `<div class="empty"><div>???</div>No polls yet. Create one!</div>`;
+        container.innerHTML = `<div class="empty"><div>🗳️</div>No polls yet. Create one!</div>`;
         document.getElementById('statPolls').innerText = '0';
         document.getElementById('statVotes').innerText = '0';
         return;
@@ -252,8 +252,8 @@ onSnapshot(collection(db, "polls"), (snap) => {
             return `
                 <div class="vote-option">
                     <div class="vote-label-row">
-                        <span class="vote-label">${opt} ${isTop ? '??' : ''}</span>
-                        <span class="vote-count">${votes} vote${votes !== 1 ? 's' : ''} � ${pct}%</span>
+                        <span class="vote-label">${opt} ${isTop ? '👑' : ''}</span>
+                        <span class="vote-count">${votes} vote${votes !== 1 ? 's' : ''} · ${pct}%</span>
                     </div>
                     <div class="vote-bar-bg">
                         <div class="vote-bar-fill ${isTop ? 'top' : ''}" style="width:${pct}%"></div>
@@ -270,7 +270,7 @@ onSnapshot(collection(db, "polls"), (snap) => {
                 ${barsHTML}
                 <div class="poll-footer">
                     <button class="btn btn-danger" onclick="openDeleteModal('${d.id}', \`${(data.question || '').replace(/`/g, "'")}\`)">
-                        ??? Delete Poll
+                        🗑️ Delete Poll
                     </button>
                 </div>
             </div>
@@ -284,7 +284,7 @@ onSnapshot(collection(db, "polls"), (snap) => {
     document.getElementById('statVotes').innerText = totalVotes.toLocaleString();
 });
 
-// -- CREATE POLL --
+// ── CREATE POLL ──
 window.createPoll = async () => {
     const question = document.getElementById('pollQuestion').value.trim();
     const optInputs = document.querySelectorAll('.opt-input');
@@ -308,25 +308,25 @@ window.createPoll = async () => {
         // Reset form
         document.getElementById('pollQuestion').value = '';
         document.getElementById('optionsList').innerHTML = `
-            <div class="option-row"><input type="text" placeholder="Option 1" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">�</button></div>
-            <div class="option-row"><input type="text" placeholder="Option 2" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">�</button></div>
+            <div class="option-row"><input type="text" placeholder="Option 1" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button></div>
+            <div class="option-row"><input type="text" placeholder="Option 2" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button></div>
         `;
 
-        showToast("Poll published! ??", true);
+        showToast("Poll published! 🚀", true);
     } catch (e) {
         console.error(e);
         showToast("Error: " + e.message, false);
     }
 };
 
-// -- ADD / REMOVE OPTIONS --
+// ── ADD / REMOVE OPTIONS ──
 window.addOption = () => {
     const list = document.getElementById('optionsList');
     const count = list.querySelectorAll('.option-row').length + 1;
     if (count > 6) { showToast("Max 6 options allowed", false); return; }
     const row = document.createElement('div');
     row.className = 'option-row';
-    row.innerHTML = `<input type="text" placeholder="Option ${count}" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">�</button>`;
+    row.innerHTML = `<input type="text" placeholder="Option ${count}" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button>`;
     list.appendChild(row);
 };
 
@@ -338,7 +338,7 @@ window.removeOption = (btn) => {
     btn.parentElement.remove();
 };
 
-// -- DELETE MODAL --
+// ── DELETE MODAL ──
 window.openDeleteModal = (id, question) => {
     pendingDeleteId = id;
     pendingDeleteQuestion = question;
@@ -355,14 +355,14 @@ window.confirmDelete = async () => {
     if (!pendingDeleteId) return;
     try {
         await deleteDoc(doc(db, "polls", pendingDeleteId));
-        showToast("Poll deleted ?", true);
+        showToast("Poll deleted ✅", true);
     } catch (e) {
         showToast("Delete failed: " + e.message, false);
     }
     closeModal();
 };
 
-// -- TOAST --
+// ── TOAST ──
 function showToast(msg, success = true) {
     const t = document.getElementById('toast');
     t.innerText = msg;

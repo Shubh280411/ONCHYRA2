@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA � Admin Notifications</title>
+<title>ONCHYRA — Admin Notifications</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red:#ef4444; --green:#22c55e; --yellow:#eab308; }
@@ -84,9 +84,9 @@ textarea { resize: vertical; min-height: 100px; }
 
 <nav class="sidebar">
   <h2>ONCHY<span>RA</span></h2>
-  <div class="nav-item active" onclick="showPage('send')"><span>?? Send</span></div>
-  <div class="nav-item" onclick="showPage('history')"><span>?? History</span></div>
-  <div class="nav-item" onclick="showPage('users')"><span>?? Users</span></div>
+  <div class="nav-item active" onclick="showPage('send')"><span>🚀 Send</span></div>
+  <div class="nav-item" onclick="showPage('history')"><span>📜 History</span></div>
+  <div class="nav-item" onclick="showPage('users')"><span>👥 Users</span></div>
 </nav>
 
 <div class="main">
@@ -102,20 +102,20 @@ textarea { resize: vertical; min-height: 100px; }
     <div class="card">
       <div style="font-family:'Space Grotesk';font-size:14px;font-weight:700;margin-bottom:10px;">Quick Templates</div>
       <div class="quick-btns">
-        <button class="quick-btn" onclick="useTemplate('update')">?? Update</button>
-        <button class="quick-btn" onclick="useTemplate('poll')">?? Poll</button>
-        <button class="quick-btn" onclick="useTemplate('contest')">?? Contest</button>
-        <button class="quick-btn" onclick="useTemplate('warning')">?? Warning</button>
+        <button class="quick-btn" onclick="useTemplate('update')">📢 Update</button>
+        <button class="quick-btn" onclick="useTemplate('poll')">📊 Poll</button>
+        <button class="quick-btn" onclick="useTemplate('contest')">🏆 Contest</button>
+        <button class="quick-btn" onclick="useTemplate('warning')">⚠️ Warning</button>
       </div>
 
       <label class="form-label">TARGET</label>
-      <select id="notiTarget"><option value="all">?? All Users</option></select>
+      <select id="notiTarget"><option value="all">🌐 All Users</option></select>
 
       <label class="form-label">TYPE</label>
       <select id="notiType">
-        <option value="update">?? Update</option>
-        <option value="poll">?? Poll</option>
-        <option value="personal">?? Personal</option>
+        <option value="update">📢 Update</option>
+        <option value="poll">📊 Poll</option>
+        <option value="personal">💬 Personal</option>
       </select>
 
       <label class="form-label">TITLE</label>
@@ -134,7 +134,7 @@ textarea { resize: vertical; min-height: 100px; }
       </div>
 
       <div style="display:flex;gap:10px;margin-top:20px;">
-        <button class="btn-primary" onclick="sendNotification()">?? Send Now</button>
+        <button class="btn-primary" onclick="sendNotification()">🚀 Send Now</button>
         <button class="quick-btn" style="flex:1;text-align:center;" onclick="clearForm()">Clear</button>
       </div>
     </div>
@@ -226,12 +226,12 @@ async function loadStats() {
   document.getElementById('statUsers').innerText = uSnap.size;
 
   const targetSelect = document.getElementById('notiTarget');
-  targetSelect.innerHTML = '<option value="all">?? All Users</option>';
+  targetSelect.innerHTML = '<option value="all">🌐 All Users</option>';
   allUsersData = [];
   uSnap.forEach(d => {
     const data = d.data();
     allUsersData.push({ id: d.id, name: data.name || 'Unknown', email: data.email || '-', balance: (data.balance || 0).toFixed(2) });
-    targetSelect.innerHTML += `<option value="${d.id}">?? ${data.name || data.email || d.id.slice(0,8)}</option>`;
+    targetSelect.innerHTML += `<option value="${d.id}">👤 ${data.name || data.email || d.id.slice(0,8)}</option>`;
   });
 }
 
@@ -239,8 +239,8 @@ window.useTemplate = (type) => {
   const templates = {
     update: { type: 'update', title: 'Protocol Update', msg: 'A new update has been posted. Check the Updates section.', link: 'updates.html' },
     poll: { type: 'poll', title: 'New Poll is Live!', msg: 'Your vote matters! Cast your vote now.', link: '' },
-    contest: { type: 'update', title: '?? Referral Contest Active!', msg: 'Invite friends and climb the leaderboard to win POL rewards!', link: 'contests.html' },
-    warning: { type: 'personal', title: '?? Important Notice', msg: 'Please review your account. Action required.', link: '' }
+    contest: { type: 'update', title: '🏆 Referral Contest Active!', msg: 'Invite friends and climb the leaderboard to win POL rewards!', link: 'contests.html' },
+    warning: { type: 'personal', title: '⚠️ Important Notice', msg: 'Please review your account. Action required.', link: '' }
   };
   const t = templates[type];
   document.getElementById('notiType').value = t.type;
@@ -290,7 +290,7 @@ window.sendNotification = async () => {
       read: false,
       createdAt: serverTimestamp()
     });
-    showToast('Notification sent successfully! ?');
+    showToast('Notification sent successfully! ✅');
     clearForm();
     loadStats();
   } catch(e) {

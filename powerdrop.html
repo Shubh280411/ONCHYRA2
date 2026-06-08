@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PowerDrop � ONCHYRA</title>
+<title>PowerDrop — ONCHYRA</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -74,7 +74,7 @@ input::placeholder { color:rgba(255,255,255,0.25); }
             <!-- WINNERS COUNT -->
             <div>
                 <div class="winners-badge">
-                    ?? <span id="winnersCount">?</span> WINNERS WILL BE SELECTED
+                    🏆 <span id="winnersCount">?</span> WINNERS WILL BE SELECTED
                 </div>
             </div>
 
@@ -88,7 +88,7 @@ input::placeholder { color:rgba(255,255,255,0.25); }
                 </div>
             </div>
             <div id="expiredBox" style="display:none; margin:15px 0;">
-                <div class="expired-tag">? DROP ENDED</div>
+                <div class="expired-tag">⏰ DROP ENDED</div>
                 <div style="font-size:11px; opacity:0.4; margin-top:5px;">Winners will be announced soon</div>
             </div>
 
@@ -110,10 +110,10 @@ input::placeholder { color:rgba(255,255,255,0.25); }
 
         <div class="rules-card">
             <h3>Protocol Rules</h3>
-            <div class="rule-item"><span>? One entry per node. Multi-accounts lead to instant ban.</span></div>
-            <div class="rule-item"><span>? Valid USDT BEP20 (BSC) address is strictly required.</span></div>
-            <div class="rule-item"><span>? Winners are randomly selected after the drop ends.</span></div>
-            <div class="rule-item"><span>? Rewards distributed within 48 hours of announcement.</span></div>
+            <div class="rule-item"><span>▹ One entry per node. Multi-accounts lead to instant ban.</span></div>
+            <div class="rule-item"><span>▹ Valid USDT BEP20 (BSC) address is strictly required.</span></div>
+            <div class="rule-item"><span>▹ Winners are randomly selected after the drop ends.</span></div>
+            <div class="rule-item"><span>▹ Rewards distributed within 48 hours of announcement.</span></div>
         </div>
     </div>
 </div>
@@ -162,7 +162,7 @@ async function initEvent() {
     });
 }
 
-// Safe timestamp ? milliseconds (handles Firestore Timestamp, plain number, or missing)
+// Safe timestamp → milliseconds (handles Firestore Timestamp, plain number, or missing)
 function toMillis(val) {
     if (!val) return null;
     if (typeof val.toMillis === 'function') return val.toMillis();   // Firestore Timestamp
@@ -186,12 +186,12 @@ function render(data) {
     document.getElementById('pCount').innerText = `${c} / ${m}`;
     document.getElementById('fill').style.width = Math.min((c / m * 100), 100) + "%";
 
-    // Timer � safe conversion
+    // Timer — safe conversion
     const startMs = toMillis(data.startTime);
     const durationDays = data.duration || 7;
 
     if (startMs === null) {
-        // startTime missing or invalid � show dashes
+        // startTime missing or invalid — show dashes
         ['days','hours','mins','secs'].forEach(id => document.getElementById(id).innerText = '--');
         return;
     }
@@ -225,7 +225,7 @@ async function checkJoined() {
     if (snap.exists()) {
         const btn = document.getElementById('joinBtn');
         btn.disabled = true;
-        btn.innerText = "ENTRY VERIFIED ?";
+        btn.innerText = "ENTRY VERIFIED ✅";
         document.getElementById('wallet').value = snap.data().address;
         document.getElementById('wallet').disabled = true;
         document.getElementById('shareBtn').style.display = "flex";
@@ -249,8 +249,8 @@ window.participate = async () => {
             participantsCount: increment(1)
         });
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        showMsg("Registration Successful! ??", "#34d399");
-        btn.innerText = "ENTRY VERIFIED ?";
+        showMsg("Registration Successful! 🎉", "#34d399");
+        btn.innerText = "ENTRY VERIFIED ✅";
         document.getElementById('shareBtn').style.display = "flex";
     } catch (e) {
         console.error(e);
