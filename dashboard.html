@@ -6,7 +6,7 @@
     <title>ONCHYRA — Global Node</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #a78bfa; --secondary: #60a5fa; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
+        :root { --primary: #a78bfa; --secondary: #60a5fa; --success: #22c55e; --danger: #ef4444; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
         * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
         body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; }
 
@@ -571,7 +571,7 @@
 </div>
 
 <!-- CONTEST POPUP -->
-<div id="contestPopup">
+<div id="contestPopup" onclick="if(event.target===this)closeContestPopup()">
     <div class="popup-box">
         <button class="popup-close" onclick="closeContestPopup()">✕</button>
         <span class="popup-emoji">🏆</span>
@@ -596,7 +596,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import {
     doc, onSnapshot, updateDoc, collection, addDoc,
     query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
-    increment, where,
+    increment, where, arrayUnion,
     initializeFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -656,7 +656,7 @@ onAuthStateChanged(auth, async (user) => {
             window.location.replace('maintenance.html?msg=' + encodeURIComponent(maintSnap.data().message || ''));
             return;
         }
-    } catch(e) {}
+    } catch(e) { console.error("Maintenance check error:", e); }
 
     onSnapshot(doc(db, "users", uid), (snap) => {
         if (snap.exists()) {
@@ -734,16 +734,6 @@ async function fetchStats() {
         });
     });
 
-    try {
-        const uCount = await getCountFromServer(collection(db, "users"));
-        document.getElementById('totalUsers').innerText = uCount.data().count.toLocaleString();
-    } catch (e) { console.error("Count error:", e); }
-
-    onSnapshot(collection(db, "users"), (snap) => {
-        let sum = 0;
-        snap.forEach(d => sum += (d.data().balance || 0));
-        document.getElementById('totalMined').innerText = sum.toFixed(2);
-    });
 }
 
 async function fetchLatestUpdate() {
@@ -1079,10 +1069,10 @@ function loadNotifications() {
                 const n = d.data();
                 const isUser = n.userId === uid || n.userId === "all";
                 if (!isUser) return;
-                if (!n.read) unread++;
+                if (!n.readBy || !n.readBy.includes(uid)) unread++;
                 const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : n.type === 'trade_won' ? 'noti-type-trade_won' : n.type === 'trade_lost' ? 'noti-type-trade_lost' : 'noti-type-personal';
                 const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : 'PERSONAL';
-                html += `<div class="noti-item ${n.read ? '' : 'unread'}" onclick="readNoti('${d.id}', '${n.link || ''}')">
+                html += `<div class="noti-item ${n.readBy && n.readBy.includes(uid) ? '' : 'unread'}" onclick="readNoti('${d.id}')">
                     <div class="noti-type ${typeClass}">${typeLabel}</div>
                     <div class="noti-title">${n.title || ''}</div>
                     <div class="noti-msg">${n.message || ''}</div>
@@ -1109,20 +1099,23 @@ window.toggleNotiDropdown = (e) => {
 
 window.markAllRead = async (e) => {
     e.stopPropagation();
-    const q = query(collection(db, "notifications"), where("read", "==", false));
+    const q = query(collection(db, "notifications"));
     const snap = await getDocs(q);
     const batch = [];
     snap.forEach(d => {
         const n = d.data();
         if (n.userId === uid || n.userId === "all") {
-            batch.push(updateDoc(doc(db, "notifications", d.id), { read: true }));
+            batch.push(updateDoc(doc(db, "notifications", d.id), { readBy: arrayUnion(uid) }));
         }
     });
     await Promise.all(batch);
 };
 
-window.readNoti = async (id, link) => {
-    await updateDoc(doc(db, "notifications", id), { read: true });
+window.readNoti = async (id) => {
+    const d = await getDoc(doc(db, "notifications", id));
+    if (!d.exists()) return;
+    const link = d.data().link || '';
+    await updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid) });
     if (link) window.location = link;
 };
 
@@ -1203,14 +1196,10 @@ function validateDash() {
 
 async function dashCheckDaily() {
     const cutoff = Date.now() - 86400000;
-    const q = query(collection(db, "transfers"), where("from", "==", uid));
+    const q = query(collection(db, "transfers"), where("from", "==", uid), where("timestamp", ">=", cutoff));
     const snap = await getDocs(q);
     let count = 0;
-    snap.forEach(d => {
-        const ts = d.data().timestamp;
-        const ms = ts?.toMillis ? ts.toMillis() : (ts instanceof Date ? ts.getTime() : 0);
-        if (ms >= cutoff) count++;
-    });
+    snap.forEach(d => { count++; });
     return count;
 }
 
