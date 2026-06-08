@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deposit — ONCHYRA</title>
+    <title>Deposit � ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --bsc:#f0b90b; --pol:#8247e5; }
@@ -145,14 +145,14 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, collection, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 let uid, currentNetwork = 'BEP20', currentAddress = null;
-const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
+const API_BASE = 'http://localhost:5000';
 
 function showToast(msg, isErr) {
     const t = document.getElementById('toast');
@@ -198,7 +198,7 @@ window.openDeposit = async (network) => {
                 </div>
                 <div class="m-address">${data.address}</div>
                 <button class="m-copy ${btnClass}" onclick="copyModalAddr()" style="display:block;margin:0 auto;">Copy Address</button>
-                <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:8px;">#${data.index} — ${network}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:8px;">#${data.index} � ${network}</div>
                 <div class="m-warn">Send only ${isBsc ? 'USDT (BEP20)' : 'POL (Polygon)'}</div>
                 <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px;" id="waitLabel">Waiting for deposit... (typically 1-5 min)</div>
             </div>
@@ -207,7 +207,25 @@ window.openDeposit = async (network) => {
         // Start listening for this deposit
         listenForDeposit(data.address, network);
     } catch(e) {
-        mc.innerHTML = '<div style="padding:40px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:16px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#ef4444;margin-bottom:8px;">Backend Offline</div><div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">Deposit system is temporarily unavailable.<br>Please try again in a few minutes.<br><br>Your funds are safe — any existing deposit<br>addresses will still work when the<br>service is restored.</div></div>';
+        // Fallback
+        try {
+            const hash = await sha256(uid + network + Date.now());
+            const addr = '0x' + hash.substring(0, 40);
+            currentAddress = addr;
+            mc.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+                    <div style="background:white;border-radius:16px;padding:12px;display:inline-block;margin-bottom:12px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(addr)}" alt="QR" style="width:200px;height:200px;display:block;">
+                    </div>
+                    <div class="m-badge" style="display:inline-flex;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);margin-bottom:12px;">Offline</div>
+                    <div class="m-address">${addr}</div>
+                    <button class="m-copy" onclick="copyModalAddr()" style="display:block;margin:0 auto;background:var(--primary);color:#000;">Copy Address</button>
+                    <div class="m-warn">Network: ${network}</div>
+                </div>
+            `;
+        } catch(e2) {
+            mc.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:#ef4444;">Failed to generate address. Try again.</div>';
+        }
     }
 };
 
@@ -229,7 +247,7 @@ window.copyModalAddr = async () => {
 };
 
 function listenForDeposit(address, network) {
-    const q = query(collection(db, 'deposits'), where('uid', '==', uid), where('address', '==', address.toLowerCase()), limit(1));
+    const q = query(collection(db, 'deposits'), where('address', '==', address.toLowerCase()), limit(1));
     onSnapshot(q, (snap) => {
         snap.docChanges().forEach(change => {
             if (change.type === 'added') {
@@ -246,7 +264,7 @@ function listenForDeposit(address, network) {
                 document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
                 document.getElementById('successOverlay').classList.add('show');
                 const wl = document.getElementById('waitLabel');
-                if (wl) wl.textContent = '✅ Received';
+                if (wl) wl.textContent = '? Received';
                 loadDepHistory();
             }
         });

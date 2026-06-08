@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA — Campaign Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #050505; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        ::selection { background: rgba(0,255,135,0.2); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 4px; }
+
+        .wrap { width: 100%; max-width: 720px; }
+
+        .logo { font-family: 'Space Grotesk'; font-weight: 900; font-size: 22px; background: linear-gradient(135deg, #00ff87, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
+        .sub { font-size: 11px; color: #666; font-weight: 500; letter-spacing: 0.3px; }
+
+        .tabs { display: flex; gap: 4px; margin-top: 24px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 14px; padding: 4px; }
+        .tab { flex: 1; padding: 10px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #555; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: none; background: none; font-family: 'Inter', sans-serif; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .tab:hover { color: #888; }
+        .tab.active { background: #00ff87; color: #050505; }
+        .tab.active svg { stroke: #050505; }
+
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 20px; padding: 28px 24px; margin-top: 16px; }
+        .card-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .field { margin-bottom: 18px; }
+        .field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .field-label .badge { font-size: 8px; background: #1a1a1a; color: #666; padding: 2px 7px; border-radius: 6px; font-weight: 600; }
+
+        select, input, textarea {
+            width: 100%; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px;
+            font-family: 'Inter', sans-serif; font-size: 13px; color: #fff; padding: 12px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #00ff87; box-shadow: 0 0 0 3px rgba(0,255,135,0.08); }
+        select option { background: #0d0d0d; color: #fff; }
+        textarea { min-height: 160px; resize: vertical; line-height: 1.6; }
+        textarea::placeholder { color: #444; }
+
+        .btn-row { display: flex; gap: 10px; }
+        .btn-row .btn { flex: 1; }
+
+        .btn {
+            padding: 14px 20px; border: none; border-radius: 12px;
+            font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+            cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden;
+            background: #00ff87; color: #050505; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn:hover { box-shadow: 0 0 30px rgba(0,255,135,0.25), 0 0 60px rgba(0,255,135,0.1); transform: translateY(-1px); }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn .spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(5,5,5,0.15); border-top: 2px solid #050505; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .btn.loading .spinner { display: inline-block; }
+        .btn.loading .btn-text { display: none; }
+        .btn.loading .btn-loading { display: inline; }
+        .btn .btn-loading { display: none; }
+        .btn-outline { background: transparent; border: 1px solid #1a1a1a; color: #fff; }
+        .btn-outline:hover { border-color: #00ff87; color: #00ff87; box-shadow: none; transform: none; }
+        .btn-sm { padding: 8px 14px; font-size: 10px; border-radius: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn svg { stroke: currentColor; }
+        .btn-outline svg { stroke: #fff; }
+        .btn-outline:hover svg { stroke: #00ff87; }
+
+        .stats { display: flex; gap: 10px; }
+        .stat { flex: 1; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 14px; padding: 14px; text-align: center; }
+        .stat-num { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 800; }
+        .stat-lbl { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        .notif { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-size: 12px; line-height: 1.6; border: 1px solid; }
+        .notif.show { display: block; animation: fadeIn 0.3s ease; }
+        .notif.success { background: rgba(0,255,135,0.06); border-color: rgba(0,255,135,0.15); color: #00ff87; }
+        .notif.error { background: rgba(255,71,71,0.06); border-color: rgba(255,71,71,0.15); color: #ff4747; }
+        .notif.info { background: rgba(0,212,255,0.06); border-color: rgba(0,212,255,0.15); color: #00d4ff; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .live-feed { display: none; margin-top: 16px; }
+        .live-feed.show { display: block; }
+        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .feed-header h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; }
+        .feed-header .counts { font-size: 11px; font-weight: 700; font-family: 'Space Grotesk'; }
+        .feed-log { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 12px; max-height: 220px; overflow-y: auto; padding: 8px 0; }
+        .feed-item { padding: 6px 14px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .feed-item:last-child { border-bottom: none; }
+        .feed-item .fi-email { color: #ccc; }
+        .feed-item .fi-status { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .feed-item .fi-status.sent { color: #00ff87; }
+        .feed-item .fi-status.failed { color: #ff4747; }
+        .feed-item .fi-status.skipped { color: #ffaa00; }
+        .feed-item.failed-row { background: rgba(255,71,71,0.03); }
+
+        .cooldown-notice { font-size: 10px; color: #666; margin-top: 10px; padding: 10px 12px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px; }
+        .cooldown-notice svg { flex-shrink: 0; margin-top: 1px; }
+        .cooldown-notice strong { color: #ffaa00; }
+
+        .csv-hint { font-size: 10px; color: #555; margin-top: 6px; line-height: 1.5; }
+        .csv-hint code { background: #0d0d0d; padding: 1px 5px; border-radius: 4px; color: #888; }
+
+        .file-drop { border: 1px dashed #1a1a1a; border-radius: 12px; padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .file-drop:hover { border-color: #00ff87; background: rgba(0,255,135,0.02); }
+        .file-drop.dragover { border-color: #00ff87; background: rgba(0,255,135,0.05); }
+        .file-drop input { display: none; }
+        .file-drop .fd-icon svg { stroke: #555; }
+        .file-drop .fd-text { font-size: 11px; color: #666; margin-top: 8px; }
+        .file-drop .fd-file { display: none; font-size: 11px; color: #00ff87; font-weight: 600; margin-top: 8px; }
+        .file-drop.has-file .fd-icon svg { stroke: #00ff87; }
+        .file-drop.has-file .fd-text { display: none; }
+        .file-drop.has-file .fd-file { display: block; }
+
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; padding: 40px; }
+        .preview-modal.show { display: flex; }
+        .preview-modal .pm-content { background: #fff; border-radius: 16px; width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; }
+        .preview-modal .pm-close { position: absolute; top: 12px; right: 14px; background: rgba(0,0,0,0.1); border: none; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .preview-modal .pm-close:hover { background: rgba(0,0,0,0.2); }
+        .preview-modal .pm-close svg { stroke: #333; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .checkbox-row input[type="checkbox"] { width: auto; accent-color: #00ff87; }
+        .checkbox-row label { font-size: 11px; color: #888; cursor: pointer; }
+
+        .safety-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; background: rgba(255,170,0,0.1); color: #ffaa00; border: 1px solid rgba(255,170,0,0.15); padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+        .safety-badge svg { stroke: #ffaa00; }
+
+        .back { display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 11px; font-weight: 600; transition: color 0.2s; margin-top: 24px; }
+        .back:hover { color: #888; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="logo">ONCHYRA</div>
+        <div class="sub">Email Campaign Dashboard</div>
+
+        <div class="stats" style="margin-top:20px;">
+            <div class="stat"><div class="stat-num" style="color:#00ff87;" id="statSent">0</div><div class="stat-lbl">Sent</div></div>
+            <div class="stat"><div class="stat-num" style="color:#ffaa00;" id="statSkipped">0</div><div class="stat-lbl">Skipped</div></div>
+            <div class="stat"><div class="stat-num" style="color:#ff4747;" id="statFailed">0</div><div class="stat-lbl">Failed</div></div>
+            <div class="stat"><div class="stat-num" style="color:#fff;" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="bulk" onclick="switchTab('bulk')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Bulk
+            </button>
+            <button class="tab" data-tab="manual" onclick="switchTab('manual')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Manual
+            </button>
+            <button class="tab" data-tab="csv" onclick="switchTab('csv')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                CSV
+            </button>
+        </div>
+
+        <!-- ===== BULK TAB ===== -->
+        <div class="card tab-pane active" id="tabBulk">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Bulk Campaign
+                <span class="safety-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Max 450
+                </span>
+            </div>
+
+            <div class="field">
+                <div class="field-label">Target Users</div>
+                <select id="userType">
+                    <option value="active">Active Users</option>
+                    <option value="inactive">Inactive Users</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <div class="field-label">Subject Line</div>
+                <input type="text" id="subjectBulk" placeholder="e.g. Welcome to ONCHYRA..." />
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    Email HTML Template
+                    <span class="badge">Use <code>{{ USERNAME }}</code> for name</span>
+                </div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="btn btn-sm btn-outline" onclick="previewEmail('bulk')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                </div>
+                <textarea id="htmlBulk" placeholder="Paste your HTML template here..."></textarea>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="skipCooldownBulk">
+                <label for="skipCooldownBulk">Skip 24hr cooldown check (send even if user got email in last 24h)</label>
+            </div>
+
+            <button class="btn" id="fireBulk" onclick="fireBulk()">
+                <span class="spinner"></span>
+                <span class="btn-text">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Send to All
+                </span>
+                <span class="btn-loading">Sending...</span>
+            </button>
+
+            <div class="cooldown-notice">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div><strong>24hr cooldown</strong> &mdash; Users who received an email in the last 24 hours will be automatically skipped unless you check the box above. <strong>Safety limit:</strong> Max 450 emails per campaign.</div>
+            </div>
+        </div>
+
+        <!-- ===== MANUAL TAB ===== -->
+        <div class="card tab-pane" id="tabManual">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Manual Send
+                <span class="safety-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Max 450
+                </span>
+            </div>
+
+            <div class="field">
+                <div class="field-label">Subject Line</div>
+                <input type="text" id="subjectManual" placeholder="e.g. Welcome to ONCHYRA..." />
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    Email HTML Template
+                    <span class="badge">Use <code>{{ USERNAME }}</code> for name</span>
+                </div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="btn btn-sm btn-outline" onclick="previewEmail('manual')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                </div>
+                <textarea id="htmlManual" placeholder="Paste your HTML template here..."></textarea>
+            </div>
+
+            <div class="field">
+                <div class="field-label">Recipient Emails</div>
+                <textarea id="manualEmails" placeholder="john@example.com&#10;jane@example.com, Jane Doe&#10;user@example.com, User Name" style="min-height:100px;"></textarea>
+                <div style="font-size:10px;color:#555;margin-top:4px;">One per line. Optionally: <code>email, Name</code></div>
+            </div>
+
+            <button class="btn" id="fireManual" onclick="fireManual()">
+                <span class="spinner"></span>
+                <span class="btn-text">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Send Manually
+                </span>
+                <span class="btn-loading">Sending...</span>
+            </button>
+        </div>
+
+        <!-- ===== CSV TAB ===== -->
+        <div class="card tab-pane" id="tabCsv">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                CSV Upload
+                <span class="safety-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Max 450
+                </span>
+            </div>
+
+            <div class="field">
+                <div class="field-label">Subject Line</div>
+                <input type="text" id="subjectCsv" placeholder="e.g. Welcome to ONCHYRA..." />
+            </div>
+
+            <div class="field">
+                <div class="field-label">
+                    Email HTML Template
+                    <span class="badge">Use <code>{{ USERNAME }}</code> for name</span>
+                </div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;">
+                    <button class="btn btn-sm btn-outline" onclick="previewEmail('csv')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                </div>
+                <textarea id="htmlCsv" placeholder="Paste your HTML template here..."></textarea>
+            </div>
+
+            <div class="field">
+                <div class="field-label">CSV File</div>
+                <div class="file-drop" id="fileDrop" onclick="document.getElementById('csvFile').click()">
+                    <div class="fd-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="fd-text">Click or drop a CSV file here<br/><span style="font-size:9px;color:#444;">Format: email or email, Name (one per line)</span></div>
+                    <div class="fd-file" id="fileName">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span id="fileNameText"></span>
+                    </div>
+                    <input type="file" id="csvFile" accept=".csv" onchange="handleCsvFile(event)" />
+                </div>
+            </div>
+
+            <button class="btn" id="fireCsv" onclick="fireCsv()">
+                <span class="spinner"></span>
+                <span class="btn-text">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Send CSV
+                </span>
+                <span class="btn-loading">Sending...</span>
+            </button>
+        </div>
+
+        <div class="notif" id="notif"></div>
+
+        <div class="live-feed" id="liveFeed">
+            <div class="feed-header">
+                <h4>Live Feed</h4>
+                <div class="counts">
+                    <span style="color:#00ff87;" id="liveSent">0</span> sent /
+                    <span style="color:#ffaa00;" id="liveSkipped">0</span> skipped /
+                    <span style="color:#ff4747;" id="liveFailed">0</span> failed
+                </div>
+            </div>
+            <div class="feed-log" id="feedLog"></div>
+        </div>
+
+        <a href="admin.html" class="back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            Back to Admin
+        </a>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal" onclick="if(event.target===this)closePreview()">
+        <div class="pm-content" id="previewContent"></div>
+        <button class="pm-close" onclick="closePreview()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+
+    <script>
+        let eventSource = null;
+        let csvFileData = null;
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
+            document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+        }
+
+        function connectSSE() {
+            if (eventSource) eventSource.close();
+            eventSource = new EventSource('http://localhost:5000/api/admin/campaign-stream');
+
+            eventSource.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+
+                if (data.type === 'init') {
+                    updateStats(data);
+                    data.logs.forEach(addFeedItem);
+                    if (data.running) showLiveFeed();
+                }
+
+                if (data.type === 'start') {
+                    document.getElementById('statTotal').textContent = data.total;
+                    document.getElementById('feedLog').innerHTML = '';
+                    showLiveFeed();
+                }
+
+                if (data.type === 'sent' || data.type === 'failed') {
+                    document.getElementById('statSent').textContent = data.sent;
+                    document.getElementById('statFailed').textContent = data.failed;
+                    document.getElementById('liveSent').textContent = data.sent;
+                    document.getElementById('liveFailed').textContent = data.failed;
+                    addFeedItem({ email: data.email, name: data.name, status: data.type, error: data.error });
+                }
+
+                if (data.type === 'done') {
+                    updateStats(data);
+                    reEnableButtons();
+                    showNotif(
+                        data.failed === 0
+                            ? 'All ' + data.sent + ' emails sent successfully!' + (data.skipped > 0 ? ' (' + data.skipped + ' skipped)' : '')
+                            : data.sent + ' sent, ' + data.failed + ' failed' + (data.skipped > 0 ? ', ' + data.skipped + ' skipped' : ''),
+                        data.failed > 0 ? 'error' : 'success'
+                    );
+                }
+
+                if (data.type === 'error') {
+                    showNotif('Server error: ' + data.message, 'error');
+                    reEnableButtons();
+                }
+            };
+
+            eventSource.onerror = () => {};
+        }
+
+        function updateStats(data) {
+            document.getElementById('statSent').textContent = data.sent || 0;
+            document.getElementById('statFailed').textContent = data.failed || 0;
+            document.getElementById('statSkipped').textContent = data.skipped || 0;
+            document.getElementById('statTotal').textContent = data.total || 0;
+            document.getElementById('liveSent').textContent = data.sent || 0;
+            document.getElementById('liveFailed').textContent = data.failed || 0;
+            document.getElementById('liveSkipped').textContent = data.skipped || 0;
+        }
+
+        function showLiveFeed() {
+            document.getElementById('liveFeed').classList.add('show');
+            document.getElementById('liveSent').textContent = '0';
+            document.getElementById('liveFailed').textContent = '0';
+            document.getElementById('liveSkipped').textContent = '0';
+        }
+
+        function addFeedItem(item) {
+            const feed = document.getElementById('feedLog');
+            const div = document.createElement('div');
+            div.className = 'feed-item' + (item.status === 'failed' ? ' failed-row' : '');
+            const statusLabel = item.status === 'sent' ? 'SENT' : item.status === 'skipped' ? 'SKIPPED' : 'FAILED';
+            div.innerHTML = '<span class="fi-email">' + item.email + ' <span style="color:#555;font-size:10px;">' + (item.name || '') + '</span></span><span class="fi-status ' + item.status + '">' + statusLabel + '</span>';
+            feed.appendChild(div);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function reEnableButtons() {
+            document.querySelectorAll('.btn.loading').forEach(b => {
+                b.classList.remove('loading');
+                b.disabled = false;
+            });
+        }
+
+        function getActiveTab() {
+            return document.querySelector('.tab.active').dataset.tab;
+        }
+
+        function getSubject() {
+            const tab = getActiveTab();
+            if (tab === 'bulk') return document.getElementById('subjectBulk').value.trim();
+            if (tab === 'manual') return document.getElementById('subjectManual').value.trim();
+            return document.getElementById('subjectCsv').value.trim();
+        }
+
+        function getHtml() {
+            const tab = getActiveTab();
+            if (tab === 'bulk') return document.getElementById('htmlBulk').value.trim();
+            if (tab === 'manual') return document.getElementById('htmlManual').value.trim();
+            return document.getElementById('htmlCsv').value.trim();
+        }
+
+        async function fireBulk() {
+            const btn = document.getElementById('fireBulk');
+            const subject = document.getElementById('subjectBulk').value.trim();
+            const customHtml = document.getElementById('htmlBulk').value.trim();
+            const userType = document.getElementById('userType').value;
+            const skipCooldown = document.getElementById('skipCooldownBulk').checked;
+
+            if (!subject) { showNotif('Enter a subject line.', 'error'); return; }
+            if (!customHtml) { showNotif('Paste your email HTML template.', 'error'); return; }
+
+            btn.classList.add('loading'); btn.disabled = true;
+            document.getElementById('notif').classList.remove('show');
+
+            try {
+                const res = await fetch('http://localhost:5000/api/admin/send-custom-bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userType, subject, customHtml, skipCooldown })
+                });
+                const data = await res.json();
+                if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+            } catch (err) {
+                showNotif('Network error - backend on port 5000?', 'error');
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        }
+
+        async function fireManual() {
+            const btn = document.getElementById('fireManual');
+            const subject = document.getElementById('subjectManual').value.trim();
+            const customHtml = document.getElementById('htmlManual').value.trim();
+            const raw = document.getElementById('manualEmails').value.trim();
+
+            if (!subject) { showNotif('Enter a subject line.', 'error'); return; }
+            if (!customHtml) { showNotif('Paste your email HTML template.', 'error'); return; }
+            if (!raw) { showNotif('Enter at least one email address.', 'error'); return; }
+
+            const emails = raw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+                const parts = l.split(',');
+                const email = parts[0].trim();
+                if (!email || !email.includes('@')) return null;
+                if (parts[1]) return { email, name: parts[1].trim() };
+                return email;
+            }).filter(Boolean);
+
+            if (!emails.length) { showNotif('No valid email addresses found.', 'error'); return; }
+
+            btn.classList.add('loading'); btn.disabled = true;
+            document.getElementById('notif').classList.remove('show');
+
+            try {
+                const res = await fetch('http://localhost:5000/api/admin/send-manual', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emails, subject, customHtml })
+                });
+                const data = await res.json();
+                if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+            } catch (err) {
+                showNotif('Network error - backend on port 5000?', 'error');
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        }
+
+        function handleCsvFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            csvFileData = file;
+            document.getElementById('fileDrop').classList.add('has-file');
+            document.getElementById('fileNameText').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        }
+
+        async function fireCsv() {
+            const btn = document.getElementById('fireCsv');
+            const subject = document.getElementById('subjectCsv').value.trim();
+            const customHtml = document.getElementById('htmlCsv').value.trim();
+
+            if (!subject) { showNotif('Enter a subject line.', 'error'); return; }
+            if (!customHtml) { showNotif('Paste your email HTML template.', 'error'); return; }
+            if (!csvFileData) { showNotif('Upload a CSV file first.', 'error'); return; }
+
+            btn.classList.add('loading'); btn.disabled = true;
+            document.getElementById('notif').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('csv', csvFileData);
+            formData.append('subject', subject);
+            formData.append('customHtml', customHtml);
+
+            try {
+                const res = await fetch('http://localhost:5000/api/admin/send-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+            } catch (err) {
+                showNotif('Network error - backend on port 5000?', 'error');
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        }
+
+        async function previewEmail(source) {
+            const html = source === 'bulk' ? document.getElementById('htmlBulk').value.trim()
+                        : source === 'manual' ? document.getElementById('htmlManual').value.trim()
+                        : document.getElementById('htmlCsv').value.trim();
+
+            if (!html) { showNotif('Paste some HTML first to preview.', 'error'); return; }
+
+            try {
+                const res = await fetch('http://localhost:5000/api/admin/preview-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customHtml: html })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('previewContent').innerHTML = data.html;
+                    document.getElementById('previewModal').classList.add('show');
+                } else {
+                    showNotif('Preview failed: ' + data.message, 'error');
+                }
+            } catch (err) {
+                showNotif('Network error - backend on port 5000?', 'error');
+            }
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePreview();
+        });
+
+        function showNotif(msg, type) {
+            const notif = document.getElementById('notif');
+            notif.textContent = msg;
+            notif.className = 'notif show ' + type;
+        }
+
+        const fd = document.getElementById('fileDrop');
+        fd.addEventListener('dragover', (e) => { e.preventDefault(); fd.classList.add('dragover'); });
+        fd.addEventListener('dragleave', () => { fd.classList.remove('dragover'); });
+        fd.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fd.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                csvFileData = file;
+                document.getElementById('csvFile').files = e.dataTransfer.files;
+                fd.classList.add('has-file');
+                document.getElementById('fileNameText').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            }
+        });
+
+        connectSSE();
+    </script>
+</body>
+</html>

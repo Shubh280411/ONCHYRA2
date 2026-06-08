@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ONCHYRA â€” Maintenance Admin</title>
+<title>ONCHYRA — Maintenance Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); }
@@ -51,9 +51,19 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <div class="card">
-  <label>End Date & Time</label>
-  <input type="datetime-local" id="endDatetime" class="input" style="width:100%;color-scheme:dark;">
-  <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.2);margin-top:6px;">Set the exact date & time when maintenance should end</div>
+  <label>Duration (hours)</label>
+  <select id="durationHours" class="input">
+    <option value="0.5">30 minutes</option>
+    <option value="1">1 hour</option>
+    <option value="2" selected>2 hours</option>
+    <option value="3">3 hours</option>
+    <option value="4">4 hours</option>
+    <option value="6">6 hours</option>
+    <option value="8">8 hours</option>
+    <option value="12">12 hours</option>
+    <option value="24">24 hours</option>
+    <option value="48">48 hours</option>
+  </select>
 </div>
 
 <div class="card">
@@ -82,45 +92,17 @@ textarea { resize:vertical; min-height:80px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
-const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentData = {};
-
-onAuthStateChanged(auth, async user => {
-  if (!user) { window.location = 'admin-login.html'; return; }
-  try {
-    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
-      window.location = 'dashboard.html';
-      return;
-    }
-  } catch(e) { window.location = 'dashboard.html'; return; }
-  loadMaint();
-});
 
 function showToast(m) {
   const t = document.getElementById('toast');
   t.textContent = m; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function toMillis(ts) {
-  if (!ts) return 0;
-  if (typeof ts === 'object' && ts.toMillis) return ts.toMillis();
-  if (typeof ts === 'number') return ts;
-  return Date.parse(ts) || 0;
-}
-
-function toLocalDatetime(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  const pad = n => String(n).padStart(2, '0');
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
 async function loadMaint() {
@@ -146,11 +128,8 @@ async function loadMaint() {
         document.getElementById('maintMsg').value = currentData.message;
         document.getElementById('previewMsg').textContent = currentData.message;
       }
-      if (currentData.endAt) {
-        document.getElementById('endDatetime').value = toLocalDatetime(toMillis(currentData.endAt));
-      } else if (currentData.startedAt && currentData.durationHours) {
-        const endTs = toMillis(currentData.startedAt) + (currentData.durationHours * 3600000);
-        document.getElementById('endDatetime').value = toLocalDatetime(endTs);
+      if (currentData.durationHours) {
+        document.getElementById('durationHours').value = currentData.durationHours;
       }
       updatePreview();
     }
@@ -158,28 +137,11 @@ async function loadMaint() {
 }
 
 function updatePreview() {
-  const val = document.getElementById('endDatetime').value;
-  if (!val) {
-    document.getElementById('previewTimer').textContent = 'No end time set';
-    return;
-  }
-  const endMs = new Date(val).getTime();
-  const now = Date.now();
-  const diff = endMs - now;
-  if (diff <= 0) {
-    document.getElementById('previewTimer').textContent = 'End time is in the past!';
-    return;
-  }
-  const days = Math.floor(diff / 86400000);
-  const hrs = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  let label = '';
-  if (days > 0) label += days + 'd ';
-  label += hrs + 'h ' + mins + 'm';
-  document.getElementById('previewTimer').textContent = 'Ends in ' + label;
+  const hrs = parseFloat(document.getElementById('durationHours').value) || 2;
+  document.getElementById('previewTimer').textContent = '~' + hrs + ' hour' + (hrs !== 1 ? 's' : '') + ' estimated';
 }
 
-document.getElementById('endDatetime').addEventListener('change', updatePreview);
+document.getElementById('durationHours').addEventListener('change', updatePreview);
 document.getElementById('maintMsg').addEventListener('input', function() {
   document.getElementById('previewMsg').textContent = this.value || 'We are currently performing scheduled maintenance...';
 });
@@ -188,15 +150,8 @@ window.toggleMaintenance = async () => {
   const enabled = !currentData.enabled;
   const updates = { enabled };
   if (enabled) {
-    const val = document.getElementById('endDatetime').value;
-    if (!val) { showToast('Please set an end date & time first!'); return; }
-    const endMs = new Date(val).getTime();
-    const now = Date.now();
-    if (endMs <= now) { showToast('End time must be in the future!'); return; }
-    const durationHours = (endMs - now) / 3600000;
     updates.startedAt = serverTimestamp();
-    updates.durationHours = durationHours;
-    updates.endAt = endMs;
+    updates.durationHours = parseFloat(document.getElementById('durationHours').value) || 2;
     updates.message = document.getElementById('maintMsg').value.trim() || 'We are currently performing scheduled maintenance to improve your experience. Please check back shortly.';
   }
   await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
@@ -206,16 +161,13 @@ window.toggleMaintenance = async () => {
 
 window.saveSettings = async () => {
   const msg = document.getElementById('maintMsg').value.trim();
-  const val = document.getElementById('endDatetime').value;
-  const updates = { message: msg };
-  if (val) {
-    const endMs = new Date(val).getTime();
-    updates.endAt = endMs;
-  }
-  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
+  const hrs = parseFloat(document.getElementById('durationHours').value) || 2;
+  await setDoc(doc(db, 'settings', 'maintenance'), { message: msg, durationHours: hrs }, { merge: true });
   showToast('Settings saved!');
   loadMaint();
 };
+
+loadMaint();
 </script>
 </body>
 </html>

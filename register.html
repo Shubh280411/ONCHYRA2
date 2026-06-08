@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Join — ONCHYRA</title>
+<title>Join � ONCHYRA</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--red:#ef4444}
@@ -80,28 +80,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
 
     <div class="ref-badge">
       <svg width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      <span>Referral code is <strong>required</strong> — you must have an inviter to join</span>
+      <span>Referral code is <strong>required</strong> � you must have an inviter to join</span>
     </div>
 
-    <div id="otpRow" style="display:none;">
-      <div class="otp-row">
-        <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
-      </div>
-      <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOtp()" style="margin-top:10px;">Verify</button>
-      <button class="btn-outline" id="resendBtn" onclick="sendOtp()" style="margin-top:8px;display:none;">Resend OTP (60s)</button>
+    <div class="otp-row" id="otpRow" style="display:none;">
+      <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+      <button id="verifyOtpBtn" onclick="verifyOtp()">Verify</button>
     </div>
 
     <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
-    <div style="margin-top:14px;">
-      <a href="login.html" class="footer-link">Already have an account? <span>Login</span></a>
-    </div>
+    <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -117,48 +112,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
-const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra.netlify.app/api');
 let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
 localStorage.setItem("onc_device", deviceId);
 let otpVerified = false;
-let refValid = false;
-let refChecked = false;
 
 const referralInput = document.getElementById('referral');
-const refStatus = document.createElement('div');
-refStatus.style.cssText = 'font-size:10px;font-weight:700;margin-top:6px;padding-left:4px;display:none;';
-referralInput.parentNode.appendChild(refStatus);
-
-// Real-time referral check
-referralInput.addEventListener('input', async () => {
-  const code = referralInput.value.trim().toUpperCase();
-  referralInput.value = code;
-  if (code.length < 3) { refStatus.style.display = 'none'; refValid = false; refChecked = false; return; }
-  refStatus.style.display = 'block';
-  refStatus.style.color = 'rgba(255,255,255,0.3)';
-  refStatus.textContent = 'Checking...';
-  refChecked = false;
-  refValid = false;
-  try {
-    const snap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', code)));
-    if (!snap.empty) {
-      refValid = true; refChecked = true;
-      refStatus.style.color = '#22c55e';
-      refStatus.textContent = '✅ Valid referral code';
-    } else {
-      refValid = false; refChecked = true;
-      refStatus.style.color = '#ef4444';
-      refStatus.textContent = '❌ Invalid referral code';
-    }
-  } catch(e) {
-    refValid = false; refChecked = false;
-    refStatus.style.display = 'none';
-  }
-});
 
 window.addEventListener("DOMContentLoaded", () => {
   const ref = new URLSearchParams(window.location.search).get("ref");
-  if(ref) { referralInput.value = ref.toUpperCase(); referralInput.dispatchEvent(new Event('input')); }
+  if(ref) referralInput.value = ref.toUpperCase();
 });
 
 function showToast(msg, isError) {
@@ -200,10 +163,6 @@ function validateForm() {
     showToast("Referral code is required", true);
     return null;
   }
-  if (!refChecked || !refValid) {
-    showToast("Referral code is invalid or not verified", true);
-    return null;
-  }
   return { name, email, password, refCode };
 }
 
@@ -212,51 +171,30 @@ window.sendOtp = async () => {
   if (!data) return;
 
   const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
 
   try {
-    // Check if email already registered
-    const methods = await fetchSignInMethodsForEmail(auth, data.email);
-    if (methods.length > 0) {
-      showToast('This email is already registered. Please login.', true);
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Sending...';
-
+    console.log('Sending OTP to:', data.email);
+    console.log('API URL:', API);
     const res = await fetch(API + '/otp/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: data.email })
     });
+    console.log('Response status:', res.status);
     const bodyText = await res.text();
+    console.log('Response body:', bodyText);
     let result;
     try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
     if (!res.ok) throw new Error(result.error || 'Request failed');
 
     showToast('OTP sent to your email!');
     document.getElementById('sendOtpBtn').style.display = 'none';
-    document.getElementById('otpRow').style.display = 'block';
-    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('otpRow').style.display = 'flex';
     document.getElementById('verifyOtpBtn').textContent = 'Verify';
+    document.getElementById('verifyOtpBtn').disabled = false;
     document.getElementById('otpInput').focus();
-
-    // Resend countdown
-    const resendBtn = document.getElementById('resendBtn');
-    resendBtn.style.display = 'block';
-    resendBtn.disabled = true;
-    let count = 60;
-    resendBtn.textContent = 'Resend OTP (' + count + 's)';
-    const timer = setInterval(() => {
-      count--;
-      if (count <= 0) {
-        clearInterval(timer);
-        resendBtn.disabled = false;
-        resendBtn.textContent = 'Resend OTP';
-      } else {
-        resendBtn.textContent = 'Resend OTP (' + count + 's)';
-      }
-    }, 1000);
   } catch(e) {
     showToast(e.message, true);
     btn.disabled = false;
@@ -289,11 +227,10 @@ window.verifyOtp = async () => {
     if (!res.ok) throw new Error(result.error || 'Request failed');
 
     otpVerified = true;
-    showToast('OTP verified! Registering...');
+    showToast('OTP verified!');
     document.getElementById('otpInput').disabled = true;
     document.getElementById('verifyOtpBtn').textContent = 'Verified';
-    document.getElementById('verifyOtpBtn').disabled = true;
-    registerUser();
+    document.getElementById('regBtn').style.display = 'block';
   } catch(e) {
     showToast(e.message, true);
     btn.disabled = false;
@@ -304,16 +241,26 @@ window.verifyOtp = async () => {
 };
 
 window.registerUser = async function() {
-  if (!otpVerified) return;
+  if (!otpVerified) {
+    showToast('Please verify OTP first', true);
+    return;
+  }
 
   const data = validateForm();
   if (!data) return;
 
-  document.getElementById('sendOtpBtn').style.display = 'none';
-  document.getElementById('otpRow').style.display = 'none';
+  const btn = document.getElementById("regBtn");
+  btn.disabled = true;
+  btn.innerText = "Creating...";
 
   try {
     const refSnap = await getDocs(query(collection(db,"users"), where("referralCode","==",data.refCode)));
+    if(refSnap.empty){
+      showToast("Invalid referral code", true);
+      btn.disabled = false;
+      btn.innerText = "Create Account";
+      return;
+    }
 
     const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
     const uid = userCred.user.uid;
@@ -370,11 +317,8 @@ window.registerUser = async function() {
     setTimeout(() => window.location.href = "dashboard.html", 800);
   } catch(e){
     showToast(e.message, true);
-    otpVerified = false;
-    document.getElementById('otpInput').disabled = false;
-    document.getElementById('verifyOtpBtn').disabled = false;
-    document.getElementById('verifyOtpBtn').textContent = 'Verify';
-    document.getElementById('otpInput').value = '';
+    btn.disabled = false;
+    btn.innerText = "Create Account";
   }
 };
 </script>

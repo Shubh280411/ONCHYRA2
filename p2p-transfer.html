@@ -19,14 +19,14 @@
 
         .phone-frame { position:relative; width:100%; max-width:400px; display:flex; flex-direction:column; gap:16px; padding-top:12px; }
 
-        /* ── Header ── */
+        /* -- Header -- */
         .header { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 18px; }
         .header .logo { font-family:'Space Grotesk'; font-weight:900; font-size:18px; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
         .header .spacer { flex:1; }
         .header .back-btn { width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; cursor:pointer; color:white; text-decoration:none; transition:0.2s; }
         .header .back-btn:hover { background:rgba(255,255,255,0.08); }
 
-        /* ── Top Label ── */
+        /* -- Top Label -- */
         .top-section { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
         .top-label .badge { font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--primary); background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); padding:5px 14px; border-radius:100px; display:inline-flex; align-items:center; gap:6px; width:fit-content; }
         .top-label .badge .dot { width:5px; height:5px; border-radius:50%; background:var(--primary); box-shadow:0 0 8px var(--primary); animation:pulse 1.5s infinite; }
@@ -37,7 +37,7 @@
         .balance-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.15); border-radius:100px; padding:8px 18px; font-size:13px; font-weight:600; margin-top:6px; width:fit-content; }
         .balance-pill .num { font-family:'Space Grotesk'; font-weight:800; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:16px; }
 
-        /* ── Transfer Card ── */
+        /* -- Transfer Card -- */
         .transfer-card { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:28px; padding:24px 20px; position:relative; overflow:hidden; }
         .transfer-card::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at 30% 20%,rgba(167,139,250,0.03) 0%,transparent 60%); pointer-events:none; }
         .transfer-card::after { content:''; position:absolute; top:0; left:15%; width:70%; height:1px; background:linear-gradient(90deg,transparent,rgba(167,139,250,0.2),rgba(96,165,250,0.3),transparent); }
@@ -51,7 +51,7 @@
         .input-field::placeholder { color:rgba(255,255,255,0.2); font-weight:400; font-size:13px; }
         .input-field:focus { border-color:rgba(167,139,250,0.3); box-shadow:0 0 0 1px rgba(167,139,250,0.1),0 0 30px rgba(167,139,250,0.05); background:rgba(255,255,255,0.06); }
 
-        /* ── Recipient Card ── */
+        /* -- Recipient Card -- */
         #recipientCard { display:none; margin-top:12px; padding:14px 16px; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.15); border-radius:16px; align-items:center; gap:14px; animation:fadeSlide 0.3s ease; }
         #recipientCard.show { display:flex; }
         @keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
@@ -68,7 +68,7 @@
         .lookup-status.found { color:#22c55e; }
         .lookup-status.error { color:#f87171; }
 
-        /* ── Breakdown ── */
+        /* -- Breakdown -- */
         .breakdown { margin-top:18px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:14px 16px; }
         .breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:13px; }
         .breakdown-row .label { color:rgba(255,255,255,0.45); font-weight:500; display:flex; align-items:center; gap:6px; }
@@ -80,7 +80,7 @@
         .breakdown-row.total .label { font-weight:700; color:rgba(255,255,255,0.8); }
         .breakdown-row.total .value { font-size:17px; font-weight:800; color:white; }
 
-        /* ── Button ── */
+        /* -- Button -- */
         .send-btn { margin-top:22px; width:100%; padding:18px; border:none; border-radius:18px; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; font-family:'Space Grotesk'; font-size:14px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; position:relative; overflow:hidden; box-shadow:0 4px 30px rgba(167,139,250,0.25); transition:transform 0.3s ease,box-shadow 0.3s ease; display:flex; align-items:center; justify-content:center; gap:10px; touch-action:manipulation; }
         .send-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,var(--secondary),var(--primary)); opacity:0; transition:opacity 0.4s ease; }
         .send-btn:hover::before { opacity:1; }
@@ -90,13 +90,13 @@
         .send-btn:disabled { background:#1a1a1a; color:#444; cursor:not-allowed; box-shadow:none; transform:none; }
         .send-btn:disabled::before { display:none; }
 
-        /* ── Bottom Links ── */
+        /* -- Bottom Links -- */
         .bottom-links { display:flex; align-items:center; justify-content:center; gap:18px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.25); padding:8px 0 4px; }
         .bottom-links a { color:rgba(255,255,255,0.4); text-decoration:none; transition:0.2s; display:flex; align-items:center; gap:6px; }
         .bottom-links a:hover { color:var(--primary); }
         .bottom-links .sep { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.15); }
 
-        /* ── History ── */
+        /* -- History -- */
         .history-wrap { margin-top:4px; }
         .history-header { display:flex; align-items:center; justify-content:space-between; padding:12px 4px 8px; }
         .history-header h3 { font-family:'Space Grotesk'; font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
@@ -121,7 +121,7 @@
         .tx-empty { text-align:center; padding:28px 16px; color:rgba(255,255,255,0.2); font-size:12px; display:flex; flex-direction:column; align-items:center; gap:10px; }
         .tx-loading { text-align:center; padding:16px; color:rgba(255,255,255,0.2); font-size:11px; }
 
-        /* ── Toast ── */
+        /* -- Toast -- */
         #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:#0b0d18; border:1px solid var(--border); padding:14px 24px; border-radius:16px; font-size:12px; font-weight:600; color:white; box-shadow:0 8px 40px rgba(0,0,0,0.6); opacity:0; transition:opacity 0.4s cubic-bezier(0.16,1,0.3,1),transform 0.4s cubic-bezier(0.16,1,0.3,1); z-index:100; pointer-events:none; display:flex; align-items:center; gap:10px; }
         #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
         #toast.error { border-color:rgba(239,68,68,0.3); }
@@ -308,17 +308,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
 
-// Maintenance check
-(async () => {
-    try {
-        const ms = await getDoc(doc(db, 'settings', 'maintenance'));
-        if (ms.exists() && ms.data().enabled) {
-            window.location.replace('maintenance.html?msg=' + encodeURIComponent(ms.data().message || ''));
-        }
-    } catch(e) {}
-})();
-
-// ── DOM refs ──
+// -- DOM refs --
 const recipientInput = document.getElementById('recipientInput');
 const amountInput = document.getElementById('amountInput');
 const balanceDisplay = document.getElementById('balanceDisplay');
@@ -345,7 +335,7 @@ let recipientId = null;
 let recipientDisplayName = '';
 let unsubHistory = null;
 
-// ── Toast ──
+// -- Toast --
 let toastTimer;
 function showToast(msg, type) {
     clearTimeout(toastTimer);
@@ -360,7 +350,7 @@ function parseAmount(val) {
     return isNaN(num) ? 0 : num;
 }
 
-// ── Update breakdown ──
+// -- Update breakdown --
 function updateBreakdown() {
     const amt = parseAmount(amountInput.value);
     const burn = amt * 0.1;
@@ -371,7 +361,7 @@ function updateBreakdown() {
 }
 amountInput.addEventListener('input', updateBreakdown);
 
-// ── Lookup recipient ──
+// -- Lookup recipient --
 let lookupTimeout = null;
 recipientInput.addEventListener('input', () => {
     clearTimeout(lookupTimeout);
@@ -425,7 +415,7 @@ async function lookupRecipient(code) {
     }
 }
 
-// ── Validate ──
+// -- Validate --
 function validateForm() {
     const amt = parseAmount(amountInput.value);
     const ok = uid && recipientId && amt >= 1 && amt <= 500 && amt <= userBalance;
@@ -433,7 +423,7 @@ function validateForm() {
 }
 [recipientInput, amountInput].forEach(el => el.addEventListener('input', validateForm));
 
-// ── Max / Clear ──
+// -- Max / Clear --
 document.getElementById('maxLink').addEventListener('click', (e) => {
     e.preventDefault();
     if (userBalance < 1) { showToast('Insufficient balance', 'error'); return; }
@@ -448,7 +438,7 @@ document.getElementById('clearLink').addEventListener('click', (e) => {
     validateForm();
 });
 
-// ── Daily limit check (client-side filter, no composite index needed) ──
+// -- Daily limit check (client-side filter, no composite index needed) --
 async function getDailyTxCount() {
     const cutoff = Date.now() - 86400000;
     const q = query(collection(db, "transfers"), where("from", "==", uid));
@@ -462,7 +452,7 @@ async function getDailyTxCount() {
     return count;
 }
 
-// ── Send ──
+// -- Send --
 sendBtn.addEventListener('click', async () => {
     if (sendBtn.disabled) return;
     const amt = parseAmount(amountInput.value);
@@ -540,7 +530,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !sendBtn.disabled) sendBtn.click();
 });
 
-// ── History (no composite indexes needed — client-side sort) ──
+// -- History (no composite indexes needed � client-side sort) --
 let historyPollTimer = null;
 
 function loadHistory() {
@@ -650,7 +640,7 @@ function renderHistory(items) {
     historyList.innerHTML = html;
 }
 
-// ── Auth ──
+// -- Auth --
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location = 'login.html'; return; }
     uid = user.uid;

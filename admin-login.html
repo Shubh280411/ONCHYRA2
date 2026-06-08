@@ -5,153 +5,77 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Login — ONCHYRA</title>
+<title>Admin Login — ONCHYRA</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box}
 
 body{
-
 font-family:'Inter',sans-serif;
 background:#070816;
 color:white;
-
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-
 }
 
-/* glow background */
-
 body::before{
-
 content:"";
 position:fixed;
 inset:0;
-
 background:
 radial-gradient(circle at 20% 30%, #6d28d9aa, transparent 40%),
 radial-gradient(circle at 80% 70%, #2563ebaa, transparent 40%);
-
 z-index:-1;
-
 }
-
-/* card */
 
 .card{
-
 width:360px;
-
 padding:40px;
-
 border-radius:18px;
-
 background:rgba(255,255,255,0.05);
-
 border:1px solid rgba(255,255,255,0.1);
-
 text-align:center;
-
 }
 
-/* title */
-
 h1{
-
 font-family:'Manrope';
-
 margin-bottom:20px;
-
 background:linear-gradient(90deg,#a78bfa,#60a5fa);
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
-
 }
-
-/* inputs */
 
 input{
-
 width:100%;
-
 padding:14px;
-
 margin-top:12px;
-
 border-radius:10px;
-
 border:none;
-
 background:rgba(255,255,255,0.08);
-
 color:white;
-
 }
-
-/* button */
 
 button{
-
 width:100%;
-
 margin-top:18px;
-
 padding:14px;
-
 border:none;
-
 border-radius:12px;
-
 background:linear-gradient(135deg,#a78bfa,#60a5fa);
-
 color:#0b0b20;
-
 font-weight:700;
-
 cursor:pointer;
-
-}
-
-/* links */
-
-.link{
-
-margin-top:14px;
-
-font-size:0.9rem;
-
-opacity:0.85;
-
-}
-
-.link a{
-
-color:#a78bfa;
-
-text-decoration:none;
-
-cursor:pointer;
-
 }
 
 .note{
-
 margin-top:10px;
-
 font-size:0.8rem;
-
 opacity:0.7;
-
 }
 
 </style>
@@ -162,41 +86,36 @@ opacity:0.7;
 
 <div class="card">
 
-<h1>ONCHYRA</h1>
+<h1>ONCHYRA ADMIN</h1>
 
-<input id="email" type="email" placeholder="Email">
+<input id="email" type="email" placeholder="Admin Email">
 
 <input id="password" type="password" placeholder="Password">
 
-<button onclick="loginUser()">Login</button>
-
-<div class="link">
-
-<a onclick="resetPassword()">Forgot Password?</a>
-
-</div>
+<button onclick="login()">Login</button>
 
 <div class="note">
-
-Password reset email may arrive in your spam folder.
-
-</div>
-
-<div class="link">
-
-No account? <a href="register.html">Register</a>
-
+Authorized admins only
 </div>
 
 </div>
+
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail }
+import {
+getAuth,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+getFirestore,
+doc,
+getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 const firebaseConfig = {
 
@@ -211,65 +130,42 @@ measurementId: "G-JSKSQR2B29"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-/* LOGIN */
-
-window.loginUser = function(){
+window.login = async function(){
 
 const email = document.getElementById("email").value;
-
 const password = document.getElementById("password").value;
 
-signInWithEmailAndPassword(auth,email,password)
+try{
 
-.then(()=>{
+const userCred = await signInWithEmailAndPassword(auth,email,password);
 
-window.location.href="dashboard.html";
+const uid = userCred.user.uid;
 
-})
+const adminDoc = await getDoc(doc(db,"admins",uid));
 
-.catch((error)=>{
+if(!adminDoc.exists()){
 
-alert(error.message);
-
-});
-
-}
-
-/* RESET PASSWORD */
-
-window.resetPassword = function(){
-
-const email = document.getElementById("email").value;
-
-if(!email){
-
-alert("Enter your email first");
-
+alert("Access denied. Not an admin.");
 return;
 
 }
 
-sendPasswordResetEmail(auth,email)
+window.location.href="admin.html";
 
-.then(()=>{
+}
 
-alert("Password reset email sent. Check your inbox or spam folder.");
-
-})
-
-.catch((error)=>{
+catch(error){
 
 alert(error.message);
 
-});
+}
 
 }
 
 </script>
 
 </body>
-
 </html>

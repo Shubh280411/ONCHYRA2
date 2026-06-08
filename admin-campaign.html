@@ -3,11 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONCHYRA â€” Campaign Dashboard</title>
+<title>ONCHYRA — Campaign Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body { font-family:'Inter',sans-serif; background:#03040a; color:#fff; min-height:100vh; padding:40px 20px; display:flex; flex-direction:column; align-items:center; }
@@ -300,17 +297,8 @@ textarea::placeholder { color:rgba(255,255,255,0.2); }
 </div>
 
 <script>
-firebase.initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
-firebase.auth().onAuthStateChanged(async user => {
-  if (!user) { window.location = 'admin-login.html'; return; }
-  try {
-    const snap = await firebase.firestore().doc('admins/' + user.uid).get();
-    if (!snap.exists || snap.data().role !== 'admin') { window.location = 'dashboard.html'; return; }
-  } catch(e) { window.location = 'dashboard.html'; return; }
-});
 let eventSource = null;
 let csvFileData = null;
-const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
 
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -321,7 +309,7 @@ function switchTab(name) {
 
 function connectSSE() {
   if (eventSource) eventSource.close();
-  eventSource = new EventSource(API_BASE + '/api/admin/campaign-stream');
+  eventSource = new EventSource('http://localhost:5000/api/admin/campaign-stream');
   eventSource.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.type === 'init') { updateStats(data); data.logs.forEach(addFeedItem); if (data.running) showLiveFeed(); }
@@ -377,7 +365,7 @@ async function fireBulk() {
   btn.classList.add('loading'); btn.disabled = true;
   document.getElementById('notif').classList.remove('show');
   try {
-    const res = await fetch(API_BASE + '/api/admin/send-custom-bulk', {
+    const res = await fetch('http://localhost:5000/api/admin/send-custom-bulk', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ userType: document.getElementById('userType').value, subject, customHtml, skipCooldown: document.getElementById('skipCooldownBulk').checked })
     });
@@ -399,7 +387,7 @@ async function fireManual() {
   btn.classList.add('loading'); btn.disabled = true;
   document.getElementById('notif').classList.remove('show');
   try {
-    const res = await fetch(API_BASE + '/api/admin/send-manual', {
+    const res = await fetch('http://localhost:5000/api/admin/send-manual', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ emails, subject, customHtml })
     });
@@ -428,7 +416,7 @@ async function fireCsv() {
   const fd = new FormData();
   fd.append('csv', csvFileData); fd.append('subject', subject); fd.append('customHtml', customHtml);
   try {
-    const res = await fetch(API_BASE + '/api/admin/send-csv', { method:'POST', body: fd });
+    const res = await fetch('http://localhost:5000/api/admin/send-csv', { method:'POST', body: fd });
     const data = await res.json();
     if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
   } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
@@ -438,7 +426,7 @@ async function previewEmail(src) {
   const html = src==='bulk' ? document.getElementById('htmlBulk').value.trim() : src==='manual' ? document.getElementById('htmlManual').value.trim() : document.getElementById('htmlCsv').value.trim();
   if (!html) { showNotif('Paste some HTML first.', 'error'); return; }
   try {
-    const res = await fetch(API_BASE + '/api/admin/preview-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customHtml: html }) });
+    const res = await fetch('http://localhost:5000/api/admin/preview-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customHtml: html }) });
     const data = await res.json();
     if (data.success) { document.getElementById('previewContent').innerHTML = data.html; document.getElementById('previewModal').classList.add('show'); }
     else showNotif('Preview failed: '+data.message, 'error');

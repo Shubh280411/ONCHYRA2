@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Packages â€” ONCHYRA</title>
+    <title>Packages — ONCHYRA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --red:#ef4444; --amber:#f59e0b; }
@@ -96,10 +96,8 @@
 
     <div class="info-card" id="infoCard">
         <div class="info-row"><span class="lbl">Current Package</span><span class="val" id="currentPkg">None</span></div>
-        <div class="info-row"><span class="lbl">Status</span><span class="val green" id="packageStatus">-</span></div>
         <div class="info-row"><span class="lbl">Mining Boost</span><span class="val green" id="currentBoost">1x</span></div>
-        <div class="info-row"><span class="lbl">Cap Usage</span><span class="val" id="currentUsage">0 / 0</span></div>
-        <div class="info-row"><span class="lbl">Remaining Cap</span><span class="val green" id="remainingCap">$0</span></div>
+        <div class="info-row"><span class="lbl">Package Usage</span><span class="val" id="currentUsage">0 / 0</span></div>
         <div class="info-row"><span class="lbl">Upgrade Credit</span><span class="val" id="upgradeCredit">$0</span></div>
     </div>
 
@@ -116,17 +114,15 @@ const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", a
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-    const PACKAGES = [
-        { id:'starter',  name:'Starter',  price:5,   boost:4,   cap:50,   glow:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
-        { id:'builder',  name:'Builder',  price:10,  boost:8,   cap:100,  glow:'#60a5fa', bg:'rgba(96,165,250,0.15)' },
-        { id:'pioneer',  name:'Pioneer',  price:25,  boost:15,  cap:250,  glow:'#f59e0b', bg:'rgba(245,158,11,0.15)' },
-        { id:'elite',    name:'Elite',    price:50,  boost:30,  cap:500,  glow:'#ec4899', bg:'rgba(236,72,153,0.15)' },
-        { id:'titan',    name:'Titan',    price:100, boost:60,  cap:1000, glow:'#8b5cf6', bg:'rgba(139,92,246,0.15)' },
-        { id:'dominion', name:'Dominion', price:250, boost:120, cap:2500, glow:'#f43f5e', bg:'rgba(244,63,94,0.15)' },
-        { id:'legacy',   name:'Legacy',   price:500, boost:300, cap:5000, glow:'#fbbf24', bg:'rgba(251,191,36,0.15)' },
-    ];
-
-    // 10X earning cap = package price * 10
+const PACKAGES = [
+    { id:'starter',  name:'Starter',  price:5,   boost:4,   cap:50,   glow:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
+    { id:'builder',  name:'Builder',  price:10,  boost:8,   cap:100,  glow:'#60a5fa', bg:'rgba(96,165,250,0.15)' },
+    { id:'pioneer',  name:'Pioneer',  price:25,  boost:15,  cap:250,  glow:'#f59e0b', bg:'rgba(245,158,11,0.15)' },
+    { id:'elite',    name:'Elite',    price:50,  boost:30,  cap:500,  glow:'#ec4899', bg:'rgba(236,72,153,0.15)' },
+    { id:'titan',    name:'Titan',    price:100, boost:60,  cap:1000, glow:'#8b5cf6', bg:'rgba(139,92,246,0.15)' },
+    { id:'dominion', name:'Dominion', price:250, boost:120, cap:2500, glow:'#f43f5e', bg:'rgba(244,63,94,0.15)' },
+    { id:'legacy',   name:'Legacy',   price:500, boost:300, cap:5000, glow:'#fbbf24', bg:'rgba(251,191,36,0.15)' },
+];
 
 const ICONS = {
     starter: '<svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
@@ -181,18 +177,16 @@ function updateActiveCard() {
     const cap = userData?.packageCap || p.cap;
     const pct = cap > 0 ? Math.min(100, (usage / cap) * 100) : 0;
     const offset = CIRCUM - (pct / 100) * CIRCUM;
-    const expired = userData?.packageStatus === 'expired';
 
     let color = '#22c55e';
-    if (expired) color = '#ef4444';
-    else if (pct > 80) color = '#ef4444';
+    if (pct > 80) color = '#ef4444';
     else if (pct > 50) color = '#f59e0b';
 
     const arc = document.getElementById('gaugeArc');
     arc.style.stroke = color;
     arc.style.strokeDashoffset = offset;
 
-    document.getElementById('gaugePct').textContent = expired ? 'EXPIRED' : Math.round(pct) + '%';
+    document.getElementById('gaugePct').textContent = Math.round(pct) + '%';
     document.getElementById('gaugeUsd').textContent = '$' + usage.toFixed(2) + ' / $' + cap;
 }
 
@@ -225,7 +219,7 @@ async function processCommissions(buyerUid, pkgPrice, pkgName, isFirstPkg) {
             });
         }
 
-        if (!refData.activePackage || refData.packageStatus === 'expired') {
+        if (!refData.activePackage) {
             currentRefCode = refData.referredBy;
             continue;
         }
@@ -236,17 +230,13 @@ async function processCommissions(buyerUid, pkgPrice, pkgName, isFirstPkg) {
         const available = cap - usage;
         const capped = Math.min(commission, Math.max(0, available));
         if (capped > 0) {
-            const updates = {
-                commissionBalance: increment(capped),
+            await updateDoc(doc(db, 'users', refUid), {
+                balance: increment(capped),
                 packageUsage: increment(capped),
                 totalCommissions: increment(capped),
-            };
-            if (usage + capped >= cap) {
-                updates.packageStatus = 'expired';
-            }
-            await updateDoc(doc(db, 'users', refUid), updates);
+            });
             await addDoc(collection(db, 'commissions'), {
-                fromUid: buyerUid, uid: refUid, amount: capped,
+                fromUid: buyerUid, toUid: refUid, amount: capped,
                 level: lv.level, type: 'package_commission',
                 packageName: pkgName, fromName: buyer.name || 'User', createdAt: Date.now()
             });
@@ -259,18 +249,14 @@ async function processCommissions(buyerUid, pkgPrice, pkgName, isFirstPkg) {
 function updateInfo() {
     const pkg = userData?.activePackage;
     const p = PACKAGES.find(x => x.id === pkg);
-    const status = userData?.packageStatus || 'none';
     document.getElementById('currentPkg').textContent = p ? p.name : 'None';
-    document.getElementById('packageStatus').textContent = status === 'expired' ? 'Expired' : p ? 'Active' : '-';
-    document.getElementById('packageStatus').style.color = status === 'expired' ? '#ef4444' : '#22c55e';
     document.getElementById('currentBoost').textContent = p ? p.boost + 'x' : '1x';
     const usage = userData?.packageUsage || 0;
     const cap = userData?.packageCap || 0;
-    document.getElementById('currentUsage').textContent = `$${usage.toFixed(2)} / $${cap}`;
-    document.getElementById('remainingCap').textContent = '$' + Math.max(0, cap - usage).toFixed(2);
+    document.getElementById('currentUsage').textContent = `${usage.toFixed(2)} / $${cap}`;
 
     let credit = 0;
-    if (selectedPkg && p && status !== 'expired') {
+    if (selectedPkg && p) {
         const usagePct = usage / (p.cap || 1);
         if (usagePct < 5) credit = p.price * 0.7;
     }
@@ -278,10 +264,9 @@ function updateInfo() {
 
     const btn = document.getElementById('buyBtn');
     if (!selectedPkg) { btn.textContent = 'Select a package'; btn.disabled = true; return; }
-    let label = status === 'expired' ? 'Activate' : credit > 0 ? 'Upgrade' : 'Activate';
     const finalPrice = selectedPkg.price - credit;
     if (walletBalance < finalPrice) { btn.textContent = 'Insufficient wallet balance ($' + finalPrice.toFixed(2) + ' needed)'; btn.disabled = true; return; }
-    btn.textContent = credit > 0 ? `${label} $${selectedPkg.price} (Credit: $${credit.toFixed(2)})` : `${label} for $${selectedPkg.price}`;
+    btn.textContent = credit > 0 ? `Activate $${selectedPkg.price} (Credit: $${credit.toFixed(2)})` : `Activate for $${selectedPkg.price}`;
     btn.disabled = false;
 }
 
@@ -317,7 +302,6 @@ window.purchase = async () => {
             packageAmount: pkg.price,
             packageBoost: pkg.boost,
             packageCap: prevCap + pkg.cap,
-            packageStatus: 'active',
             packageUsage: increment(0),
             packagePurchasedAt: Date.now(),
             totalPackageSpend: increment(pkg.price),
