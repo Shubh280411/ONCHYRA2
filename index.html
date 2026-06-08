@@ -3,91 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ONCHYRA â€” Coming Soon</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <title>ONCHYRA — The Next-Gen Mining Protocol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
     <style>
-        :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow:hidden; }
-        .bg-glow { position:fixed; top:-30%; left:-20%; width:140%; height:140%; background:radial-gradient(circle at 50% 40%, rgba(167,139,250,0.06) 0%, transparent 60%); pointer-events:none; }
-        .container { position:relative; z-index:1; text-align:center; max-width:480px; width:100%; }
-        .logo { font-family:'Space Grotesk'; font-weight:900; font-size:32px; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:4px; margin-bottom:24px; }
-        .icon-wrap { width:72px; height:72px; margin:0 auto 24px; border-radius:50%; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.12); display:flex; align-items:center; justify-content:center; animation:float 3s ease-in-out infinite; }
-        @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-        h1 { font-family:'Space Grotesk'; font-weight:900; font-size:clamp(24px,6vw,36px); line-height:1.2; margin-bottom:12px; }
-        .sub { font-size:14px; color:rgba(255,255,255,0.4); line-height:1.7; margin-bottom:32px; }
-        .sub strong { color:rgba(255,255,255,0.7); font-weight:700; }
-        .countdown { display:flex; justify-content:center; gap:16px; margin-bottom:32px; }
-        .c-unit { display:flex; flex-direction:column; align-items:center; min-width:64px; }
-        .c-num { font-family:'Space Grotesk'; font-weight:900; font-size:clamp(32px,8vw,48px); line-height:1; background:linear-gradient(180deg,#fff 30%,rgba(167,139,250,0.4)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-        .c-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.2); margin-top:4px; }
-        .launch-date { font-size:11px; font-weight:700; color:var(--primary); background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.12); padding:8px 20px; border-radius:100px; display:inline-flex; align-items:center; gap:8px; }
-        .launch-date .dot { width:5px; height:5px; border-radius:50%; background:var(--primary); animation:pulse-dot 1.5s ease-in-out infinite; }
-        @keyframes pulse-dot { 0%,100% { opacity:0.3; } 50% { opacity:1; } }
-        .features { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:32px; }
-        .f-item { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:16px; text-align:center; }
-        .f-item svg { width:20px; height:20px; margin-bottom:6px; }
-        .f-item .f-label { font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); }
+        :root { --p: #a78bfa; --bg: #05060f; --success: #10b981; --gold: #fbbf24; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: white; overflow-x: hidden; line-height: 1.5; }
+
+        .glow { position: fixed; width: 300px; height: 300px; background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%); z-index: -1; filter: blur(50px); top: -50px; right: -50px; }
+
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 6%; position: fixed; width: 100%; top: 0; z-index: 1000; transition: 0.3s; }
+        nav.scrolled { background: rgba(5, 6, 15, 0.95); backdrop-filter: blur(15px); padding: 15px 6%; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .logo { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+        .logo span { color: var(--p); }
+        .login-btn { color: white; text-decoration: none; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 50px; }
+
+        .hero { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 8% 20px; }
+        .live-badge { display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); padding: 6px 15px; border-radius: 50px; border: 1px solid var(--success); color: var(--success); font-size: 11px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        h1 { font-family: 'Space Grotesk'; font-size: clamp(40px, 12vw, 85px); line-height: 0.9; font-weight: 700; margin-bottom: 20px; letter-spacing: -3px; }
+        h1 b { background: linear-gradient(135deg, #fff, var(--p)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 17px; opacity: 0.6; max-width: 450px; margin-bottom: 40px; font-weight: 300; }
+
+        .btn-group { display: flex; flex-direction: column; width: 100%; max-width: 320px; gap: 12px; }
+        .btn { padding: 18px; border-radius: 18px; font-weight: 700; text-decoration: none; font-size: 14px; text-transform: uppercase; text-align: center; transition: 0.3s; letter-spacing: 1px; }
+        .btn-p { background: white; color: black; box-shadow: 0 10px 30px rgba(167, 139, 250, 0.2); }
+        .btn-s { border: 1px solid rgba(255,255,255,0.15); color: white; background: rgba(255,255,255,0.02); }
+
+        /* Roadmap Checklist Section */
+        .roadmap-sec { padding: 60px 6% 100px; }
+        .section-h { text-align: center; font-family: 'Space Grotesk'; font-size: 34px; margin-bottom: 40px; letter-spacing: -1px; }
+        .tracker { display: flex; flex-direction: column; gap: 20px; max-width: 550px; margin: 0 auto; }
+        .phase-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 30px; border-radius: 30px; position: relative; }
+        
+        .phase-box.done { border-color: var(--success); background: rgba(16, 185, 129, 0.03); }
+        .phase-box.active { border-color: var(--p); background: rgba(167, 139, 250, 0.05); }
+        .phase-box.highlight { border-color: var(--gold); background: rgba(251, 191, 36, 0.04); }
+
+        .status-label { position: absolute; right: 25px; top: 25px; font-size: 9px; font-weight: 900; letter-spacing: 1px; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+        .phase-num { font-size: 11px; font-weight: 800; color: var(--p); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .phase-box h3 { font-family: 'Space Grotesk'; font-size: 22px; margin-bottom: 12px; }
+        
+        .checklist { list-style: none; }
+        .checklist li { font-size: 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .checklist li.check::before { content: "?"; font-size: 12px; }
+        .checklist li.load::before { content: "?"; font-size: 12px; }
+        .checklist li.wait::before { content: "?"; font-weight: bold; opacity: 0.5; }
+        .checklist li.star::before { content: "?"; font-size: 12px; }
+
+        footer { padding: 40px 6%; text-align: center; opacity: 0.3; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
-<div class="bg-glow"></div>
-<div class="container">
-    <img src="https://onchyra.netlify.app/logo.png" alt="ONCHYRA" style="width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:block;object-fit:cover;" onerror="this.style.display='none'">
-    <div class="logo">ONCHYRA</div>
-    <div class="icon-wrap">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-    </div>
-    <h1>Something Big is Coming</h1>
-    <div class="sub">
-        We're building the next-generation <strong>Web3 ecosystem</strong> â€”<br>
-        Mining, Trading, Packages, and much more.<br>
-        <strong>Launching in a few days.</strong>
-    </div>
 
-    <div class="countdown" id="countdownWrap">
-        <div class="c-unit"><div class="c-num" id="cdDays">00</div><div class="c-label">Days</div></div>
-        <div class="c-unit"><div class="c-num" id="cdHours">00</div><div class="c-label">Hours</div></div>
-        <div class="c-unit"><div class="c-num" id="cdMins">00</div><div class="c-label">Min</div></div>
-        <div class="c-unit"><div class="c-num" id="cdSecs">00</div><div class="c-label">Sec</div></div>
-    </div>
+    <div class="glow"></div>
 
-    <div class="launch-date"><span class="dot"></span> Launching June 10, 2026</div>
+    <nav id="navbar">
+        <div class="logo">ONCHY<span>RA</span></div>
+        <a href="login.html" class="login-btn">LOGIN</a>
+    </nav>
 
-    <div class="features">
-        <div class="f-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <div class="f-label">Packages</div>
+    <section class="hero">
+        <div class="live-badge">Phase 2: Active</div>
+        <h1 data-aos="fade-up"><b>BUILD.</b> <br> MINE. EARN.</h1>
+        <p data-aos="fade-up" data-aos-delay="100">Simple, secure, and mobile-first mining protocol. Start building your ONC balance today with Onchyra.</p>
+        
+        <div class="btn-group" data-aos="fade-up" data-aos-delay="200">
+            <a href="register.html" class="btn btn-p">START MINING NOW</a>
+            <a href="whitepaper.html" class="btn btn-s">READ DOCUMENTATION</a>
         </div>
-        <div class="f-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            <div class="f-label">Deposits</div>
-        </div>
-        <div class="f-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-            <div class="f-label">Mining</div>
-        </div>
-        <div class="f-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <div class="f-label">Ranks</div>
-        </div>
-    </div>
-</div>
+    </section>
 
-<script>
-    const TARGET = new Date('2026-06-10T00:00:00').getTime();
-    function tick() {
-        const diff = TARGET - Date.now();
-        if (diff <= 0) { document.querySelectorAll('.c-num').forEach(e => e.textContent='00'); return; }
-        document.getElementById('cdDays').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
-        document.getElementById('cdHours').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
-        document.getElementById('cdMins').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-        document.getElementById('cdSecs').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-    }
-    tick(); setInterval(tick, 1000);
-</script>
+    <section class="roadmap-sec">
+        <h2 class="section-h" data-aos="fade-up">Evolution Roadmap</h2>
+        
+        <div class="tracker">
+            
+            <div class="phase-box done" data-aos="fade-up">
+                <span class="status-label" style="color: var(--success);">COMPLETED</span>
+                <span class="phase-num">Phase 1: Genesis</span>
+                <h3>Foundation Build</h3>
+                <ul class="checklist">
+                    <li class="check">Core Network Architecture Setup</li>
+                    <li class="check">Community Growth & Group Launch</li>
+                    <li class="check">Node Stability Testing (0.10 Hz)</li>
+                </ul>
+            </div>
+
+            <div class="phase-box active" data-aos="fade-up">
+                <span class="status-label" style="color: var(--p);">ACTIVE NOW</span>
+                <span class="phase-num">Phase 2: Launch & Utility</span>
+                <h3>P2P & Mining Activation</h3>
+                <ul class="checklist">
+                    <li class="check">Official Web-Mining Platform Live</li>
+                    <li class="check">3-Level Referral Reward System</li>
+                    <li class="load">P2P Transfer Protocol (Deploying)</li>
+                    <li class="load">Internal Asset Management</li>
+                </ul>
+            </div>
+
+            <div class="phase-box highlight" data-aos="fade-up">
+                <span class="status-label" style="color: var(--gold);">UPCOMING</span>
+                <span class="phase-num" style="color: var(--gold);">Phase 3: Investment</span>
+                <h3>Official Token Presale</h3>
+                <ul class="checklist">
+                    <li class="star" style="color: var(--gold); font-weight: bold;">Initial Coin Offering (ICO) Live</li>
+                    <li class="wait">Tiered Round Distribution</li>
+                    <li class="wait">Strategic Marketing Surge</li>
+                    <li class="wait">Liquidity Locking Protocol</li>
+                </ul>
+            </div>
+
+            <div class="phase-box" data-aos="fade-up" style="opacity: 0.7;">
+                <span class="status-label">FUTURE</span>
+                <span class="phase-num">Phase 4: Marketplace</span>
+                <h3>Ecosystem Utility</h3>
+                <ul class="checklist">
+                    <li class="wait">ONC Merchant Integration</li>
+                    <li class="wait">Mining Booster Store Launch</li>
+                    <li class="wait">Sovereign Governance Beta</li>
+                </ul>
+            </div>
+
+            <div class="phase-box" data-aos="fade-up" style="opacity: 0.5;">
+                <span class="status-label">FINAL GOAL</span>
+                <span class="phase-num">Phase 5: Global</span>
+                <h3>Mainnet & Exchange</h3>
+                <ul class="checklist">
+                    <li class="wait">DEX & CEX Public Listings</li>
+                    <li class="wait">Full Mainnet Transition</li>
+                    <li class="wait">Yield & Staking Rewards</li>
+                </ul>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 ONCHYRA NETWORK <br> Transparent Mining Solutions.</p>
+    </footer>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+        window.onscroll = function() {
+            var nav = document.getElementById('navbar');
+            if (window.pageYOffset > 30) nav.classList.add("scrolled");
+            else nav.classList.remove("scrolled");
+        };
+    </script>
 </body>
 </html>
