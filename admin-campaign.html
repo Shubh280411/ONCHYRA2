@@ -168,7 +168,7 @@ textarea::placeholder { color:rgba(255,255,255,0.2); }
     </div>
     <div class="field">
       <div class="field-label">Target Users</div>
-      <select id="userType"><option value="active">Active Users</option><option value="inactive">Inactive Users</option></select>
+      <select id="userType"><option value="active">Active Users</option><option value="inactive">Inactive Users</option><option value="all">All Users</option></select>
     </div>
     <div class="field">
       <div class="field-label">Subject Line</div>
@@ -309,7 +309,7 @@ function switchTab(name) {
 
 function connectSSE() {
   if (eventSource) eventSource.close();
-  eventSource = new EventSource('http://localhost:5000/api/admin/campaign-stream');
+  eventSource = new EventSource('https://onchyra-backend.onrender.com/api/admin/campaign-stream');
   eventSource.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.type === 'init') { updateStats(data); data.logs.forEach(addFeedItem); if (data.running) showLiveFeed(); }
@@ -365,7 +365,7 @@ async function fireBulk() {
   btn.classList.add('loading'); btn.disabled = true;
   document.getElementById('notif').classList.remove('show');
   try {
-    const res = await fetch('http://localhost:5000/api/admin/send-custom-bulk', {
+    const res = await fetch('https://onchyra-backend.onrender.com/api/admin/send-custom-bulk', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ userType: document.getElementById('userType').value, subject, customHtml, skipCooldown: document.getElementById('skipCooldownBulk').checked })
     });
@@ -387,7 +387,7 @@ async function fireManual() {
   btn.classList.add('loading'); btn.disabled = true;
   document.getElementById('notif').classList.remove('show');
   try {
-    const res = await fetch('http://localhost:5000/api/admin/send-manual', {
+    const res = await fetch('https://onchyra-backend.onrender.com/api/admin/send-manual', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ emails, subject, customHtml })
     });
@@ -416,7 +416,7 @@ async function fireCsv() {
   const fd = new FormData();
   fd.append('csv', csvFileData); fd.append('subject', subject); fd.append('customHtml', customHtml);
   try {
-    const res = await fetch('http://localhost:5000/api/admin/send-csv', { method:'POST', body: fd });
+    const res = await fetch('https://onchyra-backend.onrender.com/api/admin/send-csv', { method:'POST', body: fd });
     const data = await res.json();
     if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
   } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
@@ -426,7 +426,7 @@ async function previewEmail(src) {
   const html = src==='bulk' ? document.getElementById('htmlBulk').value.trim() : src==='manual' ? document.getElementById('htmlManual').value.trim() : document.getElementById('htmlCsv').value.trim();
   if (!html) { showNotif('Paste some HTML first.', 'error'); return; }
   try {
-    const res = await fetch('http://localhost:5000/api/admin/preview-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customHtml: html }) });
+    const res = await fetch('https://onchyra-backend.onrender.com/api/admin/preview-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customHtml: html }) });
     const data = await res.json();
     if (data.success) { document.getElementById('previewContent').innerHTML = data.html; document.getElementById('previewModal').classList.add('show'); }
     else showNotif('Preview failed: '+data.message, 'error');

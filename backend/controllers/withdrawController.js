@@ -4,9 +4,10 @@ const withdrawalWallet = require('../services/withdrawalWallet');
 
 exports.request = async (req, res) => {
     try {
-        const { uid, amount, wallet, network } = req.body;
+        const { uid, amount, wallet, network, otp } = req.body;
         if (!uid || !amount || !wallet) return res.status(400).json({ error: 'Missing fields' });
         if (amount < 10) return res.status(400).json({ error: 'Minimum withdrawal is 10 USDT' });
+        if (!otp) return res.status(400).json({ error: 'OTP is required' });
 
         const userSnap = await db.doc(`users/${uid}`).get();
         if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
@@ -15,26 +16,28 @@ exports.request = async (req, res) => {
         const commBal = user.commissionBalance || user.balance || 0;
         if (commBal < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
-        // Check OTP verified within expiry
+        // Verify OTP inline
         const otpSnap = await db.collection('otps')
             .where('email', '==', user.email)
-            .where('verified', '==', true)
+            .where('verified', '==', false)
+            .where('otp', '==', otp)
             .get();
 
-        if (otpSnap.empty) return res.status(400).json({ error: 'OTP verification required' });
+        if (otpSnap.empty) return res.status(400).json({ error: 'Invalid OTP' });
 
-        let latest = null;
+        let otpDoc = null;
         otpSnap.forEach(doc => {
             const d = doc.data();
-            if (!latest || d.createdAt > latest.createdAt) latest = { ref: doc.ref, ...d };
+            if (!otpDoc || d.createdAt > otpDoc.createdAt) otpDoc = { ref: doc.ref, ...d };
         });
 
-        if (Date.now() > latest.expiresAt) {
-            return res.status(400).json({ error: 'OTP expired. Verify again.' });
+        if (Date.now() > otpDoc.expiresAt) {
+            await otpDoc.ref.delete();
+            return res.status(400).json({ error: 'OTP expired. Request a new one.' });
         }
 
-        // Mark OTP as used (one-time use)
-        await latest.ref.update({ usedAt: Date.now() });
+        // Mark OTP as used
+        await otpDoc.ref.update({ verified: true, usedAt: Date.now() });
 
         const fee = Math.round(amount * 0.05 * 100) / 100;
         const net = Math.round((amount - fee) * 100) / 100;

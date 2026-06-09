@@ -125,9 +125,10 @@ exports.autoSweepSingle = async (index, network) => {
         const info = await checkBalance(index, network);
         if (info.balance > 0) {
             // BEP20 needs BNB for gas; Polygon uses POL so skip funding
-            if (network === 'BEP20') {
-                await fundGas(index, network).catch(() => {});
-            }
+if (network === 'BEP20') {
+    const funded = await fundGas(index, network).catch(e => { console.error(`[SWEEP] fundGas failed for ${index}: ${e.message}`); return { funded: false, reason: e.message }; });
+    if (!funded.funded) console.warn(`[SWEEP] fundGas skipped for ${index}: ${funded.reason}`);
+}
             const result = await sweepWallet(index, network);
             if (result.swept > 0) {
                 const walletSnap = await db.collection('depositWallets')

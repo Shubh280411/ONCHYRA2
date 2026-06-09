@@ -69,8 +69,8 @@ const sendCustomBulk = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields: userType, subject, customHtml' });
         }
 
-        if (!['active', 'inactive'].includes(userType)) {
-            return res.status(400).json({ success: false, message: 'userType must be "active" or "inactive"' });
+        if (!['active', 'inactive', 'all'].includes(userType)) {
+            return res.status(400).json({ success: false, message: 'userType must be "active", "inactive", or "all"' });
         }
 
         if (campaignState.running) {
@@ -81,6 +81,7 @@ const sendCustomBulk = async (req, res) => {
         const users = snapshot.docs
             .map(d => ({ docId: d.id, ...d.data() }))
             .filter(u => {
+                if (userType === 'all') return true;
                 return u.status && u.status.toLowerCase() === userType.toLowerCase();
             });
 

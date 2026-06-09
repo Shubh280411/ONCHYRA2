@@ -56,6 +56,18 @@ async function getNativeBalance() {
 }
 
 async function sendUSDT(to, amount) {
+    if (process.env.TEST_WITHDRAW === 'true') {
+        console.log(`[TEST] Simulated sendUSDT: ${amount} USDT -> ${to}`);
+        return {
+            success: true,
+            txHash: '0x' + 'a'.repeat(64),
+            from: getWallet().address,
+            to,
+            amount,
+            gasUsed: '0',
+            test: true
+        };
+    }
     try {
         const signer = getSigner();
         const token = new ethers.Contract(USDT_CONTRACT, ERC20_ABI, signer);

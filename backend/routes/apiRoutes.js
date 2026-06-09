@@ -20,7 +20,8 @@ router.post('/deposit/verify', deposit.verifyDeposit);
 router.get('/deposits', deposit.getDeposits);
 router.get('/deposits/:uid', deposit.userDeposits);
 router.get('/deposit/wallets/:uid', deposit.userWallets);
-router.get('/deposit/key/:index', deposit.getWalletPrivateKey);
+// REMOVED - security risk (exposed private keys without auth)
+// router.get('/deposit/key/:index', deposit.getWalletPrivateKey);
 
 // Packages
 router.get('/packages', packages.list);
