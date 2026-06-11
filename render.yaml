@@ -13,3 +13,18 @@ services:
         value: "*"
       - key: NODE_VERSION
         value: 18
+
+  - type: web
+    name: onchyra-email
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node email-server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: EMAIL_PORT
+        value: 10001
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: NODE_VERSION
+        value: 18
