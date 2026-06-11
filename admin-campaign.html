@@ -302,7 +302,7 @@ let csvFileData = null;
 
 const API = localStorage.getItem('onc_api') ||
     (location.hostname === 'localhost' || location.protocol === 'file:'
-        ? 'http://localhost:5000/api'
+        ? 'http://localhost:5001/api'
         : 'https://onchyra-backend.onrender.com/api');
 
 function switchTab(name) {
