@@ -243,17 +243,13 @@ router.post('/admin/migrate-commissions', async (req, res) => {
 
                     const refUid = refSnap.docs[0].id;
                     const refData = refSnap.docs[0].data();
-
-                    await admin.firestore().doc(`users/${refUid}`).update({
-                        teamBusiness: admin.firestore.FieldValue.increment(pkgAmount)
-                    });
+                    const pkgAmount = buyer.packageAmount || buyer.totalPackageSpend || 0;
 
                     if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
                         currentRefCode = refData.referredBy;
                         continue;
                     }
 
-                    const pkgAmount = buyer.packageAmount || 0;
                     const commission = pkgAmount * lv.pct;
                     const used = refData.packageUsage || 0;
                     const cap = refData.packageCap || Infinity;
