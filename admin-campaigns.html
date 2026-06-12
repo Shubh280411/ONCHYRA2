@@ -351,6 +351,11 @@
         let eventSource = null;
         let csvFileData = null;
 
+        const API = localStorage.getItem('onc_api') ||
+            (location.hostname === 'localhost' || location.protocol === 'file:'
+                ? 'http://localhost:5001/api'
+                : 'https://onchyra-backend.onrender.com/api');
+
         function switchTab(name) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -360,7 +365,7 @@
 
         function connectSSE() {
             if (eventSource) eventSource.close();
-            eventSource = new EventSource('http://localhost:5000/api/admin/campaign-stream');
+            eventSource = new EventSource(API + '/email/campaign-stream');
 
             eventSource.onmessage = (e) => {
                 const data = JSON.parse(e.data);
@@ -471,7 +476,7 @@
             document.getElementById('notif').classList.remove('show');
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/send-custom-bulk', {
+                const res = await fetch(API + '/email/send-custom-bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userType, subject, customHtml, skipCooldown })
@@ -508,7 +513,7 @@
             document.getElementById('notif').classList.remove('show');
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/send-manual', {
+                const res = await fetch(API + '/email/send-manual', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ emails, subject, customHtml })
@@ -547,7 +552,7 @@
             formData.append('customHtml', customHtml);
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/send-csv', {
+                const res = await fetch(API + '/email/send-csv', {
                     method: 'POST',
                     body: formData
                 });
@@ -567,7 +572,7 @@
             if (!html) { showNotif('Paste some HTML first to preview.', 'error'); return; }
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/preview-email', {
+                const res = await fetch(API + '/email/preview-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ customHtml: html })
