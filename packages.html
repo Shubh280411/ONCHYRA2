@@ -114,6 +114,8 @@ const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", a
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+
 const PACKAGES = [
     { id:'starter',  name:'Starter',  price:5,   boost:4,   cap:50,   glow:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
     { id:'builder',  name:'Builder',  price:10,  boost:8,   cap:100,  glow:'#60a5fa', bg:'rgba(96,165,250,0.15)' },
@@ -190,60 +192,16 @@ function updateActiveCard() {
     document.getElementById('gaugeUsd').textContent = '$' + usage.toFixed(2) + ' / $' + cap;
 }
 
-async function processCommissions(buyerUid, pkgPrice, pkgName, isFirstPkg) {
-    const buyerSnap = await getDoc(doc(db, 'users', buyerUid));
-    const buyer = buyerSnap.data();
-    if (!buyer.referredBy) return;
-
-    const levels = [
-        { level: 1, pct: 0.10 },
-        { level: 2, pct: 0.05 },
-        { level: 3, pct: 0.03 },
-    ];
-
-    let currentRefCode = buyer.referredBy;
-    for (const lv of levels) {
-        if (!currentRefCode) break;
-        const refSnap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', currentRefCode)));
-        if (refSnap.empty) break;
-
-        const refData = refSnap.docs[0].data();
-        const refUid = refSnap.docs[0].id;
-
-        await updateDoc(doc(db, 'users', refUid), {
-            teamBusiness: increment(pkgPrice),
+async function processCommissions(buyerUid) {
+    try {
+        const res = await fetch(API + '/commissions/process-package', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid: buyerUid })
         });
-        if (isFirstPkg && lv.level === 1) {
-            await updateDoc(doc(db, 'users', refUid), {
-                activeDirects: increment(1),
-            });
-        }
-
-        if (!refData.activePackage) {
-            currentRefCode = refData.referredBy;
-            continue;
-        }
-
-        const commission = pkgPrice * lv.pct;
-        const cap = refData.packageCap || 0;
-        const usage = refData.packageUsage || 0;
-        const available = cap - usage;
-        const capped = Math.min(commission, Math.max(0, available));
-        if (capped > 0) {
-            await updateDoc(doc(db, 'users', refUid), {
-                balance: increment(capped),
-                packageUsage: increment(capped),
-                totalCommissions: increment(capped),
-            });
-            await addDoc(collection(db, 'commissions'), {
-                fromUid: buyerUid, toUid: refUid, amount: capped,
-                level: lv.level, type: 'package_commission',
-                packageName: pkgName, fromName: buyer.name || 'User', createdAt: Date.now()
-            });
-        }
-
-        currentRefCode = refData.referredBy;
-    }
+        const data = await res.json();
+        if (!data.success) console.error('Commission API error:', data.error);
+    } catch(e) { console.error('Commission API error:', e); }
 }
 
 function updateInfo() {
@@ -311,8 +269,7 @@ window.purchase = async () => {
         }));
         await Promise.all(batch);
 
-        const isFirstPkg = !userData.activePackage;
-        processCommissions(uid, pkg.price, pkg.name, isFirstPkg).catch(e => console.error('Commission error:', e));
+        processCommissions(uid).catch(e => console.error('Commission error:', e));
 
         userData.activePackage = pkg.id;
         userData.packageBoost = pkg.boost;
