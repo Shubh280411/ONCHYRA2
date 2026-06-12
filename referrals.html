@@ -143,11 +143,13 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 
 let uid, refCode, userData;
 let teamData = { 1: [], 2: [], 3: [] };
@@ -184,19 +186,15 @@ window.switchTab = (tab) => {
 };
 
 async function loadTeam() {
-    if (!refCode) return;
-    const s1 = await getDocs(query(collection(db, 'users'), where('referredBy', '==', refCode)));
-    teamData[1] = s1.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const l1Codes = teamData[1].map(u => u.referralCode).filter(Boolean);
-    for (let i = 0; i < l1Codes.length; i += 10) {
-        const s2 = await getDocs(query(collection(db, 'users'), where('referredBy', 'in', l1Codes.slice(i, i + 10))));
-        teamData[2].push(...s2.docs.map(d => ({ id: d.id, ...d.data() })));
-    }
-    const l2Codes = teamData[2].map(u => u.referralCode).filter(Boolean);
-    for (let i = 0; i < l2Codes.length; i += 10) {
-        const s3 = await getDocs(query(collection(db, 'users'), where('referredBy', 'in', l2Codes.slice(i, i + 10))));
-        teamData[3].push(...s3.docs.map(d => ({ id: d.id, ...d.data() })));
+    if (!uid) return;
+    try {
+        const resp = await fetch(API + '/referrals/team/' + uid);
+        const data = await resp.json();
+        teamData[1] = data.levels[1];
+        teamData[2] = data.levels[2];
+        teamData[3] = data.levels[3];
+    } catch (e) {
+        console.error('Team load error:', e);
     }
     l1BizCache = {};
     for (const u of teamData[1]) {
@@ -252,9 +250,9 @@ function renderLegs() {
 
 async function loadCommissions() {
     try {
-        const snap = await getDocs(query(collection(db, 'commissions'), where('toUid', '==', uid), limit(100)));
-        allCommissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        allCommissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const resp = await fetch(API + '/referrals/commissions/' + uid);
+        const data = await resp.json();
+        allCommissions = data.commissions || [];
     } catch (e) {
         console.error('Commissions load error:', e);
         allCommissions = [];
