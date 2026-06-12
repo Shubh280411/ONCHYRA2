@@ -176,7 +176,10 @@ tr:last-child td { border-bottom:none; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { initializeFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, collection, query, where, getDocs, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const API = 'https://onchyra-backend.onrender.com/api';
+let cached = {};
 
 const app = initializeApp({
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -193,11 +196,17 @@ onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
   try {
     const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+    if (!adminSnap.exists || adminSnap.data().role !== 'admin') {
       window.location = 'dashboard.html';
       return;
     }
-  } catch(e) { window.location = 'dashboard.html'; return; }
+    const r = await fetch(API + '/admin/stats');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    cached = await r.json();
+  } catch(e) {
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Failed to load stats: ' + e.message + '</div>';
+    return;
+  }
   init();
 });
 
@@ -233,40 +242,15 @@ function toMs(val) {
 }
 
 async function loadSummary() {
-  let totalDeposits = 0, totalWithdrawals = 0, totalRewards = 0, totalAchievement = 0;
-  let totalUsers = 0, activeUsers = 0, totalCommission = 0, totalWallet = 0;
-
-  try {
-    const depSnap = await getDocs(query(collection(db, 'deposits'), where('status', '==', 'completed')));
-    depSnap.forEach(d => totalDeposits += (d.data().amount || 0));
-  } catch(e) {}
-
-  try {
-    const wdSnap = await getDocs(query(collection(db, 'withdrawals'), where('status', '==', 'completed')));
-    wdSnap.forEach(d => totalWithdrawals += (d.data().amount || 0));
-  } catch(e) {}
-
-  try {
-    const rewSnap = await getDocs(collection(db, 'leadershipRewards'));
-    rewSnap.forEach(d => totalRewards += (d.data().amount || 0));
-  } catch(e) {}
-
-  try {
-    const achSnap = await getDocs(collection(db, 'achievementBonuses'));
-    achSnap.forEach(d => totalAchievement += (d.data().amount || 0));
-  } catch(e) {}
-
-  try {
-    const uSnap = await getDocs(collection(db, 'users'));
-    totalUsers = uSnap.size;
-    uSnap.forEach(d => {
-      const u = d.data();
-      if (u.activePackage) activeUsers++;
-      totalCommission += (u.commissionBalance || 0);
-      totalWallet += (u.walletBalance || 0);
-    });
-  } catch(e) {}
-
+  const u = cached;
+  const totalCommission = (u.users || []).reduce((s, x) => s + (x.commissionBalance || 0), 0);
+  const totalWallet = (u.users || []).reduce((s, x) => s + (x.walletBalance || 0), 0);
+  const totalDeposits = u.totalDeposits || 0;
+  const totalWithdrawals = u.totalWithdrawals || 0;
+  const totalRewards = u.totalRewards || 0;
+  const totalAchievement = u.totalBonuses || 0;
+  const totalUsers = u.totalUsers || 0;
+  const activeUsers = u.usersWithPackage || 0;
   document.getElementById('summaryCards').innerHTML = `
     <div class="stat-card">
       <div class="label">
@@ -321,7 +305,7 @@ async function loadSummary() {
 
 async function loadPending() {
   try {
-    const snap = await getDocs(collection(db, 'withdrawals'));
+    const snap = await getDocs(query(collection(db, 'withdrawals'), limit(200)));
     const allPending = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(w => w.status === 'pending')
@@ -357,11 +341,10 @@ async function loadPending() {
 
 async function loadRanks() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
     const rankCount = {};
     let unranked = 0;
-    snap.forEach(d => {
-      const r = d.data().rank;
+    (cached.users || []).forEach(u => {
+      const r = u.rank;
       if (r && RANKS.includes(r)) rankCount[r] = (rankCount[r] || 0) + 1;
       else unranked++;
     });
@@ -461,9 +444,8 @@ async function loadDaily() {
       if (toMs(d.data().createdAt) >= todayMs) rewardsToday += (d.data().amount || 0);
     });
 
-    const uSnap = await getDocs(collection(db, 'users'));
-    uSnap.forEach(d => {
-      if (toMs(d.data().createdAt) >= todayMs) regToday++;
+    (cached.users || []).forEach(u => {
+      if (toMs(u.createdAt) >= todayMs) regToday++;
     });
 
     document.getElementById('dailyContent').innerHTML = `
@@ -603,15 +585,13 @@ async function loadTopDepositors() {
 // ── PACKAGE EXPIRY WARNING ──
 async function loadExpiryWarning() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
     const expired = [];
     const nearCap = [];
-    snap.forEach(d => {
-      const u = d.data();
+    (cached.users || []).forEach(u => {
       if (!u.activePackage) return;
       if (u.packageStatus === 'expired') expired.push(u);
       else if (u.packageCap > 0 && u.packageUsage / u.packageCap >= 0.85) {
-        nearCap.push({ ...u, uid: d.id, pct: ((u.packageUsage / u.packageCap) * 100).toFixed(0) });
+        nearCap.push({ ...u, pct: ((u.packageUsage / u.packageCap) * 100).toFixed(0) });
       }
     });
 
@@ -644,9 +624,7 @@ async function loadExpiryWarning() {
 // ── COMMISSION LEADERBOARD ──
 async function loadCommissionLeaderboard() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
-    const list = snap.docs
-      .map(d => ({ uid: d.id, ...d.data() }))
+    const list = (cached.users || [])
       .filter(u => (u.commissionBalance || 0) > 0)
       .sort((a, b) => (b.commissionBalance || 0) - (a.commissionBalance || 0))
       .slice(0, 10);
@@ -668,10 +646,8 @@ async function loadCommissionLeaderboard() {
 // ── SCHEDULER STATUS ──
 async function loadSchedulerStatus() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
     let paidToday = 0, totalPaid = 0, lastPaidDates = [];
-    snap.forEach(d => {
-      const u = d.data();
+    (cached.users || []).forEach(u => {
       if (u.rewardLastPaid) {
         totalPaid++;
         lastPaidDates.push(u.rewardLastPaid);
@@ -715,17 +691,16 @@ async function loadReferralLeaderboard() {
   try {
     const refCount = {};
     const nameMap = {};
-    const snap = await getDocs(collection(db, 'users'));
-    snap.forEach(d => {
-      const u = d.data();
+    const userList = cached.users || [];
+    userList.forEach(u => {
       const code = u.referralCode;
       if (code) refCount[code] = 0;
-      nameMap[d.id] = u.name || d.id.slice(0,8);
+      nameMap[u.uid] = u.name || u.uid.slice(0,8);
     });
 
     // Count how many times each referral code was used
-    snap.forEach(d => {
-      const refBy = d.data().referredBy;
+    userList.forEach(u => {
+      const refBy = u.referredBy;
       if (refBy && refCount[refBy] !== undefined) refCount[refBy]++;
     });
 
@@ -760,13 +735,11 @@ async function loadReferralLeaderboard() {
 // ── MINING OVERVIEW ──
 async function loadMiningOverview() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
     let totalOnc = 0, claimedToday = 0, longestStreak = 0, streakUsers = 0;
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
 
-    snap.forEach(d => {
-      const u = d.data();
+    (cached.users || []).forEach(u => {
       totalOnc += (u.balance || 0);
       if (u.lastClaim && u.lastClaim >= todayStart.getTime()) claimedToday++;
       if ((u.streak || 0) > longestStreak) longestStreak = u.streak;

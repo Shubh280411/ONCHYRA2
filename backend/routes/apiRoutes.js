@@ -127,6 +127,23 @@ router.get('/referrals/commissions/:uid', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Income — all income data in one call
+router.get('/income/:uid', async (req, res) => {
+    try {
+        const { uid } = req.params;
+        const db = admin.firestore();
+        const [commSnap, achSnap, rewSnap] = await Promise.all([
+            db.collection('commissions').where('uid', '==', uid).limit(200).get(),
+            db.collection('achievementBonuses').where('uid', '==', uid).limit(200).get(),
+            db.collection('leadershipRewards').where('uid', '==', uid).limit(200).get(),
+        ]);
+        const commissions = commSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const achievements = achSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const rewards = rewSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        res.json({ commissions, achievements, rewards });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Admin — Users
 router.get('/admin/users', async (req, res) => {
     try {
@@ -140,6 +157,65 @@ router.post('/admin/user/update', async (req, res) => {
         const { uid, updates } = req.body;
         await admin.firestore().doc(`users/${uid}`).update(updates);
         res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Admin — Stats (single endpoint replacing 40+ individual reads)
+router.get('/admin/stats', async (req, res) => {
+    try {
+        const db = admin.firestore();
+        const [uSnap, depSnap, wdSnap, rewSnap, achSnap, pkgSnap, claimSnap] = await Promise.all([
+            db.collection('users').get(),
+            db.collection('deposits').where('status', '==', 'completed').get(),
+            db.collection('withdrawals').get(),
+            db.collection('leadershipRewards').get(),
+            db.collection('achievementBonuses').get(),
+            db.collection('packagePurchases').get(),
+            db.collection('claims').get(),
+        ]);
+
+        const users = uSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        const totalUsers = users.length;
+        const totalDeposits = depSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
+        const totalWithdrawals = wdSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
+        const pendingWithdrawals = wdSnap.docs.filter(d => d.data().status === 'pending').length;
+        const completedWithdrawals = wdSnap.docs.filter(d => d.data().status === 'completed').length;
+        const totalRewards = rewSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
+        const totalBonuses = achSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
+        const totalPackageSales = pkgSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
+        const packageCount = pkgSnap.docs.length;
+        const totalClaims = claimSnap.docs.length;
+
+        // Users by package
+        const usersWithPackage = users.filter(u => u.activePackage).length;
+        const usersWithoutPackage = totalUsers - usersWithPackage;
+
+        // Rank distribution
+        const rankCounts = {};
+        for (const u of users) {
+            const r = u.rank || 'member';
+            rankCounts[r] = (rankCounts[r] || 0) + 1;
+        }
+
+        // Deposits top 10 users
+        const depositByUser = {};
+        for (const d of depSnap.docs) {
+            const uid = d.data().uid;
+            if (uid) depositByUser[uid] = (depositByUser[uid] || 0) + (d.data().amount || 0);
+        }
+        const topDepositors = Object.entries(depositByUser)
+            .sort((a, b) => b[1] - a[1]).slice(0, 10)
+            .map(([uid, amount]) => {
+                const u = users.find(x => x.uid === uid);
+                return { uid, name: u?.name || 'Unknown', amount };
+            });
+
+        res.json({
+            totalUsers, usersWithPackage, usersWithoutPackage,
+            totalDeposits, totalWithdrawals, pendingWithdrawals, completedWithdrawals,
+            totalRewards, totalBonuses, totalPackageSales, packageCount, totalClaims,
+            rankCounts, topDepositors, users
+        });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

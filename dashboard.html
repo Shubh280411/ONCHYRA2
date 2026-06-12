@@ -701,7 +701,8 @@ window.closeContestPopup = () => {
 };
 
 async function fetchStats() {
-    onSnapshot(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)), (snap) => {
+    try {
+        const snap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
         const lb = document.getElementById('miniLeaderboard');
         lb.innerHTML = "";
         let rank = 1;
@@ -716,17 +717,15 @@ async function fetchStats() {
             </div>`;
             rank++;
         });
-    });
-
-    onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)), (snap) => {
+    } catch(e) {}
+    try {
+        const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)));
         const list = document.getElementById('liveFeedList');
         list.innerHTML = "";
         snap.forEach(d => {
             list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name || "Anonymous"}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
         });
-    });
-
-}
+    } catch(e) {}
 
 async function fetchLatestUpdate() {
     onSnapshot(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)), (snap) => {

@@ -239,11 +239,17 @@ onAuthStateChanged(auth, async user => {
   loadStats();
 });
 
+const API = 'https://onchyra-backend.onrender.com/api';
+
 async function loadStats() {
-  try { const snap = await getDocs(collection(db, 'users')); document.getElementById('users').textContent = snap.size; } catch(e) {}
-  try { const snap = await getDocs(collection(db, 'claims')); document.getElementById('claims').textContent = snap.size; } catch(e) {}
-  try { const snap = await getDocs(collection(db, 'packagePurchases')); document.getElementById('packages').textContent = snap.size; } catch(e) {}
-  try { const snap = await getDocs(collection(db, 'withdrawals')); let p = 0; snap.forEach(d => { if (d.data().status === 'pending') p++; }); document.getElementById('pendingW').textContent = p; } catch(e) {}
+  try {
+    const r = await fetch(API + '/admin/stats');
+    const d = await r.json();
+    document.getElementById('users').textContent = d.totalUsers || 0;
+    document.getElementById('claims').textContent = d.totalClaims || 0;
+    document.getElementById('packages').textContent = d.packageCount || 0;
+    document.getElementById('pendingW').textContent = d.pendingWithdrawals || 0;
+  } catch(e) {}
 }
 
 window.logout = () => { signOut(auth); window.location = 'admin-login.html'; };

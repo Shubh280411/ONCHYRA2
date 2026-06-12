@@ -441,15 +441,9 @@ document.getElementById('clearLink').addEventListener('click', (e) => {
 // ── Daily limit check (client-side filter, no composite index needed) ──
 async function getDailyTxCount() {
     const cutoff = Date.now() - 86400000;
-    const q = query(collection(db, "transfers"), where("from", "==", uid));
+    const q = query(collection(db, "transfers"), where("from", "==", uid), where("timestamp", ">=", cutoff), limit(50));
     const snap = await getDocs(q);
-    let count = 0;
-    snap.forEach(d => {
-        const ts = d.data().timestamp;
-        const ms = ts?.toMillis ? ts.toMillis() : (ts instanceof Date ? ts.getTime() : 0);
-        if (ms >= cutoff) count++;
-    });
-    return count;
+    return snap.size;
 }
 
 // ── Send ──
@@ -539,7 +533,7 @@ function loadHistory() {
 
     // Poll every 15s as fallback (avoids onSnapshot + composite index requirement)
     if (historyPollTimer) clearInterval(historyPollTimer);
-    historyPollTimer = setInterval(() => loadHistorySide(uid), 15000);
+    historyPollTimer = setInterval(() => loadHistorySide(uid), 60000);
 }
 
 async function loadHistorySide(uid) {

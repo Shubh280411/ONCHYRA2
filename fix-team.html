@@ -108,7 +108,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -131,12 +131,11 @@
             marksContainer.appendChild(mark);
         }
 
-        // 2. REAL-TIME DATA SYNC & NEEDLE MOVEMENT
-        function startLiveUpdate() {
-            onSnapshot(collection(db, "users"), (snap) => {
+        // 2. DATA LOAD (one-time read, no real-time listener)
+        async function loadData() {
+            try {
+                const snap = await getDocs(collection(db, "users"));
                 const totalUsers = snap.size;
-                
-                // Update text
                 document.getElementById('userCount').innerText = totalUsers;
 
                 // NEEDLE LOGIC:
@@ -149,9 +148,13 @@
                 const needle = document.getElementById('needle');
                 needle.style.transform = `rotate(${targetRotation}deg)`;
             });
+
+            // Update needle
+            const deg = -90 + (totalUsers / 200) * 180;
+            document.getElementById('needle').style.transform = `rotate(${Math.max(-90, Math.min(90, deg))}deg)`;
         }
 
-        startLiveUpdate();
+        loadData();
     </script>
 </body>
 </html>
