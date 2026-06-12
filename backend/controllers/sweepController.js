@@ -150,7 +150,7 @@ exports.check = async (req, res) => {
 
         const wallets = await db.collection('depositWallets')
             .where('network', '==', network)
-            .where('used', '==', false).get();
+            .where('used', '==', false).limit(50).get();
 
         const results = [];
         for (const d of wallets.docs) {
@@ -189,7 +189,7 @@ exports.autoSweep = async (req, res) => {
         for (const network of networks) {
             const wallets = await db.collection('depositWallets')
                 .where('network', '==', network)
-                .where('used', '==', false).get();
+                .where('used', '==', false).limit(50).get();
 
             for (const d of wallets.docs) {
                 const w = d.data();

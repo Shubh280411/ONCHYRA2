@@ -19,6 +19,7 @@ const ERC20_ABI = [
 ];
 
 let polPriceCache = { price: 0, time: 0 };
+let walletCache = { docs: [], processedIds: new Set(), lastFetch: 0 };
 
 function httpGet(url) {
     return new Promise((resolve, reject) => {
@@ -164,11 +165,14 @@ async function processUnusedWallets() {
 
     let checked = 0;
     for (const d of wallets.docs) {
+        // Skip already-processed wallets (tracked across cycles)
+        if (walletCache.processedIds.has(d.id)) continue;
         const w = d.data();
 
         // Skip master wallet (index 0) just in case
         if (w.index === 0) {
             await d.ref.update({ used: true, note: 'Master wallet - skipped' });
+            walletCache.processedIds.add(d.id);
             continue;
         }
 
@@ -176,7 +180,8 @@ async function processUnusedWallets() {
 
         // Mark wallets older than 48h as expired so they never get checked again
         if (age > WALLET_TTL_MS) {
-            await d.ref.update({ expired: true, expiredAt: Date.now() });
+            await d.ref.update({ used: true, expired: true, expiredAt: Date.now() });
+            walletCache.processedIds.add(d.id);
             continue;
         }
 
@@ -223,6 +228,7 @@ async function processUnusedWallets() {
                 }
                 const sweep = await sweepWallet(w.index, w.network, info.raw);
                 await d.ref.update({ used: true, usedAt: Date.now(), sweepTx: sweep.txHash });
+                walletCache.processedIds.add(d.id);
                 console.log(`[MONITOR] Swept ${sweep.swept} ${symbol} from wallet #${w.index} to master (tx: ${sweep.txHash})`);
             } catch (e) {
                 console.error(`[MONITOR] Sweep failed for #${w.index}: ${e.message}`);
