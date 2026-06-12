@@ -2,9 +2,42 @@ const admin = require('firebase-admin');
 const transporter = require('../config/mailer');
 
 const MAX_EMAILS_PER_CAMPAIGN = 450;
+const DAILY_LIMIT = 450;
 
 let campaignState = { running: false, logs: [], sent: 0, failed: 0, skipped: 0, total: 0 };
 let sseClients = [];
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+async function getDailyDoc(dateStr) {
+    const ref = admin.firestore().doc(`emailCounts/${dateStr}`);
+    const snap = await ref.get();
+    if (!snap.exists) {
+        await ref.set({ count: 0, limit: DAILY_LIMIT, date: dateStr });
+        return { count: 0, limit: DAILY_LIMIT, ref };
+    }
+    return { count: snap.data().count || 0, limit: snap.data().limit || DAILY_LIMIT, ref };
+}
+
+async function incrementDailyCount(amount) {
+    const { ref, limit } = await getDailyDoc(todayStr());
+    await ref.update({ count: admin.firestore.FieldValue.increment(amount) });
+}
+
+const dailyStats = async (req, res) => {
+    try {
+        const today = await getDailyDoc(todayStr());
+        const history = [];
+        for (let i = 1; i <= 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const ds = d.toISOString().slice(0,10);
+            const snap = await admin.firestore().doc(`emailCounts/${ds}`).get();
+            history.push({ date: ds, count: snap.exists ? (snap.data().count || 0) : 0, limit: snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT });
+        }
+        res.json({ today: { date: todayStr(), count: today.count, limit: today.limit, remaining: today.limit - today.count }, history });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+};
 
 function broadcast(data) {
     sseClients.forEach(res => res.write(`data: ${JSON.stringify(data)}\n\n`));
@@ -77,6 +110,11 @@ const sendCustomBulk = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
+        const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
+        if (todayCount >= todayLimit) {
+            return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+        }
+
         const snapshot = await admin.firestore().collection('users').get();
         const users = snapshot.docs
             .map(d => ({ docId: d.id, ...d.data() }))
@@ -128,6 +166,7 @@ const sendCustomBulk = async (req, res) => {
                     html
                 });
                 campaignState.sent++;
+                await incrementDailyCount(1);
                 campaignState.logs.push({ email: r.email, name: r.name, status: 'sent' });
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT] ${r.email} — ${r.name}`);
@@ -174,6 +213,11 @@ const sendManual = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
+        const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
+        if (todayCount >= todayLimit) {
+            return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+        }
+
         const recipients = emails.map(e => {
             if (typeof e === 'string') return { email: e, name: 'User' };
             return { email: e.email, name: e.name || 'User' };
@@ -201,6 +245,7 @@ const sendManual = async (req, res) => {
                     html
                 });
                 campaignState.sent++;
+                await incrementDailyCount(1);
                 campaignState.logs.push({ email: r.email, name: r.name, status: 'sent' });
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT][MANUAL] ${r.email} — ${r.name}`);
@@ -243,6 +288,11 @@ const sendCsv = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
+        const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
+        if (todayCount >= todayLimit) {
+            return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+        }
+
         const text = req.file.buffer.toString('utf-8');
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
         const recipients = [];
@@ -280,6 +330,7 @@ const sendCsv = async (req, res) => {
                     html
                 });
                 campaignState.sent++;
+                await incrementDailyCount(1);
                 campaignState.logs.push({ email: r.email, name: r.name, status: 'sent' });
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT][CSV] ${r.email} — ${r.name}`);
@@ -327,6 +378,13 @@ const campaignStream = (req, res) => {
         'Access-Control-Allow-Origin': '*'
     });
 
+    const dailyDoc = admin.firestore().doc(`emailCounts/${todayStr()}`);
+    dailyDoc.get().then(snap => {
+        const count = snap.exists ? (snap.data().count || 0) : 0;
+        const dailylimit = snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT;
+        broadcast({ type: 'daily', count, limit: dailylimit, remaining: dailylimit - count });
+    }).catch(() => {});
+
     const initData = {
         type: 'init',
         running: campaignState.running,
@@ -369,4 +427,4 @@ const migrateUserStatus = async (req, res) => {
     }
 };
 
-module.exports = { sendCustomBulk, sendManual, sendCsv, previewEmail, campaignStream, migrateUserStatus };
+module.exports = { sendCustomBulk, sendManual, sendCsv, previewEmail, campaignStream, migrateUserStatus, dailyStats };
