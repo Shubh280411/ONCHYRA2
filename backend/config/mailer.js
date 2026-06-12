@@ -8,7 +8,7 @@ function createMainMailer() {
     const user = process.env.MAIL_SMTP_USER || process.env.SMTP_USER || process.env.GMAIL_USER;
     const pass = process.env.MAIL_SMTP_PASS || process.env.SMTP_PASS || process.env.GMAIL_PASS;
     const senderEmail = process.env.MAIL_FROM_EMAIL || process.env.MAIL_SMTP_FROM_EMAIL || user;
-    const senderName = process.env.MAIL_FROM_NAME || process.env.MAIL_SMTP_FROM_NAME || 'ONCHYRA';
+    const senderName = process.env.MAIL_FROM_NAME || process.env.MAIL_SMTP_FROM_NAME || 'ONCHYRA Updates';
 
     const transporter = nodemailer.createTransport({
         host, port,

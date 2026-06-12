@@ -56,6 +56,15 @@ router.post('/admin/leadership/recalc-all', leadership.adminRecalcAllRanks);
 router.post('/otp/send', otp.send);
 router.post('/otp/verify', otp.verify);
 
+// Referral
+router.get('/check-referral/:code', async (req, res) => {
+    try {
+        const snap = await admin.firestore().collection('users').where('referralCode', '==', req.params.code.toUpperCase()).get();
+        if (snap.empty) return res.json({ valid: false });
+        res.json({ valid: true, uid: snap.docs[0].id, name: snap.docs[0].data().name, referredBy: snap.docs[0].data().referredBy || null });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Admin — Users
 router.get('/admin/users', async (req, res) => {
     try {

@@ -97,7 +97,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -112,7 +112,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
-const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra.netlify.app/api');
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
 localStorage.setItem("onc_device", deviceId);
 let otpVerified = false;
@@ -254,8 +254,10 @@ window.registerUser = async function() {
   btn.innerText = "Creating...";
 
   try {
-    const refSnap = await getDocs(query(collection(db,"users"), where("referralCode","==",data.refCode)));
-    if(refSnap.empty){
+    const refRes = await fetch(API + '/check-referral/' + data.refCode);
+    if (!refRes.ok) { const e = await refRes.json(); throw new Error(e.error || 'Referral check failed'); }
+    const refData = await refRes.json();
+    if (!refData.valid) {
       showToast("Invalid referral code", true);
       btn.disabled = false;
       btn.innerText = "Create Account";
@@ -280,34 +282,35 @@ window.registerUser = async function() {
       createdAt: serverTimestamp()
     });
 
-    const l1Ref = refSnap.docs[0];
-    const l1Data = l1Ref.data();
+    const l1Uid = refData.uid;
 
-    await updateDoc(doc(db,"users",l1Ref.id),{
+    await updateDoc(doc(db,"users",l1Uid), {
       balance: increment(0.25),
       referrals: increment(1),
       refLevel1: increment(1),
       totalDirects: increment(1)
     });
 
-    if(l1Data.referredBy){
-      const q2 = query(collection(db,"users"), where("referralCode","==",l1Data.referredBy));
-      const snap2 = await getDocs(q2);
-      if(!snap2.empty){
-        const l2Doc = snap2.docs[0];
-        const l2Data = l2Doc.data();
-        await updateDoc(doc(db,"users",l2Doc.id),{
-          balance: increment(0.10),
-          refLevel2: increment(1)
-        });
-        if(l2Data.referredBy){
-          const q3 = query(collection(db,"users"), where("referralCode","==",l2Data.referredBy));
-          const snap3 = await getDocs(q3);
-          if(!snap3.empty){
-            await updateDoc(doc(db,"users",snap3.docs[0].id),{
-              balance: increment(0.05),
-              refLevel3: increment(1)
-            });
+    if(refData.referredBy){
+      const l2Res = await fetch(API + '/check-referral/' + refData.referredBy);
+      if (l2Res.ok) {
+        const l2Data = await l2Res.json();
+        if (l2Data.valid) {
+          await updateDoc(doc(db,"users",l2Data.uid),{
+            balance: increment(0.10),
+            refLevel2: increment(1)
+          });
+          if(l2Data.referredBy){
+            const l3Res = await fetch(API + '/check-referral/' + l2Data.referredBy);
+            if (l3Res.ok) {
+              const l3Data = await l3Res.json();
+              if (l3Data.valid) {
+                await updateDoc(doc(db,"users",l3Data.uid),{
+                  balance: increment(0.05),
+                  refLevel3: increment(1)
+                });
+              }
+            }
           }
         }
       }
