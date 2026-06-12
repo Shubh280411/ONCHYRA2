@@ -282,38 +282,14 @@ window.registerUser = async function() {
       createdAt: serverTimestamp()
     });
 
-    const l1Uid = refData.uid;
-
-    await updateDoc(doc(db,"users",l1Uid), {
-      balance: increment(0.25),
-      referrals: increment(1),
-      refLevel1: increment(1),
-      totalDirects: increment(1)
+    const commRes = await fetch(API + '/register-commission', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, referredBy: data.refCode })
     });
-
-    if(refData.referredBy){
-      const l2Res = await fetch(API + '/check-referral/' + refData.referredBy);
-      if (l2Res.ok) {
-        const l2Data = await l2Res.json();
-        if (l2Data.valid) {
-          await updateDoc(doc(db,"users",l2Data.uid),{
-            balance: increment(0.10),
-            refLevel2: increment(1)
-          });
-          if(l2Data.referredBy){
-            const l3Res = await fetch(API + '/check-referral/' + l2Data.referredBy);
-            if (l3Res.ok) {
-              const l3Data = await l3Res.json();
-              if (l3Data.valid) {
-                await updateDoc(doc(db,"users",l3Data.uid),{
-                  balance: increment(0.05),
-                  refLevel3: increment(1)
-                });
-              }
-            }
-          }
-        }
-      }
+    if (!commRes.ok) {
+      const commErr = await commRes.json();
+      console.error('Commission error:', commErr);
     }
 
     showToast("Registration Successful!");
