@@ -675,10 +675,13 @@ onAuthStateChanged(auth, async (user) => {
 
             // Fetch directs & team biz
             loadDirects(code);
-
-            document.getElementById('loader').style.display = "none";
-            document.getElementById('dashboardData').style.display = "grid";
         }
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "grid";
+    }, (err) => {
+        // Fallback on error (e.g. quota exceeded)
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "grid";
     });
 
     fetchStats();
