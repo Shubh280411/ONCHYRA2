@@ -53,20 +53,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
   <div class="logo">ONCHYRA</div>
   <div class="logo-sub">Create Your Account</div>
 
-  <div class="card">
-    <div class="card-title">Get Started</div>
-    <div class="card-sub">Join the mining revolution</div>
+    <div class="card">
+      <div class="card-title">Registration Closed</div>
+      <div class="card-sub">We'll be back soon</div>
+
+      <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:16px;text-align:center;margin-bottom:6px">
+        <div style="font-weight:800;font-size:14px;color:#ef4444;margin-bottom:4px">🚫 Registration Paused</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.5">New registrations are currently disabled. If you already have an account, please log in below. Stay tuned for updates!</div>
+      </div>
+
+      <div class="input-wrap">
+        <input type="text" id="name" placeholder="Full Name" autocomplete="name" disabled>
+      </div>
 
     <div class="input-wrap">
-      <input type="text" id="name" placeholder="Full Name" autocomplete="name">
+      <input type="email" id="email" placeholder="Email Address" autocomplete="email" disabled>
     </div>
 
     <div class="input-wrap">
-      <input type="email" id="email" placeholder="Email Address" autocomplete="email">
-    </div>
-
-    <div class="input-wrap">
-      <input type="password" id="password" placeholder="Password" autocomplete="new-password">
+      <input type="password" id="password" placeholder="Password" autocomplete="new-password" disabled>
       <button class="pass-toggle" id="passToggle" type="button" onclick="togglePass()" tabindex="-1">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path id="eyeIcon" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle id="eyeDot" cx="12" cy="12" r="3"/>
@@ -75,7 +80,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
     </div>
 
     <div class="input-wrap">
-      <input type="text" id="referral" placeholder="Referral Code *" autocomplete="off">
+      <input type="text" id="referral" placeholder="Referral Code *" autocomplete="off" disabled>
     </div>
 
     <div class="ref-badge">
@@ -88,8 +93,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
       <button id="verifyOtpBtn" onclick="verifyOtp()">Verify</button>
     </div>
 
-    <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
-    <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
+    <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()" disabled style="display:none;">Send OTP</button>
+    <button class="btn-primary" id="regBtn" onclick="registerUser()" disabled style="display:none;">Create Account</button>
+
+    <a href="login.html" style="text-decoration:none">
+      <button class="btn-primary" style="margin-top:6px;background:linear-gradient(135deg,var(--primary),var(--secondary))">
+        Already Have an Account? → Login
+      </button>
+    </a>
   </div>
 </div>
 <div class="toast" id="toast"></div>
