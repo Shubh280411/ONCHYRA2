@@ -33,6 +33,7 @@ body{font-family:'Inter',sans-serif;background:#03040a;color:#fff;min-height:100
   <div class="sub">Fix Past Commissions — One Time Run</div>
   <div class="spinner" id="spinner"></div>
   <button class="btn danger" id="runBtn" onclick="runMigration()">Run Commission Migration</button>
+  <button class="btn" id="undoBtn" onclick="runUndo()" style="margin-top:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:12px;">Undo Last Migration</button>
   <div class="result" id="result"></div>
 </div>
 <script>
@@ -77,6 +78,32 @@ async function runMigration() {
 
   btn.disabled = false;
   btn.textContent = 'Run Again';
+}
+
+async function runUndo() {
+  const btn = document.getElementById('undoBtn');
+  const spinner = document.getElementById('spinner');
+  const result = document.getElementById('result');
+  if (!confirm('This will revert ALL package commissions from the last hour. Continue?')) return;
+  btn.disabled = true; btn.textContent = 'Undoing...';
+  spinner.classList.add('show'); result.classList.remove('show');
+  try {
+    const res = await fetch(API + '/admin/undo-commissions', { method: 'POST' });
+    const data = await res.json();
+    spinner.classList.remove('show');
+    if (data.success) {
+      result.className = 'result show info';
+      result.innerHTML = '<strong>Undo Complete</strong><br><div class="line">Reverted: ' + data.reverted + '</div><div class="line">Errors: ' + data.errors + '</div>';
+    } else {
+      result.className = 'result show error';
+      result.innerHTML = '<strong>Failed:</strong> ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    spinner.classList.remove('show');
+    result.className = 'result show error';
+    result.innerHTML = '<strong>Network Error:</strong> ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = 'Undo Last Migration';
 }
 </script>
 </body>
