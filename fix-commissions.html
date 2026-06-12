@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix Commissions — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#03040a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:32px;max-width:520px;width:100%;text-align:center}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:22px;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.sub{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:24px}
+.btn{padding:16px 32px;border:none;border-radius:14px;background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#000;font-weight:900;font-size:14px;cursor:pointer;font-family:'Inter';transition:0.3s;width:100%}
+.btn:hover{opacity:0.9;transform:translateY(-1px)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn.danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.result{margin-top:20px;padding:16px;border-radius:14px;font-size:13px;line-height:1.6;display:none;text-align:left;max-height:400px;overflow-y:auto}
+.result.show{display:block}
+.result.success{background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);color:#22c55e}
+.result.error{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#ef4444}
+.result.info{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);color:#60a5fa}
+.result .line{padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
+.result .line:last-child{border:none}
+.spinner{display:none;width:20px;height:20px;border:3px solid rgba(0,0,0,0.15);border-top:3px solid #000;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px}
+.spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ONCHYRA</div>
+  <div class="sub">Fix Past Commissions — One Time Run</div>
+  <div class="spinner" id="spinner"></div>
+  <button class="btn danger" id="runBtn" onclick="runMigration()">Run Commission Migration</button>
+  <div class="result" id="result"></div>
+</div>
+<script>
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+
+async function runMigration() {
+  const btn = document.getElementById('runBtn');
+  const spinner = document.getElementById('spinner');
+  const result = document.getElementById('result');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  spinner.classList.add('show');
+  result.classList.remove('show', 'success', 'error', 'info');
+
+  try {
+    const res = await fetch(API + '/admin/migrate-commissions', { method: 'POST' });
+    const data = await res.json();
+    spinner.classList.remove('show');
+
+    if (data.success) {
+      let html = '<strong>Migration Complete</strong><br>';
+      html += '<div class="line">Total Buyers: ' + data.totalBuyers + '</div>';
+      html += '<div class="line">Processed: <strong>' + data.processed + '</strong></div>';
+      html += '<div class="line">No Referrer: ' + data.noReferrer + '</div>';
+      html += '<div class="line">No Upline Package: ' + data.noUplinePackage + '</div>';
+      if (data.errors > 0) html += '<div class="line" style="color:#ef4444;">Errors: ' + data.errors + '</div>';
+      if (data.results && data.results.length > 0) {
+        html += '<br><strong>Commissions Credited:</strong>';
+        data.results.forEach(r => { html += '<div class="line">' + r + '</div>'; });
+      }
+      result.className = 'result show ' + (data.errors > 0 ? 'info' : 'success');
+      result.innerHTML = html;
+    } else {
+      result.className = 'result show error';
+      result.innerHTML = '<strong>Failed:</strong> ' + (data.error || 'Unknown error');
+    }
+  } catch(e) {
+    spinner.classList.remove('show');
+    result.className = 'result show error';
+    result.innerHTML = '<strong>Network Error:</strong> ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Run Again';
+}
+</script>
+</body>
+</html>
