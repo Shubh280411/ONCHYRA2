@@ -194,14 +194,41 @@ async function loadTeam() {
     if (!uid) return;
     document.getElementById('teamLoading').style.display = 'block';
     try {
+        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=1');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        teamData[1] = data.levels[1] || [];
+        teamData[2] = [];
+        teamData[3] = [];
+    } catch (e) {
+        document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
+        document.getElementById('teamError').style.display = 'block';
+    }
+    document.getElementById('teamLoading').style.display = 'none';
+    l1BizCache = {};
+    for (const u of teamData[1]) {
+        l1BizCache[u.referralCode] = u.totalPackageSpend || 0;
+    }
+    renderTeam();
+    renderLegs();
+}
+
+let fullTeamLoaded = false;
+async function loadFullTeam() {
+    if (fullTeamLoaded || !uid) return;
+    const lvl = document.getElementById('lvlFilter').value;
+    if (lvl === '1') return;
+    document.getElementById('teamLoading').style.display = 'block';
+    try {
         const resp = await fetch(API + '/referrals/team/' + uid);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         teamData[1] = data.levels[1] || [];
         teamData[2] = data.levels[2] || [];
         teamData[3] = data.levels[3] || [];
+        fullTeamLoaded = true;
     } catch (e) {
-        document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
+        document.getElementById('teamError').textContent = 'Full team load failed: ' + e.message;
         document.getElementById('teamError').style.display = 'block';
     }
     document.getElementById('teamLoading').style.display = 'none';
@@ -331,6 +358,7 @@ window.loadMore = () => {
 
 document.getElementById('lvlFilter').addEventListener('change', () => {
     pageSize = { 1: 10, 2: 10, 3: 10 };
+    loadFullTeam();
     renderTeam();
 });
 

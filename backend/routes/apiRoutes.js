@@ -69,6 +69,7 @@ router.get('/check-referral/:code', async (req, res) => {
 router.get('/referrals/team/:uid', async (req, res) => {
     try {
         const { uid } = req.params;
+        const maxLevel = parseInt(req.query.maxLevel) || 3;
         const userSnap = await admin.firestore().doc(`users/${uid}`).get();
         if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
         const user = userSnap.data();
@@ -77,19 +78,22 @@ router.get('/referrals/team/:uid', async (req, res) => {
 
         const s1 = await admin.firestore().collection('users').where('referredBy', '==', refCode).get();
         const l1 = s1.docs.map(d => ({ id: d.id, ...d.data() }));
-        const l1Codes = l1.map(u => u.referralCode).filter(Boolean);
+        let l2 = [], l3 = [];
 
-        let l2 = [];
-        for (let i = 0; i < l1Codes.length; i += 10) {
-            const s2 = await admin.firestore().collection('users').where('referredBy', 'in', l1Codes.slice(i, i + 10)).get();
-            l2.push(...s2.docs.map(d => ({ id: d.id, ...d.data() })));
+        if (maxLevel >= 2) {
+            const l1Codes = l1.map(u => u.referralCode).filter(Boolean);
+            for (let i = 0; i < l1Codes.length; i += 10) {
+                const s2 = await admin.firestore().collection('users').where('referredBy', 'in', l1Codes.slice(i, i + 10)).get();
+                l2.push(...s2.docs.map(d => ({ id: d.id, ...d.data() })));
+            }
         }
 
-        const l2Codes = l2.map(u => u.referralCode).filter(Boolean);
-        let l3 = [];
-        for (let i = 0; i < l2Codes.length; i += 10) {
-            const s3 = await admin.firestore().collection('users').where('referredBy', 'in', l2Codes.slice(i, i + 10)).get();
-            l3.push(...s3.docs.map(d => ({ id: d.id, ...d.data() })));
+        if (maxLevel >= 3) {
+            const l2Codes = l2.map(u => u.referralCode).filter(Boolean);
+            for (let i = 0; i < l2Codes.length; i += 10) {
+                const s3 = await admin.firestore().collection('users').where('referredBy', 'in', l2Codes.slice(i, i + 10)).get();
+                l3.push(...s3.docs.map(d => ({ id: d.id, ...d.data() })));
+            }
         }
 
         const clean = (list) => list.map(u => ({
