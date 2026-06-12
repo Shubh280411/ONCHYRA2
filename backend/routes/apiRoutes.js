@@ -109,7 +109,6 @@ router.get('/referrals/commissions/:uid', async (req, res) => {
         const { uid } = req.params;
         const snap = await admin.firestore().collection('commissions')
             .where('uid', '==', uid)
-            .orderBy('createdAt', 'desc')
             .limit(100)
             .get();
         const commissions = snap.docs.map(d => {

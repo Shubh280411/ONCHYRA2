@@ -264,6 +264,7 @@ async function loadCommissions() {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         allCommissions = data.commissions || [];
+        allCommissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     } catch (e) {
         document.getElementById('commError').textContent = 'Commissions load failed: ' + e.message;
         document.getElementById('commError').style.display = 'block';
@@ -336,7 +337,7 @@ document.getElementById('lvlFilter').addEventListener('change', () => {
 async function loadStats() {
     try {
         const userSnap = await getDoc(doc(db, 'users', uid));
-        if (!userSnap.exists()) throw new Error('User document not found');
+        if (!userSnap.exists) throw new Error('User document not found');
         userData = userSnap.data();
     } catch (e) {
         document.getElementById('statsError').textContent = 'Stats load failed: ' + e.message;
