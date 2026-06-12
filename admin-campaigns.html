@@ -484,7 +484,7 @@
                 const data = await res.json();
                 if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
             } catch (err) {
-                showNotif('Network error - backend on port 5000?', 'error');
+                showNotif(e.message || 'Network error - email server on port 5001?', 'error');
                 btn.classList.remove('loading'); btn.disabled = false;
             }
         }
@@ -521,7 +521,7 @@
                 const data = await res.json();
                 if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
             } catch (err) {
-                showNotif('Network error - backend on port 5000?', 'error');
+                showNotif(e.message || 'Network error - email server on port 5001?', 'error');
                 btn.classList.remove('loading'); btn.disabled = false;
             }
         }
@@ -559,7 +559,7 @@
                 const data = await res.json();
                 if (!data.success) { showNotif(data.message || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
             } catch (err) {
-                showNotif('Network error - backend on port 5000?', 'error');
+                showNotif(e.message || 'Network error - email server on port 5001?', 'error');
                 btn.classList.remove('loading'); btn.disabled = false;
             }
         }
@@ -585,7 +585,7 @@
                     showNotif('Preview failed: ' + data.message, 'error');
                 }
             } catch (err) {
-                showNotif('Network error - backend on port 5000?', 'error');
+                showNotif(e.message || 'Network error - email server on port 5001?', 'error');
             }
         }
 

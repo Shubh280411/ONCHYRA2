@@ -3,6 +3,14 @@ const transporter = require('../config/mailer');
 
 const MAX_EMAILS_PER_CAMPAIGN = 450;
 const DAILY_LIMIT = 450;
+const FIRESTORE_TIMEOUT = 5000;
+
+function withTimeout(promise, ms) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), ms))
+    ]);
+}
 
 let campaignState = { running: false, logs: [], sent: 0, failed: 0, skipped: 0, total: 0 };
 let sseClients = [];
@@ -11,29 +19,38 @@ function todayStr() { return new Date().toISOString().slice(0,10); }
 
 async function getDailyDoc(dateStr) {
     const ref = admin.firestore().doc(`emailCounts/${dateStr}`);
-    const snap = await ref.get();
+    const snap = await withTimeout(ref.get(), FIRESTORE_TIMEOUT);
     if (!snap.exists) {
-        await ref.set({ count: 0, limit: DAILY_LIMIT, date: dateStr });
+        try {
+            await withTimeout(ref.set({ count: 0, limit: DAILY_LIMIT, date: dateStr }), FIRESTORE_TIMEOUT);
+        } catch (e) {
+            console.log('[getDailyDoc] Failed to create doc:', e.message);
+        }
         return { count: 0, limit: DAILY_LIMIT, ref };
     }
     return { count: snap.data().count || 0, limit: snap.data().limit || DAILY_LIMIT, ref };
 }
 
 async function incrementDailyCount(amount) {
-    const { ref, limit } = await getDailyDoc(todayStr());
-    await ref.update({ count: admin.firestore.FieldValue.increment(amount) });
+    const { ref } = await getDailyDoc(todayStr());
+    await withTimeout(ref.update({ count: admin.firestore.FieldValue.increment(amount) }), FIRESTORE_TIMEOUT);
 }
 
 const dailyStats = async (req, res) => {
     try {
-        const today = await getDailyDoc(todayStr());
+        let today = { count: 0, limit: DAILY_LIMIT };
+        try { today = await getDailyDoc(todayStr()); } catch (e) { console.log('[Stats] Firestore unavailable:', e.message); }
         const history = [];
         for (let i = 1; i <= 7; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
             const ds = d.toISOString().slice(0,10);
-            const snap = await admin.firestore().doc(`emailCounts/${ds}`).get();
-            history.push({ date: ds, count: snap.exists ? (snap.data().count || 0) : 0, limit: snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT });
+            try {
+                const snap = await withTimeout(admin.firestore().doc(`emailCounts/${ds}`).get(), FIRESTORE_TIMEOUT);
+                history.push({ date: ds, count: snap.exists ? (snap.data().count || 0) : 0, limit: snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT });
+            } catch (e) {
+                history.push({ date: ds, count: 0, limit: DAILY_LIMIT });
+            }
         }
         res.json({ today: { date: todayStr(), count: today.count, limit: today.limit, remaining: today.limit - today.count }, history });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -115,7 +132,7 @@ const sendCustomBulk = async (req, res) => {
             return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
         }
 
-        const snapshot = await admin.firestore().collection('users').get();
+        const snapshot = await withTimeout(admin.firestore().collection('users').get(), FIRESTORE_TIMEOUT);
         const users = snapshot.docs
             .map(d => ({ docId: d.id, ...d.data() }))
             .filter(u => {
@@ -213,9 +230,14 @@ const sendManual = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
-        const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
-        if (todayCount >= todayLimit) {
-            return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+        // Try to check daily limit, but proceed if Firestore is unavailable
+        try {
+            const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
+            if (todayCount >= todayLimit) {
+                return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+            }
+        } catch (e) {
+            console.log('[Manual] Firestore unavailable, skipping daily limit check:', e.message);
         }
 
         const recipients = emails.map(e => {
@@ -245,7 +267,7 @@ const sendManual = async (req, res) => {
                     html
                 });
                 campaignState.sent++;
-                await incrementDailyCount(1);
+                try { await incrementDailyCount(1); } catch (e) { console.log('[Manual] daily count increment failed:', e.message); }
                 campaignState.logs.push({ email: r.email, name: r.name, status: 'sent' });
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT][MANUAL] ${r.email} — ${r.name}`);
@@ -288,9 +310,14 @@ const sendCsv = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
-        const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
-        if (todayCount >= todayLimit) {
-            return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+        // Try to check daily limit, but proceed if Firestore is unavailable
+        try {
+            const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
+            if (todayCount >= todayLimit) {
+                return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
+            }
+        } catch (e) {
+            console.log('[CSV] Firestore unavailable, skipping daily limit check:', e.message);
         }
 
         const text = req.file.buffer.toString('utf-8');
@@ -330,7 +357,7 @@ const sendCsv = async (req, res) => {
                     html
                 });
                 campaignState.sent++;
-                await incrementDailyCount(1);
+                try { await incrementDailyCount(1); } catch (e) { console.log('[CSV] daily count increment failed:', e.message); }
                 campaignState.logs.push({ email: r.email, name: r.name, status: 'sent' });
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT][CSV] ${r.email} — ${r.name}`);
@@ -379,11 +406,13 @@ const campaignStream = (req, res) => {
     });
 
     const dailyDoc = admin.firestore().doc(`emailCounts/${todayStr()}`);
-    dailyDoc.get().then(snap => {
+    withTimeout(dailyDoc.get(), FIRESTORE_TIMEOUT).then(snap => {
         const count = snap.exists ? (snap.data().count || 0) : 0;
         const dailylimit = snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT;
         broadcast({ type: 'daily', count, limit: dailylimit, remaining: dailylimit - count });
-    }).catch(() => {});
+    }).catch(() => {
+        broadcast({ type: 'daily', count: 0, limit: DAILY_LIMIT, remaining: DAILY_LIMIT });
+    });
 
     const initData = {
         type: 'init',
