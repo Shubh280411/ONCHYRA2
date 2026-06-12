@@ -61,6 +61,7 @@
         <button class="copy-btn" onclick="copyLink()">COPY INVITE LINK</button>
     </div>
 
+    <div id="statsError" style="display:none;text-align:center;padding:12px;color:#ef4444;font-size:11px;background:rgba(239,68,68,0.1);border-radius:10px;margin-bottom:8px;"></div>
     <div class="list-card" style="padding:16px;">
         <div class="stat-grid">
             <div class="stat-card" style="border:none;background:transparent;padding:8px;">
@@ -333,8 +334,16 @@ document.getElementById('lvlFilter').addEventListener('change', () => {
 });
 
 async function loadStats() {
-    const userSnap = await getDoc(doc(db, 'users', uid));
-    userData = userSnap.data();
+    try {
+        const userSnap = await getDoc(doc(db, 'users', uid));
+        if (!userSnap.exists()) throw new Error('User document not found');
+        userData = userSnap.data();
+    } catch (e) {
+        document.getElementById('statsError').textContent = 'Stats load failed: ' + e.message;
+        document.getElementById('statsError').style.display = 'block';
+        userData = {};
+        return;
+    }
 
     refCode = userData.referralCode || uid.substring(0, 6).toUpperCase();
     document.getElementById('refCode').textContent = refCode;
