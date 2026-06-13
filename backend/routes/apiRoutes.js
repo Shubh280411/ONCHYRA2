@@ -370,8 +370,6 @@ router.post('/register-commission', async (req, res) => {
 
         batch.update(l1Ref, {
             balance: admin.firestore.FieldValue.increment(0.25),
-            commissionBalance: admin.firestore.FieldValue.increment(0.25),
-            totalCommissions: admin.firestore.FieldValue.increment(0.25),
             referrals: admin.firestore.FieldValue.increment(1),
             refLevel1: admin.firestore.FieldValue.increment(1),
             totalDirects: admin.firestore.FieldValue.increment(1)
@@ -390,8 +388,6 @@ router.post('/register-commission', async (req, res) => {
                 const l2Uid = l2Snap.docs[0].id;
                 batch.update(l2Ref, {
                     balance: admin.firestore.FieldValue.increment(0.10),
-                    commissionBalance: admin.firestore.FieldValue.increment(0.10),
-                    totalCommissions: admin.firestore.FieldValue.increment(0.10),
                     refLevel2: admin.firestore.FieldValue.increment(1)
                 });
                 batch.create(admin.firestore().collection('commissions').doc(), {
@@ -405,8 +401,6 @@ router.post('/register-commission', async (req, res) => {
                         const l3Uid = l3Snap.docs[0].id;
                         batch.update(l3Snap.docs[0].ref, {
                             balance: admin.firestore.FieldValue.increment(0.05),
-                            commissionBalance: admin.firestore.FieldValue.increment(0.05),
-                            totalCommissions: admin.firestore.FieldValue.increment(0.05),
                             refLevel3: admin.firestore.FieldValue.increment(1)
                         });
                         batch.create(admin.firestore().collection('commissions').doc(), {
@@ -458,44 +452,42 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                     const refUid = refSnap.docs[0].id;
                     const refData = refSnap.docs[0].data();
 
-                    if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
-                        currentRefCode = refData.referredBy;
-                        continue;
-                    }
+                    // Always move up before any continue
+                    currentRefCode = refData.referredBy;
 
-                    const commission = pkgAmount * lv.pct;
-                    const used = refData.packageUsage || 0;
-                    const cap = refData.packageCap || Infinity;
-                    const available = Math.max(0, cap - used);
-                    const capped = Math.min(commission, available);
-
+                    // Always update teamBiz
                     const batch = admin.firestore().batch();
-
                     batch.update(admin.firestore().doc(`users/${refUid}`), {
                         teamBiz: admin.firestore.FieldValue.increment(pkgAmount),
                     });
 
-                    if (!fixBizOnly && capped > 0) {
-                        const newUsed = used + capped;
-                        const updates = {
-                            balance: admin.firestore.FieldValue.increment(capped),
-                            commissionBalance: admin.firestore.FieldValue.increment(capped),
-                            packageUsage: admin.firestore.FieldValue.increment(capped),
-                            totalCommissions: admin.firestore.FieldValue.increment(capped),
-                        };
-                        if (newUsed >= cap) updates.packageStatus = 'expired';
-                        batch.update(admin.firestore().doc(`users/${refUid}`), updates);
-                        batch.create(admin.firestore().collection('commissions').doc(), {
-                            fromUid: buyer.id, uid: refUid, amount: capped,
-                            level: lv.level, type: 'package_commission',
-                            packageName: buyer.activePackage || 'Package',
-                            fromName: buyer.name || 'User', createdAt: Date.now()
-                        });
-                        levelResults.push(`${lv.level}: $${capped.toFixed(2)} to ${refData.name || refUid}`);
+                    // Only pay commission if upline has active package
+                    if (!fixBizOnly && refData.activePackage && refData.activePackage !== 'none' && refData.packageStatus !== 'expired') {
+                        const commission = pkgAmount * lv.pct;
+                        const used = refData.packageUsage || 0;
+                        const cap = refData.packageCap || Infinity;
+                        const available = Math.max(0, cap - used);
+                        const capped = Math.min(commission, available);
+                        if (capped > 0) {
+                            const newUsed = used + capped;
+                            const updates = {
+                                balance: admin.firestore.FieldValue.increment(capped),
+                                packageUsage: admin.firestore.FieldValue.increment(capped),
+                                totalCommissions: admin.firestore.FieldValue.increment(capped),
+                            };
+                            if (newUsed >= cap) updates.packageStatus = 'expired';
+                            batch.update(admin.firestore().doc(`users/${refUid}`), updates);
+                            batch.create(admin.firestore().collection('commissions').doc(), {
+                                fromUid: buyer.id, uid: refUid, amount: capped,
+                                level: lv.level, type: 'package_commission',
+                                packageName: buyer.activePackage || 'Package',
+                                fromName: buyer.name || 'User', createdAt: Date.now()
+                            });
+                            levelResults.push(`${lv.level}: $${capped.toFixed(2)} to ${refData.name || refUid}`);
+                        }
                     }
 
                     await batch.commit();
-                    currentRefCode = refData.referredBy;
                 }
 
                 if (levelResults.length > 0 || fixBizOnly) {

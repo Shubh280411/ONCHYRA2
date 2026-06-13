@@ -101,6 +101,7 @@ exports.adminActivate = async (req, res) => {
             packagePurchasedAt: Date.now(),
             totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
         });
+        await processReferralCommission(uid, pkg.price, pkg.name);
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
@@ -131,6 +132,7 @@ exports.adminUpgrade = async (req, res) => {
             packagePurchasedAt: Date.now(),
             totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
         });
+        await processReferralCommission(uid, pkg.price, pkg.name);
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
@@ -163,8 +165,16 @@ async function processReferralCommission(uid, amount, pkgName) {
             const refUid = refLookup.id;
             const refData = refLookup.data;
 
+            // Always move up before any continue
+            currentRefCode = refData.referredBy;
+
+            // Always update teamBiz for this upline (downline's purchase counts regardless of package)
+            await db.doc(`users/${refUid}`).update({
+                teamBiz: admin.firestore.FieldValue.increment(amount)
+            });
+
+            // Only pay commission if upline has active package with remaining cap
             if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
-                currentRefCode = refData.referredBy;
                 continue;
             }
 
@@ -173,17 +183,13 @@ async function processReferralCommission(uid, amount, pkgName) {
             const cap = refData.packageCap || Infinity;
             const available = Math.max(0, cap - used);
             const capped = Math.min(commission, available);
-            if (capped <= 0) {
-                currentRefCode = refData.referredBy;
-                continue;
-            }
+            if (capped <= 0) continue;
 
             const newUsed = used + capped;
             const updates = {
-                commissionBalance: admin.firestore.FieldValue.increment(capped),
+                balance: admin.firestore.FieldValue.increment(capped),
                 packageUsage: admin.firestore.FieldValue.increment(capped),
                 totalCommissions: admin.firestore.FieldValue.increment(capped),
-                teamBiz: admin.firestore.FieldValue.increment(amount),
             };
 
             if (newUsed >= cap) {
@@ -200,8 +206,6 @@ async function processReferralCommission(uid, amount, pkgName) {
                 createdAt: Date.now()
             });
             await batch.commit();
-
-            currentRefCode = refData.referredBy;
         }
     } catch(e) { console.error('Referral commission error:', e); }
 }
