@@ -515,15 +515,15 @@ router.post('/admin/migrate-commissions', async (req, res) => {
 router.post('/admin/reset-teambiz', async (req, res) => {
     try {
         const snap = await admin.firestore().collection('users').get();
-        const batch = admin.firestore().batch();
-        let count = 0;
-        snap.docs.forEach(d => {
+        let batch = admin.firestore().batch();
+        let count = 0, committed = 0;
+        for (const d of snap.docs) {
             batch.update(d.ref, { teamBiz: 0 });
             count++;
-            if (count % 400 === 0) batch.commit();
-        });
-        await batch.commit();
-        res.json({ success: true, resetCount: count });
+            if (count % 400 === 0) { await batch.commit(); committed += 400; batch = admin.firestore().batch(); }
+        }
+        if (count % 400 !== 0) { await batch.commit(); committed += count % 400; }
+        res.json({ success: true, resetCount: committed });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
