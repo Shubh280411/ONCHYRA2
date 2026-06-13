@@ -266,7 +266,7 @@ router.post('/commissions/process-package', async (req, res) => {
 
             const batch = admin.firestore().batch();
             batch.update(admin.firestore().doc(`users/${refUid}`), {
-                teamBusiness: admin.firestore.FieldValue.increment(user.totalPackageSpend || 0),
+                teamBiz: admin.firestore.FieldValue.increment(user.totalPackageSpend || 0),
             });
 
             if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
@@ -284,7 +284,6 @@ router.post('/commissions/process-package', async (req, res) => {
             if (capped > 0) {
                 const newUsed = used + capped;
                 const updates = {
-                    balance: admin.firestore.FieldValue.increment(capped),
                     commissionBalance: admin.firestore.FieldValue.increment(capped),
                     packageUsage: admin.firestore.FieldValue.increment(capped),
                     totalCommissions: admin.firestore.FieldValue.increment(capped),

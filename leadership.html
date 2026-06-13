@@ -223,7 +223,7 @@ async function getLocalData(refCode) {
     // Use pre-calculated teamBusiness + own package spend — no deep recursion needed
     const legResults = activeDirs.map(d => {
         const data = d.data();
-        return (data.totalPackageSpend || 0) + (data.teamBusiness || 0);
+        return (data.totalPackageSpend || 0) + (data.teamBiz || data.teamBusiness || 0);
     });
     const totalVol = legResults.reduce((a, b) => a + b, 0);
     legResults.sort((a, b) => b - a);
