@@ -964,60 +964,19 @@ async function loadDirects(code) {
         const snap1 = await getDocs(q1);
         const total = snap1.size;
         let active = 0;
-        let teamBiz = 0;
-        const l1Codes = [];
 
         snap1.forEach(d => {
             const d2 = d.data();
             if (d2.packageStatus === 'active' || d2.packageStatus === 'expired' || d2.activePackage) active++;
-            teamBiz += (d2.totalPackageSpend || 0);
-            if (d2.referralCode) l1Codes.push(d2.referralCode);
         });
 
         // Show L1 stats immediately
         document.getElementById('activeDirectsNum').textContent = active;
         document.getElementById('totalDirectsNum').textContent = total;
-        document.getElementById('teamBizText').textContent = '$' + teamBiz.toFixed(2);
-
-        // Async BFS for deeper levels (doesn't block UI)
-        if (l1Codes.length > 0) {
-            const loader = document.getElementById('teamBizLoader');
-            if (loader) loader.style.display = 'inline-block';
-            loadTeamBizDeep(l1Codes, teamBiz);
-        }
+        // Use stored teamBiz (more accurate than client-side sum)
+        const bizAmt = userData?.teamBiz || 0;
+        document.getElementById('teamBizText').textContent = '$' + bizAmt.toFixed(2);
     } catch (e) { console.error("loadDirects error:", e); }
-}
-
-async function loadTeamBizDeep(codes, currentBiz) {
-    try {
-        const queue = [...codes];
-        const visited = new Set(queue);
-        let extraBiz = 0;
-
-        while (queue.length > 0 && visited.size < 500) {
-            const batch = queue.splice(0, 10);
-            const promises = batch.map(ref =>
-                getDocs(query(collection(db, "users"), where("referredBy", "==", ref)))
-            );
-            const results = await Promise.all(promises);
-            for (const snap of results) {
-                snap.forEach(d => {
-                    const d2 = d.data();
-                    extraBiz += (d2.totalPackageSpend || 0);
-                    if (d2.referralCode && !visited.has(d2.referralCode)) {
-                        visited.add(d2.referralCode);
-                        queue.push(d2.referralCode);
-                    }
-                });
-            }
-        }
-
-        document.getElementById('teamBizText').textContent = '$' + (currentBiz + extraBiz).toFixed(2);
-    } catch (e) { console.error("loadTeamBizDeep error:", e); }
-    finally {
-        const loader = document.getElementById('teamBizLoader');
-        if (loader) loader.style.display = 'none';
-    }
 }
 
 function showToast(m) {
