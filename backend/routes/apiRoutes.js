@@ -560,6 +560,28 @@ router.post('/admin/undo-commissions', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Trigger commission + teamBiz for a package purchase (used by admin panel after direct Firestore write)
+router.post('/admin/process-commission', async (req, res) => {
+    try {
+        const { uid, packageId } = req.body;
+        if (!uid || !packageId) return res.status(400).json({ error: 'Missing uid or packageId' });
+        const PACKAGES = {
+            starter: { price: 5, name: 'Starter' },
+            builder: { price: 10, name: 'Builder' },
+            pioneer: { price: 25, name: 'Pioneer' },
+            elite: { price: 50, name: 'Elite' },
+            titan: { price: 100, name: 'Titan' },
+            dominion: { price: 250, name: 'Dominion' },
+            legacy: { price: 500, name: 'Legacy' },
+        };
+        const pkg = PACKAGES[packageId];
+        if (!pkg) return res.status(400).json({ error: 'Invalid package' });
+        const packages = require('../controllers/packageController');
+        await packages.processReferralCommission(uid, pkg.price, pkg.name);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Sweep
 router.post('/sweep/check', sweep.check);
 router.post('/sweep/execute', sweep.sweep);
