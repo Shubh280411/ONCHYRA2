@@ -511,6 +511,22 @@ router.post('/admin/migrate-commissions', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Admin — Reset all users' teamBiz to 0 (run before fixBizOnly migration)
+router.post('/admin/reset-teambiz', async (req, res) => {
+    try {
+        const snap = await admin.firestore().collection('users').get();
+        const batch = admin.firestore().batch();
+        let count = 0;
+        snap.docs.forEach(d => {
+            batch.update(d.ref, { teamBiz: 0 });
+            count++;
+            if (count % 400 === 0) batch.commit();
+        });
+        await batch.commit();
+        res.json({ success: true, resetCount: count });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Admin — Undo Commission Migration (reverts only records from last hour)
 router.post('/admin/undo-commissions', async (req, res) => {
     try {
