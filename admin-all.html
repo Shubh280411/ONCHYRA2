@@ -135,6 +135,7 @@
             <select id="commTypeFilter" onchange="filterCommissions()">
                 <option value="">All Types</option>
                 <option value="package_commission">Package</option>
+                <option value="registration_bonus">Registration</option>
                 <option value="matching_bonus">Matching Bonus</option>
             </select>
         </div>
@@ -332,7 +333,7 @@
             <td style="white-space:nowrap">${formatRelative(c.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(c.createdAt)}</span></td>
             <td><strong>${c.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(c.uid)}</span></td>
             <td><span style="font-size:11px">${c.fromName2||'?'}</span><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(c.fromUid)}</span></td>
-            <td><span class="status ${c.type==='package_commission'?'completed':'processed'}">${c.type==='package_commission'?'Package':'Matching'}</span></td>
+            <td><span class="status ${c.type==='package_commission'?'completed':'processed'}">${c.type==='package_commission'?'Package':c.type==='registration_bonus'?'Registration':c.type==='matching_bonus'?'Matching':c.type||'Other'}</span></td>
             <td>${c.level||'-'}</td>
             <td style="font-family:'Space Grotesk';font-weight:700;color:var(--success)">${(c.amount||0).toFixed(2)}</td>
         </tr>`).join('');
