@@ -222,16 +222,16 @@ function renderStats() {
     document.getElementById('totalDirectDisplay').textContent = (userData.activeDirects || 0) + '/' + (userData.totalDirects || 0);
     document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
     document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
-    // If teamBiz is 0 but user has referrals, fetch fresh from leg-stats
-    if (!userData.teamBiz && (l1 + l2 + l3) > 0) loadLegStats();
+    // Fetch leg-stats for legA/legB if not stored, or for full fallback if teamBiz is 0
+    if ((!userData.teamBiz || !userData.legABiz) && (l1 + l2 + l3) > 0) loadLegStats(!userData.teamBiz);
 }
 
-async function loadLegStats() {
+async function loadLegStats(includeBiz) {
     try {
         const resp = await fetch(API + '/referrals/leg-stats/' + uid);
         if (!resp.ok) return;
         const d = await resp.json();
-        document.getElementById('totalBiz').textContent = '$' + (d.teamBiz || 0).toFixed(2);
+        if (includeBiz) document.getElementById('totalBiz').textContent = '$' + (d.teamBiz || 0).toFixed(2);
         document.getElementById('totalDirectDisplay').textContent = (d.activeDirects || 0) + '/' + (d.totalDirects || 0);
         document.getElementById('legABiz').textContent = '$' + (d.legABiz || 0).toFixed(2);
         document.getElementById('legBBiz').textContent = '$' + (d.legBBiz || 0).toFixed(2);
