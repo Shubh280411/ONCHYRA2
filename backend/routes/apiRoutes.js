@@ -428,6 +428,7 @@ router.post('/register-commission', async (req, res) => {
 router.post('/admin/migrate-commissions', async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 0;
+        const fixBizOnly = req.query.fixBizOnly === 'true';
         const cutoff = days > 0 ? Date.now() - days * 86400000 : 0;
         const usersSnap = await admin.firestore().collection('users').get();
         const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -474,7 +475,7 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                         teamBiz: admin.firestore.FieldValue.increment(pkgAmount),
                     });
 
-                    if (capped > 0) {
+                    if (!fixBizOnly && capped > 0) {
                         const newUsed = used + capped;
                         const updates = {
                             balance: admin.firestore.FieldValue.increment(capped),
@@ -497,8 +498,8 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                     currentRefCode = refData.referredBy;
                 }
 
-                if (levelResults.length > 0) {
-                    results.push(`${buyer.name || buyer.id}: ${levelResults.join(', ')}`);
+                if (levelResults.length > 0 || fixBizOnly) {
+                    results.push(`${buyer.name || buyer.id}: ${fixBizOnly ? 'teamBiz updated' : levelResults.join(', ')}`);
                     processed++;
                 } else {
                     noUplinePackage++;
