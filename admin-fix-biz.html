@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix TeamBiz — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#03040a;color:white;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:30px 16px}
+.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:24px;width:100%;max-width:500px;margin-bottom:16px}
+h1{font-size:22px;font-weight:900;margin-bottom:4px}
+p{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;font-family:'Inter';color:#000;margin-bottom:8px;transition:0.2s}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-danger{background:#ef4444}
+.btn-primary{background:#a78bfa}
+.btn-success{background:#22c55e}
+.log{border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace;max-height:300px;overflow-y:auto;background:rgba(0,0,0,0.3);margin-top:12px;white-space:pre-wrap;color:rgba(255,255,255,0.7)}
+.log .ok{color:#22c55e}
+.log .err{color:#ef4444}
+.info{font-size:11px;color:rgba(255,255,255,0.3);margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+<div class="card" style="text-align:center">
+    <h1>🔧 Fix Team Business</h1>
+    <p>Reset aur recalculate sab users ka teamBiz</p>
+
+    <button class="btn btn-danger" id="resetBtn" onclick="resetBiz()">Step 1: Reset All teamBiz → 0</button>
+    <div id="resetStatus" class="info"></div>
+
+    <button class="btn btn-primary" id="fixBtn" onclick="fixBiz()" disabled>Step 2: Recalculate teamBiz</button>
+    <div id="fixStatus" class="info"></div>
+
+    <div id="log" class="log" style="display:none"></div>
+</div>
+
+<script>
+const API = 'https://onchyra-backend.onrender.com/api';
+
+async function resetBiz() {
+    const btn = document.getElementById('resetBtn');
+    const status = document.getElementById('resetStatus');
+    const log = document.getElementById('log');
+    btn.disabled = true;
+    status.textContent = 'Resetting...';
+    log.style.display = 'block';
+    log.innerHTML = '';
+    try {
+        const r = await fetch(API + '/admin/reset-teambiz', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            status.innerHTML = '✅ Reset done — ' + d.resetCount + ' users updated';
+            log.innerHTML = '<span class="ok">✓ teamBiz reset to 0 for ' + d.resetCount + ' users</span>';
+            document.getElementById('fixBtn').disabled = false;
+        } else {
+            status.innerHTML = '❌ Reset failed: ' + (d.error || 'unknown');
+            log.innerHTML = '<span class="err">✗ ' + (d.error || 'unknown') + '</span>';
+            btn.disabled = false;
+        }
+    } catch(e) {
+        status.innerHTML = '❌ Network error: ' + e.message;
+        log.innerHTML = '<span class="err">✗ ' + e.message + '</span>';
+        btn.disabled = false;
+    }
+}
+
+async function fixBiz() {
+    const btn = document.getElementById('fixBtn');
+    const status = document.getElementById('fixStatus');
+    const log = document.getElementById('log');
+    btn.disabled = true;
+    status.textContent = 'Processing all buyers...';
+    log.innerHTML += '\n<span style="color:#f59e0b">⟳ Running fixBizOnly migration...</span>\n';
+    try {
+        const r = await fetch(API + '/admin/migrate-commissions?fixBizOnly=true', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            status.innerHTML = '✅ Done — ' + d.processed + ' buyers processed, ' + d.noReferrer + ' had no referrer';
+            log.innerHTML += '<span class="ok">✓ ' + d.processed + ' buyers processed</span>\n';
+            log.innerHTML += '<span class="ok">✓ ' + d.noReferrer + ' buyers had no referrer (skipped)</span>\n';
+            if (d.results && d.results.length) {
+                log.innerHTML += '\n— Processed —\n';
+                d.results.slice(0, 30).forEach(r => log.innerHTML += r + '\n');
+                if (d.results.length > 30) log.innerHTML += '... and ' + (d.results.length - 30) + ' more\n';
+            }
+        } else {
+            status.innerHTML = '❌ Failed: ' + (d.error || 'unknown');
+            log.innerHTML += '<span class="err">✗ ' + (d.error || 'unknown') + '</span>\n';
+            btn.disabled = false;
+        }
+    } catch(e) {
+        status.innerHTML = '❌ Network error: ' + e.message;
+        log.innerHTML += '<span class="err">✗ ' + e.message + '</span>\n';
+        btn.disabled = false;
+    }
+}
+</script>
+</body>
+</html>
