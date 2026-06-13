@@ -222,8 +222,8 @@ function renderStats() {
     document.getElementById('totalDirectDisplay').textContent = (userData.activeDirects || 0) + '/' + (userData.totalDirects || 0);
     document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
     document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
-    // If teamBiz/legBiz are 0 but user has referrals, fetch fresh from leg-stats
-    if ((!userData.teamBiz || !userData.legABiz) && (l1 + l2 + l3) > 0) loadLegStats();
+    // If teamBiz is 0 but user has referrals, fetch fresh from leg-stats
+    if (!userData.teamBiz && (l1 + l2 + l3) > 0) loadLegStats();
 }
 
 async function loadLegStats() {
