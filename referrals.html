@@ -123,10 +123,10 @@
     <div class="list-card" style="padding:16px;">
         <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Level Breakdown</div>
         <div id="levelBreakdown">
-            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--primary);font-weight:800;">Vanguard</span> <span style="color:rgba(255,255,255,0.3);">(L1)</span></span><span id="lvl1Stats">0 users · $0.00 ONC</span></div>
-            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--secondary);font-weight:800;">Guardians</span> <span style="color:rgba(255,255,255,0.3);">(L2)</span></span><span id="lvl2Stats">0 users · $0.00 ONC</span></div>
-            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--amber);font-weight:800;">Seekers</span> <span style="color:rgba(255,255,255,0.3);">(L3)</span></span><span id="lvl3Stats">0 users · $0.00 ONC</span></div>
-            <div class="list-item" style="padding:10px 0 0;border-bottom:none;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px;"><span style="font-weight:800;">Total</span><span id="lvlTotalStats">0 users · $0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--primary);font-weight:800;">Vanguard</span> <span style="color:rgba(255,255,255,0.3);">(L1)</span></span><span id="lvl1Stats">0 users · 0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--secondary);font-weight:800;">Guardians</span> <span style="color:rgba(255,255,255,0.3);">(L2)</span></span><span id="lvl2Stats">0 users · 0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--amber);font-weight:800;">Seekers</span> <span style="color:rgba(255,255,255,0.3);">(L3)</span></span><span id="lvl3Stats">0 users · 0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0 0;border-bottom:none;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px;"><span style="font-weight:800;">Total</span><span id="lvlTotalStats">0 users · 0.00 ONC</span></div>
         </div>
     </div>
 
@@ -235,14 +235,14 @@ function renderStats() {
     document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
     document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
     // Level breakdown card
-    document.getElementById('lvl1Stats').textContent = l1 + ' users · $' + l1Onc.toFixed(2) + ' ONC';
-    document.getElementById('lvl2Stats').textContent = l2 + ' users · $' + l2Onc.toFixed(2) + ' ONC';
-    document.getElementById('lvl3Stats').textContent = l3 + ' users · $' + l3Onc.toFixed(2) + ' ONC';
-    document.getElementById('lvlTotalStats').textContent = (l1 + l2 + l3) + ' users · $' + totalOnc.toFixed(2) + ' ONC';
+    document.getElementById('lvl1Stats').textContent = l1 + ' users · ' + l1Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvl2Stats').textContent = l2 + ' users · ' + l2Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvl3Stats').textContent = l3 + ' users · ' + l3Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvlTotalStats').textContent = (l1 + l2 + l3) + ' users · ' + totalOnc.toFixed(2) + ' ONC';
     // Update filter labels with ONC
-    document.querySelector('#lvlFilter option[value="1"]').textContent = 'Vanguard (L1) — $' + l1Onc.toFixed(2) + ' ONC';
-    document.querySelector('#lvlFilter option[value="2"]').textContent = 'Guardians (L2) — $' + l2Onc.toFixed(2) + ' ONC';
-    document.querySelector('#lvlFilter option[value="3"]').textContent = 'Seekers (L3) — $' + l3Onc.toFixed(2) + ' ONC';
+    document.querySelector('#lvlFilter option[value="1"]').textContent = 'Vanguard (L1) — ' + l1Onc.toFixed(2) + ' ONC';
+    document.querySelector('#lvlFilter option[value="2"]').textContent = 'Guardians (L2) — ' + l2Onc.toFixed(2) + ' ONC';
+    document.querySelector('#lvlFilter option[value="3"]').textContent = 'Seekers (L3) — ' + l3Onc.toFixed(2) + ' ONC';
     // Fetch leg-stats for legA/legB if not stored
     if ((!userData.teamBiz || !userData.legABiz) && (l1 + l2 + l3) > 0) loadLegStats(!userData.teamBiz);
 }
