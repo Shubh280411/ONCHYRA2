@@ -70,7 +70,7 @@ async function main() {
 
             const newUsed = used + capped;
             const updates = {
-                balance: admin.firestore.FieldValue.increment(capped),
+                commissionBalance: admin.firestore.FieldValue.increment(capped),
                 packageUsage: admin.firestore.FieldValue.increment(capped),
                 totalCommissions: admin.firestore.FieldValue.increment(capped),
             };
