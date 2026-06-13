@@ -53,7 +53,6 @@ exports.purchase = async (req, res) => {
             packageStatus: 'active',
             packagePurchasedAt: Date.now(),
             totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
-            teamBiz: admin.firestore.FieldValue.increment(pkg.price),
         });
 
         batch.create(db.collection('packagePurchases').doc(), {
@@ -101,7 +100,6 @@ exports.adminActivate = async (req, res) => {
             packageStatus: 'active',
             packagePurchasedAt: Date.now(),
             totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
-            teamBiz: admin.firestore.FieldValue.increment(pkg.price),
         });
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -132,7 +130,6 @@ exports.adminUpgrade = async (req, res) => {
             packageStatus: 'active',
             packagePurchasedAt: Date.now(),
             totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
-            teamBiz: admin.firestore.FieldValue.increment(pkg.price),
         });
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }

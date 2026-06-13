@@ -321,11 +321,10 @@ router.get('/referrals/leg-stats/:uid', async (req, res) => {
         const totalDirects = l1.length;
         const activeDirects = l1.filter(u => u.activePackage).length;
 
-        const selfBiz = userSnap.data().totalPackageSpend || 0;
         const legBiz = l1.map(u => u.totalPackageSpend || 0).sort((a, b) => b - a);
         const legABiz = legBiz.length > 0 ? legBiz[0] : 0;
         const legBBiz = legBiz.slice(1).reduce((s, x) => s + x, 0);
-        const teamBiz = selfBiz + legBiz.reduce((s, x) => s + x, 0);
+        const teamBiz = legBiz.reduce((s, x) => s + x, 0);
 
         res.json({ totalDirects, activeDirects, legABiz, legBBiz, teamBiz });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -470,10 +469,6 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                     const capped = Math.min(commission, available);
 
                     const batch = admin.firestore().batch();
-
-                    batch.update(admin.firestore().doc(`users/${buyer.id}`), {
-                        teamBiz: admin.firestore.FieldValue.increment(pkgAmount),
-                    });
 
                     batch.update(admin.firestore().doc(`users/${refUid}`), {
                         teamBiz: admin.firestore.FieldValue.increment(pkgAmount),
