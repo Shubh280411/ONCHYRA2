@@ -2,9 +2,9 @@
     "name": "onchyra-backend",
     "version": "1.0.0",
     "description": "ONCHYRA API backend",
-    "main": "backend/server.js",
+    "main": "server.js",
     "scripts": {
-        "start": "node backend/server.js",
+        "start": "node server.js",
         "dev": "nodemon backend/server.js"
     },
     "dependencies": {
