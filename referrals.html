@@ -148,19 +148,17 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 const API = localStorage.getItem('onc_api') || 'https://onchyra-backend.onrender.com/api';
 
 let uid, refCode, userData;
 let teamData = { 1: [], 2: [], 3: [] };
-let pageSize = { 1: 10, 2: 10, 3: 10 };
 let allCommissions = [];
 let l1BizCache = {};
+let teamPage = 0, teamTotal = 0;
 
 function fmtDate(ts) {
     if (!ts) return '-';
@@ -190,16 +188,87 @@ window.switchTab = (tab) => {
     document.getElementById('commView').style.display = tab === 'comm' ? 'block' : 'none';
 };
 
+// ── Stats (1 read from /api/user/:uid, cached 5min) ──
+async function loadStats() {
+    const cacheKey = 'onc_s_' + uid;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+        const p = JSON.parse(cached);
+        if (Date.now() - p.ts < 300000) { userData = p.d; renderStats(); return; }
+    }
+    try {
+        const resp = await fetch(API + '/user/' + uid);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        userData = await resp.json();
+        localStorage.setItem(cacheKey, JSON.stringify({ d: userData, ts: Date.now() }));
+        renderStats();
+    } catch (e) {
+        document.getElementById('statsError').textContent = 'Stats load failed: ' + e.message;
+        document.getElementById('statsError').style.display = 'block';
+        userData = {};
+    }
+}
+
+function renderStats() {
+    if (!userData || !userData.referralCode) return;
+    refCode = userData.referralCode;
+    document.getElementById('refCode').textContent = refCode;
+
+    const l1 = userData.refLevel1 || 0, l2 = userData.refLevel2 || 0, l3 = userData.refLevel3 || 0;
+    document.getElementById('totalNetwork').textContent = l1 + l2 + l3;
+    document.getElementById('totalOncDisplay').textContent = ((l1 * 0.25) + (l2 * 0.10) + (l3 * 0.05)).toFixed(2) + ' ONC';
+    document.getElementById('totalCommDisplay').textContent = '$' + (userData.totalCommissions || 0).toFixed(2);
+    document.getElementById('totalBiz').textContent = '$' + (userData.teamBiz || 0).toFixed(2);
+    document.getElementById('totalDirectDisplay').textContent = (userData.activeDirects || 0) + '/' + (userData.totalDirects || 0);
+    document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
+    document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
+    // If teamBiz/legBiz are 0 but user has referrals, fetch fresh from leg-stats
+    if ((!userData.teamBiz || !userData.legABiz) && (l1 + l2 + l3) > 0) loadLegStats();
+}
+
+async function loadLegStats() {
+    try {
+        const resp = await fetch(API + '/referrals/leg-stats/' + uid);
+        if (!resp.ok) return;
+        const d = await resp.json();
+        document.getElementById('totalBiz').textContent = '$' + (d.teamBiz || 0).toFixed(2);
+        document.getElementById('totalDirectDisplay').textContent = (d.activeDirects || 0) + '/' + (d.totalDirects || 0);
+        document.getElementById('legABiz').textContent = '$' + (d.legABiz || 0).toFixed(2);
+        document.getElementById('legBBiz').textContent = '$' + (d.legBBiz || 0).toFixed(2);
+    } catch(e) {}
+}
+
+// ── Team (paginated, loads 10 per API call) ──
 async function loadTeam() {
     if (!uid) return;
     document.getElementById('teamLoading').style.display = 'block';
     try {
-        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=1');
+        const offset = teamPage * 10;
+        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=1&limit=10&offset=' + offset);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
-        teamData[1] = data.levels[1] || [];
-        teamData[2] = [];
-        teamData[3] = [];
+        if (teamPage === 0) { teamData[1] = data.levels[1] || []; teamTotal = data.total || 0; }
+        else { teamData[1] = teamData[1].concat(data.levels[1] || []); }
+        teamData[2] = []; teamData[3] = [];
+    } catch (e) {
+        document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
+        document.getElementById('teamError').style.display = 'block';
+    }
+    document.getElementById('teamLoading').style.display = 'none';
+    l1BizCache = {};
+    for (const u of teamData[1]) l1BizCache[u.referralCode] = u.totalPackageSpend || 0;
+    renderTeam();
+}
+
+async function loadLevel(lvl) {
+    if (!uid) return;
+    if (lvl === '1') { renderTeam(); return; }
+    document.getElementById('teamLoading').style.display = 'block';
+    try {
+        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=' + lvl + '&limit=20&offset=0');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        teamData[1] = data.levels[1] || []; teamData[2] = data.levels[2] || []; teamData[3] = data.levels[3] || [];
     } catch (e) {
         document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
         document.getElementById('teamError').style.display = 'block';
@@ -207,90 +276,54 @@ async function loadTeam() {
     document.getElementById('teamLoading').style.display = 'none';
     l1BizCache = {};
     for (const u of teamData[1]) {
-        l1BizCache[u.referralCode] = u.totalPackageSpend || 0;
-    }
-    renderTeam();
-    renderLegs();
-}
-
-let fullTeamLoaded = false;
-async function loadFullTeam() {
-    if (fullTeamLoaded || !uid) return;
-    const lvl = document.getElementById('lvlFilter').value;
-    if (lvl === '1') return;
-    document.getElementById('teamLoading').style.display = 'block';
-    try {
-        const resp = await fetch(API + '/referrals/team/' + uid);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
-        teamData[1] = data.levels[1] || [];
-        teamData[2] = data.levels[2] || [];
-        teamData[3] = data.levels[3] || [];
-        fullTeamLoaded = true;
-    } catch (e) {
-        document.getElementById('teamError').textContent = 'Full team load failed: ' + e.message;
-        document.getElementById('teamError').style.display = 'block';
-    }
-    document.getElementById('teamLoading').style.display = 'none';
-    l1BizCache = {};
-    for (const u of teamData[1]) {
         let biz = u.totalPackageSpend || 0;
         for (const v of teamData[2]) {
-            if (v.referredBy === u.referralCode) {
-                biz += v.totalPackageSpend || 0;
-                for (const w of teamData[3]) {
-                    if (w.referredBy === v.referralCode) {
-                        biz += w.totalPackageSpend || 0;
-                    }
-                }
-            }
+            if (v.referredBy === u.referralCode) { biz += v.totalPackageSpend || 0;
+                for (const w of teamData[3]) { if (w.referredBy === v.referralCode) biz += w.totalPackageSpend || 0; } }
         }
         l1BizCache[u.referralCode] = biz;
     }
     renderTeam();
-    renderLegs();
 }
 
-function renderLegs() {
-    const l1 = teamData[1] || [];
-    const l2 = teamData[2] || [];
-    const l3 = teamData[3] || [];
-
-    const activeDirects = l1.filter(u => u.activePackage).length;
-    const totalDirects = l1.length;
-    document.getElementById('totalDirectDisplay').textContent = activeDirects + '/' + totalDirects;
-
-    const legBiz = [];
-    for (const u of l1) {
-        let biz = u.totalPackageSpend || 0;
-        for (const v of l2) {
-            if (v.referredBy === u.referralCode) {
-                biz += v.totalPackageSpend || 0;
-                for (const w of l3) {
-                    if (w.referredBy === v.referralCode) {
-                        biz += w.totalPackageSpend || 0;
-                    }
-                }
-            }
-        }
-        legBiz.push({ name: u.name || 'User', biz });
+function renderTeam() {
+    const lvl = document.getElementById('lvlFilter').value;
+    const list = teamData[lvl] || [];
+    const container = document.getElementById('teamList');
+    if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state">No members in this level</div>';
+        document.getElementById('loadMoreBtn').style.display = 'none';
+        return;
     }
-
-    legBiz.sort((a, b) => b.biz - a.biz);
-    const legA = legBiz.length > 0 ? legBiz[0].biz : 0;
-    const legB = legBiz.slice(1).reduce((s, x) => s + x.biz, 0);
-
-    document.getElementById('legABiz').textContent = '$' + legA.toFixed(2);
-    document.getElementById('legBBiz').textContent = '$' + legB.toFixed(2);
+    container.innerHTML = list.map(u => {
+        const date = fmtDate(u.createdAt);
+        const tc = (u.refLevel1||0)+(u.refLevel2||0)+(u.refLevel3||0);
+        const biz = l1BizCache[u.referralCode] ?? (u.totalPackageSpend || 0);
+        const badge = u.activePackage ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name || 'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
+    }).join('');
+    const hasMore = lvl === '1' ? teamData[1].length < teamTotal : false;
+    document.getElementById('loadMoreBtn').style.display = hasMore ? 'block' : 'none';
 }
 
+window.loadMore = async () => {
+    teamPage++;
+    await loadTeam();
+};
+
+document.getElementById('lvlFilter').addEventListener('change', async () => {
+    teamPage = 0;
+    await loadLevel(document.getElementById('lvlFilter').value);
+});
+
+// ── Commissions (limit 30, sorted by backend) ──
 async function loadCommissions() {
+    if (!uid) return;
     document.getElementById('commLoading').style.display = 'block';
     try {
         const resp = await fetch(API + '/referrals/commissions/' + uid);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
-        allCommissions = data.commissions || [];
+        allCommissions = (await resp.json()).commissions || [];
         allCommissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     } catch (e) {
         document.getElementById('commError').textContent = 'Commissions load failed: ' + e.message;
@@ -298,105 +331,19 @@ async function loadCommissions() {
         allCommissions = [];
     }
     document.getElementById('commLoading').style.display = 'none';
-    renderCommissions();
-    renderTodayEarnings();
-}
-
-function renderTodayEarnings() {
-    let todayTotal = 0;
-    const todayStr = new Date().toDateString();
-    for (const c of allCommissions) {
-        const cDate = c.createdAt ? new Date(c.createdAt).toDateString() : null;
-        if (cDate === todayStr) {
-            todayTotal += c.amount || 0;
-        }
-    }
-    document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
-}
-
-function renderTeam() {
-    const lvl = document.getElementById('lvlFilter').value;
-    const list = teamData[lvl] || [];
-    const visible = list.slice(0, pageSize[lvl]);
-    const container = document.getElementById('teamList');
-
-    if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state">No members in this level</div>';
-        document.getElementById('loadMoreBtn').style.display = 'none';
-        return;
-    }
-
-    container.innerHTML = visible.map(u => {
-        const date = fmtDate(u.createdAt);
-        const teamCount = (u.refLevel1||0) + (u.refLevel2||0) + (u.refLevel3||0);
-        const biz = l1BizCache[u.referralCode] ?? (u.totalPackageSpend || 0);
-        const hasPkg = u.activePackage ? true : false;
-        const badge = hasPkg ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name || 'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${teamCount}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
-    }).join('');
-
-    document.getElementById('loadMoreBtn').style.display = list.length > visible.length ? 'block' : 'none';
-}
-
-function renderCommissions() {
     const container = document.getElementById('commList');
     if (allCommissions.length === 0) {
         container.innerHTML = '<div class="empty-state">No commissions yet</div>';
+        document.getElementById('todayEarnings').textContent = '$0.00';
         return;
     }
+    let todayTotal = 0;
+    const todayStr = new Date().toDateString();
     container.innerHTML = allCommissions.map(c => {
-        const date = fmtDate(c.createdAt);
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span>${c.packageName || 'Package'}</span><span>Level ${c.level}</span><span>${date}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
+        if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) todayTotal += c.amount || 0;
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span>${c.packageName || 'Package'}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
     }).join('');
-}
-
-window.loadMore = () => {
-    const lvl = document.getElementById('lvlFilter').value;
-    pageSize[lvl] += 10;
-    renderTeam();
-};
-
-document.getElementById('lvlFilter').addEventListener('change', () => {
-    pageSize = { 1: 10, 2: 10, 3: 10 };
-    loadFullTeam();
-    renderTeam();
-});
-
-async function loadStats() {
-    try {
-        const userSnap = await getDoc(doc(db, 'users', uid));
-        if (!userSnap.exists) throw new Error('User document not found');
-        userData = userSnap.data();
-    } catch (e) {
-        document.getElementById('statsError').textContent = 'Stats load failed: ' + e.message;
-        document.getElementById('statsError').style.display = 'block';
-        userData = {};
-        return;
-    }
-
-    refCode = userData.referralCode || uid.substring(0, 6).toUpperCase();
-    document.getElementById('refCode').textContent = refCode;
-
-    const l1 = userData.refLevel1 || 0;
-    const l2 = userData.refLevel2 || 0;
-    const l3 = userData.refLevel3 || 0;
-    document.getElementById('totalNetwork').textContent = l1 + l2 + l3;
-
-    const totalOnc = (l1 * 0.25) + (l2 * 0.10) + (l3 * 0.05);
-
-    const totalComm = userData.totalCommissions || 0;
-    document.getElementById('totalOncDisplay').textContent = totalOnc.toFixed(2) + ' ONC';
-    document.getElementById('totalCommDisplay').textContent = '$' + totalComm.toFixed(2);
-}
-
-async function loadBiz() {
-    let biz = 0;
-    for (const lvl of [1, 2, 3]) {
-        for (const u of teamData[lvl]) {
-            biz += u.totalPackageSpend || 0;
-        }
-    }
-    document.getElementById('totalBiz').textContent = '$' + biz.toFixed(2);
+    document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -404,7 +351,6 @@ onAuthStateChanged(auth, async (user) => {
     uid = user.uid;
     await loadStats();
     await loadTeam();
-    loadBiz();
     loadCommissions();
 });
 </script>

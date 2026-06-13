@@ -69,7 +69,9 @@ router.get('/check-referral/:code', async (req, res) => {
 router.get('/referrals/team/:uid', async (req, res) => {
     try {
         const { uid } = req.params;
-        const maxLevel = parseInt(req.query.maxLevel) || 3;
+        const maxLevel = parseInt(req.query.maxLevel) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+        const offset = parseInt(req.query.offset) || 0;
         const userSnap = await admin.firestore().doc(`users/${uid}`).get();
         if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
         const user = userSnap.data();
@@ -77,10 +79,13 @@ router.get('/referrals/team/:uid', async (req, res) => {
         if (!refCode) return res.json({ levels: { 1: [], 2: [], 3: [] } });
 
         const s1 = await admin.firestore().collection('users').where('referredBy', '==', refCode).get();
-        const l1 = s1.docs.map(d => ({ id: d.id, ...d.data() }));
+        const allL1 = s1.docs.map(d => ({ id: d.id, ...d.data() }));
+        const total = allL1.length;
+        const l1 = allL1.slice(offset, offset + limit);
         let l2 = [], l3 = [];
+        let total2 = 0, total3 = 0;
 
-        if (maxLevel >= 2) {
+        if (maxLevel >= 2 && l1.length > 0) {
             const l1Codes = l1.map(u => u.referralCode).filter(Boolean);
             for (let i = 0; i < l1Codes.length; i += 10) {
                 const s2 = await admin.firestore().collection('users').where('referredBy', 'in', l1Codes.slice(i, i + 10)).get();
@@ -88,7 +93,7 @@ router.get('/referrals/team/:uid', async (req, res) => {
             }
         }
 
-        if (maxLevel >= 3) {
+        if (maxLevel >= 3 && l2.length > 0) {
             const l2Codes = l2.map(u => u.referralCode).filter(Boolean);
             for (let i = 0; i < l2Codes.length; i += 10) {
                 const s3 = await admin.firestore().collection('users').where('referredBy', 'in', l2Codes.slice(i, i + 10)).get();
@@ -104,7 +109,7 @@ router.get('/referrals/team/:uid', async (req, res) => {
             refLevel1: u.refLevel1 || 0, refLevel2: u.refLevel2 || 0, refLevel3: u.refLevel3 || 0,
         }));
 
-        res.json({ levels: { 1: clean(l1), 2: clean(l2), 3: clean(l3) } });
+        res.json({ levels: { 1: clean(l1), 2: clean(l2), 3: clean(l3) }, total, total2, total3 });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -113,7 +118,7 @@ router.get('/referrals/commissions/:uid', async (req, res) => {
         const { uid } = req.params;
         const snap = await admin.firestore().collection('commissions')
             .where('uid', '==', uid)
-            .limit(100)
+            .limit(30)
             .get();
         const commissions = snap.docs.map(d => {
             const data = d.data();
@@ -303,6 +308,49 @@ router.post('/commissions/process-package', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Lightweight leg stats — reads only L1 members, no L2/L3 tree
+router.get('/referrals/leg-stats/:uid', async (req, res) => {
+    try {
+        const userSnap = await admin.firestore().doc(`users/${req.params.uid}`).get();
+        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
+        const refCode = userSnap.data().referralCode;
+        if (!refCode) return res.json({ totalDirects: 0, activeDirects: 0, legABiz: 0, legBBiz: 0, teamBiz: 0 });
+
+        const s1 = await admin.firestore().collection('users').where('referredBy', '==', refCode).get();
+        const l1 = s1.docs.map(d => d.data());
+        const totalDirects = l1.length;
+        const activeDirects = l1.filter(u => u.activePackage).length;
+
+        const legBiz = l1.map(u => u.totalPackageSpend || 0).sort((a, b) => b - a);
+        const legABiz = legBiz.length > 0 ? legBiz[0] : 0;
+        const legBBiz = legBiz.slice(1).reduce((s, x) => s + x, 0);
+        const teamBiz = legBiz.reduce((s, x) => s + x, 0);
+
+        res.json({ totalDirects, activeDirects, legABiz, legBBiz, teamBiz });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get user stats for referrals page
+router.get('/user/:uid', async (req, res) => {
+    try {
+        const snap = await admin.firestore().doc(`users/${req.params.uid}`).get();
+        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
+        const u = snap.data();
+        res.json({
+            referralCode: u.referralCode,
+            refLevel1: u.refLevel1 || 0,
+            refLevel2: u.refLevel2 || 0,
+            refLevel3: u.refLevel3 || 0,
+            totalCommissions: u.totalCommissions || 0,
+            totalDirects: u.totalDirects || 0,
+            activeDirects: u.activeDirects || 0,
+            teamBiz: u.teamBiz || 0,
+            legABiz: u.legABiz || 0,
+            legBBiz: u.legBBiz || 0,
+        });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Registration Commission
 router.post('/register-commission', async (req, res) => {
     try {
@@ -312,15 +360,26 @@ router.post('/register-commission', async (req, res) => {
         const refSnap = await admin.firestore().collection('users').where('referralCode', '==', referredBy.toUpperCase()).get();
         if (refSnap.empty) return res.status(400).json({ error: 'Invalid referral code' });
 
+        const newUserSnap = await admin.firestore().doc(`users/${uid}`).get();
+        const newUserName = newUserSnap.exists ? newUserSnap.data().name : 'New User';
+
         const l1Ref = refSnap.docs[0].ref;
         const l1Data = refSnap.docs[0].data();
+        const l1Uid = refSnap.docs[0].id;
         const batch = admin.firestore().batch();
 
         batch.update(l1Ref, {
             balance: admin.firestore.FieldValue.increment(0.25),
+            commissionBalance: admin.firestore.FieldValue.increment(0.25),
+            totalCommissions: admin.firestore.FieldValue.increment(0.25),
             referrals: admin.firestore.FieldValue.increment(1),
             refLevel1: admin.firestore.FieldValue.increment(1),
             totalDirects: admin.firestore.FieldValue.increment(1)
+        });
+        batch.create(admin.firestore().collection('commissions').doc(), {
+            uid: l1Uid, fromUid: uid, fromName: newUserName,
+            amount: 0.25, level: 1, type: 'registration_bonus',
+            packageName: 'Registration Bonus', createdAt: Date.now()
         });
 
         if (l1Data.referredBy) {
@@ -328,16 +387,32 @@ router.post('/register-commission', async (req, res) => {
             if (!l2Snap.empty) {
                 const l2Ref = l2Snap.docs[0].ref;
                 const l2Data = l2Snap.docs[0].data();
+                const l2Uid = l2Snap.docs[0].id;
                 batch.update(l2Ref, {
                     balance: admin.firestore.FieldValue.increment(0.10),
+                    commissionBalance: admin.firestore.FieldValue.increment(0.10),
+                    totalCommissions: admin.firestore.FieldValue.increment(0.10),
                     refLevel2: admin.firestore.FieldValue.increment(1)
+                });
+                batch.create(admin.firestore().collection('commissions').doc(), {
+                    uid: l2Uid, fromUid: uid, fromName: newUserName,
+                    amount: 0.10, level: 2, type: 'registration_bonus',
+                    packageName: 'Registration Bonus', createdAt: Date.now()
                 });
                 if (l2Data.referredBy) {
                     const l3Snap = await admin.firestore().collection('users').where('referralCode', '==', l2Data.referredBy).get();
                     if (!l3Snap.empty) {
+                        const l3Uid = l3Snap.docs[0].id;
                         batch.update(l3Snap.docs[0].ref, {
                             balance: admin.firestore.FieldValue.increment(0.05),
+                            commissionBalance: admin.firestore.FieldValue.increment(0.05),
+                            totalCommissions: admin.firestore.FieldValue.increment(0.05),
                             refLevel3: admin.firestore.FieldValue.increment(1)
+                        });
+                        batch.create(admin.firestore().collection('commissions').doc(), {
+                            uid: l3Uid, fromUid: uid, fromName: newUserName,
+                            amount: 0.05, level: 3, type: 'registration_bonus',
+                            packageName: 'Registration Bonus', createdAt: Date.now()
                         });
                     }
                 }
@@ -349,12 +424,15 @@ router.post('/register-commission', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Retroactive Commission Migration (force process all past purchases)
+// Admin — Retroactive Commission Migration (force process past purchases; ?days=6 for last N days)
 router.post('/admin/migrate-commissions', async (req, res) => {
     try {
+        const days = parseInt(req.query.days) || 0;
+        const cutoff = days > 0 ? Date.now() - days * 86400000 : 0;
         const usersSnap = await admin.firestore().collection('users').get();
         const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const buyers = allUsers.filter(u => (u.packageAmount || 0) > 0 || (u.totalPackageSpend || 0) > 0);
+        let buyers = allUsers.filter(u => (u.packageAmount || 0) > 0 || (u.totalPackageSpend || 0) > 0);
+        if (cutoff > 0) buyers = buyers.filter(u => (u.packagePurchasedAt || 0) >= cutoff);
         let processed = 0, noReferrer = 0, noUplinePackage = 0, results = [], errors = [];
 
         const levels = [

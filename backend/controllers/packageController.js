@@ -183,6 +183,7 @@ async function processReferralCommission(uid, amount, pkgName) {
                 commissionBalance: admin.firestore.FieldValue.increment(capped),
                 packageUsage: admin.firestore.FieldValue.increment(capped),
                 totalCommissions: admin.firestore.FieldValue.increment(capped),
+                teamBiz: admin.firestore.FieldValue.increment(amount),
             };
 
             if (newUsed >= cap) {
