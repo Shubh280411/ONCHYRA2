@@ -120,6 +120,16 @@
         </div>
     </div>
 
+    <div class="list-card" style="padding:16px;">
+        <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Level Breakdown</div>
+        <div id="levelBreakdown">
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--primary);font-weight:800;">Vanguard</span> <span style="color:rgba(255,255,255,0.3);">(L1)</span></span><span id="lvl1Stats">0 users · $0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--secondary);font-weight:800;">Guardians</span> <span style="color:rgba(255,255,255,0.3);">(L2)</span></span><span id="lvl2Stats">0 users · $0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0;"><span><span style="color:var(--amber);font-weight:800;">Seekers</span> <span style="color:rgba(255,255,255,0.3);">(L3)</span></span><span id="lvl3Stats">0 users · $0.00 ONC</span></div>
+            <div class="list-item" style="padding:10px 0 0;border-bottom:none;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px;"><span style="font-weight:800;">Total</span><span id="lvlTotalStats">0 users · $0.00 ONC</span></div>
+        </div>
+    </div>
+
     <div class="tabs">
         <div class="tab active" id="tabTeam" onclick="switchTab('team')">Network</div>
         <div class="tab" id="tabComm" onclick="switchTab('comm')">Commissions</div>
@@ -216,13 +226,24 @@ function renderStats() {
 
     const l1 = userData.refLevel1 || 0, l2 = userData.refLevel2 || 0, l3 = userData.refLevel3 || 0;
     document.getElementById('totalNetwork').textContent = l1 + l2 + l3;
-    document.getElementById('totalOncDisplay').textContent = ((l1 * 0.25) + (l2 * 0.10) + (l3 * 0.05)).toFixed(2) + ' ONC';
+    const l1Onc = (l1 * 0.25), l2Onc = (l2 * 0.10), l3Onc = (l3 * 0.05);
+    const totalOnc = l1Onc + l2Onc + l3Onc;
+    document.getElementById('totalOncDisplay').textContent = totalOnc.toFixed(2) + ' ONC';
     document.getElementById('totalCommDisplay').textContent = '$' + (userData.totalCommissions || 0).toFixed(2);
     document.getElementById('totalBiz').textContent = '$' + (userData.teamBiz || 0).toFixed(2);
     document.getElementById('totalDirectDisplay').textContent = (userData.activeDirects || 0) + '/' + (userData.totalDirects || 0);
     document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
     document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
-    // Fetch leg-stats for legA/legB if not stored, or for full fallback if teamBiz is 0
+    // Level breakdown card
+    document.getElementById('lvl1Stats').textContent = l1 + ' users · $' + l1Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvl2Stats').textContent = l2 + ' users · $' + l2Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvl3Stats').textContent = l3 + ' users · $' + l3Onc.toFixed(2) + ' ONC';
+    document.getElementById('lvlTotalStats').textContent = (l1 + l2 + l3) + ' users · $' + totalOnc.toFixed(2) + ' ONC';
+    // Update filter labels with ONC
+    document.querySelector('#lvlFilter option[value="1"]').textContent = 'Vanguard (L1) — $' + l1Onc.toFixed(2) + ' ONC';
+    document.querySelector('#lvlFilter option[value="2"]').textContent = 'Guardians (L2) — $' + l2Onc.toFixed(2) + ' ONC';
+    document.querySelector('#lvlFilter option[value="3"]').textContent = 'Seekers (L3) — $' + l3Onc.toFixed(2) + ' ONC';
+    // Fetch leg-stats for legA/legB if not stored
     if ((!userData.teamBiz || !userData.legABiz) && (l1 + l2 + l3) > 0) loadLegStats(!userData.teamBiz);
 }
 
@@ -262,13 +283,15 @@ async function loadTeam() {
 
 async function loadLevel(lvl) {
     if (!uid) return;
-    if (lvl === '1') { renderTeam(); return; }
+    teamPage = 0;
     document.getElementById('teamLoading').style.display = 'block';
     try {
-        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=' + lvl + '&limit=20&offset=0');
+        const limit = lvl === '1' ? 10 : 20;
+        const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=' + lvl + '&limit=' + limit + '&offset=0');
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         teamData[1] = data.levels[1] || []; teamData[2] = data.levels[2] || []; teamData[3] = data.levels[3] || [];
+        teamTotal = data.total || teamData[1].length;
     } catch (e) {
         document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
         document.getElementById('teamError').style.display = 'block';
@@ -341,7 +364,9 @@ async function loadCommissions() {
     const todayStr = new Date().toDateString();
     container.innerHTML = allCommissions.map(c => {
         if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) todayTotal += c.amount || 0;
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span>${c.packageName || 'Package'}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
+        const typeLabel = c.type === 'registration_bonus' ? 'Registration' : c.type === 'matching_bonus' ? 'Matching' : 'Package';
+        const typeColor = c.type === 'registration_bonus' ? 'var(--amber)' : c.type === 'matching_bonus' ? 'var(--secondary)' : 'var(--green)';
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
     }).join('');
     document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
 }
