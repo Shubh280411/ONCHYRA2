@@ -115,7 +115,7 @@
                 <div class="sc-icon" style="background:rgba(34,197,94,0.12);">
                     <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </div>
-                <div><div class="sc-val" id="todayEarnings">$0.00</div><div class="sc-lbl">Today's Earnings</div></div>
+                <div><div class="sc-val" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span id="todayOnc">0 ONC</span><span style="font-size:9px;opacity:0.2;">|</span><span id="todayComm">$0.00</span></div><div class="sc-lbl">Today's Earnings</div></div>
             </div>
         </div>
     </div>
@@ -357,19 +357,24 @@ async function loadCommissions() {
     const container = document.getElementById('commList');
     if (allCommissions.length === 0) {
         container.innerHTML = '<div class="empty-state">No commissions yet</div>';
-        document.getElementById('todayEarnings').textContent = '$0.00';
+        document.getElementById('todayOnc').textContent = '0 ONC';
+        document.getElementById('todayComm').textContent = '$0.00';
         return;
     }
-    let todayTotal = 0;
+    let todayOnc = 0, todayUsdt = 0;
     const todayStr = new Date().toDateString();
     container.innerHTML = allCommissions.map(c => {
-        if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) todayTotal += c.amount || 0;
+        if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) {
+            if (c.type === 'registration_bonus') todayOnc += c.amount || 0;
+            else todayUsdt += c.amount || 0;
+        }
         const typeLabel = c.type === 'registration_bonus' ? 'Registration' : c.type === 'matching_bonus' ? 'Matching' : 'Package';
         const typeColor = c.type === 'registration_bonus' ? 'var(--amber)' : c.type === 'matching_bonus' ? 'var(--secondary)' : 'var(--green)';
         const cur = c.type === 'registration_bonus' ? ' ONC' : '$';
         return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+${cur}${c.amount.toFixed(2)}</span></div>`;
     }).join('');
-    document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
+    document.getElementById('todayOnc').textContent = todayOnc.toFixed(2) + ' ONC';
+    document.getElementById('todayComm').textContent = '$' + todayUsdt.toFixed(2);
 }
 
 onAuthStateChanged(auth, async (user) => {
