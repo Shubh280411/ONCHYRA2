@@ -88,10 +88,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
   </div>
 
   <div style="display:flex;gap:6px;justify-content:flex-end;">
-    <div id="filter24h" class="filter-btn active" onclick="setFilter('24h')">24H</div>
+    <div id="filter24h" class="filter-btn" onclick="setFilter('24h')">24H</div>
     <div id="filter7d" class="filter-btn" onclick="setFilter('7d')">7D</div>
     <div id="filter30d" class="filter-btn" onclick="setFilter('30d')">30D</div>
-    <div id="filterAll" class="filter-btn" onclick="setFilter('all')">ALL</div>
+    <div id="filterAll" class="filter-btn active" onclick="setFilter('all')">ALL</div>
   </div>
 
   <div class="card" style="text-align:center;padding:24px;">
@@ -242,10 +242,13 @@ async function loadData() {
     });
   }
 
+  // Sort by newest first
+  items.sort((a, b) => (b.date || 0) - (a.date || 0));
+
   // Apply time filter
   if (timeFilter !== 'all') {
     items = items.filter(i => isInRange(i.date));
-    total = items.reduce((s, i) => s + i.amt, 0);
+    total = items.reduce((s, i) => s + (i.amt || 0), 0);
   }
 
   totalEl.textContent = total.toFixed(2);
@@ -266,7 +269,7 @@ async function loadData() {
       <div class="left" style="display:flex;align-items:center;gap:10px;">
         ${iconSvg}
         <div>
-          <div class="name">+${i.type === 'registration_bonus' ? '' : '$'}${i.amt.toFixed(2)}${i.type === 'registration_bonus' ? ' ONC' : ''}</div>
+          <div class="name">+${i.type === 'registration_bonus' ? '' : '$'}${(i.amt || 0).toFixed(2)}${i.type === 'registration_bonus' ? ' ONC' : ''}</div>
           <div class="src">${i.src} · ${i.detail}</div>
         </div>
       </div>
