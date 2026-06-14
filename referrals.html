@@ -366,7 +366,8 @@ async function loadCommissions() {
         if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) todayTotal += c.amount || 0;
         const typeLabel = c.type === 'registration_bonus' ? 'Registration' : c.type === 'matching_bonus' ? 'Matching' : 'Package';
         const typeColor = c.type === 'registration_bonus' ? 'var(--amber)' : c.type === 'matching_bonus' ? 'var(--secondary)' : 'var(--green)';
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+$${c.amount.toFixed(2)}</span></div>`;
+        const cur = c.type === 'registration_bonus' ? ' ONC' : '$';
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+${cur}${c.amount.toFixed(2)}</span></div>`;
     }).join('');
     document.getElementById('todayEarnings').textContent = '$' + todayTotal.toFixed(2);
 }
