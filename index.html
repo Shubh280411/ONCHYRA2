@@ -16,8 +16,7 @@
 
         nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 6%; position: fixed; width: 100%; top: 0; z-index: 1000; transition: 0.3s; }
         nav.scrolled { background: rgba(5, 6, 15, 0.95); backdrop-filter: blur(15px); padding: 15px 6%; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .logo { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 700; letter-spacing: -1px; }
-        .logo span { color: var(--p); }
+        .logo img { height: 32px; display: block; }
         .login-btn { color: white; text-decoration: none; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 50px; }
 
         .hero { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 8% 20px; }
@@ -61,7 +60,7 @@
     <div class="glow"></div>
 
     <nav id="navbar">
-        <div class="logo">ONCHY<span>RA</span></div>
+        <div class="logo"><img src="logo.png" alt="ONCHYRA"></div>
         <a href="login.html" class="login-btn">LOGIN</a>
     </nav>
 
@@ -72,7 +71,8 @@
         
         <div class="btn-group" data-aos="fade-up" data-aos-delay="200">
             <a href="register.html" class="btn btn-p">START MINING NOW</a>
-            <a href="whitepaper.html" class="btn btn-s">READ DOCUMENTATION</a>
+            <a href="Onchyra_Official_Presentation.pdf" class="btn btn-s">📄 Read Our Presentation</a>
+            <a href="whitepaper.html" class="btn btn-s">📖 Read Whitepaper</a>
         </div>
     </section>
 
