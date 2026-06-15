@@ -57,44 +57,14 @@
         .v-btn-dynamic.selected { border-color:var(--primary); background:rgba(167,139,250,0.1); }
         .v-btn-dynamic:disabled { cursor:default; opacity:1; }
 
-        .contest-card {
-            background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,146,60,0.06));
-            border: 1px solid rgba(251,191,36,0.3);
-            border-radius: 28px; padding: 22px 24px;
-            cursor: pointer; position: relative; overflow: hidden;
-        }
-        .contest-card::before {
-            content: ''; position: absolute; top: 0; right: 0;
-            width: 120px; height: 120px;
-            background: radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%);
-        }
-        .contest-live-dot {
-            display: inline-flex; align-items: center; gap: 6px;
-            font-size: 9px; font-weight: 800; color: #fbbf24;
-            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
-        }
-        .contest-live-dot::before {
-            content: ''; width: 7px; height: 7px; border-radius: 50%;
-            background: #fbbf24; box-shadow: 0 0 8px #fbbf24;
-            animation: pulse 1.5s infinite;
-        }
-        .contest-title { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 4px; }
-        .contest-sub { font-size: 11px; opacity: 0.5; margin-bottom: 16px; }
-        .contest-join-btn {
-            display: inline-block; padding: 11px 22px; border-radius: 14px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: #000; font-weight: 900; font-size: 12px;
-            text-decoration: none; letter-spacing: 1px;
-        }
-
         #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:12px 25px; border-radius:50px; font-weight:800; display:none; z-index:2000; font-size:11px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
 
-        /* CONTEST POPUP */
-        #contestPopup { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:5000; padding:20px; backdrop-filter:blur(10px); }
-        #contestPopup.show { display:flex; }
+        /* TELEGRAM POPUP */
+        #tgPopup { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:5000; padding:20px; backdrop-filter:blur(10px); }
+        #tgPopup.show { display:flex; }
         .popup-box {
             background: linear-gradient(160deg, #0b0d18 0%, #120e24 100%);
-            border: 1px solid rgba(251,191,36,0.3);
+            border: 1px solid rgba(96,165,250,0.25);
             border-radius: 32px; padding: 40px 30px 30px; width: 100%; max-width: 380px;
             text-align: center; position: relative; overflow: hidden;
             animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -102,7 +72,7 @@
         @keyframes popIn { from { transform:scale(0.7) translateY(40px); opacity:0; } to { transform:scale(1) translateY(0); opacity:1; } }
         .popup-box::before {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at 50% 30%, rgba(251,191,36,0.1) 0%, transparent 60%);
+            background: radial-gradient(circle at 50% 30%, rgba(96,165,250,0.08) 0%, transparent 60%);
             pointer-events: none;
         }
         .popup-close {
@@ -112,42 +82,26 @@
             display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
         .popup-close:hover { background: rgba(255,255,255,0.1); color: white; }
-        .popup-emoji { font-size: 52px; margin-bottom: 16px; display: block; filter: drop-shadow(0 0 20px rgba(251,191,36,0.4)); }
+        .popup-icon { display:flex; align-items:center; justify-content:center; margin: 0 auto 20px; width:56px;height:56px;border-radius:50%;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2); }
         .popup-title {
             font-family: 'Space Grotesk'; font-size: 28px; font-weight: 900;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b, #fb923c);
+            background: linear-gradient(135deg, #60a5fa, #3b82f6, #2563eb);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin: 0 0 8px; letter-spacing: -1px;
         }
         .popup-badge {
-            display: inline-block; font-size: 9px; font-weight: 900; color: #fbbf24;
-            background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+            display: inline-block; font-size: 9px; font-weight: 900; color: #60a5fa;
+            background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3);
             padding: 4px 12px; border-radius: 20px; letter-spacing: 2px; margin-bottom: 16px;
         }
         .popup-sub { font-size: 13px; color: rgba(255,255,255,0.45); margin: 0 0 24px; line-height: 1.6; }
-        .popup-prizes { display: flex; gap: 10px; margin-bottom: 24px; }
-        .popup-prize {
-            flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 18px; padding: 16px 8px; position: relative; overflow: hidden;
-        }
-        .popup-prize::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        }
-        .popup-prize:nth-child(1)::before { background: linear-gradient(90deg, transparent, #ffd700, transparent); }
-        .popup-prize:nth-child(2)::before { background: linear-gradient(90deg, transparent, #c0c0c0, transparent); }
-        .popup-prize:nth-child(3)::before { background: linear-gradient(90deg, transparent, #cd7f32, transparent); }
-        .popup-prize .rank { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.35); letter-spacing: 1px; text-transform: uppercase; }
-        .popup-prize .amount { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 800; margin-top: 4px; }
-        .popup-prize:nth-child(1) .amount { color: #ffd700; }
-        .popup-prize:nth-child(2) .amount { color: #c0c0c0; }
-        .popup-prize:nth-child(3) .amount { color: #cd7f32; }
         .popup-join-btn {
             width: 100%; padding: 18px; border: none; border-radius: 18px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            color: #000; font-family: 'Space Grotesk'; font-size: 16px; font-weight: 900;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #fff; font-family: 'Space Grotesk'; font-size: 16px; font-weight: 900;
             cursor: pointer; letter-spacing: 1px; transition: 0.2s;
         }
-        .popup-join-btn:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(251,191,36,0.3); }
+        .popup-join-btn:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(96,165,250,0.3); }
         .popup-later {
             margin-top: 16px; font-size: 11px; color: rgba(255,255,255,0.2);
             background: none; border: none; cursor: pointer; font-weight: 600;
@@ -316,6 +270,19 @@
         </div>
 
         <!-- Cap Tachometer -->
+
+        <div class="card full-width">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Mining Protocol</span>
+                <span id="dashPkgBoost" style="font-size:8px;font-weight:700;margin-left:auto;background:rgba(34,197,94,0.1);color:#22c55e;padding:2px 8px;border-radius:5px;">0x Boost</span>
+            </div>
+            <div style="background:#111;height:8px;border-radius:20px;overflow:hidden;margin-bottom:18px;">
+                <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#60a5fa,#22c55e);transition:1s linear;"></div>
+            </div>
+            <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
+        </div>
+
         <div class="card full-width" style="text-align:center;padding:18px 16px 14px;" id="tachocard">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
                 <div style="display:flex;align-items:center;gap:6px;font-size:8px;opacity:0.4;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
@@ -416,28 +383,6 @@
             </div>
         </div>
 
-        <div class="card full-width">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Mining Protocol</span>
-                <span id="dashPkgBoost" style="font-size:8px;font-weight:700;margin-left:auto;background:rgba(34,197,94,0.1);color:#22c55e;padding:2px 8px;border-radius:5px;">0x Boost</span>
-            </div>
-            <div style="background:#111;height:8px;border-radius:20px;overflow:hidden;margin-bottom:18px;">
-                <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#60a5fa,#22c55e);transition:1s linear;"></div>
-            </div>
-            <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
-        </div>
-
-        <div class="contest-card full-width" onclick="window.location='contests.html'">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <div class="contest-live-dot">LIVE NOW</div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-            </div>
-            <div class="contest-title">Referral Contest is Live!</div>
-            <div class="contest-sub">The ONCHYRA referral contest has officially started ⚡Start inviting and climb the leaderboard to win rewards.</div>
-            <a href="contests.html" class="contest-join-btn">JOIN CONTEST →</a>
-        </div>
-
         <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary);cursor:pointer;">
             <div style="display:flex;align-items:center;gap:6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -458,6 +403,111 @@
                 </div>
                 <button class="copy-btn" id="copyBtn" onclick="copyInvite()">INVITE</button>
             </div>
+        </div>
+
+        <!-- ── Referral Rewards Hub ── -->
+        <style>
+          .ref-hub-card { background:rgba(255,255,255,0.05);border:1px solid rgba(167,139,250,0.2);border-radius:24px;padding:18px 14px 12px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px); }
+          .ref-hub-header { display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:0 4px; }
+          .ref-hub-header svg { flex-shrink:0; }
+          .ref-hub-header span { font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35); }
+          .ref-tier { display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:14px 18px;margin-bottom:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;overflow:hidden; }
+          .ref-badge { width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative; }
+          .ref-badge svg { position:absolute;inset:0;width:100%;height:100%; }
+          .ref-badge span { position:relative;z-index:1;font-family:'Space Grotesk';font-weight:900;font-size:16px;color:#fff; }
+          .ref-level-text { font-family:'Space Grotesk';font-weight:800;font-size:13px;letter-spacing:-0.2px; }
+          .ref-level-label { font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.2);margin-top:1px; }
+          .ref-metrics { display:flex;gap:18px;margin-left:auto;flex-shrink:0; }
+          .ref-metric { text-align:center; }
+          .ref-metric .val { font-family:'Space Grotesk';font-weight:900;font-size:15px;line-height:1.2; }
+          .ref-metric .lbl { font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.2);margin-top:2px; }
+          .ref-arrow { flex-shrink:0;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.12);color:var(--primary);text-decoration:none;transition:0.2s; }
+          .ref-arrow:hover { background:rgba(167,139,250,0.2);border-color:rgba(167,139,250,0.3);transform:translateX(2px); }
+          @media (max-width:420px) {
+            .ref-tier { flex-wrap:wrap;gap:10px;padding:12px 14px; }
+            .ref-metrics { margin-left:56px;gap:14px; }
+          }
+        </style>
+        <div class="card full-width" style="padding:0;border:none;background:transparent;">
+          <div class="ref-hub-card">
+            <div class="ref-hub-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Referral Rewards Hub</span>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(167,139,250,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(167,139,250,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(167,139,250,0.3)" stroke-width="1"/></svg>
+                <span>1</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#a78bfa;">Level 1</div>
+                <div class="ref-level-label">Direct Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL1Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL1Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(96,165,250,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(96,165,250,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(96,165,250,0.3)" stroke-width="1"/></svg>
+                <span>2</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#60a5fa;">Level 2</div>
+                <div class="ref-level-label">Indirect Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL2Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL2Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(251,191,36,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(251,191,36,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(251,191,36,0.3)" stroke-width="1"/></svg>
+                <span>3</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#fbbf24;">Level 3</div>
+                <div class="ref-level-label">Tier 3 Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL3Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL3Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         <!-- ── P2P Quick Transfer ── -->
@@ -570,21 +620,18 @@
     </div>
 </div>
 
-<!-- CONTEST POPUP -->
-<div id="contestPopup" onclick="if(event.target===this)closeContestPopup()">
+<!-- TELEGRAM POPUP -->
+<div id="tgPopup" onclick="if(event.target===this)closeTgPopup()">
     <div class="popup-box">
-        <button class="popup-close" onclick="closeContestPopup()">✕</button>
-        <span class="popup-emoji">🏆</span>
-        <div class="popup-badge">LIMITED EVENT</div>
-        <div class="popup-title">Referral Contest</div>
-        <p class="popup-sub">Invite friends, climb the leaderboard & win <b style="color:#fbbf24;">30 POL</b> in rewards</p>
-        <div class="popup-prizes">
-            <div class="popup-prize"><div class="rank">1st</div><div class="amount">15</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
-            <div class="popup-prize"><div class="rank">2nd</div><div class="amount">10</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
-            <div class="popup-prize"><div class="rank">3rd</div><div class="amount">5</div><div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;">POL</div></div>
+        <button class="popup-close" onclick="closeTgPopup()">✕</button>
+        <div class="popup-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#60a5fa"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
         </div>
-        <button class="popup-join-btn" onclick="window.location='contests.html'">JOIN NOW →</button>
-        <button class="popup-later" onclick="closeContestPopup()">Maybe later</button>
+        <div class="popup-badge">JOIN COMMUNITY</div>
+        <div class="popup-title">ONCHYRA Telegram</div>
+        <p class="popup-sub">Get real-time announcements, ecosystem updates & community support directly from the team.</p>
+        <button class="popup-join-btn" onclick="window.open('https://t.me/onchyraofficial','_blank');closeTgPopup()">JOIN TELEGRAM →</button>
+        <button class="popup-later" onclick="closeTgPopup()">Maybe later</button>
     </div>
 </div>
 
@@ -689,18 +736,15 @@ onAuthStateChanged(auth, async (user) => {
     fetchLatestUpdate();
     loadNotifications();
 
-    if (sessionStorage.getItem('contestPopupSeen')) return;
-    const cameFromContest = document.referrer.includes('contests.html');
-    if (!cameFromContest) {
-        setTimeout(() => {
-            document.getElementById('contestPopup').classList.add('show');
-        }, 1000);
-    }
+    if (sessionStorage.getItem('tgPopupSeen')) return;
+    setTimeout(() => {
+        document.getElementById('tgPopup').classList.add('show');
+    }, 1000);
 });
 
-window.closeContestPopup = () => {
-    document.getElementById('contestPopup').classList.remove('show');
-    sessionStorage.setItem('contestPopupSeen', 'true');
+window.closeTgPopup = () => {
+    document.getElementById('tgPopup').classList.remove('show');
+    sessionStorage.setItem('tgPopupSeen', 'true');
 };
 
 async function fetchStats() {
@@ -959,23 +1003,50 @@ function updateUI() {
 
 async function loadDirects(code) {
     try {
-        // Level 1 — direct referrals (fast)
         const q1 = query(collection(db, "users"), where("referredBy", "==", code));
         const snap1 = await getDocs(q1);
         const total = snap1.size;
         let active = 0;
-
+        const l1Codes = [];
         snap1.forEach(d => {
             const d2 = d.data();
             if (d2.packageStatus === 'active' || d2.packageStatus === 'expired' || d2.activePackage) active++;
+            if (d2.referralCode) l1Codes.push(d2.referralCode);
         });
-
-        // Show L1 stats immediately
         document.getElementById('activeDirectsNum').textContent = active;
         document.getElementById('totalDirectsNum').textContent = total;
-        // Use stored teamBiz (more accurate than client-side sum)
-        const bizAmt = userData?.teamBiz || 0;
-        document.getElementById('teamBizText').textContent = '$' + bizAmt.toFixed(2);
+        document.getElementById('teamBizText').textContent = '$' + (userData?.teamBiz || 0).toFixed(2);
+
+        // ── Referral Hub: L1 ──
+        document.getElementById('refL1Team').textContent = total;
+
+        // ── L2 ──
+        let l2Count = 0;
+        const l2Codes = [];
+        for (let i = 0; i < l1Codes.length; i += 10) {
+            const batch = l1Codes.slice(i, i + 10);
+            const snap2 = await getDocs(query(collection(db, "users"), where("referredBy", "in", batch)));
+            snap2.forEach(d => {
+                l2Count++;
+                const rc = d.data().referralCode;
+                if (rc) l2Codes.push(rc);
+            });
+        }
+        document.getElementById('refL2Team').textContent = l2Count;
+
+        // ── L3 ──
+        let l3Count = 0;
+        for (let i = 0; i < l2Codes.length; i += 10) {
+            const batch = l2Codes.slice(i, i + 10);
+            const snap3 = await getDocs(query(collection(db, "users"), where("referredBy", "in", batch)));
+            l3Count += snap3.size;
+        }
+        document.getElementById('refL3Team').textContent = l3Count;
+
+        // ── Earned = team count × fixed rate (no extra reads) ──
+        document.getElementById('refL1Earned').textContent = (total * 0.25).toFixed(2) + ' ONC';
+        document.getElementById('refL2Earned').textContent = (l2Count * 0.10).toFixed(2) + ' ONC';
+        document.getElementById('refL3Earned').textContent = (l3Count * 0.05).toFixed(2) + ' ONC';
     } catch (e) { console.error("loadDirects error:", e); }
 }
 
