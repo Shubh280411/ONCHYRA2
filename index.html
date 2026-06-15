@@ -47,10 +47,10 @@
         
         .checklist { list-style: none; }
         .checklist li { font-size: 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
-        .checklist li.check::before { content: "✅"; font-size: 12px; }
-        .checklist li.load::before { content: "⏳"; font-size: 12px; }
-        .checklist li.wait::before { content: "○"; font-weight: bold; opacity: 0.5; }
-        .checklist li.star::before { content: "⭐"; font-size: 12px; }
+        .checklist li.check::before { content: ""; display: inline-block; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 12l3 3 5-5'/%3E%3C/svg%3E") center/contain no-repeat; flex-shrink: 0; }
+        .checklist li.load::before { content: ""; display: inline-block; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") center/contain no-repeat; flex-shrink: 0; animation: blink 1s infinite; }
+        .checklist li.wait::before { content: ""; display: inline-block; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.25)' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3C/svg%3E") center/contain no-repeat; flex-shrink: 0; }
+        .checklist li.star::before { content: ""; display: inline-block; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fbbf24'%3E%3Cpolygon points='12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26'/%3E%3C/svg%3E") center/contain no-repeat; flex-shrink: 0; }
 
         footer { padding: 40px 6%; text-align: center; opacity: 0.3; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.05); }
     </style>
