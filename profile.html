@@ -10,15 +10,16 @@
             --primary: #a78bfa;
             --secondary: #60a5fa;
             --bg: #05060f;
-            --card: rgba(255,255,255,0.02);
-            --border: rgba(255,255,255,0.06);
+            --card: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.08);
             --muted: rgba(255,255,255,0.35);
         }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         body {
             font-family:'Inter',sans-serif; background:var(--bg); color:white;
             padding:16px; padding-bottom:50px;
-            background-image:radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.1) 0%, transparent 55%);
+            background-image:radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%);
+            min-height:100vh;
         }
 
         /* NAV */
@@ -74,15 +75,17 @@
         .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
         .stat-card {
             background:var(--card); border:1px solid var(--border);
-            padding:16px 14px; border-radius:18px; text-align:center;
+            padding:18px 14px; border-radius:20px; text-align:center;
+            backdrop-filter:blur(20px);
         }
-        .stat-val { display:block; font-family:'Space Grotesk'; font-size:20px; font-weight:800; color:#10b981; }
+        .stat-val { display:block; font-family:'Space Grotesk'; font-size:22px; font-weight:800; color:#10b981; }
         .stat-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:5px; display:block; }
 
         /* INFO CARD */
         .info-card {
             background:var(--card); border:1px solid var(--border);
-            border-radius:20px; padding:4px 18px; margin-bottom:14px;
+            border-radius:20px; padding:6px 18px; margin-bottom:14px;
+            backdrop-filter:blur(20px);
         }
         .info-row {
             display:flex; justify-content:space-between; align-items:center;
@@ -98,6 +101,7 @@
             background:rgba(96,165,250,0.04); border:1px solid rgba(96,165,250,0.15);
             border-radius:18px; padding:14px 16px; margin-bottom:14px;
             display:none; align-items:center; gap:14px;
+            backdrop-filter:blur(20px);
         }
         .ref-by-line { width:3px; height:36px; background:linear-gradient(to bottom,#60a5fa,#7c3aed); border-radius:10px; flex-shrink:0; }
         .ref-by-label { font-size:9px; color:rgba(96,165,250,0.6); text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; }
@@ -135,7 +139,7 @@
         .social-btn {
             padding:14px 12px; border-radius:16px; border:1px solid var(--border);
             background:var(--card); color:white; display:flex; align-items:center;
-            gap:10px; text-decoration:none; transition:0.2s;
+            gap:10px; text-decoration:none; transition:0.2s; backdrop-filter:blur(20px);
         }
         .social-btn:hover { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); transform:translateY(-1px); }
         .s-icon {
@@ -151,6 +155,11 @@
         .s-tgc  .s-icon { background:rgba(39,156,216,0.08); border:1px solid rgba(39,156,216,0.12); }
         .s-ig   .s-icon { background:rgba(225,48,108,0.1); border:1px solid rgba(225,48,108,0.15); }
         .s-yt   .s-icon { background:rgba(255,0,0,0.08); border:1px solid rgba(255,0,0,0.12); }
+        .s-x    .s-icon { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); }
+
+        /* PACKAGE BUY BTN */
+        .buy-pkg-btn { padding:6px 14px; border-radius:10px; background:linear-gradient(135deg,#7c3aed,#a78bfa); color:#fff; font-size:10px; font-weight:800; text-decoration:none; letter-spacing:1px; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
+        .buy-pkg-btn:hover { transform:scale(1.05); box-shadow:0 4px 15px rgba(167,139,250,0.3); }
 
         /* LOGOUT */
         .logout-btn {
@@ -238,6 +247,17 @@
     </div>
 </div>
 
+<!-- PACKAGE STATUS -->
+<div class="info-card" style="border-color:rgba(167,139,250,0.12);">
+    <div class="info-row">
+        <span class="info-label"><span class="dot"></span>Active Package</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="info-value" id="dispPackage" style="color:rgba(255,255,255,0.3);">—</span>
+            <a href="packages.html" id="buyPkgBtn" class="buy-pkg-btn" style="display:none;">BUY →</a>
+        </div>
+    </div>
+</div>
+
 <!-- SAVE BTN -->
 <button id="saveBtn" class="save-btn" onclick="saveName()">SAVE CALLSIGN</button>
 
@@ -279,7 +299,14 @@
         <div class="s-text"><span class="s-name">Instagram</span><span class="s-desc">Follow & Earn</span></div>
     </a>
 
-    <a href="https://youtube.com/@onchyra" target="_blank" class="social-btn s-yt" style="grid-column:span 2;">
+    <a href="https://x.com/onchyra" target="_blank" class="social-btn s-x">
+        <div class="s-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+        <div class="s-text"><span class="s-name">X (Twitter)</span><span class="s-desc">Follow @onchyra</span></div>
+    </a>
+
+    <a href="https://youtube.com/@onchyra" target="_blank" class="social-btn s-yt">
         <div class="s-icon">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
         </div>
@@ -359,6 +386,25 @@ async function loadProfile(uid) {
         const total = l1 + l2 + l3;
         document.getElementById("totalTeam").innerText = total;
         document.getElementById("dispL1").innerText    = l1 + " validators";
+
+        // Package status
+        const pkgStatus = d.packageStatus || 'none';
+        const pkgName = d.activePackage || null;
+        const dispPkg = document.getElementById('dispPackage');
+        const buyBtn = document.getElementById('buyPkgBtn');
+        if (pkgStatus === 'active' && pkgName) {
+            dispPkg.textContent = pkgName + ' ✓';
+            dispPkg.style.color = '#22c55e';
+            buyBtn.style.display = 'none';
+        } else if (pkgStatus === 'expired') {
+            dispPkg.textContent = 'Expired';
+            dispPkg.style.color = '#ef4444';
+            buyBtn.style.display = 'inline-flex';
+        } else {
+            dispPkg.textContent = 'None';
+            dispPkg.style.color = 'rgba(255,255,255,0.3)';
+            buyBtn.style.display = 'inline-flex';
+        }
 
         // Rank
         const rankBadge = document.getElementById("rankBadge");
