@@ -215,22 +215,16 @@ function show(el) { const e = document.getElementById(el); if (el === 'pageConte
 function hide(el) { document.getElementById(el).style.display = 'none'; }
 function txt(el, v) { document.getElementById(el).textContent = v; }
 
-async function getLocalData(refCode) {
-    if (!refCode) return { dc: 0, tv: 0, tl: 0, ol: 0, wl: 0 };
-    const snap = await getDocs(query(collection(db, 'users'), where('referredBy', '==', refCode)));
-    const activeDirs = snap.docs.filter(d => { const x = d.data(); return x.activePackage && x.activePackage !== 'none' && x.packageStatus !== 'expired'; });
-    const dc = activeDirs.length;
-    // Use pre-calculated teamBusiness + own package spend — no deep recursion needed
-    const legResults = activeDirs.map(d => {
-        const data = d.data();
-        return (data.totalPackageSpend || 0) + (data.teamBiz || data.teamBusiness || 0);
-    });
-    const totalVol = legResults.reduce((a, b) => a + b, 0);
-    legResults.sort((a, b) => b - a);
-    const tl = legResults[0] || 0;
-    const ol = legResults.length > 1 ? legResults.slice(1).reduce((a, b) => a + b, 0) : 0;
-    const wl = legResults.length > 1 ? Math.min(tl, ol) : 0;
-    return { dc, tv: totalVol, tl, ol, wl };
+async function getLegStats() {
+    try {
+        const res = await fetch(API + '/referrals/leg-stats/' + uid);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        return { dc: data.activeDirects || 0, tv: data.teamBiz || 0, tl: data.legABiz || 0, ol: data.legBBiz || 0 };
+    } catch (e) {
+        console.warn('Leg-stats API failed, fallback to local:', e.message);
+        return null;
+    }
 }
 
 async function loadData() {
@@ -243,9 +237,20 @@ async function loadData() {
     let dc = 0, tv = 0, tl = 0, ol = 0, wl = 0;
     let rank = u.rank || 'Unranked';
 
-    // Always get fresh data from Firebase directly (not dependent on API)
-    const ld = await getLocalData(refCode);
-    dc = ld.dc; tv = ld.tv; tl = ld.tl; ol = ld.ol; wl = ld.wl;
+    // Use API for leg stats (consistent with referrals page)
+    const legStats = await getLegStats();
+    if (legStats) {
+        dc = legStats.dc; tv = legStats.tv; tl = legStats.tl; ol = legStats.ol;
+    } else {
+        // Fallback: read directly from user doc
+        const snap = await getDocs(query(collection(db, 'users'), where('referredBy', '==', refCode)));
+        dc = snap.docs.filter(d => { const x = d.data(); return x.activePackage && x.activePackage !== 'none' && x.packageStatus !== 'expired'; }).length;
+        const totalPackageSpends = snap.docs.map(d => d.data().totalPackageSpend || 0).sort((a, b) => b - a);
+        tl = totalPackageSpends[0] || 0;
+        ol = totalPackageSpends.length > 1 ? totalPackageSpends.slice(1).reduce((s, x) => s + x, 0) : 0;
+        tv = totalPackageSpends.reduce((s, x) => s + x, 0);
+    }
+    wl = Math.min(tl, ol);
 
     // Client-side rank calculation to detect upgrades
     let calcRank = 'Unranked';
