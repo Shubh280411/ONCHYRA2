@@ -149,10 +149,22 @@ router.get('/income/:uid', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Users
+// Admin — Users (supports ?limit=N, defaults to 500)
 router.get('/admin/users', async (req, res) => {
     try {
-        const snap = await admin.firestore().collection('users').get();
+        const maxLimit = Math.min(parseInt(req.query.limit) || 500, 500);
+        const snap = await admin.firestore().collection('users').limit(maxLimit).get();
+        const users = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        res.json(users);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+// Admin — Leaders (only ranked users with active packages)
+router.get('/admin/leaders', async (req, res) => {
+    try {
+        const rankNames = ['Ignition','Momentum','Velocity','Quantum','Fusion','Infinity','Titan','Apex','Zenith','Legacy'];
+        const snap = await admin.firestore().collection('users')
+            .where('rank', 'in', rankNames)
+            .limit(200).get();
         const users = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         res.json(users);
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -169,6 +181,35 @@ router.post('/admin/user/update', async (req, res) => {
         const { uid, updates } = req.body;
         await admin.firestore().doc(`users/${uid}`).update(updates);
         res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Admin — Sync user status (active/inactive based on 7-day lastClaim)
+router.post('/admin/sync-status', async (req, res) => {
+    try {
+        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const snap = await admin.firestore().collection('users').get();
+        let active = 0, inactive = 0, skipped = 0, total = 0;
+        const batches = [];
+        let currentBatch = admin.firestore().batch();
+        let opCount = 0;
+
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            total++;
+            if (data.role === 'admin') { skipped++; return; }
+            const lastClaim = data.lastClaim || 0;
+            const claimedRecently = lastClaim > 0 && (now - lastClaim) < SEVEN_DAYS;
+            const newStatus = claimedRecently ? 'active' : 'inactive';
+            if (claimedRecently) active++; else inactive++;
+            currentBatch.update(docSnap.ref, { status: newStatus });
+            opCount++;
+            if (opCount >= 500) { batches.push(currentBatch.commit()); currentBatch = admin.firestore().batch(); opCount = 0; }
+        });
+        if (opCount > 0) batches.push(currentBatch.commit());
+        await Promise.all(batches);
+        res.json({ success: true, total, active, inactive, skipped });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

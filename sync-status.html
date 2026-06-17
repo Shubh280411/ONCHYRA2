@@ -119,7 +119,6 @@ body { font-family:'Inter'; background:var(--bg); color:#fff; margin:0; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -129,10 +128,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
-
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+const API = 'https://onchyra-backend.onrender.com/api';
 let authReady = false;
 
 onAuthStateChanged(auth, (user) => {
@@ -173,58 +170,22 @@ window.syncStatus = async () => {
   document.getElementById('log').classList.remove('show');
 
   try {
-    log('Fetching all users...');
-    const snap = await getDocs(collection(db, 'users'));
-    const now = Date.now();
-    let active = 0, inactive = 0, skipped = 0, total = 0;
-
-    const batches = [];
-    let currentBatch = writeBatch(db);
-    let opCount = 0;
-
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      total++;
-
-      if (data.role === 'admin') {
-        skipped++;
-        log('SKIP ' + docSnap.id + ' (admin)', 'skipped');
-        return;
-      }
-
-      const lastClaim = data.lastClaim || 0;
-      const claimedRecently = lastClaim > 0 && (now - lastClaim) < SEVEN_DAYS;
-      const newStatus = claimedRecently ? 'active' : 'inactive';
-
-      if (claimedRecently) active++;
-      else inactive++;
-
-      currentBatch.update(docSnap.ref, { status: newStatus });
-      opCount++;
-
-      log((claimedRecently ? 'ACTIVE' : 'INACTIVE') + ' ' + docSnap.id + ' (lastClaim: ' + (lastClaim || 'never') + ')', claimedRecently ? 'active' : 'inactive');
-
-      if (opCount >= 500) {
-        batches.push(currentBatch.commit());
-        currentBatch = writeBatch(db);
-        opCount = 0;
-      }
+    log('Syncing via backend API...');
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(API + '/admin/sync-status', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
     });
-
-    if (opCount > 0) {
-      batches.push(currentBatch.commit());
-    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Sync failed');
 
     document.getElementById('statsGrid').style.display = 'flex';
-    document.getElementById('statActive').textContent = active;
-    document.getElementById('statInactive').textContent = inactive;
-    document.getElementById('statSkipped').textContent = skipped;
-    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = data.active || 0;
+    document.getElementById('statInactive').textContent = data.inactive || 0;
+    document.getElementById('statSkipped').textContent = data.skipped || 0;
+    document.getElementById('statTotal').textContent = data.total || 0;
 
-    log('Committing updates...');
-    await Promise.all(batches);
-
-    const msg = active + ' active, ' + inactive + ' inactive, ' + skipped + ' admins skipped';
+    const msg = (data.active || 0) + ' active, ' + (data.inactive || 0) + ' inactive, ' + (data.skipped || 0) + ' admins skipped';
     log('Done! ' + msg, 'done');
     showNotif('Sync complete. ' + msg, 'success');
   } catch (err) {

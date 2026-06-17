@@ -1,8 +1,8 @@
 const admin = require('firebase-admin');
 const db = admin.firestore();
 
-const REWARD_INTERVAL = parseInt(process.env.REWARD_INTERVAL || '3600000');
-const MAX_PER_CYCLE = 200;
+const REWARD_INTERVAL = parseInt(process.env.REWARD_INTERVAL || '14400000');
+const MAX_PER_CYCLE = parseInt(process.env.REWARD_MAX || '50');
 
 const RANKS = [
   { name: 'Ignition',   reqDirect: 3,  reqTeam: 1000,   reqLeg: 500,   bonus: 25,   rewardDay: 5,   rewardDays: 5  },
@@ -23,7 +23,32 @@ async function distribute() {
   const today = todayStr();
   const now = Date.now();
   const rankNames = RANKS.map(r => r.name);
-  const snap = await db.collection('users').where('rank', 'in', rankNames).limit(MAX_PER_CYCLE).get();
+  const cutoff = Date.now() - REWARD_INTERVAL;
+  let snap;
+  try {
+    snap = await db.collection('users')
+      .where('rank', 'in', rankNames)
+      .where('rewardCheckedAt', '<', cutoff)
+      .orderBy('rewardCheckedAt')
+      .limit(MAX_PER_CYCLE).get();
+  } catch (e) {
+    // Fallback if index doesn't exist yet
+    snap = await db.collection('users').where('rank', 'in', rankNames).limit(MAX_PER_CYCLE).get();
+  }
+  // Also grab users who have never been checked (no rewardCheckedAt field)
+  let neverChecked = [];
+  try {
+    const snap2 = await db.collection('users')
+      .where('rank', 'in', rankNames)
+      .where('rewardCheckedAt', '==', 0)
+      .limit(MAX_PER_CYCLE).get();
+    neverChecked = snap2.docs;
+  } catch (e) {}
+  const seen = new Set(snap.docs.map(d => d.id));
+  for (const d of neverChecked) {
+    if (!seen.has(d.id)) snap.docs.push(d);
+  }
+  if (snap.docs.length > MAX_PER_CYCLE) snap.docs = snap.docs.slice(0, MAX_PER_CYCLE);
 
   console.log(`[REWARD] Checking ${snap.docs.length} users (${today})...`);
   let distributed = 0;
@@ -37,8 +62,11 @@ async function distribute() {
     const rd = RANKS.find(r => r.name === rank);
     if (!rd) continue;
 
-    // Already paid today
-    if (u.rewardLastPaid === today) continue;
+    // Already paid today — mark checked so we don't re-read next cycle
+    if (u.rewardLastPaid === today) {
+      await d.ref.update({ rewardCheckedAt: now }).catch(() => {});
+      continue;
+    }
 
     const paid = u.leadershipRewardPayouts || 0;
     if (paid >= rd.rewardDays) continue;
@@ -59,6 +87,7 @@ async function distribute() {
       leadershipRewardDay: dailyAmt,
       leadershipRewardDays: rd.rewardDays,
       rewardLastPaid: today,
+      rewardCheckedAt: now,
     });
 
     await db.collection('leadershipRewards').add({

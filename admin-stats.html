@@ -305,7 +305,7 @@ async function loadSummary() {
 
 async function loadPending() {
   try {
-    const snap = await getDocs(query(collection(db, 'withdrawals'), limit(200)));
+    const snap = await getDocs(query(collection(db, 'withdrawals'), limit(100)));
     const allPending = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(w => w.status === 'pending')
@@ -383,7 +383,7 @@ async function loadRanks() {
 
 async function loadPackages() {
   try {
-    const snap = await getDocs(collection(db, 'packagePurchases'));
+    const snap = await getDocs(query(collection(db, 'packagePurchases'), limit(200)));
     const pkgCount = {}, pkgRevenue = {};
     snap.forEach(d => {
       const p = d.data();
@@ -428,18 +428,18 @@ async function loadDaily() {
 
     let depositsToday = 0, wdToday = 0, rewardsToday = 0, regToday = 0;
 
-    const depSnap = await getDocs(collection(db, 'deposits'));
+    const depSnap = await getDocs(query(collection(db, 'deposits'), limit(200)));
     depSnap.forEach(d => {
       const c = d.data().createdAt;
       if (toMs(c) >= todayMs && d.data().status === 'completed') depositsToday += (d.data().amount || 0);
     });
 
-    const wdSnap = await getDocs(collection(db, 'withdrawals'));
+    const wdSnap = await getDocs(query(collection(db, 'withdrawals'), limit(200)));
     wdSnap.forEach(d => {
       if (toMs(d.data().createdAt) >= todayMs) wdToday += (d.data().amount || 0);
     });
 
-    const rewSnap = await getDocs(collection(db, 'leadershipRewards'));
+    const rewSnap = await getDocs(query(collection(db, 'leadershipRewards'), limit(200)));
     rewSnap.forEach(d => {
       if (toMs(d.data().createdAt) >= todayMs) rewardsToday += (d.data().amount || 0);
     });
@@ -486,7 +486,7 @@ async function loadDaily() {
 
 async function loadRecentRewards() {
   try {
-    const snap = await getDocs(collection(db, 'leadershipRewards'));
+    const snap = await getDocs(query(collection(db, 'leadershipRewards'), limit(200)));
     const docs = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
@@ -520,7 +520,7 @@ async function loadRecentRewards() {
 
 async function loadRecentDeposits() {
   try {
-    const snap = await getDocs(collection(db, 'deposits'));
+    const snap = await getDocs(query(collection(db, 'deposits'), limit(200)));
     const docs = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt))
@@ -545,7 +545,7 @@ async function loadRecentDeposits() {
 // ── TOP DEPOSITORS ──
 async function loadTopDepositors() {
   try {
-    const snap = await getDocs(collection(db, 'deposits'));
+    const snap = await getDocs(query(collection(db, 'deposits'), limit(200)));
     const byUser = {};
     snap.forEach(d => {
       const p = d.data();
@@ -773,7 +773,7 @@ async function loadMiningOverview() {
 // ── TOP WITHDRAWERS ──
 async function loadTopWithdrawers() {
   try {
-    const snap = await getDocs(collection(db, 'withdrawals'));
+    const snap = await getDocs(query(collection(db, 'withdrawals'), limit(200)));
     const byUser = {};
     snap.forEach(d => {
       const w = d.data();

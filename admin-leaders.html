@@ -269,10 +269,8 @@ let confirmCallback = null;
 // ── Load Leaders ──
 async function loadLeaders() {
   try {
-    const res = await fetch(API + '/admin/users');
-    const users = await res.json();
-    // Filter: users with rank or package = "leaders"
-    allLeaders = users.filter(u => u.rank && u.rank !== 'Unranked' && u.rank !== 'member' && u.rank !== '' || u.activePackage && u.activePackage !== 'none');
+    const res = await fetch(API + '/admin/leaders');
+    allLeaders = await res.json();
     allLeaders.sort((a, b) => (b.rankIndex || 0) - (a.rankIndex || 0) || (b.totalPackageSpend || 0) - (a.totalPackageSpend || 0));
     populateFilters();
     renderStats();

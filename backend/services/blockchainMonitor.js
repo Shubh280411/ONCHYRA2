@@ -7,8 +7,8 @@ const MNEMONIC = process.env.HD_WALLET_SEED;
 const BSC_RPC = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
 const POLYGON_RPC = process.env.POLYGON_RPC || 'https://polygon-bor.publicnode.com';
 const GAS_AMOUNT = parseFloat(process.env.SWEEP_GAS_AMOUNT || '0.0005');
-const CHECK_INTERVAL = parseInt(process.env.MONITOR_INTERVAL || '300000');
-const MAX_PER_CYCLE = 50;
+const CHECK_INTERVAL = parseInt(process.env.MONITOR_INTERVAL || '900000');
+const MAX_PER_CYCLE = 20;
 const WALLET_TTL_MS = 48 * 60 * 60 * 1000;
 
 const USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
@@ -19,7 +19,7 @@ const ERC20_ABI = [
 ];
 
 let polPriceCache = { price: 0, time: 0 };
-let walletCache = { docs: [], processedIds: new Set(), lastFetch: 0 };
+const MIN_SCAN_INTERVAL = parseInt(process.env.MONITOR_SCAN_INTERVAL || '3600000'); // 1 hour between re-checks of same wallet
 
 function httpGet(url) {
     return new Promise((resolve, reject) => {
@@ -159,20 +159,48 @@ async function fundGasIfNeeded(index, network) {
 }
 
 async function processUnusedWallets() {
-    const wallets = await db.collection('depositWallets')
-        .where('used', '==', false)
-        .limit(MAX_PER_CYCLE).get();
+    const cutoff = Date.now() - MIN_SCAN_INTERVAL;
+    let wallets;
+    try {
+        const snap = await db.collection('depositWallets')
+            .where('used', '==', false)
+            .where('checkedAt', '<', cutoff)
+            .orderBy('checkedAt')
+            .limit(MAX_PER_CYCLE).get();
+        wallets = snap.docs;
+    } catch (e) {
+        // Index might not exist yet; fallback to unindexed query
+        const snap = await db.collection('depositWallets')
+            .where('used', '==', false)
+            .limit(MAX_PER_CYCLE).get();
+        wallets = snap.docs;
+    }
+
+    // Also fetch wallets that have never been checked (no checkedAt field)
+    // Firestore won't return them with the < cutoff query, so fetch separately
+    let neverChecked = [];
+    try {
+        const snap2 = await db.collection('depositWallets')
+            .where('used', '==', false)
+            .where('checkedAt', '==', 0)
+            .limit(MAX_PER_CYCLE).get();
+        neverChecked = snap2.docs;
+    } catch (e) {
+        // fallback — merge manually from wallets list
+    }
+    const seen = new Set(wallets.map(d => d.id));
+    for (const d of neverChecked) {
+        if (!seen.has(d.id)) wallets.push(d);
+    }
+    if (wallets.length > MAX_PER_CYCLE) wallets = wallets.slice(0, MAX_PER_CYCLE);
 
     let checked = 0;
-    for (const d of wallets.docs) {
-        // Skip already-processed wallets (tracked across cycles)
-        if (walletCache.processedIds.has(d.id)) continue;
+    for (const d of wallets) {
         const w = d.data();
 
         // Skip master wallet (index 0) just in case
         if (w.index === 0) {
-            await d.ref.update({ used: true, note: 'Master wallet - skipped' });
-            walletCache.processedIds.add(d.id);
+            await d.ref.update({ used: true, note: 'Master wallet - skipped', checkedAt: Date.now() });
             continue;
         }
 
@@ -181,14 +209,16 @@ async function processUnusedWallets() {
         // Mark wallets older than 48h as expired so they never get checked again
         if (age > WALLET_TTL_MS) {
             await d.ref.update({ used: true, expired: true, expiredAt: Date.now() });
-            walletCache.processedIds.add(d.id);
             continue;
         }
 
         checked++;
         try {
             const info = await checkBalance(w.index, w.network);
-            if (info.raw <= 0n) continue;
+            if (info.raw <= 0n) {
+                await d.ref.update({ checkedAt: Date.now() });
+                continue;
+            }
 
             const symbol = w.network === 'BEP20' ? 'USDT' : 'POL';
             let usdAmount = info.balance;
@@ -202,7 +232,10 @@ async function processUnusedWallets() {
             const existing = await db.collection('deposits')
                 .where('address', '==', info.address.toLowerCase())
                 .where('amount', '==', usdAmount).limit(1).get();
-            if (!existing.empty) continue;
+            if (!existing.empty) {
+                await d.ref.update({ checkedAt: Date.now() });
+                continue;
+            }
 
             const batch = db.batch();
             const depDoc = {
@@ -227,14 +260,15 @@ async function processUnusedWallets() {
                     await fundGasIfNeeded(w.index, w.network);
                 }
                 const sweep = await sweepWallet(w.index, w.network, info.raw);
-                await d.ref.update({ used: true, usedAt: Date.now(), sweepTx: sweep.txHash });
-                walletCache.processedIds.add(d.id);
+                await d.ref.update({ used: true, usedAt: Date.now(), sweepTx: sweep.txHash, checkedAt: Date.now() });
                 console.log(`[MONITOR] Swept ${sweep.swept} ${symbol} from wallet #${w.index} to master (tx: ${sweep.txHash})`);
             } catch (e) {
                 console.error(`[MONITOR] Sweep failed for #${w.index}: ${e.message}`);
+                await d.ref.update({ checkedAt: Date.now() });
             }
         } catch (e) {
-            // RPC error - skip
+            // RPC error - still mark checkedAt to avoid re-trying same wallet too quickly
+            try { await d.ref.update({ checkedAt: Date.now() }); } catch (_) {}
         }
     }
     if (checked > 0) console.log(`[MONITOR] Checked ${checked} wallets this cycle`);
