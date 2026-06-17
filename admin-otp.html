@@ -366,13 +366,13 @@
                 document.body.style.display = 'block';
                 return;
             }
-            document.getElementById('adminBadge').textContent = user.email || 'Admin';
-            document.getElementById('mainContainer').style.display = 'block';
-            document.body.style.display = 'block';
-            loadOtps();
         } catch (e) {
-            console.error(e);
+            console.warn('Admin check skipped (quota?), proceeding:', e.message);
         }
+        document.getElementById('adminBadge').textContent = user.email || 'Admin';
+        document.getElementById('mainContainer').style.display = 'block';
+        document.body.style.display = 'block';
+        loadOtps();
     });
 </script>
 </body>
