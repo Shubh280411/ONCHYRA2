@@ -92,7 +92,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
     </div>
 
     <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
-    <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
   </div>
   <a href="login.html" class="footer-link" style="margin-top:6px">Already have an account? <span>Login</span></a>
 </div>
@@ -193,7 +192,7 @@ window.sendOtp = async () => {
     try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
     if (!res.ok) throw new Error(result.error || 'Request failed');
 
-    showToast('OTP sent to your email!');
+    showToast('OTP sent! Check spam folder if not found');
     document.getElementById('sendOtpBtn').style.display = 'none';
     document.getElementById('otpRow').style.display = 'flex';
     document.getElementById('verifyOtpBtn').textContent = 'Verify';
@@ -231,10 +230,10 @@ window.verifyOtp = async () => {
     if (!res.ok) throw new Error(result.error || 'Request failed');
 
     otpVerified = true;
-    showToast('OTP verified!');
-    document.getElementById('otpInput').disabled = true;
+    showToast('OTP verified! Creating account...');
     document.getElementById('verifyOtpBtn').textContent = 'Verified';
-    document.getElementById('regBtn').style.display = 'block';
+    document.getElementById('otpInput').disabled = true;
+    await registerUser();
   } catch(e) {
     showToast(e.message, true);
     btn.disabled = false;
@@ -245,17 +244,11 @@ window.verifyOtp = async () => {
 };
 
 window.registerUser = async function() {
-  if (!otpVerified) {
-    showToast('Please verify OTP first', true);
-    return;
-  }
-
   const data = validateForm();
   if (!data) return;
 
-  const btn = document.getElementById("regBtn");
-  btn.disabled = true;
-  btn.innerText = "Creating...";
+  document.getElementById('verifyOtpBtn').disabled = true;
+  document.getElementById('verifyOtpBtn').textContent = 'Creating...';
 
   try {
     const refRes = await fetch(API + '/check-referral/' + data.refCode);
@@ -263,8 +256,8 @@ window.registerUser = async function() {
     const refData = await refRes.json();
     if (!refData.valid) {
       showToast("Invalid referral code", true);
-      btn.disabled = false;
-      btn.innerText = "Create Account";
+      document.getElementById('verifyOtpBtn').disabled = false;
+      document.getElementById('verifyOtpBtn').textContent = 'Verify';
       return;
     }
 
@@ -300,8 +293,11 @@ window.registerUser = async function() {
     setTimeout(() => window.location.href = "dashboard.html", 800);
   } catch(e){
     showToast(e.message, true);
-    btn.disabled = false;
-    btn.innerText = "Create Account";
+    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('verifyOtpBtn').textContent = 'Verify';
+    document.getElementById('otpInput').disabled = false;
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
   }
 };
 </script>
