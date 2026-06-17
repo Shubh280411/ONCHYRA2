@@ -61,16 +61,29 @@ function getMasterNode() {
     return masterNode;
 }
 
+// In-memory HD wallet counter — avoids Firestore reads for index generation
+let memCounter = null;
+let counterInitialized = false;
+
 async function getNextIndex() {
-    const ref = db.doc('settings/hdWalletCounter');
-    const result = await db.runTransaction(async (tx) => {
-        const snap = await tx.get(ref);
-        let next = (snap.exists ? snap.data().nextIndex : 1);
-        if (next < 1) next = 1; // never use index 0 (master wallet)
-        tx.set(ref, { nextIndex: next + 1 }, { merge: true });
-        return next;
+    if (!counterInitialized) {
+        try {
+            const snap = await db.doc('settings/hdWalletCounter').get();
+            memCounter = snap.exists ? snap.data().nextIndex : 1;
+        } catch(e) {
+            console.warn('[HD] Firestore counter unavailable (quota?), starting from index 1');
+            memCounter = 1;
+        }
+        counterInitialized = true;
+    }
+    const next = memCounter;
+    memCounter++;
+    // Persist to Firestore (write-only, no read needed)
+    db.doc('settings/hdWalletCounter').set({ nextIndex: memCounter }, { merge: true }).catch(e => {
+        console.warn('[HD] Failed to persist counter:', e.message);
     });
-    return result;
+    if (next < 1) return 1;
+    return next;
 }
 
 exports.createWallet = async (req, res) => {
