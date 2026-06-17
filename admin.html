@@ -239,7 +239,7 @@ onAuthStateChanged(auth, async user => {
       window.location = 'dashboard.html';
       return;
     }
-  } catch(e) { window.location = 'dashboard.html'; return; }
+  } catch(e) { console.warn('Admin check skipped (quota?):', e.message); }
   document.getElementById('adminBadge').textContent = user.email || 'Admin';
   loadStats();
 });
