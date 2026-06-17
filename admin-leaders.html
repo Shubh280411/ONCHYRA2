@@ -171,14 +171,17 @@ tr:hover{background:rgba(255,255,255,0.02)}
 
   <!-- Filters -->
   <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search by name, email, username..." oninput="filterTable()">
-    <select id="filterRank" onchange="filterTable()"><option value="">All Ranks</option></select>
-    <select id="filterStatus" onchange="filterTable()">
+    <input type="text" id="searchInput" placeholder="Search by name, email, username..." oninput="window.filterTable()">
+    <select id="filterRank" onchange="window.filterTable()"><option value="">All Ranks</option></select>
+    <select id="filterStatus" onchange="window.filterTable()">
       <option value="">All Status</option><option value="active">Active</option>
       <option value="under_review">Under Review</option><option value="restricted">Restricted</option><option value="suspended">Suspended</option>
     </select>
-    <select id="filterCountry" onchange="filterTable()"><option value="">All Countries</option></select>
+    <select id="filterCountry" onchange="window.filterTable()"><option value="">All Countries</option></select>
+    <input type="text" id="refCodeLookup" placeholder="Add by referral code..." style="max-width:180px;font-size:10px" onkeydown="if(event.key==='Enter')window.lookupRefCode()">
+    <button class="btn btn-primary btn-xs" onclick="window.lookupRefCode()" style="white-space:nowrap">+ Add</button>
   </div>
+  <div id="refLookupResult" style="font-size:10px;margin:-10px 0 10px;color:var(--dim);display:none"></div>
 
   <!-- Table -->
   <div class="table-wrap" id="tableWrap">
@@ -275,6 +278,7 @@ function renderStats() {
 function filterTable() {
   renderTable();
 }
+window.filterTable = filterTable;
 
 function getFiltered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
@@ -558,6 +562,65 @@ window.deleteLeader = (uid, name) => {
     showToast('Leader deleted', true);
     loadLeaders();
   });
+};
+
+// ── Lookup by Referral Code ──
+window.lookupRefCode = async () => {
+  const input = document.getElementById('refCodeLookup');
+  const code = input.value.trim().toUpperCase();
+  const resultDiv = document.getElementById('refLookupResult');
+  if (!code) { resultDiv.style.display = 'none'; return; }
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<span style="color:var(--dim)">Looking up...</span>';
+  try {
+    const res = await fetch(API + '/check-referral/' + encodeURIComponent(code));
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    if (!data.valid || !data.uid) {
+      resultDiv.innerHTML = '<span style="color:var(--danger)">No user found with code: <b>' + code + '</b></span>';
+      return;
+    }
+    // Check if already in leaders list
+    const existing = allLeaders.find(u => u.uid === data.uid);
+    if (existing) {
+      expandedId = data.uid;
+      renderTable();
+      resultDiv.innerHTML = '<span style="color:var(--success)">Found! Scrolling to ' + (existing.name || 'user') + '</span>';
+      setTimeout(() => {
+        document.getElementById('detail_' + data.uid)?.scrollIntoView({ behavior:'smooth', block:'center' });
+        resultDiv.style.display = 'none';
+      }, 300);
+      input.value = '';
+      return;
+    }
+    // Not in leaders — allow adding as a managed user
+    resultDiv.innerHTML = '<span style="color:var(--warning)">No rank/package. </span><button class="btn btn-primary btn-xs" onclick="window.addToLeaders(\'' + data.uid + '\')">Manage anyway</button>';
+  } catch(e) {
+    resultDiv.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
+  }
+};
+
+window.addToLeaders = async (uid) => {
+  const resultDiv = document.getElementById('refLookupResult');
+  try {
+    const res = await fetch(API + '/admin/user/' + uid);
+    if (!res.ok) throw new Error('User fetch failed');
+    const user = await res.json();
+    if (!user) { resultDiv.innerHTML = '<span style="color:var(--danger)">User not found</span>'; return; }
+    allLeaders.unshift(user);
+    expandedId = uid;
+    populateFilters();
+    renderStats();
+    renderTable();
+    document.getElementById('refCodeLookup').value = '';
+    resultDiv.innerHTML = '<span style="color:var(--success)">Added ' + (user.name || 'user') + ' to view</span>';
+    setTimeout(() => {
+      document.getElementById('detail_' + uid)?.scrollIntoView({ behavior:'smooth', block:'center' });
+      resultDiv.style.display = 'none';
+    }, 400);
+  } catch(e) {
+    resultDiv.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
+  }
 };
 
 // ── Confirm Modal ──

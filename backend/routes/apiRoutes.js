@@ -157,6 +157,13 @@ router.get('/admin/users', async (req, res) => {
         res.json(users);
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
+router.get('/admin/user/:uid', async (req, res) => {
+    try {
+        const snap = await admin.firestore().doc(`users/${req.params.uid}`).get();
+        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
+        res.json({ uid: snap.id, ...snap.data() });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
 router.post('/admin/user/update', async (req, res) => {
     try {
         const { uid, updates } = req.body;
