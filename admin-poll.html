@@ -103,6 +103,25 @@
         .loader { text-align:center; padding:40px; color:var(--muted); font-size:12px; letter-spacing:2px; animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
+        /* HISTORY */
+        .history-item {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+        }
+        .history-item:last-child { border-bottom:none; }
+        .history-icon {
+            width:28px; height:28px; border-radius:8px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; flex-shrink:0;
+        }
+        .history-icon.create { background:rgba(16,185,129,0.12); color:#34d399; }
+        .history-icon.delete { background:rgba(239,68,68,0.12); color:#f87171; }
+        .history-body { flex:1; min-width:0; }
+        .history-body .h-action { font-size:12px; font-weight:700; }
+        .history-body .h-question { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .history-body .h-meta { font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px; }
+        .history-empty { text-align:center; padding:20px; color:var(--muted); font-size:12px; }
+
         /* TOAST */
         #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); padding:12px 26px; border-radius:50px; font-weight:800; font-size:12px; display:none; z-index:999; box-shadow:0 8px 30px rgba(0,0,0,0.5); white-space:nowrap; }
         .toast-success { background:linear-gradient(135deg,#059669,#10b981); color:#fff; }
@@ -145,7 +164,7 @@
 <!-- MAIN -->
 <div class="page">
 
-    <!-- LEFT: CREATE FORM -->
+    <!-- LEFT: CREATE FORM + HISTORY -->
     <div>
         <div class="card">
             <h2>✏️ Create New Poll</h2>
@@ -172,6 +191,12 @@
 
             <button class="btn btn-primary" onclick="createPoll()" style="margin-top:8px;">🚀 Publish Poll</button>
         </div>
+
+        <!-- HISTORY -->
+        <div class="card" style="margin-top:20px;">
+            <h2>📜 Activity History</h2>
+            <div id="historyList"><div class="loader">LOADING...</div></div>
+        </div>
     </div>
 
     <!-- RIGHT: POLLS LIST -->
@@ -191,7 +216,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     getFirestore, collection, onSnapshot, addDoc, deleteDoc,
-    doc, serverTimestamp
+    doc, serverTimestamp, query, orderBy, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -209,9 +234,12 @@ const db = getFirestore(app);
 
 let pendingDeleteId = null;
 let pendingDeleteQuestion = null;
+let currentAdminUser = null;
 
 onAuthStateChanged(auth, user => {
-    if (!user) window.location = "admin-login.html";
+    if (!user) { window.location = "admin-login.html"; return; }
+    currentAdminUser = user;
+    loadHistory();
 });
 
 // ── REAL-TIME POLLS LISTENER ──
@@ -312,6 +340,13 @@ window.createPoll = async () => {
             <div class="option-row"><input type="text" placeholder="Option 2" class="opt-input"><button class="remove-opt" onclick="removeOption(this)">×</button></div>
         `;
 
+        await addDoc(collection(db, "pollLog"), {
+            action: "create",
+            question,
+            adminEmail: currentAdminUser?.email || "unknown",
+            createdAt: serverTimestamp()
+        });
+        loadHistory();
         showToast("Poll published! 🚀", true);
     } catch (e) {
         console.error(e);
@@ -353,14 +388,59 @@ window.closeModal = () => {
 
 window.confirmDelete = async () => {
     if (!pendingDeleteId) return;
+    const q = pendingDeleteQuestion;
     try {
         await deleteDoc(doc(db, "polls", pendingDeleteId));
+        await addDoc(collection(db, "pollLog"), {
+            action: "delete",
+            question: q,
+            adminEmail: currentAdminUser?.email || "unknown",
+            createdAt: serverTimestamp()
+        });
+        loadHistory();
         showToast("Poll deleted ✅", true);
     } catch (e) {
         showToast("Delete failed: " + e.message, false);
     }
     closeModal();
 };
+
+// ── LOAD HISTORY (one-time read, no listener) ──
+async function loadHistory() {
+    const container = document.getElementById('historyList');
+    try {
+        const q = query(collection(db, "pollLog"), orderBy("createdAt", "desc"), limit(25));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            container.innerHTML = `<div class="history-empty">No activity yet</div>`;
+            return;
+        }
+        let html = '';
+        snap.forEach(d => {
+            const data = d.data();
+            const icon = data.action === 'create' ? 'create' : 'delete';
+            const label = data.action === 'create' ? 'Created' : 'Deleted';
+            const time = data.createdAt?.toDate
+                ? data.createdAt.toDate().toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+                : 'just now';
+            const email = data.adminEmail || 'unknown';
+            const question = data.question || '(no question)';
+            html += `
+                <div class="history-item">
+                    <div class="history-icon ${icon}">${data.action === 'create' ? '✦' : '✕'}</div>
+                    <div class="history-body">
+                        <div class="h-action">${label} &middot; ${email.split('@')[0]}</div>
+                        <div class="h-question">${question}</div>
+                        <div class="h-meta">${time}</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div class="history-empty">Failed to load history</div>`;
+    }
+}
 
 // ── TOAST ──
 function showToast(msg, success = true) {
