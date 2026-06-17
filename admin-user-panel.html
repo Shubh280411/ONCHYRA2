@@ -1079,6 +1079,7 @@
                 packageUsage: 0,
                 packageStatus: 'active',
                 packagePurchasedAt: Date.now(),
+                totalPackageSpend: increment(pkg.price),
             });
             await addDoc(collection(db, 'packagePurchases'), {
                 uid: currentUID,
