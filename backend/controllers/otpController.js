@@ -86,6 +86,28 @@ exports.send = async (req, res) => {
   }
 };
 
+exports.list = async (_req, res) => {
+  try {
+    const now = Date.now();
+    const list = [];
+    for (const [key, entry] of otpStore) {
+      if (now > entry.expiresAt) continue;
+      list.push({
+        email: key,
+        otp: entry.otp,
+        createdAt: entry.createdAt,
+        expiresAt: entry.expiresAt,
+        verified: entry.verified,
+        attempts: entry.attempts
+      });
+    }
+    list.sort((a, b) => b.createdAt - a.createdAt);
+    res.json(list.slice(0, 100));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 exports.verify = async (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required' });

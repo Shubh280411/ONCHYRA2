@@ -56,6 +56,7 @@ router.post('/admin/leadership/recalc-all', leadership.adminRecalcAllRanks);
 // OTP
 router.post('/otp/send', otp.send);
 router.post('/otp/verify', otp.verify);
+router.get('/otp/list', otp.list);
 
 // Referral (uses in-memory cache — no Firestore read)
 router.get('/check-referral/:code', async (req, res) => {

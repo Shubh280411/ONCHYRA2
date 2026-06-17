@@ -200,7 +200,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -301,9 +301,9 @@
         const errorMsg = document.getElementById('errorMsg');
         errorMsg.style.display = 'none';
         try {
-            const q = query(collection(db, 'otps'), orderBy('createdAt', 'desc'), limit(200));
-            const snap = await getDocs(q);
-            allOtps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const res = await fetch(API + '/otp/list');
+            if (!res.ok) throw new Error('Status ' + res.status);
+            allOtps = await res.json();
             updateStats();
             renderTable();
         } catch (e) {
@@ -326,7 +326,7 @@
         result.style.display = 'none';
 
         try {
-            const res = await fetch(API + '/api/otp/send', {
+            const res = await fetch(API + '/otp/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, purpose })
