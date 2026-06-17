@@ -178,10 +178,8 @@ tr:hover{background:rgba(255,255,255,0.02)}
       <option value="under_review">Under Review</option><option value="restricted">Restricted</option><option value="suspended">Suspended</option>
     </select>
     <select id="filterCountry" onchange="window.filterTable()"><option value="">All Countries</option></select>
-    <input type="text" id="refCodeLookup" placeholder="Add by referral code..." style="max-width:180px;font-size:10px" onkeydown="if(event.key==='Enter')window.lookupRefCode()">
-    <button class="btn btn-primary btn-xs" onclick="window.lookupRefCode()" style="white-space:nowrap">+ Add</button>
+    <button class="btn btn-primary btn-xs" onclick="window.openAddModal()" style="white-space:nowrap">+ Add Leader</button>
   </div>
-  <div id="refLookupResult" style="font-size:10px;margin:-10px 0 10px;color:var(--dim);display:none"></div>
 
   <!-- Table -->
   <div class="table-wrap" id="tableWrap">
@@ -199,6 +197,39 @@ tr:hover{background:rgba(255,255,255,0.02)}
       </tr></thead><tbody id="tableBody"></tbody></table>
     </div>
     <div class="empty-state" id="emptyState" style="display:none"><div style="font-size:30px;margin-bottom:8px;opacity:0.3">&#128100;</div>No leaders found</div>
+  </div>
+</div>
+
+<!-- Add Leader Modal -->
+<div id="addLeaderModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:none;z-index:5000;align-items:center;justify-content:center">
+  <div style="background:#0f1118;border:1px solid var(--border);border-radius:24px;padding:28px;max-width:420px;width:90%;">
+    <div style="font-family:'Space Grotesk';font-size:16px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Add Leader Manually
+    </div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:18px">Enter referral code to find and add a user to leader management</div>
+    <div class="field" style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px">Referral Code</label>
+      <input type="text" id="addRefCode" placeholder="e.g. ABCD1234" style="width:100%;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:13px;outline:none">
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px">Country</label>
+      <input type="text" id="addCountry" placeholder="e.g. India" value="India" style="width:100%;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:13px;outline:none">
+    </div>
+    <div class="field" style="margin-bottom:18px">
+      <label style="font-size:10px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px">Assign Package (optional)</label>
+      <select id="addPackage" style="width:100%;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:13px;outline:none;cursor:pointer">
+        <option value="">None</option>
+        <option value="25">$25 Promotional</option>
+        <option value="50">$50 Promotional</option>
+        <option value="100">$100 Promotional</option>
+        <option value="200">$200 Promotional</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline btn-sm" onclick="window.closeAddModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="window.confirmAddLeader()">Add Leader</button>
+    </div>
   </div>
 </div>
 
@@ -486,34 +517,52 @@ async function apiPost(endpoint, body) {
   } catch(e) { showToast(e.message, false); throw e; }
 }
 
-window.assignPromo = async (uid, amount) => {
-  try {
-    await apiPost('/admin/assign-promo', { uid, promoPackage: amount || null, promoAccount: amount > 0, promoCommExcluded: amount === 0 });
-    showToast(`Promotional package ${amount > 0 ? '$'+amount : 'removed'} assigned`, true);
-    await loadLeaders();
-  } catch(e) {}
+window.assignPromo = (uid, amount) => {
+  const u = allLeaders.find(x => x.uid === uid);
+  showConfirm(
+    amount > 0 ? `Assign $${amount} Promo Package?` : 'Remove Promo Package?',
+    (u?.name || uid) + ' will ' + (amount > 0 ? 'get a <b>$' + amount + '</b> promotional package' : 'have their promotional package removed'),
+    async () => {
+      try {
+        await apiPost('/admin/assign-promo', { uid, promoPackage: amount || null, promoAccount: amount > 0, promoCommExcluded: amount === 0 });
+        showToast(`Promotional package ${amount > 0 ? '$'+amount : 'removed'} assigned`, true);
+        await loadLeaders();
+      } catch(e) {}
+    }
+  );
 };
 
-window.toggleField = async (uid, field, val) => {
-  try {
-    await apiPost('/admin/user/update', { uid, updates: { [field]: val } });
-    showToast(`${field} updated`, true);
-  } catch(e) {}
+window.toggleField = (uid, field, val) => {
+  const label = field === 'promotionalAccount' ? 'Promo Account' : 'Promo Comm Excluded';
+  const state = val ? 'ON' : 'OFF';
+  showConfirm(`Toggle ${label} ${state}?`, `Set <b>${label}</b> to <b>${state}</b> for this leader`, async () => {
+    try {
+      await apiPost('/admin/user/update', { uid, updates: { [field]: val } });
+      showToast(`${label} → ${state}`, true);
+      if (expandedId === uid) renderTable();
+    } catch(e) {}
+  });
 };
 
-window.toggleVerify = async (uid, val) => {
-  try {
-    await apiPost('/admin/leader/verify-toggle', { uid, verified: val });
-    showToast(val ? 'Leader verified' : 'Verification removed', true);
-    await loadLeaders();
-  } catch(e) {}
+window.toggleVerify = (uid, val) => {
+  showConfirm(val ? 'Verify Leader?' : 'Remove Verification?', `Mark as <b>${val ? 'Verified' : 'Unverified'}</b>`, async () => {
+    try {
+      await apiPost('/admin/leader/verify-toggle', { uid, verified: val });
+      showToast(val ? 'Leader verified' : 'Verification removed', true);
+      await loadLeaders();
+    } catch(e) {}
+  });
 };
 
-window.changeStatus = async (uid, status) => {
-  try {
-    await apiPost('/admin/leader/status', { uid, status });
-    showToast(`Status changed to ${status}`, true);
-  } catch(e) {}
+window.changeStatus = (uid, status) => {
+  const u = allLeaders.find(x => x.uid === uid);
+  showConfirm(`Change Status to "${status.replace('_',' ')}"?`, (u?.name || uid) + ' will be <b>' + status.replace('_',' ') + '</b>', async () => {
+    try {
+      await apiPost('/admin/leader/status', { uid, status });
+      showToast(`Status changed to ${status.replace('_',' ')}`, true);
+      if (expandedId === uid) renderTable();
+    } catch(e) {}
+  });
 };
 
 window.addNote = async (uid) => {
@@ -564,63 +613,75 @@ window.deleteLeader = (uid, name) => {
   });
 };
 
-// ── Lookup by Referral Code ──
-window.lookupRefCode = async () => {
-  const input = document.getElementById('refCodeLookup');
-  const code = input.value.trim().toUpperCase();
-  const resultDiv = document.getElementById('refLookupResult');
-  if (!code) { resultDiv.style.display = 'none'; return; }
-  resultDiv.style.display = 'block';
-  resultDiv.innerHTML = '<span style="color:var(--dim)">Looking up...</span>';
-  try {
-    const res = await fetch(API + '/check-referral/' + encodeURIComponent(code));
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-    if (!data.valid || !data.uid) {
-      resultDiv.innerHTML = '<span style="color:var(--danger)">No user found with code: <b>' + code + '</b></span>';
-      return;
-    }
-    // Check if already in leaders list
-    const existing = allLeaders.find(u => u.uid === data.uid);
-    if (existing) {
-      expandedId = data.uid;
-      renderTable();
-      resultDiv.innerHTML = '<span style="color:var(--success)">Found! Scrolling to ' + (existing.name || 'user') + '</span>';
-      setTimeout(() => {
-        document.getElementById('detail_' + data.uid)?.scrollIntoView({ behavior:'smooth', block:'center' });
-        resultDiv.style.display = 'none';
-      }, 300);
-      input.value = '';
-      return;
-    }
-    // Not in leaders — allow adding as a managed user
-    resultDiv.innerHTML = '<span style="color:var(--warning)">No rank/package. </span><button class="btn btn-primary btn-xs" onclick="window.addToLeaders(\'' + data.uid + '\')">Manage anyway</button>';
-  } catch(e) {
-    resultDiv.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
-  }
+// ── Add Leader Modal ──
+window.openAddModal = () => {
+  document.getElementById('addLeaderModal').style.display = 'flex';
+  document.getElementById('addRefCode').value = '';
+  document.getElementById('addCountry').value = 'India';
+  document.getElementById('addPackage').value = '';
+  setTimeout(() => document.getElementById('addRefCode').focus(), 100);
 };
+window.closeAddModal = () => {
+  document.getElementById('addLeaderModal').style.display = 'none';
+};
+window.confirmAddLeader = async () => {
+  const code = document.getElementById('addRefCode').value.trim().toUpperCase();
+  const country = document.getElementById('addCountry').value.trim();
+  const pkg = document.getElementById('addPackage').value;
 
-window.addToLeaders = async (uid) => {
-  const resultDiv = document.getElementById('refLookupResult');
-  try {
-    const res = await fetch(API + '/admin/user/' + uid);
-    if (!res.ok) throw new Error('User fetch failed');
-    const user = await res.json();
-    if (!user) { resultDiv.innerHTML = '<span style="color:var(--danger)">User not found</span>'; return; }
-    allLeaders.unshift(user);
-    expandedId = uid;
-    populateFilters();
-    renderStats();
-    renderTable();
-    document.getElementById('refCodeLookup').value = '';
-    resultDiv.innerHTML = '<span style="color:var(--success)">Added ' + (user.name || 'user') + ' to view</span>';
-    setTimeout(() => {
-      document.getElementById('detail_' + uid)?.scrollIntoView({ behavior:'smooth', block:'center' });
-      resultDiv.style.display = 'none';
-    }, 400);
-  } catch(e) {
-    resultDiv.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
-  }
+  if (!code) { showToast('Enter a referral code', false); return; }
+  if (!country) { showToast('Enter a country', false); return; }
+
+  window.closeAddModal();
+  showConfirm(
+    'Add Leader?',
+    `Find user with code <b>${code}</b>${pkg ? ' and assign <b>$'+pkg+'</b> package' : ''}${country ? ' (Country: '+country+')' : ''}`,
+    async () => {
+      try {
+        const res = await fetch(API + '/check-referral/' + encodeURIComponent(code));
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        if (!data.valid || !data.uid) {
+          showToast('No user found with code: ' + code, false);
+          return;
+        }
+        // Get full user data
+        const userRes = await fetch(API + '/admin/user/' + data.uid);
+        if (!userRes.ok) throw new Error('User fetch failed');
+        const user = await userRes.json();
+        if (!user) { showToast('User not found', false); return; }
+        // Update country if provided
+        if (country && country !== (user.country || '')) {
+          await apiPost('/admin/user/update', { uid: data.uid, updates: { country } });
+          user.country = country;
+        }
+        // Assign package if selected
+        if (pkg) {
+          await apiPost('/admin/assign-promo', {
+            uid: data.uid,
+            promoPackage: parseInt(pkg),
+            promoAccount: true,
+            promoCommExcluded: false
+          });
+        }
+        // Add to leaders list
+        const exists = allLeaders.find(l => l.uid === data.uid);
+        if (!exists) {
+          allLeaders.unshift({ ...user, uid: data.uid });
+          populateFilters();
+          renderStats();
+        }
+        expandedId = data.uid;
+        renderTable();
+        showToast('Added ' + (user.name || 'user') + ' to leader management' + (pkg ? ' + $' + pkg + ' package' : ''), true);
+        setTimeout(() => {
+          document.getElementById('detail_' + data.uid)?.scrollIntoView({ behavior:'smooth', block:'center' });
+        }, 300);
+      } catch(e) {
+        showToast('Error: ' + e.message, false);
+      }
+    }
+  );
 };
 
 // ── Confirm Modal ──
