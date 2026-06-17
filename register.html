@@ -88,9 +88,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
 
     <div class="otp-row" id="otpRow" style="display:none;">
       <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
-      <button id="verifyOtpBtn" onclick="verifyOtp()">Verify</button>
     </div>
 
+    <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
     <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
   </div>
   <a href="login.html" class="footer-link" style="margin-top:6px">Already have an account? <span>Login</span></a>
@@ -118,7 +118,6 @@ const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
 localStorage.setItem("onc_device", deviceId);
-let otpVerified = false;
 
 const referralInput = document.getElementById('referral');
 
@@ -195,8 +194,7 @@ window.sendOtp = async () => {
     showToast('OTP sent! Check spam folder if not found');
     document.getElementById('sendOtpBtn').style.display = 'none';
     document.getElementById('otpRow').style.display = 'flex';
-    document.getElementById('verifyOtpBtn').textContent = 'Verify';
-    document.getElementById('verifyOtpBtn').disabled = false;
+    document.getElementById('regBtn').style.display = 'block';
     document.getElementById('otpInput').focus();
   } catch(e) {
     showToast(e.message, true);
@@ -205,59 +203,47 @@ window.sendOtp = async () => {
   }
 };
 
-window.verifyOtp = async () => {
+window.registerUser = async function() {
+  const data = validateForm();
+  if (!data) return;
+
   const otp = document.getElementById('otpInput').value.trim();
-  const email = document.getElementById('email').value.trim();
   if (!otp || otp.length !== 6) {
     showToast('Enter the 6-digit OTP', true);
     return;
   }
 
-  const btn = document.getElementById('verifyOtpBtn');
+  const btn = document.getElementById('regBtn');
   btn.disabled = true;
-  btn.textContent = 'Verifying...';
+  btn.innerText = 'Verifying...';
 
+  // Step 1 — Verify OTP
   try {
-    console.log('Verifying OTP for:', email);
-    const res = await fetch(API + '/otp/verify', {
+    const vRes = await fetch(API + '/otp/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, otp })
+      body: JSON.stringify({ email: data.email, otp })
     });
-    console.log('Verify response status:', res.status);
-    const result = await res.json();
-    console.log('Verify response body:', result);
-    if (!res.ok) throw new Error(result.error || 'Request failed');
-
-    otpVerified = true;
-    showToast('OTP verified! Creating account...');
-    document.getElementById('verifyOtpBtn').textContent = 'Verified';
-    document.getElementById('otpInput').disabled = true;
-    await registerUser();
+    const vData = await vRes.json();
+    if (!vRes.ok) throw new Error(vData.error || 'OTP verification failed');
   } catch(e) {
     showToast(e.message, true);
     btn.disabled = false;
-    btn.textContent = 'Verify';
-    document.getElementById('otpInput').value = '';
-    document.getElementById('otpInput').focus();
+    btn.innerText = 'Create Account';
+    return;
   }
-};
 
-window.registerUser = async function() {
-  const data = validateForm();
-  if (!data) return;
-
-  document.getElementById('verifyOtpBtn').disabled = true;
-  document.getElementById('verifyOtpBtn').textContent = 'Creating...';
+  // Step 2 — Create account
+  btn.innerText = 'Creating...';
 
   try {
     const refRes = await fetch(API + '/check-referral/' + data.refCode);
     if (!refRes.ok) { const e = await refRes.json(); throw new Error(e.error || 'Referral check failed'); }
     const refData = await refRes.json();
     if (!refData.valid) {
-      showToast("Invalid referral code", true);
-      document.getElementById('verifyOtpBtn').disabled = false;
-      document.getElementById('verifyOtpBtn').textContent = 'Verify';
+      showToast('Invalid referral code', true);
+      btn.disabled = false;
+      btn.innerText = 'Create Account';
       return;
     }
 
@@ -265,7 +251,7 @@ window.registerUser = async function() {
     const uid = userCred.user.uid;
     const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
 
-    await setDoc(doc(db,"users",uid),{
+    await setDoc(doc(db,'users',uid),{
       name: data.name, email: data.email, uid, deviceId,
       balance:0, status:'inactive',
       referralCode: myRefCode,
@@ -289,15 +275,12 @@ window.registerUser = async function() {
       console.error('Commission error:', commErr);
     }
 
-    showToast("Registration Successful!");
-    setTimeout(() => window.location.href = "dashboard.html", 800);
-  } catch(e){
+    showToast('Registration Successful!');
+    setTimeout(() => window.location.href = 'dashboard.html', 800);
+  } catch(e) {
     showToast(e.message, true);
-    document.getElementById('verifyOtpBtn').disabled = false;
-    document.getElementById('verifyOtpBtn').textContent = 'Verify';
-    document.getElementById('otpInput').disabled = false;
-    document.getElementById('otpInput').value = '';
-    document.getElementById('otpInput').focus();
+    btn.disabled = false;
+    btn.innerText = 'Create Account';
   }
 };
 </script>
