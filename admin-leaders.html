@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Leader Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#03040a; --card:rgba(255,255,255,0.03); --card-hover:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.08); --primary:#a78bfa; --secondary:#60a5fa;
+  --success:#22c55e; --danger:#ef4444; --warning:#fbbf24; --accent:#3b82f6;
+  --text:rgba(255,255,255,0.7); --dim:rgba(255,255,255,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:#fff;min-height:100vh;padding:0;background-image:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(167,139,250,0.04) 0%,transparent 50%)}
+.container{max-width:1400px;margin:0 auto;padding:20px 20px 60px}
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border:1px solid var(--border);border-radius:20px;margin-bottom:24px;backdrop-filter:blur(20px)}
+.h-left{display:flex;align-items:center;gap:14px}
+.h-logo{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--secondary));border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:900;font-size:18px;color:#000}
+.h-title{font-family:'Space Grotesk';font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.h-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.h-actions{display:flex;gap:10px}
+.btn{font-family:'Inter';font-size:12px;font-weight:700;padding:10px 18px;border-radius:12px;border:none;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--secondary));color:#fff}
+.btn-primary:hover{box-shadow:0 0 25px rgba(59,130,246,0.3);transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:#fff}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger)}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-sm{padding:6px 12px;font-size:10px;border-radius:8px}
+.btn-xs{padding:4px 10px;font-size:9px;border-radius:6px;font-weight:600}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;transition:0.2s}
+.stat-card:hover{border-color:rgba(96,165,250,0.2)}
+.stat-num{font-family:'Space Grotesk';font-size:24px;font-weight:900;margin-top:2px}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:700}
+.stat-icon{font-size:18px;margin-bottom:4px;opacity:0.6}
+/* Filters */
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:12px;outline:none;transition:0.2s}
+.filters input:focus,.filters select:focus{border-color:var(--accent)}
+.filters input{flex:1;min-width:200px}
+.filters select{width:auto;cursor:pointer}
+.filters select option{background:#0d0f1a;color:#fff}
+/* Table */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:12px 14px;color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.015);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr{transition:0.15s;cursor:pointer}
+tr:hover{background:rgba(255,255,255,0.02)}
+.tr-expanded,.tr-expanded:hover{background:rgba(59,130,246,0.04)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.3px}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--success);border:1px solid rgba(34,197,94,0.15)}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--danger);border:1px solid rgba(239,68,68,0.15)}
+.badge-yellow{background:rgba(251,191,36,0.12);color:var(--warning);border:1px solid rgba(251,191,36,0.15)}
+.badge-blue{background:rgba(96,165,250,0.12);color:var(--secondary);border:1px solid rgba(96,165,250,0.15)}
+.badge-purple{background:rgba(167,139,250,0.12);color:var(--primary);border:1px solid rgba(167,139,250,0.15)}
+.badge-gray{background:rgba(255,255,255,0.05);color:var(--dim);border:1px solid rgba(255,255,255,0.08)}
+.badge-gold{background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.2)}
+/* Name cell */
+.name-cell{display:flex;align-items:center;gap:10px}
+.name-avatar{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--secondary));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;flex-shrink:0}
+.name-info .fn{font-weight:700;font-size:12px;color:#fff}
+.name-info .fe{font-size:10px;color:var(--dim);margin-top:1px}
+/* Expanded detail */
+.detail-row{display:none}
+.detail-row.open{display:table-row}
+.detail-cell{padding:0!important;border-bottom:1px solid var(--border)}
+.detail-wrap{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.detail-wrap{grid-template-columns:1fr}}
+.detail-section{background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.04);border-radius:14px;padding:16px}
+.detail-section.full{grid-column:1/-1}
+.ds-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ds-title svg{stroke:var(--accent)}
+/* Sub-grid for stats */
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.sub-item{text-align:center;padding:8px;background:rgba(255,255,255,0.02);border-radius:10px}
+.sub-val{font-family:'Space Grotesk';font-size:15px;font-weight:800}
+.sub-lbl{font-size:8px;color:var(--dim);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+/* Controls row */
+.ctrl-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ctrl-row .btn{font-size:10px;padding:7px 14px}
+/* Notes */
+.notes-list{max-height:120px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:4px}
+.note-item{background:rgba(255,255,255,0.02);border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.4;border-left:2px solid var(--accent)}
+.note-item .note-meta{font-size:8px;color:var(--dim);margin-top:3px}
+.notes-input{display:flex;gap:6px}
+.notes-input input{flex:1;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:11px;outline:none}
+.notes-input input:focus{border-color:var(--accent)}
+/* Toggle switch */
+.toggle{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.1);border-radius:22px;transition:0.3s}
+.toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+.toggle input:checked+.toggle-slider{background:linear-gradient(135deg,var(--accent),var(--secondary))}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+.toggle-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.toggle-row .tl{font-size:11px;color:var(--text)}
+/* Verified badge */
+.v-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:9px;font-weight:700}
+.v-badge.verified{background:rgba(34,197,94,0.12);color:var(--success);border:1px solid rgba(34,197,94,0.15)}
+.v-badge.unverified{background:rgba(255,255,255,0.04);color:var(--dim);border:1px solid var(--border)}
+/* Select in controls */
+.ctrl-select{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:10px;outline:none;cursor:pointer}
+.ctrl-select option{background:#0d0f1a;color:#fff}
+/* Toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:12px 26px;border-radius:50px;font-weight:700;font-size:12px;display:none;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.5);white-space:nowrap;font-family:'Inter'}
+.toast-success{background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+.toast-error{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
+/* Loading */
+.loading{text-align:center;padding:50px;color:var(--dim);font-size:12px;letter-spacing:2px}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,0.04);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Empty */
+.empty-state{text-align:center;padding:50px;color:var(--dim);font-size:12px}
+/* Country row */
+.country-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.country-chip{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:10px;display:flex;align-items:center;gap:5px}
+.country-chip .cc{color:var(--dim);font-size:8px}
+/* Confirm modal */
+#confirmModal{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:none;z-index:5000;align-items:center;justify-content:center}
+#confirmModal.show{display:flex}
+.modal-box{background:#0f1118;border:1px solid var(--border);border-radius:24px;padding:30px;max-width:380px;width:90%;text-align:center}
+.modal-box h3{font-size:16px;margin-bottom:6px}
+.modal-box p{font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.5}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+.modal-actions .btn{min-width:90px;justify-content:center}
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="h-left">
+      <div class="h-logo">LM</div>
+      <div>
+        <div class="h-title">Leader Management</div>
+        <div class="h-sub">Manage all ONCHYRA leaders &amp; their accounts</div>
+      </div>
+    </div>
+    <div class="h-actions">
+      <a href="admin.html" class="btn btn-outline btn-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Admin
+      </a>
+      <button class="btn btn-outline btn-sm" onclick="location.reload()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="statsRow">
+    <div class="stat-card"><div class="stat-icon" style="color:var(--accent)">&#9733;</div><div class="stat-num" id="statTotal" style="color:var(--accent)">0</div><div class="stat-lbl">Total Leaders</div></div>
+    <div class="stat-card"><div class="stat-icon" style="color:var(--success)">&#9679;</div><div class="stat-num" id="statActive" style="color:var(--success)">0</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-card"><div class="stat-icon" style="color:var(--secondary)">&#10003;</div><div class="stat-num" id="statVerified" style="color:var(--secondary)">0</div><div class="stat-lbl">Verified</div></div>
+    <div class="stat-card"><div class="stat-icon" style="color:var(--warning)">&#9672;</div><div class="stat-num" id="statTeamMembers" style="color:var(--warning)">0</div><div class="stat-lbl">Total Team Members</div></div>
+    <div class="stat-card"><div class="stat-icon" style="color:var(--primary)">&#9737;</div><div class="stat-num" id="statPromo" style="color:var(--primary)">0</div><div class="stat-lbl">Promo Accounts</div></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search by name, email, username..." oninput="filterTable()">
+    <select id="filterRank" onchange="filterTable()"><option value="">All Ranks</option></select>
+    <select id="filterStatus" onchange="filterTable()">
+      <option value="">All Status</option><option value="active">Active</option>
+      <option value="under_review">Under Review</option><option value="restricted">Restricted</option><option value="suspended">Suspended</option>
+    </select>
+    <select id="filterCountry" onchange="filterTable()"><option value="">All Countries</option></select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="tableWrap">
+    <div class="loading" id="loadingState"><div class="spinner"></div>Loading leaders...</div>
+    <div id="tableContent" style="display:none">
+      <table><thead><tr>
+        <th style="width:30px"></th>
+        <th>Leader</th>
+        <th>Rank</th>
+        <th>Country</th>
+        <th>Join Date</th>
+        <th>Verification</th>
+        <th>Status</th>
+        <th style="text-align:right">Actions</th>
+      </tr></thead><tbody id="tableBody"></tbody></table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none"><div style="font-size:30px;margin-bottom:8px;opacity:0.3">&#128100;</div>No leaders found</div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal">
+  <div class="modal-box">
+    <h3 id="confirmTitle">Confirm Action</h3>
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="executeConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const FIREBASE_CONFIG = { apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" };
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'http://localhost:5001/api' : 'https://onchyra-backend.onrender.com/api');
+
+onAuthStateChanged(auth, user => { if (!user) { window.location = 'admin-login.html'; return; } loadLeaders(); });
+
+// ── State ──
+let allLeaders = [];
+let expandedId = null;
+let confirmCallback = null;
+
+// ── Load Leaders ──
+async function loadLeaders() {
+  try {
+    const res = await fetch(API + '/admin/users');
+    const users = await res.json();
+    // Filter: users with rank or package = "leaders"
+    allLeaders = users.filter(u => u.rank && u.rank !== 'Unranked' && u.rank !== 'member' && u.rank !== '' || u.activePackage && u.activePackage !== 'none');
+    allLeaders.sort((a, b) => (b.rankIndex || 0) - (a.rankIndex || 0) || (b.totalPackageSpend || 0) - (a.totalPackageSpend || 0));
+    populateFilters();
+    renderStats();
+    renderTable();
+  } catch(e) { showToast('Failed to load: ' + e.message, false); }
+}
+
+// ── Populate Filter Dropdowns ──
+function populateFilters() {
+  const ranks = [...new Set(allLeaders.map(u => u.rank).filter(Boolean))];
+  const rankSel = document.getElementById('filterRank');
+  ranks.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; rankSel.appendChild(o); });
+
+  const countries = [...new Set(allLeaders.map(u => u.country).filter(Boolean))].sort();
+  const countrySel = document.getElementById('filterCountry');
+  countries.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; countrySel.appendChild(o); });
+}
+
+// ── Render Stats ──
+function renderStats() {
+  const total = allLeaders.length;
+  const active = allLeaders.filter(u => u.leaderStatus !== 'suspended' && u.leaderStatus !== 'restricted').length;
+  const verified = allLeaders.filter(u => u.verifiedLeader).length;
+  const teamMembers = allLeaders.reduce((s, u) => s + (u.refLevel1 || 0) + (u.refLevel2 || 0) + (u.refLevel3 || 0), 0);
+  const promo = allLeaders.filter(u => u.promotionalAccount).length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statVerified').textContent = verified;
+  document.getElementById('statTeamMembers').textContent = teamMembers.toLocaleString();
+  document.getElementById('statPromo').textContent = promo;
+}
+
+// ── Filter Table ──
+function filterTable() {
+  renderTable();
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const rank = document.getElementById('filterRank').value;
+  const status = document.getElementById('filterStatus').value;
+  const country = document.getElementById('filterCountry').value;
+  return allLeaders.filter(u => {
+    if (q && !(u.name || '').toLowerCase().includes(q) && !(u.email || '').toLowerCase().includes(q) && !(u.username || u.name || '').toLowerCase().includes(q)) return false;
+    if (rank && u.rank !== rank) return false;
+    if (status && (u.leaderStatus || 'active') !== status) return false;
+    if (country && u.country !== country) return false;
+    return true;
+  });
+}
+
+// ── Render Table ──
+function renderTable() {
+  document.getElementById('loadingState').style.display = 'none';
+  const filtered = getFiltered();
+  if (!filtered.length) { document.getElementById('tableContent').style.display = 'none'; document.getElementById('emptyState').style.display = 'block'; return; }
+  document.getElementById('tableContent').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+
+  const tb = document.getElementById('tableBody');
+  tb.innerHTML = filtered.map(u => {
+    const isExpanded = expandedId === u.uid;
+    const status = u.leaderStatus || 'active';
+    const statusBadge = status === 'active' ? 'badge-green' : status === 'under_review' ? 'badge-yellow' : status === 'restricted' ? 'badge-red' : 'badge-gray';
+    const verified = u.verifiedLeader;
+    const avatar = (u.name || 'U').charAt(0).toUpperCase();
+    const joinDate = u.createdAt ? (u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt)).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
+    const rankColor = u.rank ? (RANK_COLORS[u.rank] || 'badge-purple') : 'badge-gray';
+    return `
+      <tr onclick="toggleDetail('${u.uid}')" class="${isExpanded ? 'tr-expanded' : ''}">
+        <td style="text-align:center;font-size:10px;color:var(--dim)">${isExpanded ? '&#9660;' : '&#9654;'}</td>
+        <td>
+          <div class="name-cell">
+            <div class="name-avatar">${avatar}</div>
+            <div class="name-info"><div class="fn">${u.name || 'Unknown'}</div><div class="fe">${u.email || '-'}</div></div>
+          </div>
+        </td>
+        <td><span class="badge ${rankColor}">${u.rank || '-'}</span></td>
+        <td>${u.country || '-'}</td>
+        <td style="font-size:10px;color:var(--dim)">${joinDate}</td>
+        <td>${verified ? '<span class="v-badge verified">&#10003; Verified</span>' : '<span class="v-badge unverified">Unverified</span>'}</td>
+        <td><span class="badge ${statusBadge}">${status.replace('_', ' ')}</span></td>
+        <td style="text-align:right">
+          <button class="btn btn-primary btn-xs" onclick="event.stopPropagation();toggleDetail('${u.uid}')">Manage</button>
+        </td>
+      </tr>
+      <tr class="detail-row ${isExpanded ? 'open' : ''}" id="detail_${u.uid}">
+        <td colspan="8" class="detail-cell">${buildDetailHTML(u)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+const RANK_COLORS = {
+  'Ignition':'badge-purple','Momentum':'badge-blue','Velocity':'badge-green','Quantum':'badge-yellow',
+  'Fusion':'badge-red','Infinity':'badge-gold','Titan':'badge-gold','Apex':'badge-gold','Zenith':'badge-gold','Legacy':'badge-gold'
+};
+
+function buildDetailHTML(u) {
+  const dirs = (u.refLevel1 || 0) + (u.refLevel2 || 0) + (u.refLevel3 || 0);
+  const activeDirs = u.activeDirects || 0;
+  const teamBiz = u.teamBiz || 0;
+  const totalSpend = u.totalPackageSpend || 0;
+  const balance = u.balance || 0;
+  const commBal = u.commissionBalance || 0;
+  const locked = u.lockedBalance || 0;
+  const totalComm = u.totalCommissions || 0;
+  const bonus = u.totalMatchingBonus || 0;
+  const leadershipRewards = u.totalLeadershipRewards || 0;
+  const verified = u.verifiedLeader;
+  const status = u.leaderStatus || 'active';
+  const promoPkg = u.promotionalPackage || 'none';
+  const promoAccount = u.promotionalAccount || false;
+  const promoCommExcluded = u.promotionalCommExcluded || false;
+  const notes = u.adminNotes || [];
+  const country = u.country || 'Unknown';
+  const countryUsers = u.usersAddedByCountry || {};
+  const pkgs = [25, 50, 100, 200];
+
+  return `
+    <div class="detail-wrap">
+      <!-- Stats -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Leader Statistics
+        </div>
+        <div class="sub-grid">
+          <div class="sub-item"><div class="sub-val" style="color:var(--secondary)">${dirs}</div><div class="sub-lbl">Team Members</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--success)">${activeDirs}</div><div class="sub-lbl">Active Team</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--warning)">$${teamBiz.toFixed(2)}</div><div class="sub-lbl">Team Business</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--accent)">$${totalSpend.toFixed(2)}</div><div class="sub-lbl">Package Spend</div></div>
+        </div>
+      </div>
+
+      <!-- Commissions -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Commission Summary
+        </div>
+        <div class="sub-grid">
+          <div class="sub-item"><div class="sub-val" style="color:var(--success)">$${(balance + commBal).toFixed(2)}</div><div class="sub-lbl">Available</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--warning)">$${locked.toFixed(2)}</div><div class="sub-lbl">Locked</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--secondary)">$${totalComm.toFixed(2)}</div><div class="sub-lbl">Total Commission</div></div>
+          <div class="sub-item"><div class="sub-val" style="color:var(--primary)">$${bonus.toFixed(2)}</div><div class="sub-lbl">Bonus</div></div>
+          <div class="sub-item" style="grid-column:1/-1"><div class="sub-val" style="color:#fbbf24">$${leadershipRewards.toFixed(2)}</div><div class="sub-lbl">Leadership Rewards</div></div>
+        </div>
+      </div>
+
+      <!-- Promotional -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+          Promotional Management
+        </div>
+        <div style="font-size:11px;margin-bottom:8px;font-weight:600;color:var(--text)">Current: <span style="color:var(--accent)">${promoPkg === 'none' ? 'None' : '$' + promoPkg}</span></div>
+        <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap">
+          ${pkgs.map(p => `<button class="btn btn-outline btn-xs" onclick="assignPromo('${u.uid}',${p})">$${p}</button>`).join('')}
+          <button class="btn btn-outline btn-xs" onclick="assignPromo('${u.uid}',0)" style="color:var(--danger)">Remove</button>
+        </div>
+        <div class="toggle-row"><span class="tl">Promo Account</span><label class="toggle"><input type="checkbox" ${promoAccount ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalAccount',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoAccount ? 'Yes' : 'No'}</span></div>
+        <div class="toggle-row"><span class="tl">Promo Comm Excluded</span><label class="toggle"><input type="checkbox" ${promoCommExcluded ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalCommExcluded',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoCommExcluded ? 'Yes' : 'No'}</span></div>
+      </div>
+
+      <!-- Status -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Status &amp; Verification
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;color:var(--dim)">Status:</span>
+            <select class="ctrl-select" onchange="changeStatus('${u.uid}',this.value)">
+              <option value="active" ${status==='active'?'selected':''}>Active</option>
+              <option value="under_review" ${status==='under_review'?'selected':''}>Under Review</option>
+              <option value="restricted" ${status==='restricted'?'selected':''}>Restricted</option>
+              <option value="suspended" ${status==='suspended'?'selected':''}>Suspended</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;color:var(--dim)">Verified:</span>
+            <label class="toggle"><input type="checkbox" ${verified ? 'checked' : ''} onchange="toggleVerify('${u.uid}',this.checked)"><span class="toggle-slider"></span></label>
+            <span style="font-size:9px;color:var(--dim)">${verified ? 'Verified' : 'Unverified'}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Country Tracking -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          Country: ${country}
+        </div>
+        <div class="sub-grid">
+          <div class="sub-item"><div class="sub-val" style="color:var(--secondary)">${Object.values(countryUsers).reduce((a,b)=>a+b,0) || 0}</div><div class="sub-lbl">Users Added</div></div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="detail-section full">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Admin Notes
+        </div>
+        ${notes.length ? '<div class="notes-list">' + notes.slice().reverse().map(n => `<div class="note-item">${n.text}<div class="note-meta">${n.addedBy || 'admin'} &middot; ${n.createdAt ? new Date(n.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div></div>`).join('') + '</div>' : '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">No notes yet</div>'}
+        <div class="notes-input"><input type="text" id="noteInput_${u.uid}" placeholder="Add a private note..." onkeydown="if(event.key==='Enter')addNote('${u.uid}')"><button class="btn btn-primary btn-xs" onclick="addNote('${u.uid}')">Add</button></div>
+      </div>
+
+      <!-- Admin Controls -->
+      <div class="detail-section full">
+        <div class="ds-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Admin Controls
+        </div>
+        <div class="ctrl-row">
+          <button class="btn btn-outline btn-xs" onclick="editLeader('${u.uid}')">Edit</button>
+          <button class="btn btn-outline btn-xs" onclick="resetPwd('${u.uid}')">Reset Password</button>
+          <button class="btn btn-outline btn-xs" onclick="suspendLeader('${u.uid}','${u.name || ''}')">${status === 'suspended' ? 'Unsuspend' : 'Suspend'}</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteLeader('${u.uid}','${(u.name || '').replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Toggle Detail ──
+window.toggleDetail = (uid) => {
+  expandedId = expandedId === uid ? null : uid;
+  renderTable();
+};
+
+// ── API Operations ──
+async function apiPost(endpoint, body) {
+  try {
+    const res = await fetch(API + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if (!data.success && data.error) throw new Error(data.error);
+    return data;
+  } catch(e) { showToast(e.message, false); throw e; }
+}
+
+window.assignPromo = async (uid, amount) => {
+  try {
+    await apiPost('/admin/assign-promo', { uid, promoPackage: amount || null, promoAccount: amount > 0, promoCommExcluded: amount === 0 });
+    showToast(`Promotional package ${amount > 0 ? '$'+amount : 'removed'} assigned`, true);
+    await loadLeaders();
+  } catch(e) {}
+};
+
+window.toggleField = async (uid, field, val) => {
+  try {
+    await apiPost('/admin/user/update', { uid, updates: { [field]: val } });
+    showToast(`${field} updated`, true);
+  } catch(e) {}
+};
+
+window.toggleVerify = async (uid, val) => {
+  try {
+    await apiPost('/admin/leader/verify-toggle', { uid, verified: val });
+    showToast(val ? 'Leader verified' : 'Verification removed', true);
+    await loadLeaders();
+  } catch(e) {}
+};
+
+window.changeStatus = async (uid, status) => {
+  try {
+    await apiPost('/admin/leader/status', { uid, status });
+    showToast(`Status changed to ${status}`, true);
+  } catch(e) {}
+};
+
+window.addNote = async (uid) => {
+  const input = document.getElementById('noteInput_' + uid);
+  const text = input.value.trim();
+  if (!text) return;
+  try {
+    await apiPost('/admin/leader/notes', { uid, note: text });
+    input.value = '';
+    showToast('Note added', true);
+    await loadLeaders();
+    if (expandedId === uid) renderTable();
+  } catch(e) {}
+};
+
+window.editLeader = (uid) => {
+  const u = allLeaders.find(x => x.uid === uid);
+  if (!u) return;
+  const name = prompt('Edit name:', u.name || '');
+  if (name && name !== u.name) {
+    apiPost('/admin/user/update', { uid, updates: { name } }).then(() => { showToast('Name updated', true); loadLeaders(); }).catch(() => {});
+  }
+};
+
+window.resetPwd = (uid) => {
+  const u = allLeaders.find(x => x.uid === uid);
+  showConfirm(`Reset password for ${u?.name || uid}?`, 'Password will be reset to: onchyra123', async () => {
+    await apiPost('/admin/leader/reset-password', { uid });
+    showToast('Password reset to: onchyra123', true);
+  });
+};
+
+window.suspendLeader = (uid, name) => {
+  const u = allLeaders.find(x => x.uid === uid);
+  const isSuspended = u?.leaderStatus === 'suspended';
+  showConfirm(isSuspended ? `Unsuspend ${name}?` : `Suspend ${name}?`, isSuspended ? 'Restore account access' : 'This will restrict account access', async () => {
+    await apiPost('/admin/leader/status', { uid, status: isSuspended ? 'active' : 'suspended' });
+    showToast(isSuspended ? 'Leader unsuspended' : 'Leader suspended', true);
+    loadLeaders();
+  });
+};
+
+window.deleteLeader = (uid, name) => {
+  showConfirm(`Delete ${name}?`, 'This permanently removes the user and auth record. Cannot be undone.', async () => {
+    await apiPost('/admin/leader/delete', { uid });
+    showToast('Leader deleted', true);
+    loadLeaders();
+  });
+};
+
+// ── Confirm Modal ──
+function showConfirm(title, msg, fn) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmModal').classList.add('show');
+  confirmCallback = fn;
+}
+window.closeConfirm = () => { document.getElementById('confirmModal').classList.remove('show'); confirmCallback = null; };
+window.executeConfirm = () => { if (confirmCallback) { confirmCallback(); } closeConfirm(); };
+
+// ── Toast ──
+function showToast(msg, success = true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = success ? 'toast-success' : 'toast-error';
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.display = 'none', 2500);
+}
+</script>
+</body>
+</html>

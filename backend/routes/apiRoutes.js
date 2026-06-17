@@ -581,6 +581,72 @@ router.post('/admin/process-commission', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Admin — Leader Management
+router.post('/admin/leader/delete', async (req, res) => {
+    try {
+        const { uid } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        await admin.firestore().doc(`users/${uid}`).delete();
+        try { await admin.auth().deleteUser(uid); } catch (e) { /* auth record may not exist */ }
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/leader/status', async (req, res) => {
+    try {
+        const { uid, status } = req.body;
+        if (!uid || !status) return res.status(400).json({ error: 'Missing uid or status' });
+        const valid = ['active', 'under_review', 'restricted', 'suspended'];
+        if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+        await admin.firestore().doc(`users/${uid}`).update({ leaderStatus: status });
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/leader/reset-password', async (req, res) => {
+    try {
+        const { uid, newPassword } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const password = newPassword || 'onchyra123';
+        await admin.auth().updateUser(uid, { password });
+        res.json({ success: true, message: `Password reset to: ${password}` });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/leader/notes', async (req, res) => {
+    try {
+        const { uid, note } = req.body;
+        if (!uid || !note) return res.status(400).json({ error: 'Missing uid or note' });
+        const entry = { text: note, addedBy: req.ip || 'admin', createdAt: Date.now() };
+        await admin.firestore().doc(`users/${uid}`).update({
+            adminNotes: admin.firestore.FieldValue.arrayUnion(entry)
+        });
+        res.json({ success: true, entry });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/assign-promo', async (req, res) => {
+    try {
+        const { uid, promoPackage, promoAccount, promoCommExcluded } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const updates = {};
+        if (promoPackage !== undefined) updates.promotionalPackage = promoPackage;
+        if (promoAccount !== undefined) updates.promotionalAccount = promoAccount;
+        if (promoCommExcluded !== undefined) updates.promotionalCommExcluded = promoCommExcluded;
+        await admin.firestore().doc(`users/${uid}`).update(updates);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/leader/verify-toggle', async (req, res) => {
+    try {
+        const { uid, verified } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        await admin.firestore().doc(`users/${uid}`).update({ verifiedLeader: !!verified });
+        res.json({ success: true, verified: !!verified });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Sweep
 router.post('/sweep/check', sweep.check);
 router.post('/sweep/execute', sweep.sweep);
