@@ -10,6 +10,7 @@ const withdraw = require('../controllers/withdrawController');
 const leadership = require('../controllers/leadershipController');
 const sweep = require('../controllers/sweepController');
 const otp = require('../controllers/otpController');
+const refCache = require('../services/referralCache');
 
 // Maintenance
 router.get('/maintenance', maintenance.getStatus);
@@ -56,12 +57,24 @@ router.post('/admin/leadership/recalc-all', leadership.adminRecalcAllRanks);
 router.post('/otp/send', otp.send);
 router.post('/otp/verify', otp.verify);
 
-// Referral
+// Referral (uses in-memory cache — no Firestore read)
 router.get('/check-referral/:code', async (req, res) => {
     try {
-        const snap = await admin.firestore().collection('users').where('referralCode', '==', req.params.code.toUpperCase()).get();
-        if (snap.empty) return res.json({ valid: false });
-        res.json({ valid: true, uid: snap.docs[0].id, name: snap.docs[0].data().name, referredBy: snap.docs[0].data().referredBy || null });
+        const code = req.params.code.toUpperCase();
+        const entry = refCache.lookup(code);
+        if (!entry) {
+            // Fallback to Firestore if cache misses (e.g. just-registered user)
+            try {
+                const snap = await admin.firestore().collection('users').where('referralCode', '==', code).get();
+                if (snap.empty) return res.json({ valid: false });
+                const d = snap.docs[0].data();
+                refCache.add(code, snap.docs[0].id, d.name, d.referredBy);
+                return res.json({ valid: true, uid: snap.docs[0].id, name: d.name, referredBy: d.referredBy || null });
+            } catch(e) {
+                return res.json({ valid: false });
+            }
+        }
+        res.json({ valid: true, uid: entry.uid, name: entry.name, referredBy: entry.referredBy });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
