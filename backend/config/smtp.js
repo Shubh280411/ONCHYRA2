@@ -107,6 +107,7 @@ function createAppsScriptTransporter(settings) {
 
 function createTransporter(kind) {
     const settings = getSmtpSettings(kind);
+
     if (settings.appsScript.enabled) {
         const missing = [
             ['GMAIL_APPS_SCRIPT_URL', settings.appsScript.url],
@@ -117,7 +118,34 @@ function createTransporter(kind) {
             throw new Error(`Gmail Apps Script mailer is missing env vars: ${missing.join(', ')}`);
         }
 
-        return createAppsScriptTransporter(settings);
+        // Create a smart transporter: tries Apps Script first, falls back to direct SMTP
+        const appsScriptTransporter = createAppsScriptTransporter(settings);
+        const originalSend = appsScriptTransporter.sendMail.bind(appsScriptTransporter);
+
+        // Build fallback SMTP transporter
+        const smtpFallback = nodemailer.createTransport({
+            host: settings.host,
+            port: settings.port,
+            secure: settings.secure,
+            requireTLS: settings.requireTLS,
+            auth: settings.auth,
+            connectionTimeout: settings.connectionTimeout,
+            greetingTimeout: settings.greetingTimeout,
+            socketTimeout: settings.socketTimeout
+        });
+        smtpFallback.mailSettings = settings;
+
+        appsScriptTransporter.sendMail = async (options) => {
+            try {
+                const result = await originalSend(options);
+                return result;
+            } catch (err) {
+                console.warn(`[MAIL] Apps Script failed (${err.message}), falling back to direct SMTP`);
+                return smtpFallback.sendMail(options);
+            }
+        };
+
+        return appsScriptTransporter;
     }
 
     const transporter = nodemailer.createTransport({
