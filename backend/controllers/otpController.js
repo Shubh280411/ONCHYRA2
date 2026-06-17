@@ -90,7 +90,31 @@ exports.list = async (_req, res) => {
   try {
     const now = Date.now();
     const list = [];
+    // Merge in-memory OTPs with Firestore OTPs (old records)
+    try {
+      const db = admin.firestore();
+      const snap = await db.collection('otps').orderBy('createdAt', 'desc').limit(100).get();
+      snap.forEach(d => {
+        const d2 = d.data();
+        const createdAt = typeof d2.createdAt === 'number' ? d2.createdAt : 0;
+        list.push({
+          email: d2.email || '',
+          otp: d2.otp || '',
+          createdAt,
+          expiresAt: d2.expiresAt || (createdAt + 300000),
+          verified: !!d2.verified,
+          attempts: d2.attempts || 0,
+          usedAt: d2.usedAt || null
+        });
+      });
+    } catch (e) {
+      console.warn('[OTP] Firestore list unavailable (quota?), using in-memory only');
+    }
+    // Add in-memory OTPs (dedup by email + otp)
+    const memKeys = new Set(list.map(i => i.email + '|' + i.otp));
     for (const [key, entry] of otpStore) {
+      const memKey = key + '|' + entry.otp;
+      if (memKeys.has(memKey)) continue;
       if (now > entry.expiresAt) continue;
       list.push({
         email: key,
@@ -98,11 +122,12 @@ exports.list = async (_req, res) => {
         createdAt: entry.createdAt,
         expiresAt: entry.expiresAt,
         verified: entry.verified,
-        attempts: entry.attempts
+        attempts: entry.attempts,
+        usedAt: null
       });
     }
     list.sort((a, b) => b.createdAt - a.createdAt);
-    res.json(list.slice(0, 100));
+    res.json(list.slice(0, 200));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
