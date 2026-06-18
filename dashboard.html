@@ -107,6 +107,11 @@
             background: none; border: none; cursor: pointer; font-weight: 600;
         }
         .popup-later:hover { color: rgba(255,255,255,0.4); }
+        #toolsPopup { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:5000; padding:20px; backdrop-filter:blur(10px); }
+        .tools-btn-view { background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.3);padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;transition:0.2s;font-family:'Inter';display:inline-flex;align-items:center; }
+        .tools-btn-view:hover { background:rgba(167,139,250,0.25); }
+        .tools-btn-dl { background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;transition:0.2s;font-family:'Inter';display:inline-flex;align-items:center; }
+        .tools-btn-dl:hover { background:rgba(255,255,255,0.12);color:white; }
 
         /* NOTIFICATION BELL */
         .nav-right { display: flex; align-items: center; gap: 12px; }
@@ -157,6 +162,7 @@
     <a href="contests.html" class="menu-item">Contest</a>
     <a href="leaderboard.html" class="menu-item">Leaderboard</a>
     <a href="updates.html" class="menu-item">Updates</a>
+    <a onclick="openTools()" class="menu-item">Tools</a>
     <a onclick="logout()" class="menu-item" style="color:#ef4444;margin-top:auto;padding-bottom:30px;">Logout</a>
 </div>
 
@@ -635,6 +641,45 @@
     </div>
 </div>
 
+<!-- TOOLS MODAL -->
+<div id="toolsPopup" onclick="if(event.target===this)closeTools()">
+    <div class="popup-box" style="max-width:420px;">
+        <button class="popup-close" onclick="closeTools()">✕</button>
+        <div class="popup-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="popup-badge">RESOURCES</div>
+        <div class="popup-title">Tools</div>
+        <p class="popup-sub">Access project documents & resources.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div style="text-align:left;"><div style="font-size:12px;font-weight:700;">Whitepaper</div><div style="font-size:9px;color:rgba(255,255,255,0.3);">Project overview & tokenomics</div></div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="./Onchyra_Whitepaper.pdf" target="_blank" class="btn btn-sm tools-btn-view">View</a>
+                    <a href="./Onchyra_Whitepaper.pdf" download class="btn btn-sm tools-btn-dl">DL</a>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div style="text-align:left;"><div style="font-size:12px;font-weight:700;">Presentation</div><div style="font-size:9px;color:rgba(255,255,255,0.3);">Official project deck</div></div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="./Onchyra_Official_Presentation.pdf" target="_blank" class="btn btn-sm tools-btn-view">View</a>
+                    <a href="./Onchyra_Official_Presentation.pdf" download class="btn btn-sm tools-btn-dl">DL</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -1067,6 +1112,14 @@ window.toggleMenu = () => {
 
 window.logout = () => {
     signOut(auth).then(() => window.location = "login.html");
+};
+
+window.openTools = () => {
+    toggleMenu();
+    document.getElementById('toolsPopup').style.display = 'flex';
+};
+window.closeTools = () => {
+    document.getElementById('toolsPopup').style.display = 'none';
 };
 
 // ── NOTIFICATIONS ──
