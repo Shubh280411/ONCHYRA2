@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const db = admin.firestore();
 const withdrawalWallet = require('../services/withdrawalWallet');
+const { verifyOtp } = require('./otpController');
 
 exports.request = async (req, res) => {
     try {
@@ -16,28 +17,9 @@ exports.request = async (req, res) => {
         const commBal = user.commissionBalance || user.balance || 0;
         if (commBal < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
-        // Verify OTP inline
-        const otpSnap = await db.collection('otps')
-            .where('email', '==', user.email)
-            .where('verified', '==', false)
-            .where('otp', '==', otp)
-            .get();
-
-        if (otpSnap.empty) return res.status(400).json({ error: 'Invalid OTP' });
-
-        let otpDoc = null;
-        otpSnap.forEach(doc => {
-            const d = doc.data();
-            if (!otpDoc || d.createdAt > otpDoc.createdAt) otpDoc = { ref: doc.ref, ...d };
-        });
-
-        if (Date.now() > otpDoc.expiresAt) {
-            await otpDoc.ref.delete();
-            return res.status(400).json({ error: 'OTP expired. Request a new one.' });
-        }
-
-        // Mark OTP as used
-        await otpDoc.ref.update({ verified: true, usedAt: Date.now() });
+        // Verify OTP from in-memory store
+        const otpResult = verifyOtp(user.email, otp);
+        if (!otpResult.valid) return res.status(400).json({ error: otpResult.error });
 
         const fee = Math.round(amount * 0.05 * 100) / 100;
         const net = Math.round((amount - fee) * 100) / 100;

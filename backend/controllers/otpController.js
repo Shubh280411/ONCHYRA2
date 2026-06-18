@@ -133,38 +133,43 @@ exports.list = async (_req, res) => {
   }
 };
 
+// Shared OTP verification — used by both /otp/verify endpoint and withdraw controller
+function verifyOtp(email, otp) {
+  const key = email.toLowerCase();
+  const entry = otpStore.get(key);
+
+  if (!entry) {
+    return { valid: false, error: 'No OTP sent to this email' };
+  }
+
+  if (entry.verified) {
+    return { valid: false, error: 'OTP already verified' };
+  }
+
+  if (Date.now() > entry.expiresAt) {
+    otpStore.delete(key);
+    return { valid: false, error: 'OTP expired. Request a new one.' };
+  }
+
+  entry.attempts++;
+  if (entry.otp !== otp) {
+    if (entry.attempts >= 5) otpStore.delete(key);
+    return { valid: false, error: 'Invalid OTP' };
+  }
+
+  entry.verified = true;
+  return { valid: true };
+}
+
+exports.verifyOtp = verifyOtp;
+
 exports.verify = async (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required' });
 
-  try {
-    const key = email.toLowerCase();
-    const entry = otpStore.get(key);
-
-    if (!entry) {
-      return res.status(400).json({ error: 'No OTP sent to this email' });
-    }
-
-    if (entry.verified) {
-      return res.status(400).json({ error: 'OTP already verified' });
-    }
-
-    if (Date.now() > entry.expiresAt) {
-      otpStore.delete(key);
-      return res.status(400).json({ error: 'OTP expired. Request a new one.' });
-    }
-
-    entry.attempts++;
-    if (entry.otp !== otp) {
-      if (entry.attempts >= 5) otpStore.delete(key);
-      return res.status(400).json({ error: 'Invalid OTP' });
-    }
-
-    entry.verified = true;
-
-    res.json({ success: true, message: 'OTP verified' });
-  } catch (e) {
-    console.error('OTP verify error:', e);
-    res.status(500).json({ error: 'Verification failed' });
+  const result = verifyOtp(email, otp);
+  if (result.valid) {
+    return res.json({ success: true, message: 'OTP verified' });
   }
+  return res.status(400).json({ error: result.error });
 };
