@@ -45,6 +45,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
 .toast.success{background:var(--green);color:#000}
 .toast.error{background:var(--red);color:#fff}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}}
+
+.notice-box{display:none;margin-top:14px;padding:16px;border-radius:14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12);font-size:11px;color:rgba(255,255,255,0.6);line-height:1.7}
+.notice-box.show{display:block;animation:fadeIn 0.3s ease}
+.notice-box .nb-title{font-weight:800;font-size:12px;color:var(--primary);margin-bottom:6px}
+.notice-box strong{color:rgba(255,255,255,0.8)}
+
+.resend-area{margin-top:10px;text-align:center;min-height:20px}
+.resend-area .resend-timer{font-size:11px;color:rgba(255,255,255,0.3);font-weight:600}
+.resend-area .resend-btn{display:none;background:none;border:none;color:var(--primary);font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter';padding:6px 12px;border-radius:8px;transition:0.2s}
+.resend-area .resend-btn:hover{background:rgba(167,139,250,0.1)}
+
+.help-text{margin-top:6px;font-size:10px;color:rgba(255,255,255,0.2);text-align:center;display:none}
+.help-text.show{display:block;animation:fadeIn 0.3s ease}
+.help-text a{color:var(--primary);text-decoration:none;font-weight:600}
+
+.alert-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:24px}
+.alert-overlay.show{display:flex;animation:fadeIn 0.3s ease}
+.alert-box{background:#0b0b20;border:1px solid var(--border);border-radius:24px;padding:32px 24px;max-width:360px;width:100%;text-align:center}
+.alert-box .al-icon{font-size:36px;margin-bottom:10px}
+.alert-box .al-title{font-weight:800;font-size:15px;margin-bottom:8px}
+.alert-box .al-body{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:18px}
+.alert-box .al-btn{padding:12px 24px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:800;font-size:13px;cursor:pointer;font-family:'Inter';width:100%}
+.alert-box .al-btn:hover{opacity:0.9}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -89,6 +114,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
     <div class="otp-row" id="otpRow" style="display:none;">
       <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
     </div>
+    <div class="help-text" id="helpText">📩 Can't find the email? <a href="#" onclick="showAlert();return false;">Check Spam/Junk folder</a> first.</div>
+
+    <div class="notice-box" id="noticeBox">
+      <div class="nb-title">📩 OTP not received?</div>
+      Please check your <strong>Spam/Junk folder</strong>. Some email providers may place verification emails there.<br><br>
+      If you find the email in Spam, mark it as <strong>"Not Spam"</strong> to ensure future ONCHYRA emails arrive in your inbox.
+    </div>
+    <div class="resend-area" id="resendArea"></div>
 
     <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
     <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
@@ -96,6 +129,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
   <a href="login.html" class="footer-link" style="margin-top:6px">Already have an account? <span>Login</span></a>
 </div>
 <div class="toast" id="toast"></div>
+<div class="alert-overlay" id="alertOverlay">
+  <div class="alert-box">
+    <div class="al-icon">⚠️</div>
+    <div class="al-title">Check Your Spam Folder</div>
+    <div class="al-body">
+      Your verification email may appear in the <strong style="color:rgba(255,255,255,0.8);">Spam/Junk folder</strong>.<br><br>
+      Please check <strong style="color:rgba(255,255,255,0.8);">all folders</strong> before requesting another OTP.
+    </div>
+    <button class="al-btn" onclick="closeAlert()">Got it</button>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -168,6 +212,56 @@ function validateForm() {
   return { name, email, password, refCode };
 }
 
+let otpCooldownTimer = null;
+let otpCooldownRemaining = 0;
+
+function startResendTimer() {
+  const area = document.getElementById('resendArea');
+  otpCooldownRemaining = 60;
+  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+  otpCooldownTimer = setInterval(() => {
+    otpCooldownRemaining--;
+    if (otpCooldownRemaining <= 0) {
+      clearInterval(otpCooldownTimer);
+      otpCooldownTimer = null;
+      area.innerHTML = '<button class="resend-btn" onclick="resendOtp()">Resend OTP</button>';
+      area.querySelector('.resend-btn').style.display = 'inline-block';
+    } else {
+      area.innerHTML = '<span class="resend-timer">Resend OTP in ' + otpCooldownRemaining + 's</span>';
+    }
+  }, 1000);
+}
+
+window.showAlert = () => {
+  document.getElementById('alertOverlay').classList.add('show');
+};
+window.closeAlert = () => {
+  document.getElementById('alertOverlay').classList.remove('show');
+};
+
+window.resendOtp = async () => {
+  const data = validateForm();
+  if (!data) return;
+  const area = document.getElementById('resendArea');
+  area.innerHTML = '<span class="resend-timer">Sending...</span>';
+  try {
+    const res = await fetch(API + '/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email })
+    });
+    const bodyText = await res.text();
+    let result;
+    try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status); }
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+    showToast('✅ OTP resent successfully');
+    startResendTimer();
+  } catch(e) {
+    showToast(e.message, true);
+    area.innerHTML = '<button class="resend-btn" onclick="resendOtp()" style="display:inline-block">Resend OTP</button>';
+  }
+};
+
 window.sendOtp = async () => {
   const data = validateForm();
   if (!data) return;
@@ -177,25 +271,25 @@ window.sendOtp = async () => {
   btn.textContent = 'Sending...';
 
   try {
-    console.log('Sending OTP to:', data.email);
-    console.log('API URL:', API);
     const res = await fetch(API + '/otp/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: data.email })
     });
-    console.log('Response status:', res.status);
     const bodyText = await res.text();
-    console.log('Response body:', bodyText);
     let result;
     try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
     if (!res.ok) throw new Error(result.error || 'Request failed');
 
-    showToast('OTP sent! Check spam folder if not found');
+    showToast('✅ Verification email sent successfully to your email address.');
     document.getElementById('sendOtpBtn').style.display = 'none';
     document.getElementById('otpRow').style.display = 'flex';
     document.getElementById('regBtn').style.display = 'block';
     document.getElementById('otpInput').focus();
+    document.getElementById('noticeBox').classList.add('show');
+    document.getElementById('helpText').classList.add('show');
+    startResendTimer();
+    setTimeout(() => showAlert(), 500);
   } catch(e) {
     showToast(e.message, true);
     btn.disabled = false;

@@ -215,7 +215,7 @@ import {
   getAuth, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, collection, getDocs, doc, getDoc
+  getFirestore, collection, query, where, doc, getDoc, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -244,17 +244,19 @@ onAuthStateChanged(auth, async user => {
   loadStats();
 });
 
-const API = 'https://onchyra-backend.onrender.com/api';
-
 async function loadStats() {
   try {
-    const r = await fetch(API + '/admin/stats');
-    const d = await r.json();
-    document.getElementById('users').textContent = d.totalUsers || 0;
-    document.getElementById('claims').textContent = d.totalClaims || 0;
-    document.getElementById('packages').textContent = d.packageCount || 0;
-    document.getElementById('pendingW').textContent = d.pendingWithdrawals || 0;
-  } catch(e) {}
+    const [uCnt, claimCnt, pkgCnt, wdSnap] = await Promise.all([
+      getCountFromServer(collection(db, 'users')),
+      getCountFromServer(collection(db, 'claims')),
+      getCountFromServer(collection(db, 'packagePurchases')),
+      getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
+    ]);
+    document.getElementById('users').textContent = uCnt.data().count || 0;
+    document.getElementById('claims').textContent = claimCnt.data().count || 0;
+    document.getElementById('packages').textContent = pkgCnt.data().count || 0;
+    document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
+  } catch(e) { console.warn('Stats load failed:', e.message); }
 }
 
 window.logout = () => { signOut(auth); window.location = 'admin-login.html'; };

@@ -255,18 +255,15 @@ router.get('/admin/stats', async (req, res) => {
         const packageCount = pkgSnap.docs.length;
         const totalClaims = claimSnap.docs.length;
 
-        // Users by package
         const usersWithPackage = users.filter(u => u.activePackage).length;
         const usersWithoutPackage = totalUsers - usersWithPackage;
 
-        // Rank distribution
         const rankCounts = {};
-        for (const u of users) {
-            const r = u.rank || 'member';
-            rankCounts[r] = (rankCounts[r] || 0) + 1;
-        }
+        for (const u of users) rankCounts[u.rank || 'member'] = (rankCounts[u.rank || 'member'] || 0) + 1;
 
-        // Deposits top 10 users
+        const nameMap = {};
+        for (const u of users) nameMap[u.uid] = u.name || u.uid.slice(0, 8);
+
         const depositByUser = {};
         for (const d of depSnap.docs) {
             const uid = d.data().uid;
@@ -274,16 +271,74 @@ router.get('/admin/stats', async (req, res) => {
         }
         const topDepositors = Object.entries(depositByUser)
             .sort((a, b) => b[1] - a[1]).slice(0, 10)
-            .map(([uid, amount]) => {
-                const u = users.find(x => x.uid === uid);
-                return { uid, name: u?.name || 'Unknown', amount };
-            });
+            .map(([uid, amount]) => ({ uid, name: nameMap[uid] || 'Unknown', amount }));
+
+        const toMs = (val) => {
+            if (!val) return 0;
+            if (typeof val.toMillis === 'function') return val.toMillis();
+            if (val instanceof Date) return val.getTime();
+            return Number(val) || 0;
+        };
+
+        const pendingWithdrawalsList = wdSnap.docs
+            .filter(d => d.data().status === 'pending')
+            .map(d => ({ id: d.id, uid: d.data().uid, amount: d.data().amount, wallet: d.data().walletAddress || d.data().wallet, createdAt: d.data().createdAt }))
+            .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+
+        const packageSales = {};
+        pkgSnap.docs.forEach(d => {
+            const p = d.data();
+            const name = p.packageName || p.name || 'unknown';
+            if (!packageSales[name]) packageSales[name] = { count: 0, revenue: 0 };
+            packageSales[name].count++;
+            packageSales[name].revenue += (p.amount || 0);
+        });
+        const packageBreakdown = Object.entries(packageSales).map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayMs = todayStart.getTime();
+        let todayDeposits = 0, todayWithdrawals = 0, todayRewards = 0, todayRegistrations = 0;
+        depSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayDeposits += (d.data().amount || 0); });
+        wdSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayWithdrawals += (d.data().amount || 0); });
+        rewSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayRewards += (d.data().amount || 0); });
+        users.forEach(u => { if (toMs(u.createdAt) >= todayMs) todayRegistrations++; });
+
+        const allRewards = [];
+        rewSnap.docs.forEach(d => {
+            const r = { id: d.id, ...d.data(), userName: nameMap[d.data().uid] || (d.data().uid || '').slice(0, 8) };
+            allRewards.push(r);
+        });
+        allRewards.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+        const recentRewards = allRewards.slice(0, 15);
+
+        const allDeposits = depSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allDeposits.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+        const recentDeposits = allDeposits.slice(0, 15);
+
+        const wdByUser = {}, wdCountByUser = {};
+        wdSnap.docs.forEach(d => {
+            const w = d.data();
+            if (w.status !== 'completed') return;
+            const uid = w.uid || w.userId;
+            if (!uid) return;
+            wdByUser[uid] = (wdByUser[uid] || 0) + (w.amount || 0);
+            wdCountByUser[uid] = (wdCountByUser[uid] || 0) + 1;
+        });
+        const topWithdrawers = Object.entries(wdByUser)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([uid, amount]) => ({ uid, name: nameMap[uid] || 'Unknown', amount, count: wdCountByUser[uid] || 0 }));
 
         res.json({
             totalUsers, usersWithPackage, usersWithoutPackage,
             totalDeposits, totalWithdrawals, pendingWithdrawals, completedWithdrawals,
             totalRewards, totalBonuses, totalPackageSales, packageCount, totalClaims,
-            rankCounts, topDepositors, users
+            rankCounts, topDepositors, users,
+            // Pre-computed for admin-stats (zero client-side reads needed)
+            pendingWithdrawalsList, packageBreakdown,
+            todayDeposits, todayWithdrawals, todayRewards, todayRegistrations,
+            recentRewards, recentDeposits, topWithdrawers
         });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });

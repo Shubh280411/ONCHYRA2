@@ -76,15 +76,38 @@ exports.send = async (req, res) => {
     const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
     console.log(`[OTP] Sending to ${email} via ${otpTransporter.mailSettings.providerLabel}...`);
-    await otpTransporter.sendMail({
-      from: otpTransporter.mailSettings.sender,
-      to: email,
-      subject,
-      html: getTemplate(purpose, otp)
-    });
-    console.log(`[OTP] Sent to ${email}`);
+    try {
+      await otpTransporter.sendMail({
+        from: otpTransporter.mailSettings.sender,
+        to: email,
+        subject,
+        html: getTemplate(purpose, otp)
+      });
+      console.log(`[OTP] Sent to ${email}`);
 
-    res.json({ success: true, message: 'OTP sent to your email' });
+      // Log successful delivery to Firestore (write-only)
+      const db = admin.firestore();
+      db.collection('otpLogs').add({
+        email: key, purpose: purpose || 'registration',
+        event: 'delivered', provider: otpTransporter.mailSettings.providerLabel,
+        createdAt: Date.now()
+      }).catch(e => console.warn('[OTP] Delivery log write failed:', e.message));
+
+      res.json({ success: true, message: 'OTP sent to your email' });
+    } catch (sendErr) {
+      console.error('[OTP] Send failed:', sendErr.message);
+
+      // Log delivery failure to Firestore (write-only)
+      const db = admin.firestore();
+      db.collection('otpLogs').add({
+        email: key, purpose: purpose || 'registration',
+        event: 'failed', error: sendErr.message,
+        provider: otpTransporter.mailSettings.providerLabel,
+        createdAt: Date.now()
+      }).catch(e => console.warn('[OTP] Failure log write failed:', e.message));
+
+      throw sendErr;
+    }
   } catch (e) {
     console.error('OTP send error:', e.message, e.code);
     res.status(500).json({ error: 'Failed to send OTP', detail: e.message });
