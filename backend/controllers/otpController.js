@@ -59,14 +59,19 @@ exports.send = async (req, res) => {
 
     const otp = generateOtp();
     otpStore.set(key, {
-      otp,
-      email,
-      createdAt: now,
-      expiresAt: now + OTP_EXPIRY_MS,
+      otp, email, purpose: purpose || 'registration',
+      createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
       cooldownUntil: now + COOLDOWN_MS,
-      verified: false,
-      attempts: 0
+      verified: false, attempts: 0
     });
+
+    // Persist OTP log to Firestore (write-only, no read needed)
+    const db = admin.firestore();
+    db.collection('otps').add({
+      email: key, otp, purpose: purpose || 'registration',
+      createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
+      verified: false, attempts: 0
+    }).catch(e => console.warn('[OTP] Firestore log write failed:', e.message));
 
     const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
@@ -158,6 +163,13 @@ function verifyOtp(email, otp) {
   }
 
   entry.verified = true;
+  // Update Firestore log (write-only)
+  const db = admin.firestore();
+  db.collection('otps').add({
+    email: key, otp, purpose: entry.purpose || 'registration',
+    createdAt: entry.createdAt, expiresAt: entry.expiresAt,
+    verified: true, attempts: entry.attempts, usedAt: Date.now()
+  }).catch(e => console.warn('[OTP] Firestore verify log write failed:', e.message));
   return { valid: true };
 }
 
