@@ -270,7 +270,9 @@ let confirmCallback = null;
 async function loadLeaders() {
   try {
     const res = await fetch(API + '/admin/leaders');
-    allLeaders = await res.json();
+    const data = await res.json();
+    if (!Array.isArray(data)) { showToast('Failed to load leaders: invalid response', false); return; }
+    allLeaders = data;
     allLeaders.sort((a, b) => (b.rankIndex || 0) - (a.rankIndex || 0) || (b.totalPackageSpend || 0) - (a.totalPackageSpend || 0));
     populateFilters();
     renderStats();
@@ -280,12 +282,14 @@ async function loadLeaders() {
 
 // ── Populate Filter Dropdowns ──
 function populateFilters() {
-  const ranks = [...new Set(allLeaders.map(u => u.rank).filter(Boolean))];
   const rankSel = document.getElementById('filterRank');
+  rankSel.innerHTML = '<option value="">All Ranks</option>';
+  const ranks = [...new Set(allLeaders.map(u => u.rank).filter(Boolean))];
   ranks.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; rankSel.appendChild(o); });
 
-  const countries = [...new Set(allLeaders.map(u => u.country).filter(Boolean))].sort();
   const countrySel = document.getElementById('filterCountry');
+  countrySel.innerHTML = '<option value="">All Countries</option>';
+  const countries = [...new Set(allLeaders.map(u => u.country).filter(Boolean))].sort();
   countries.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; countrySel.appendChild(o); });
 }
 
