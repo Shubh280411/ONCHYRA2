@@ -437,8 +437,8 @@ function buildDetailHTML(u) {
           ${pkgs.map(p => `<button class="btn btn-outline btn-xs" onclick="assignPromo('${u.uid}',${p})">$${p}</button>`).join('')}
           <button class="btn btn-outline btn-xs" onclick="assignPromo('${u.uid}',0)" style="color:var(--danger)">Remove</button>
         </div>
-        <div class="toggle-row"><span class="tl">Promo Account</span><label class="toggle"><input type="checkbox" ${promoAccount ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalAccount',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoAccount ? 'Yes' : 'No'}</span></div>
-        <div class="toggle-row"><span class="tl">Promo Comm Excluded</span><label class="toggle"><input type="checkbox" ${promoCommExcluded ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalCommExcluded',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoCommExcluded ? 'Yes' : 'No'}</span></div>
+        <div class="toggle-row"><span class="tl">Promo Account</span><label class="toggle" onclick="event.stopPropagation()"><input type="checkbox" ${promoAccount ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalAccount',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoAccount ? 'Yes' : 'No'}</span></div>
+        <div class="toggle-row"><span class="tl">Promo Comm Excluded</span><label class="toggle" onclick="event.stopPropagation()"><input type="checkbox" ${promoCommExcluded ? 'checked' : ''} onchange="toggleField('${u.uid}','promotionalCommExcluded',this.checked)"><span class="toggle-slider"></span></label><span style="font-size:9px;color:var(--dim)">${promoCommExcluded ? 'Yes' : 'No'}</span></div>
       </div>
 
       <!-- Status -->
@@ -459,7 +459,7 @@ function buildDetailHTML(u) {
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:10px;color:var(--dim)">Verified:</span>
-            <label class="toggle"><input type="checkbox" ${verified ? 'checked' : ''} onchange="toggleVerify('${u.uid}',this.checked)"><span class="toggle-slider"></span></label>
+            <label class="toggle" onclick="event.stopPropagation()"><input type="checkbox" ${verified ? 'checked' : ''} onchange="toggleVerify('${u.uid}',this.checked)"><span class="toggle-slider"></span></label>
             <span style="font-size:9px;color:var(--dim)">${verified ? 'Verified' : 'Unverified'}</span>
           </div>
         </div>
@@ -689,12 +689,12 @@ window.confirmAddLeader = async () => {
 // ── Confirm Modal ──
 function showConfirm(title, msg, fn) {
   document.getElementById('confirmTitle').textContent = title;
-  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmMsg').innerHTML = msg;
   document.getElementById('confirmModal').classList.add('show');
   confirmCallback = fn;
 }
 window.closeConfirm = () => { document.getElementById('confirmModal').classList.remove('show'); confirmCallback = null; };
-window.executeConfirm = () => { if (confirmCallback) { confirmCallback(); } closeConfirm(); };
+window.executeConfirm = async () => { if (confirmCallback) { await confirmCallback(); } closeConfirm(); };
 
 // ── Toast ──
 function showToast(msg, success = true) {
