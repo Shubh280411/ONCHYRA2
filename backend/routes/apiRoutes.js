@@ -176,12 +176,10 @@ router.get('/admin/users', async (req, res) => {
 router.get('/admin/leaders', async (req, res) => {
     try {
         const rankNames = ['Ignition','Momentum','Velocity','Quantum','Fusion','Infinity','Titan','Apex','Zenith','Legacy'];
-        const snap = await admin.firestore().collection('users')
-            .where('rank', '>=', '')
-            .limit(200).get();
+        const snap = await admin.firestore().collection('users').limit(500).get();
         const users = snap.docs
             .map(d => ({ uid: d.id, ...d.data() }))
-            .filter(u => u.rank && rankNames.includes(u.rank));
+            .filter(u => (u.rank && rankNames.includes(u.rank)) || u.verifiedLeader || u.leaderStatus);
         res.json(users);
     } catch(e) { res.status(500).json({ error: e.message }); }
 });

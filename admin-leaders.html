@@ -549,9 +549,12 @@ window.toggleField = (uid, field, val) => {
 window.toggleVerify = (uid, val) => {
   showConfirm(val ? 'Verify Leader?' : 'Remove Verification?', `Mark as <b>${val ? 'Verified' : 'Unverified'}</b>`, async () => {
     try {
-      await apiPost('/admin/leader/verify-toggle', { uid, verified: val });
+      await apiPost('/admin/user/update', { uid, updates: { verifiedLeader: val } });
+      const u = allLeaders.find(x => x.uid === uid);
+      if (u) u.verifiedLeader = val;
       showToast(val ? 'Leader verified' : 'Verification removed', true);
-      await loadLeaders();
+      renderStats();
+      if (expandedId === uid) renderTable();
     } catch(e) {}
   });
 };
@@ -669,6 +672,8 @@ window.confirmAddLeader = async () => {
         // Add to leaders list
         const exists = allLeaders.find(l => l.uid === data.uid);
         if (!exists) {
+          await apiPost('/admin/user/update', { uid: data.uid, updates: { verifiedLeader: true } });
+          user.verifiedLeader = true;
           allLeaders.unshift({ ...user, uid: data.uid });
           populateFilters();
           renderStats();
