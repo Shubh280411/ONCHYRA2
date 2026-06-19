@@ -17,8 +17,8 @@ exports.request = async (req, res) => {
         const commBal = user.commissionBalance || user.balance || 0;
         if (commBal < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
-        // Verify OTP from in-memory store
-        const otpResult = verifyOtp(user.email, otp);
+        // Verify OTP from in-memory store (with Firestore fallback)
+        const otpResult = await verifyOtp(user.email, otp);
         if (!otpResult.valid) return res.status(400).json({ error: otpResult.error });
 
         const fee = Math.round(amount * 0.05 * 100) / 100;

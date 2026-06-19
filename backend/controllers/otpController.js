@@ -162,9 +162,34 @@ exports.list = async (_req, res) => {
 };
 
 // Shared OTP verification — used by both /otp/verify endpoint and withdraw controller
-function verifyOtp(email, otp) {
+async function verifyOtp(email, otp) {
   const key = email.toLowerCase();
-  const entry = otpStore.get(key);
+  let entry = otpStore.get(key);
+
+  // If not in memory (server restart), try Firestore
+  if (!entry) {
+    try {
+      const db = admin.firestore();
+      const snap = await db.collection('otps')
+        .where('email', '==', key)
+        .get();
+      let latestData = null;
+      snap.forEach(d => {
+        const data = d.data();
+        if (!latestData || (data.createdAt > latestData.createdAt)) latestData = data;
+      });
+      if (latestData && latestData.otp) {
+        entry = {
+          otp: latestData.otp, email: latestData.email, purpose: latestData.purpose || 'registration',
+          createdAt: latestData.createdAt, expiresAt: latestData.expiresAt || latestData.createdAt + OTP_EXPIRY_MS,
+          cooldownUntil: 0, verified: latestData.verified || false, attempts: latestData.attempts || 0
+        };
+        otpStore.set(key, entry);
+      }
+    } catch (e) {
+      console.warn('[OTP] Firestore restore failed:', e.message);
+    }
+  }
 
   if (!entry) {
     return { valid: false, error: 'No OTP sent to this email' };
@@ -186,7 +211,7 @@ function verifyOtp(email, otp) {
   }
 
   entry.verified = true;
-  // Update Firestore log (write-only)
+  // Update Firestore log
   const db = admin.firestore();
   db.collection('otps').add({
     email: key, otp, purpose: entry.purpose || 'registration',
@@ -202,7 +227,7 @@ exports.verify = async (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required' });
 
-  const result = verifyOtp(email, otp);
+  const result = await verifyOtp(email, otp);
   if (result.valid) {
     return res.json({ success: true, message: 'OTP verified' });
   }
