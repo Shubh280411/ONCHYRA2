@@ -65,13 +65,18 @@ exports.send = async (req, res) => {
       verified: false, attempts: 0
     });
 
-    // Persist OTP log to Firestore (write-only, no read needed)
+    // Persist OTP to Firestore (1 doc per email for low-read fallback)
     const db = admin.firestore();
     db.collection('otps').add({
       email: key, otp, purpose: purpose || 'registration',
       createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
       verified: false, attempts: 0
     }).catch(e => console.warn('[OTP] Firestore log write failed:', e.message));
+    db.collection('otpStore').doc(key).set({
+      otp, email, purpose: purpose || 'registration',
+      createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
+      cooldownUntil: now + COOLDOWN_MS, verified: false, attempts: 0
+    }).catch(e => console.warn('[OTP] otpStore write failed:', e.message));
 
     const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
@@ -166,23 +171,18 @@ async function verifyOtp(email, otp) {
   const key = email.toLowerCase();
   let entry = otpStore.get(key);
 
-  // If not in memory (server restart), try Firestore
+  // If not in memory (server restart), try Firestore single-doc fallback (1 read)
   if (!entry) {
     try {
       const db = admin.firestore();
-      const snap = await db.collection('otps')
-        .where('email', '==', key)
-        .get();
-      let latestData = null;
-      snap.forEach(d => {
-        const data = d.data();
-        if (!latestData || (data.createdAt > latestData.createdAt)) latestData = data;
-      });
-      if (latestData && latestData.otp) {
+      const doc = await db.collection('otpStore').doc(key).get();
+      if (doc.exists) {
+        const data = doc.data();
         entry = {
-          otp: latestData.otp, email: latestData.email, purpose: latestData.purpose || 'registration',
-          createdAt: latestData.createdAt, expiresAt: latestData.expiresAt || latestData.createdAt + OTP_EXPIRY_MS,
-          cooldownUntil: 0, verified: latestData.verified || false, attempts: latestData.attempts || 0
+          otp: data.otp, email: data.email, purpose: data.purpose || 'registration',
+          createdAt: data.createdAt, expiresAt: data.expiresAt || data.createdAt + OTP_EXPIRY_MS,
+          cooldownUntil: data.cooldownUntil || 0, verified: data.verified || false,
+          attempts: data.attempts || 0
         };
         otpStore.set(key, entry);
       }
