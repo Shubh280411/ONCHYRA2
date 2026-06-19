@@ -469,9 +469,15 @@ function buildDetailHTML(u) {
       <div class="detail-section">
         <div class="ds-title">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-          Country: ${country}
+          Country
         </div>
-        <div class="sub-grid">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span id="countryDisplay_${u.uid}" style="font-size:13px;font-weight:700;color:var(--text)">${country}</span>
+          <input type="text" id="countryInput_${u.uid}" value="${country === 'Unknown' ? '' : country}" placeholder="Country" style="display:none;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#fff;font-family:'Inter';font-size:11px;outline:none;width:120px" onkeydown="if(event.key==='Enter')saveCountry('${u.uid}')">
+          <button class="btn btn-outline btn-xs" id="countryEditBtn_${u.uid}" onclick="editCountry('${u.uid}')">Edit</button>
+          <button class="btn btn-primary btn-xs" id="countrySaveBtn_${u.uid}" style="display:none" onclick="saveCountry('${u.uid}')">Save</button>
+        </div>
+        <div class="sub-grid" style="margin-top:8px">
           <div class="sub-item"><div class="sub-val" style="color:var(--secondary)">${Object.values(countryUsers).reduce((a,b)=>a+b,0) || 0}</div><div class="sub-lbl">Users Added</div></div>
         </div>
       </div>
@@ -590,6 +596,27 @@ window.editLeader = (uid) => {
   if (name && name !== u.name) {
     apiPost('/admin/user/update', { uid, updates: { name } }).then(() => { showToast('Name updated', true); loadLeaders(); }).catch(() => {});
   }
+};
+
+window.editCountry = (uid) => {
+  document.getElementById('countryDisplay_' + uid).style.display = 'none';
+  document.getElementById('countryEditBtn_' + uid).style.display = 'none';
+  document.getElementById('countryInput_' + uid).style.display = 'inline-block';
+  document.getElementById('countrySaveBtn_' + uid).style.display = 'inline-block';
+  document.getElementById('countryInput_' + uid).focus();
+};
+
+window.saveCountry = async (uid) => {
+  const val = document.getElementById('countryInput_' + uid).value.trim();
+  if (!val) { showToast('Enter a country', false); return; }
+  try {
+    await apiPost('/admin/user/update', { uid, updates: { country: val } });
+    const u = allLeaders.find(x => x.uid === uid);
+    if (u) u.country = val;
+    showToast('Country updated to ' + val, true);
+    if (expandedId === uid) renderTable();
+    populateFilters();
+  } catch(e) { showToast('Failed: ' + e.message, false); }
 };
 
 window.resetPwd = (uid) => {
