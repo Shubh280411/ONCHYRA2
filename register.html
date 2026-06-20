@@ -203,6 +203,10 @@ function validateForm() {
     showToast("Please fill in all fields", true);
     return null;
   }
+  if (email.includes('+')) {
+    showToast("Email aliases (+) are not allowed", true);
+    return null;
+  }
   if(!refCode) {
     referralInput.classList.add('input-error');
     setTimeout(() => referralInput.classList.remove('input-error'), 2000);

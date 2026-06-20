@@ -45,6 +45,7 @@ function getTemplate(purpose, otp) {
 exports.send = async (req, res) => {
   const { email, purpose } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (email.includes('+')) return res.status(400).json({ error: 'Email aliases (+) are not allowed' });
 
   try {
     const key = email.toLowerCase();
