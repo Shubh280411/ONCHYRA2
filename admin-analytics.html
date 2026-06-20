@@ -242,6 +242,8 @@
                 name: u.name || u.referralCode || u.email || d.id.slice(0,8),
                 balance: bal,
                 referrals: u.referrals || 0,
+                referralCode: u.referralCode || '',
+                referredBy: u.referredBy || '',
                 lastClaim: u.lastClaim || u.lastActivity || 0,
                 active: diff < 86400000
             });
@@ -262,12 +264,24 @@
             </tr>`
         ).join('');
 
-        const refList = [...allUsers].sort((a,b) => b.referrals - a.referrals).slice(0, 15);
+        // Count referral codes dynamically (ignores deleted users)
+        const refCodeCount = {};
+        allUsers.forEach(u => {
+            const rc = u.referralCode;
+            if (rc) refCodeCount[rc] = 0;
+        });
+        allUsers.forEach(u => {
+            const rb = u.referredBy;
+            if (rb && refCodeCount[rb] !== undefined) refCodeCount[rb]++;
+        });
+        const refList = [...allUsers].filter(u => u.referralCode && refCodeCount[u.referralCode] > 0)
+            .sort((a,b) => refCodeCount[b.referralCode] - refCodeCount[a.referralCode])
+            .slice(0, 15);
         document.getElementById("refsBody").innerHTML = refList.map((u, i) =>
             `<tr>
                 <td class="rank-num">#${i + 1}</td>
                 <td>${u.name}</td>
-                <td style="color:var(--primary);font-weight:700;font-family:'Space Grotesk'">${u.referrals}</td>
+                <td style="color:var(--primary);font-weight:700;font-family:'Space Grotesk'">${refCodeCount[u.referralCode]}</td>
             </tr>`
         ).join('');
 
