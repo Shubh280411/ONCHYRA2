@@ -855,6 +855,10 @@
                         <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;">Safe</div>
                         <div style="font-size:16px;font-weight:800;margin-top:4px;color:${u.isSafe ? 'var(--success)' : 'var(--text-dim)'};">${u.isSafe ? 'YES' : 'NO'}</div>
                     </div>
+                    <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;">
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;">Under Review</div>
+                        <div style="font-size:16px;font-weight:800;margin-top:4px;color:${u.leaderStatus === 'under_review' ? 'var(--warning)' : 'var(--text-dim)'};">${u.leaderStatus === 'under_review' ? 'YES' : 'NO'}</div>
+                    </div>
                 </div>
                 <div class="action-btns" style="flex-direction:column;gap:8px;">
                     <div style="display:flex;gap:8px;">
@@ -863,6 +867,9 @@
                         </button>
                         <button class="btn ${u.isSafe ? 'btn-remove' : 'btn-add'}" onclick="toggleSafe()">
                             ${u.isSafe ? 'Unmark Safe' : 'Mark Safe'}
+                        </button>
+                        <button class="btn ${u.leaderStatus === 'under_review' ? 'btn-remove' : 'btn-add'}" onclick="toggleUnderReview()">
+                            ${u.leaderStatus === 'under_review' ? 'Clear Review' : 'Mark Review'}
                         </button>
                     </div>
                     <button class="btn btn-remove" onclick="resetStreak()" style="flex:none;width:100%;">Reset Streak</button>
@@ -1229,6 +1236,19 @@
             const idx = allUsers.findIndex(u => u.id === currentUID);
             if (idx >= 0) allUsers[idx].isSafe = newVal;
             showToast(`User ${newVal ? 'marked safe' : 'unmarked safe'}!`);
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.toggleUnderReview = async () => {
+        if (!currentUID) return;
+        const nowUnderReview = currentUserData?.leaderStatus !== 'under_review';
+        if (!confirm(`${nowUnderReview ? 'Mark' : 'Clear'} ${currentUserData?.name || 'user'} as under review?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { leaderStatus: nowUnderReview ? 'under_review' : '' });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].leaderStatus = nowUnderReview ? 'under_review' : '';
+            showToast(`User ${nowUnderReview ? 'marked under review' : 'cleared from review'}!`);
             selectUser(currentUID);
         } catch(e) { showToast('Error: ' + e.message, true); }
     };
