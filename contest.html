@@ -101,7 +101,7 @@ button:disabled { opacity:.4; cursor: not-allowed; }
 <div class="container">
 
   <div class="disclaimer-box">
-    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined AFTER your registration will be counted. Purging fake accounts will lead to permanent ban.
+    <strong>FAIRNESS NOTICE:</strong> Only direct referrals after joining the contest will be counted. Purging fake accounts will lead to permanent ban.
   </div>
 
   <div class="card">
@@ -151,6 +151,10 @@ button:disabled { opacity:.4; cursor: not-allowed; }
       </div>
       <b style="color:#cd7f32;" id="prize3">-- POL</b>
     </div>
+  </div>
+
+  <div class="card" id="descCard" style="display:none;">
+    <div style="font-size:11px; color:var(--text-dim); line-height:1.6;" id="contestDescription"></div>
   </div>
 
   <div class="card">
@@ -239,6 +243,11 @@ onAuthStateChanged(auth, async (user)=>{
     document.getElementById("prize1").textContent = (cData.prizes.rank1 || 15) + ' POL';
     document.getElementById("prize2").textContent = (cData.prizes.rank2 || 10) + ' POL';
     document.getElementById("prize3").textContent = (cData.prizes.rank3 || 5) + ' POL';
+  }
+  // Show description
+  if (cData.description) {
+    document.getElementById('contestDescription').textContent = cData.description;
+    document.getElementById('descCard').style.display = 'block';
   }
 
   participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);

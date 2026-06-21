@@ -65,6 +65,8 @@ button {
 .btn-secondary { background: rgba(255,255,255,0.08); color: white; }
 .btn-secondary:hover { background: rgba(255,255,255,0.12); }
 .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+.btn-add { background: rgba(34,197,94,0.15); color: var(--green); }
+.btn-add:hover { background: rgba(34,197,94,0.25); }
 
 input, select, textarea {
   width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
@@ -493,6 +495,7 @@ window.loadParticipants = async () => {
   const snap = await getDocs(q);
   allParticipants = [];
   let html = '';
+  let fixes = 0;
 
   let rank = 1;
   for(const d of snap.docs) {
@@ -501,6 +504,18 @@ window.loadParticipants = async () => {
     const userData = uSnap.exists() ? uSnap.data() : {};
     const name = userData.name || userData.referralCode || `User_${data.userId.slice(0,5)}`;
     const joinedDate = data.joinTime ? new Date(data.joinTime).toLocaleDateString() : '-';
+
+    // Auto-fix stale score
+    const curL1 = Number(userData.refLevel1 || 0);
+    const baseL1 = Number(data.joinRefLevel1 || data.joinReferrals || 0);
+    const correctScore = Math.max(0, curL1 - baseL1);
+    if (correctScore !== Number(data.contestReferrals)) {
+      try {
+        await updateDoc(doc(db, 'contestParticipants', d.id), { contestReferrals: correctScore });
+        fixes++;
+      } catch(e) {}
+      data.contestReferrals = correctScore;
+    }
 
     allParticipants.push({ id: d.id, ...data, name, email: userData.email || '-' });
 
@@ -515,6 +530,7 @@ window.loadParticipants = async () => {
     rank++;
   }
   tbody.innerHTML = html || '<tr><td colspan="6" class="empty-state">No participants found</td></tr>';
+  if (fixes > 0) showToast(fixes + ' stale score(s) auto-fixed!');
 };
 
 window.filterParticipants = () => {
