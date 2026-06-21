@@ -378,8 +378,6 @@ async function loadContestInfo(contestId) {
                 const curL2 = Number(uData.refLevel2 || 0);
                 const curL3 = Number(uData.refLevel3 || 0);
                 const baseL1 = Number(p.joinRefLevel1 || p.joinReferrals || 0);
-                const baseL2 = Number(p.joinRefLevel2 || 0);
-                const baseL3 = Number(p.joinRefLevel3 || 0);
 
                 const actual = treeFailed
                     ? { l1: curL1, l2: curL2, l3: curL3 }
@@ -387,11 +385,11 @@ async function loadContestInfo(contestId) {
 
                 const levelMismatch = (curL1 !== actual.l1 || curL2 !== actual.l2 || curL3 !== actual.l3);
                 if (levelMismatch) {
-                    staleEntries.push({ p, actual, current: { l1: curL1, l2: curL2, l3: curL3 }, baseL1, baseL2, baseL3, reason: 'wrong_reflevel' });
+                    staleEntries.push({ p, actual, current: { l1: curL1, l2: curL2, l3: curL3 }, baseL1, reason: 'wrong_reflevel' });
                     continue;
                 }
 
-                const expected = Math.max(0, (actual.l1 - baseL1) + (actual.l2 - baseL2) + (actual.l3 - baseL3));
+                const expected = Math.max(0, actual.l1 - baseL1);
                 const current = Number(p.contestReferrals || 0);
                 if (expected !== current) {
                     staleEntries.push({ p, expected, current, reason: 'wrong_score' });
@@ -472,10 +470,8 @@ window.startRecalc = async () => {
                 if (entry.reason === 'wrong_reflevel') {
                     const a = entry.actual;
                     const c = entry.current;
-                    const bL1 = Number(entry.baseL1 || entry.p.joinReferrals || 0);
-                    const bL2 = Number(entry.baseL2 || 0);
-                    const bL3 = Number(entry.baseL3 || 0);
-                    const newScore = Math.max(0, (a.l1 - bL1) + (a.l2 - bL2) + (a.l3 - bL3));
+                    const bL1 = Number(entry.baseL1 || entry.p.joinRefLevel1 || entry.p.joinReferrals || 0);
+                    const newScore = Math.max(0, a.l1 - bL1);
                     const pRef = doc(db, "contestParticipants", entry.p.id);
                     const uRef = doc(db, "users", entry.p.userId);
                     writeBatchOp.update(uRef, { refLevel1: a.l1, refLevel2: a.l2, refLevel3: a.l3 });

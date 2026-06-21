@@ -265,12 +265,8 @@ onAuthStateChanged(auth, async (user)=>{
         if(pSnap.exists()){
             const pData = pSnap.data();
             const curL1 = Number(userData.refLevel1 || 0);
-            const curL2 = Number(userData.refLevel2 || 0);
-            const curL3 = Number(userData.refLevel3 || 0);
-            const baseL1 = Number(pData.joinRefLevel1 || 0);
-            const baseL2 = Number(pData.joinRefLevel2 || 0);
-            const baseL3 = Number(pData.joinRefLevel3 || 0);
-            let score = (curL1 - baseL1) + (curL2 - baseL2) + (curL3 - baseL3);
+            const baseL1 = Number(pData.joinRefLevel1 || pData.joinReferrals || 0);
+            let score = curL1 - baseL1;
             if(score < 0) score = 0;
             
             if(score !== Number(pData.contestReferrals)) {
@@ -343,8 +339,6 @@ document.getElementById("submitWalletBtn").onclick = async () => {
   const uSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
   const uData = uSnap.data();
   const baseL1 = Number(uData.refLevel1 || 0);
-  const baseL2 = Number(uData.refLevel2 || 0);
-  const baseL3 = Number(uData.refLevel3 || 0);
 
   await setDoc(participantRef, { 
       contestId, 
@@ -352,13 +346,11 @@ document.getElementById("submitWalletBtn").onclick = async () => {
       walletAddress: wallet, 
       joinTime: Date.now(), 
       joinRefLevel1: baseL1,
-      joinRefLevel2: baseL2,
-      joinRefLevel3: baseL3,
       contestReferrals: 0 
   });
   
   document.getElementById("walletModal").style.display = "none";
-  setJoinedUI(); showToast("Joined Successfully! All new team members (L1+L2+L3) after joining will be counted.");
+  setJoinedUI(); showToast("Joined Successfully! Only direct referrals after joining will be counted.");
 };
 
 window.copyLink = () => {
