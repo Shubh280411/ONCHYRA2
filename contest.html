@@ -135,21 +135,21 @@ button:disabled { opacity:.4; cursor: not-allowed; }
         <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
         <span style="font-weight:800;color:var(--primary);">Rank 1</span>
       </div>
-      <b style="color:#ffd700;">15 POL</b>
+      <b style="color:#ffd700;" id="prize1">-- POL</b>
     </div>
     <div class="row">
       <div>
         <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
         <span style="font-weight:800;color:#c0c0c0;">Rank 2</span>
       </div>
-      <b style="color:#e0e0e0;">10 POL</b>
+      <b style="color:#e0e0e0;" id="prize2">-- POL</b>
     </div>
     <div class="row">
       <div>
         <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
         <span style="font-weight:800;color:#cd7f32;">Rank 3</span>
       </div>
-      <b style="color:#cd7f32;">5 POL</b>
+      <b style="color:#cd7f32;" id="prize3">-- POL</b>
     </div>
   </div>
 
@@ -230,9 +230,16 @@ onAuthStateChanged(auth, async (user)=>{
 
   const cDoc = sC.docs[0];
   contestId = cDoc.id;
-  document.getElementById("dynamicContestName").innerText = cDoc.data().name || "Referral Contest";
-  endTimeMs = cDoc.data().endTime.seconds * 1000 || cDoc.data().endTime;
+  const cData = cDoc.data();
+  document.getElementById("dynamicContestName").innerText = cData.name || "Referral Contest";
+  endTimeMs = cData.endTime?.seconds * 1000 || cData.endTime;
   startTimer();
+  // Set dynamic prizes
+  if (cData.prizes) {
+    document.getElementById("prize1").textContent = (cData.prizes.rank1 || 15) + ' POL';
+    document.getElementById("prize2").textContent = (cData.prizes.rank2 || 10) + ' POL';
+    document.getElementById("prize3").textContent = (cData.prizes.rank3 || 5) + ' POL';
+  }
 
   participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);
   const pSnap = await getDoc(participantRef);
@@ -257,9 +264,13 @@ onAuthStateChanged(auth, async (user)=>{
         const pSnap = await getDoc(pRef);
         if(pSnap.exists()){
             const pData = pSnap.data();
-            const curTotal = Number(userData.refLevel1 || 0);
-            const baseJoin = Number(pData.joinReferrals || 0);
-            let score = curTotal - baseJoin;
+            const curL1 = Number(userData.refLevel1 || 0);
+            const curL2 = Number(userData.refLevel2 || 0);
+            const curL3 = Number(userData.refLevel3 || 0);
+            const baseL1 = Number(pData.joinRefLevel1 || 0);
+            const baseL2 = Number(pData.joinRefLevel2 || 0);
+            const baseL3 = Number(pData.joinRefLevel3 || 0);
+            let score = (curL1 - baseL1) + (curL2 - baseL2) + (curL3 - baseL3);
             if(score < 0) score = 0;
             
             if(score !== Number(pData.contestReferrals)) {
@@ -330,20 +341,24 @@ document.getElementById("submitWalletBtn").onclick = async () => {
   }
   
   const uSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
-  const currentRef = Number(uSnap.data().refLevel1 || 0);
-  const baseValue = currentRef;
+  const uData = uSnap.data();
+  const baseL1 = Number(uData.refLevel1 || 0);
+  const baseL2 = Number(uData.refLevel2 || 0);
+  const baseL3 = Number(uData.refLevel3 || 0);
 
   await setDoc(participantRef, { 
       contestId, 
       userId: auth.currentUser.uid, 
       walletAddress: wallet, 
       joinTime: Date.now(), 
-      joinReferrals: baseValue, 
+      joinRefLevel1: baseL1,
+      joinRefLevel2: baseL2,
+      joinRefLevel3: baseL3,
       contestReferrals: 0 
   });
   
   document.getElementById("walletModal").style.display = "none";
-  setJoinedUI(); showToast("Joined Successfully! Only referrals after joining will be counted.");
+  setJoinedUI(); showToast("Joined Successfully! All new team members (L1+L2+L3) after joining will be counted.");
 };
 
 window.copyLink = () => {

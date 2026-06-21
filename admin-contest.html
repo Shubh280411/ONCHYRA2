@@ -107,6 +107,19 @@ textarea { resize: vertical; min-height: 80px; }
 
 .prize-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:2000; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.active { display:flex; }
+.modal-box { background:var(--bg); border:1px solid var(--border); border-radius:24px; padding:28px 24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; }
+.modal-title { font-family:'Space Grotesk'; font-size:18px; font-weight:700; margin-bottom:18px; }
+.form-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.4); margin-bottom:6px; }
+.form-input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:white; font-size:13px; font-family:'Inter'; outline:none; box-sizing:border-box; }
+.form-input:focus { border-color:var(--primary); }
+.form-input option { background:#111; color:white; }
+.user-result-item { padding:10px 12px; border-radius:10px; cursor:pointer; font-size:12px; background:rgba(255,255,255,0.02); border:1px solid transparent; margin-bottom:4px; }
+.user-result-item:hover { background:rgba(167,139,250,0.08); border-color:rgba(167,139,250,0.2); }
+.user-result-item.selected { background:rgba(167,139,250,0.12); border-color:var(--primary); }
+
 @media (max-width: 768px) {
   .sidebar { width: 60px; }
   .sidebar h2, .nav-item span { display: none; }
@@ -179,13 +192,44 @@ textarea { resize: vertical; min-height: 80px; }
           <option value="">Select a contest...</option>
         </select>
       </div>
-      <div class="search-box">
-        <input type="text" id="searchParticipants" placeholder="Search by name or ID..." oninput="filterParticipants()">
+      <div class="search-box" style="display:flex;gap:8px;">
+        <input type="text" id="searchParticipants" placeholder="Search by name or ID..." oninput="filterParticipants()" style="flex:1;">
+        <button class="btn-sm btn-add" onclick="showAddParticipant()">+ Add</button>
       </div>
       <table>
         <thead><tr><th>Rank</th><th>User</th><th>Referrals</th><th>Wallet</th><th>Joined</th><th>Actions</th></tr></thead>
         <tbody id="participantsTable"><tr><td colspan="6" class="empty-state">Select a contest to view participants</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- ADD PARTICIPANT MODAL -->
+  <div class="modal-overlay" id="addParticipantModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-title">Add Participant</div>
+      <div style="margin-bottom:14px;">
+        <div class="form-label">Contest</div>
+        <select id="addContestSelect" class="form-input"></select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="form-label">Find User</div>
+        <input type="text" id="addUserSearch" class="form-input" placeholder="Type name, email or UID..." oninput="searchAddUser()">
+        <div id="addUserResults" style="margin-top:6px;max-height:150px;overflow-y:auto;"></div>
+      </div>
+      <div style="margin-bottom:14px;" id="addSelectedUser" style="display:none;"></div>
+      <div style="margin-bottom:14px;">
+        <div class="form-label">Count Type</div>
+        <select id="addLevelType" class="form-input">
+          <option value="all">ALL (L1 + L2 + L3)</option>
+          <option value="l1">L1 Only (Direct)</option>
+          <option value="l2">L2 Only</option>
+          <option value="l3">L3 Only</option>
+        </select>
+      </div>
+      <div class="action-btns" style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="confirmAddParticipant()" style="flex:1;">Add to Contest</button>
+        <button class="btn btn-secondary" onclick="closeAddModal()" style="flex:1;">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -491,6 +535,96 @@ window.removeParticipant = async (id) => {
   } catch(e) {
     showToast('Error: ' + e.message, true);
   }
+};
+
+// ADD PARTICIPANT
+let addSelectedUserId = null;
+let addAllUsers = [];
+
+window.showAddParticipant = async () => {
+  document.getElementById('addParticipantModal').classList.add('active');
+  // Populate contest dropdown
+  const sel = document.getElementById('addContestSelect');
+  sel.innerHTML = '';
+  const snap = await getDocs(query(collection(db, "contests"), orderBy("endTime", "desc")));
+  snap.forEach(d => {
+    const data = d.data();
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = (data.name || 'Unnamed') + (data.active ? ' [ACTIVE]' : ' [ENDED]');
+    sel.appendChild(opt);
+  });
+  // Load all users for search
+  const uSnap = await getDocs(collection(db, "users"));
+  addAllUsers = uSnap.docs.map(d => ({ id: d.id, name: d.data().name || '', email: d.data().email || '', referralCode: d.data().referralCode || '' }));
+  document.getElementById('addUserResults').innerHTML = '<div style="font-size:11px;opacity:0.4;padding:10px;text-align:center;">Start typing to search...</div>';
+  addSelectedUserId = null;
+  document.getElementById('addSelectedUser').innerHTML = '';
+};
+
+window.searchAddUser = () => {
+  const q = document.getElementById('addUserSearch').value.toLowerCase().trim();
+  const results = document.getElementById('addUserResults');
+  if (q.length < 2) { results.innerHTML = '<div style="font-size:11px;opacity:0.4;padding:10px;text-align:center;">Type at least 2 characters</div>'; return; }
+  const matched = addAllUsers.filter(u => (u.name && u.name.toLowerCase().includes(q)) || (u.email && u.email.toLowerCase().includes(q)) || u.id.includes(q) || (u.referralCode && u.referralCode.toLowerCase().includes(q)));
+  if (matched.length === 0) { results.innerHTML = '<div style="font-size:11px;opacity:0.4;padding:10px;text-align:center;">No users found</div>'; return; }
+  results.innerHTML = matched.slice(0, 10).map(u => `<div class="user-result-item${addSelectedUserId === u.id ? ' selected' : ''}" onclick="selectAddUser('${u.id}')">${u.name || 'Unknown'} <span style="opacity:0.4;font-size:10px;">${u.email || u.id.slice(0,8)}</span></div>`).join('');
+};
+
+window.selectAddUser = (uid) => {
+  addSelectedUserId = uid;
+  document.querySelectorAll('.user-result-item').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.user-result-item[onclick*="'${uid}'"]`);
+  if (el) el.classList.add('selected');
+};
+
+window.confirmAddParticipant = async () => {
+  const contestId = document.getElementById('addContestSelect').value;
+  if (!contestId) { showToast('Select a contest first', true); return; }
+  if (!addSelectedUserId) { showToast('Select a user first', true); return; }
+
+  const uSnap = await getDoc(doc(db, "users", addSelectedUserId));
+  if (!uSnap.exists()) { showToast('User not found', true); return; }
+  const uData = uSnap.data();
+  const levelType = document.getElementById('addLevelType').value;
+  const refL1 = Number(uData.refLevel1 || 0);
+  const refL2 = Number(uData.refLevel2 || 0);
+  const refL3 = Number(uData.refLevel3 || 0);
+
+  let score = 0;
+  if (levelType === 'all') score = refL1 + refL2 + refL3;
+  else if (levelType === 'l1') score = refL1;
+  else if (levelType === 'l2') score = refL2;
+  else if (levelType === 'l3') score = refL3;
+
+  const partId = contestId + '_' + addSelectedUserId;
+  const existing = await getDoc(doc(db, "contestParticipants", partId));
+  if (existing.exists()) { showToast('User is already a participant in this contest', true); return; }
+
+  try {
+    await setDoc(doc(db, "contestParticipants", partId), {
+      contestId,
+      userId: addSelectedUserId,
+      walletAddress: uData.walletAddress || '',
+      joinTime: Date.now(),
+      joinRefLevel1: refL1,
+      joinRefLevel2: refL2,
+      joinRefLevel3: refL3,
+      contestReferrals: score
+    });
+    showToast('Participant added! Score: ' + score);
+    closeAddModal();
+    // If participant page is active, refresh
+    const sel = document.getElementById('contestSelect');
+    if (sel.value === contestId) loadParticipants();
+  } catch(e) { showToast('Error: ' + e.message, true); }
+};
+
+window.closeAddModal = () => {
+  document.getElementById('addParticipantModal').classList.remove('active');
+  document.getElementById('addUserSearch').value = '';
+  document.getElementById('addUserResults').innerHTML = '';
+  addSelectedUserId = null;
 };
 
 // WINNERS
