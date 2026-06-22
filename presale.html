@@ -131,7 +131,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { collection, getDocs   } from "./supabase-adapter.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -142,8 +142,7 @@
             appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
         };
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+const db = {};
         const marksContainer = document.getElementById('marks');
         for (let i = 0; i <= 200; i += 10) {
             const angle = (i / 200) * 180 - 90;

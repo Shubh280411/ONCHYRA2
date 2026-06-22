@@ -176,8 +176,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     collection, query, orderBy, limit, getDocs, doc, getDoc,
-    getCountFromServer, where, initializeFirestore
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    getCountFromServer, where
+  } from "./supabase-adapter.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -191,8 +191,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
-
+const db = {};
 // ── State ──
 let topUsers = [];
 let myUid = null;

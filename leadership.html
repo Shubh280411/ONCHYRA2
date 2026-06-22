@@ -189,12 +189,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, updateDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, updateDoc, collection, query, where   } from "./supabase-adapter.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
-const db = getFirestore(app);
-
+const db = {};
 const RANKS = [
   { name: 'Ignition',   reqDirect: 3,  reqTeam: 1000,   reqLeg: 500,   bonus: 25,   rewardDay: 5,   rewardDays: 5  },
   { name: 'Momentum',   reqDirect: 5,  reqTeam: 5000,   reqLeg: 2500,  bonus: 100,  rewardDay: 10,  rewardDays: 10 },

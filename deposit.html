@@ -137,7 +137,6 @@
         <div id="depHistory"><div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div></div>
     </div>
 
-
 </div>
 
 <div class="toast" id="toast"></div>
@@ -145,12 +144,11 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, collection, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, collection, query, where, limit, onSnapshot   } from "./supabase-adapter.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
-const db = getFirestore(app);
-
+const db = {};
 let uid, currentNetwork = 'BEP20', currentAddress = null;
 const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
 

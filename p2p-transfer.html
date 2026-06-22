@@ -292,8 +292,8 @@ import {
     doc, getDoc, updateDoc, collection, addDoc,
     query, where, getDocs, limit,
     increment, serverTimestamp,
-    initializeFirestore
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  } from "./supabase-adapter.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -306,8 +306,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
-
+const db = {};
 // ── DOM refs ──
 const recipientInput = document.getElementById('recipientInput');
 const amountInput = document.getElementById('amountInput');

@@ -130,16 +130,14 @@ opacity:0.8;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import {
-getFirestore,
-collection,
+import { collection,
 addDoc,
 getDocs,
 deleteDoc,
 doc,
 serverTimestamp,
 Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  } from "./supabase-adapter.js";
 
 import {
 getAuth,
@@ -158,8 +156,8 @@ appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = {};
 
 onAuthStateChanged(auth,(user)=>{
 

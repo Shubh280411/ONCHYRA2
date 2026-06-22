@@ -100,7 +100,6 @@ Authorized admins only
 
 </div>
 
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -110,12 +109,9 @@ getAuth,
 signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {
-getFirestore,
-doc,
+import { doc,
 getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+  } from "./supabase-adapter.js";
 
 const firebaseConfig = {
 
@@ -131,8 +127,7 @@ measurementId: "G-JSKSQR2B29"
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-
+const db = {};
 window.login = async function(){
 
 const email = document.getElementById("email").value;

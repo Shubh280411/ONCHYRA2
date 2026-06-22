@@ -698,8 +698,8 @@ import {
     doc, onSnapshot, updateDoc, collection, addDoc,
     query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
     increment, where, arrayUnion,
-    initializeFirestore
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  } from "./supabase-adapter.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -712,13 +712,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-    useFetchStreams: false
-});
-
-
-
+const db = {};
 let uid, userData, currentPollId, currentPollData;
 let miningTimer = null;
 

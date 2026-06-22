@@ -214,10 +214,9 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-    getFirestore, collection, onSnapshot, addDoc, deleteDoc,
+import { collection, onSnapshot, addDoc, deleteDoc,
     doc, serverTimestamp, query, orderBy, limit, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  } from "./supabase-adapter.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -230,8 +229,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-
+const db = {};
 let pendingDeleteId = null;
 let pendingDeleteQuestion = null;
 let currentAdminUser = null;
