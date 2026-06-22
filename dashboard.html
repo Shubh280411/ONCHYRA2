@@ -142,6 +142,7 @@
 </head>
 <body>
 
+<div id="errDisplay" style="display:none;position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;z-index:99999;font-size:13px;text-align:center;"></div>
 <div id="loader">
     <div class="spinner"></div>
     <div id="loadingText">Synchronizing Nodes...</div>
@@ -720,6 +721,11 @@ setTimeout(() => {
     document.getElementById('loader').style.display = "none";
     document.getElementById('dashboardData').style.display = "grid";
 }, 8000);
+
+window.onerror = function(msg, url, line, col, err) {
+    const d = document.getElementById('errDisplay');
+    if (d) { d.style.display = 'block'; d.textContent = 'Error: ' + (err ? err.message : msg); }
+};
 
 function timeAgo(t) {
     if (!t) return "Just now";

@@ -17,6 +17,7 @@ function rest(path, opts = {}) {
       apikey: SUPABASE_ANON_KEY,
       Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type": "application/json",
+      Accept: "application/json",
       ...extraHeaders,
     },
     body: restOpts.body,
@@ -28,9 +29,17 @@ function rest(path, opts = {}) {
     }
     if (r.status === 204) return null;
     const ct = r.headers.get('content-type') || '';
-    if (ct.includes('json')) return deepCamelize(await r.json());
+    if (ct.includes('json')) {
+      try {
+        return deepCamelize(await r.json());
+      } catch (e) {
+        console.error('REST parse error:', e);
+        throw e;
+      }
+    }
     const text = await r.text();
-    return text ? JSON.parse(text) : null;
+    if (text) try { return JSON.parse(text); } catch(e) { console.error('REST text parse error:', e); return null; }
+    return null;
   }).catch(e => { throw e; });
 }
 
