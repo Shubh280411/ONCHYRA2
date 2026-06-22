@@ -199,8 +199,8 @@ textarea { resize: vertical; min-height: 80px; }
         <button class="btn-sm btn-add" onclick="showAddParticipant()">+ Add</button>
       </div>
       <table>
-        <thead><tr><th>Rank</th><th>User</th><th>Referrals</th><th>Wallet</th><th>Joined</th><th>Actions</th></tr></thead>
-        <tbody id="participantsTable"><tr><td colspan="6" class="empty-state">Select a contest to view participants</td></tr></tbody>
+        <thead><tr><th>Rank</th><th>User</th><th>Referrals</th><th>Type</th><th>Wallet</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="participantsTable"><tr><td colspan="7" class="empty-state">Select a contest to view participants</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -304,15 +304,15 @@ const db = getFirestore(app);
 
 let allContests = [], allParticipants = [], editingContestId = null;
 
-window.showPage = (page) => {
+window.showPage = async (page) => {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(page).classList.add('active');
   document.querySelectorAll('.nav-item')[['dashboard','contests','participants','winners'].indexOf(page)].classList.add('active');
   if(page === 'dashboard') loadDashboard();
   if(page === 'contests') loadContests();
-  if(page === 'participants') populateContestSelects();
-  if(page === 'winners') populateContestSelects();
+  if(page === 'participants') { if(allContests.length === 0) await loadContests(); populateContestSelects(); }
+  if(page === 'winners') { if(allContests.length === 0) await loadContests(); populateContestSelects(); }
 };
 
 function showToast(msg, error = false) {
@@ -489,7 +489,7 @@ function populateContestSelects() {
 window.loadParticipants = async () => {
   const contestId = document.getElementById('contestSelect').value;
   const tbody = document.getElementById('participantsTable');
-  if(!contestId) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Select a contest to view participants</td></tr>'; return; }
+  if(!contestId) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Select a contest to view participants</td></tr>'; return; }
 
   const q = query(collection(db, 'contestParticipants'), where('contestId', '==', contestId), orderBy('contestReferrals', 'desc'));
   const snap = await getDocs(q);
@@ -507,8 +507,19 @@ window.loadParticipants = async () => {
 
     // Auto-fix stale score
     const curL1 = Number(userData.refLevel1 || 0);
-    const baseL1 = Number(data.joinRefLevel1 || data.joinReferrals || 0);
-    const correctScore = Math.max(0, curL1 - baseL1);
+    const curL2 = Number(userData.refLevel2 || 0);
+    const curL3 = Number(userData.refLevel3 || 0);
+    let correctScore;
+    if (data.addedByAdmin) {
+      const st = (data.scoreType || 'all').toLowerCase();
+      if (st === 'l2') correctScore = curL2;
+      else if (st === 'l3') correctScore = curL3;
+      else if (st === 'all') correctScore = curL1 + curL2 + curL3;
+      else correctScore = curL1;
+    } else {
+      const baseL1 = Number(data.joinRefLevel1 || data.joinReferrals || 0);
+      correctScore = Math.max(0, curL1 - baseL1);
+    }
     if (correctScore !== Number(data.contestReferrals)) {
       try {
         await updateDoc(doc(db, 'contestParticipants', d.id), { contestReferrals: correctScore });
@@ -519,17 +530,19 @@ window.loadParticipants = async () => {
 
     allParticipants.push({ id: d.id, ...data, name, email: userData.email || '-' });
 
+    const scoreTypeLabel = data.addedByAdmin ? (data.scoreType || 'ALL').toUpperCase() : 'L1';
     html += `<tr>
       <td style="font-weight:800;color:var(--primary)">#${rank}</td>
       <td><div style="font-weight:700">${name}</div><div style="font-size:11px;opacity:0.5">${data.userId.slice(0,10)}...</div></td>
       <td style="font-weight:700;color:var(--primary)">${data.contestReferrals}</td>
+      <td><span class="badge ${data.addedByAdmin ? 'badge-green' : 'badge-blue'}">${scoreTypeLabel}</span></td>
       <td style="font-size:11px;font-family:monospace">${data.walletAddress || '-'}</td>
       <td style="font-size:11px;opacity:0.5">${joinedDate}</td>
       <td><button class="btn-sm btn-danger" onclick="removeParticipant('${d.id}')">Remove</button></td>
     </tr>`;
     rank++;
   }
-  tbody.innerHTML = html || '<tr><td colspan="6" class="empty-state">No participants found</td></tr>';
+  tbody.innerHTML = html || '<tr><td colspan="7" class="empty-state">No participants found</td></tr>';
   if (fixes > 0) showToast(fixes + ' stale score(s) auto-fixed!');
 };
 
@@ -628,6 +641,8 @@ window.confirmAddParticipant = async () => {
       joinRefLevel1: refL1,
       joinRefLevel2: refL2,
       joinRefLevel3: refL3,
+      addedByAdmin: true,
+      scoreType: levelType,
       contestReferrals: score
     });
     showToast('Participant added! Score: ' + score);
