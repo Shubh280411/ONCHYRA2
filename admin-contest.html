@@ -559,7 +559,8 @@ let addAllUsers = [];
 
 window.showAddParticipant = async () => {
   document.getElementById('addParticipantModal').classList.add('active');
-  // Populate contest dropdown
+  // Populate contest dropdown, default to currently selected contest
+  const currentContest = document.getElementById('contestSelect').value;
   const sel = document.getElementById('addContestSelect');
   sel.innerHTML = '';
   const snap = await getDocs(query(collection(db, "contests"), orderBy("endTime", "desc")));
@@ -568,6 +569,7 @@ window.showAddParticipant = async () => {
     const opt = document.createElement('option');
     opt.value = d.id;
     opt.textContent = (data.name || 'Unnamed') + (data.active ? ' [ACTIVE]' : ' [ENDED]');
+    if (d.id === currentContest) opt.selected = true;
     sel.appendChild(opt);
   });
   // Load all users for search
@@ -584,13 +586,13 @@ window.searchAddUser = () => {
   if (q.length < 2) { results.innerHTML = '<div style="font-size:11px;opacity:0.4;padding:10px;text-align:center;">Type at least 2 characters</div>'; return; }
   const matched = addAllUsers.filter(u => (u.name && u.name.toLowerCase().includes(q)) || (u.email && u.email.toLowerCase().includes(q)) || u.id.includes(q) || (u.referralCode && u.referralCode.toLowerCase().includes(q)));
   if (matched.length === 0) { results.innerHTML = '<div style="font-size:11px;opacity:0.4;padding:10px;text-align:center;">No users found</div>'; return; }
-  results.innerHTML = matched.slice(0, 10).map(u => `<div class="user-result-item${addSelectedUserId === u.id ? ' selected' : ''}" onclick="selectAddUser('${u.id}')">${u.name || 'Unknown'} <span style="opacity:0.4;font-size:10px;">${u.email || u.id.slice(0,8)}</span></div>`).join('');
+  results.innerHTML = matched.slice(0, 10).map(u => `<div class="user-result-item${addSelectedUserId === u.id ? ' selected' : ''}" data-uid="${u.id}" onclick="selectAddUser(this.dataset.uid)">${u.name || 'Unknown'} <span style="opacity:0.4;font-size:10px;">${u.email || u.id.slice(0,8)}</span></div>`).join('');
 };
 
 window.selectAddUser = (uid) => {
   addSelectedUserId = uid;
   document.querySelectorAll('.user-result-item').forEach(el => el.classList.remove('selected'));
-  const el = document.querySelector(`.user-result-item[onclick*="'${uid}'"]`);
+  const el = document.querySelector(`.user-result-item[data-uid="${uid}"]`);
   if (el) el.classList.add('selected');
 };
 
@@ -613,7 +615,7 @@ window.confirmAddParticipant = async () => {
   else if (levelType === 'l2') score = refL2;
   else if (levelType === 'l3') score = refL3;
 
-  const partId = contestId + '_' + addSelectedUserId;
+  const partId = contestId + '_' + addSelectedUserId.replace(/[^a-zA-Z0-9]/g, '');
   const existing = await getDoc(doc(db, "contestParticipants", partId));
   if (existing.exists()) { showToast('User is already a participant in this contest', true); return; }
 
