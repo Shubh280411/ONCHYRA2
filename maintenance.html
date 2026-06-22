@@ -55,30 +55,28 @@ function toMillis(ts) {
 async function loadMaint() {
     try {
         const r = await fetch(API + '/maintenance');
-        if (!r.ok) return;
+        if (!r.ok) throw new Error('API not ok');
         const d = await r.json();
         if (!d.enabled) { window.location = 'dashboard.html'; return; }
         if (d.message) document.getElementById('maintenanceMsg').textContent = d.message;
         if (d.endAt) {
             endTime = toMillis(d.endAt);
-            const now = Date.now();
-            if (endTime > now) {
-                document.getElementById('countdownWrap').style.display = 'block';
-                tick();
-            } else {
-                done();
-            }
         } else if (d.startedAt && d.durationHours) {
             endTime = toMillis(d.startedAt) + (d.durationHours * 3600000);
-            const now = Date.now();
-            if (endTime > now) {
-                document.getElementById('countdownWrap').style.display = 'block';
-                tick();
-            } else {
-                done();
-            }
         }
-    } catch(e) {}
+    } catch(e) {
+        // Fallback: try localStorage
+        const ls = localStorage.getItem('onc_maint_end');
+        if (ls) endTime = parseInt(ls);
+        const msg = localStorage.getItem('onc_maint_msg');
+        if (msg) document.getElementById('maintenanceMsg').textContent = msg;
+    }
+    if (endTime && endTime > Date.now()) {
+        document.getElementById('countdownWrap').style.display = 'block';
+        tick();
+    } else if (endTime) {
+        done();
+    }
 }
 
 function done() {

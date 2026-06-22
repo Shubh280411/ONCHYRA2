@@ -757,14 +757,23 @@ onAuthStateChanged(auth, async (user) => {
         const r = await fetch(API + '/maintenance');
         if (r.ok) {
             const d = await r.json();
-            if (d.enabled === true) { window.location = 'maintenance.html'; return; }
+            if (d.enabled === true) {
+                localStorage.setItem('onc_maint_end', d.endAt || '');
+                localStorage.setItem('onc_maint_msg', d.message || '');
+                window.location = 'maintenance.html'; return;
+            }
         }
     } catch(e) { console.error("Maint API error:", e); }
     try {
         const ms = await getDoc(doc(db, 'settings', 'maintenance'));
         if (ms.exists()) {
             const md = ms.data();
-            if (md.enabled === true || (md.value && md.value.enabled === true)) { window.location = 'maintenance.html'; return; }
+            const d = md.value || md;
+            if (d.enabled === true) {
+                localStorage.setItem('onc_maint_end', d.endAt || '');
+                localStorage.setItem('onc_maint_msg', d.message || '');
+                window.location = 'maintenance.html'; return;
+            }
         }
     } catch(e) { console.error("Maint supabase error:", e); }
 
