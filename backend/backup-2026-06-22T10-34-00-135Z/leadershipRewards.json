@@ -1,0 +1,90 @@
+[
+  {
+    "_id": "4Cq2Hn0bjVoGXP6ThJAa",
+    "uid": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 1,
+    "createdAt": 1780771580187
+  },
+  {
+    "_id": "AmOu9PY6yEPIIQnMwisD",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 2,
+    "createdAt": 1780833525659
+  },
+  {
+    "_id": "CXffpwSaOMI2NHd7XtKO",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 5,
+    "createdAt": 1780697615542
+  },
+  {
+    "_id": "EsxVruhzK4xvAsso6bqI",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 3,
+    "createdAt": 1780877979600
+  },
+  {
+    "_id": "I4aaOjYrZpRCJad0Enmd",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 5,
+    "createdAt": 1781055508312
+  },
+  {
+    "_id": "L8WaaceDWjIp8rFVCTvO",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 1,
+    "createdAt": 1780697320202
+  },
+  {
+    "_id": "MkhmiTo48KS4249ispo9",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 2,
+    "createdAt": 1780697380207
+  },
+  {
+    "_id": "VihjB507JgpShlN5FORY",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 4,
+    "createdAt": 1780973768463
+  },
+  {
+    "_id": "fDpGivxDbJYjUDJwAL7W",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 3,
+    "createdAt": 1780697434297
+  },
+  {
+    "_id": "pEpo6QdCaMILr8CGwGzO",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 1,
+    "createdAt": 1780771580187
+  },
+  {
+    "_id": "twNwHSAgwkMnRj1OupoC",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "rank": "Ignition",
+    "amount": 5,
+    "day": 4,
+    "createdAt": 1780697555540
+  }
+]

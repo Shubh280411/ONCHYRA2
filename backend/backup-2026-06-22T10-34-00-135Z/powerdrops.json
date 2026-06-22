@@ -1,0 +1,34 @@
+[
+  {
+    "_id": "o2tnvZn1fs4pXrhR9swy",
+    "title": "July PowerDrop",
+    "reward": 10,
+    "winners": 5,
+    "maxParticipants": 100,
+    "startTime": "2026-07-10T10:00:00.000Z",
+    "createdAt": "2026-04-25T14:15:07.339Z",
+    "participantsCount": 4,
+    "_participants": [
+      {
+        "_id": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+        "address": "0x7718dDE7b49C3738099C333cbBa3195C7053B5D5",
+        "joinedAt": "2026-04-25T15:01:40.776Z"
+      },
+      {
+        "_id": "STEnViLDKkapFNWwdZkxfpR3Olv1",
+        "address": "0xa03e418b0FF6959CFFb24511106DbC60Efe74Eb7",
+        "joinedAt": "2026-05-10T17:48:47.160Z"
+      },
+      {
+        "_id": "kBcTVQT2JVdGO0sVAIqUh5sFIog1",
+        "address": "0xD318CF36633D99f6BCefb7Ed949e62Cf1Cfe9B72",
+        "joinedAt": "2026-05-10T17:37:21.579Z"
+      },
+      {
+        "_id": "zOtG289avpa0DbbJIBOCeJDD3oG2",
+        "address": "0x8C96E7e7Ec79504EA742d02EfC25185db3691892",
+        "joinedAt": "2026-05-04T10:21:00.135Z"
+      }
+    ]
+  }
+]

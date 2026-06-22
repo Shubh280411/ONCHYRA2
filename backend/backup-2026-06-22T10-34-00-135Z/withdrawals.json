@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "H0G39u5LpUIwhQpSi2NU",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 10,
+    "fee": 0.5,
+    "netAmount": 9.5,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "network": "BEP20",
+    "createdAt": 1780956375187,
+    "completedAt": 1780956375371,
+    "txHash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "status": "completed"
+  },
+  {
+    "_id": "L8H1Q9oXZLTmGCcgvd7p",
+    "uid": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "amount": 10,
+    "fee": 0.5,
+    "netAmount": 9.5,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "network": "BEP20",
+    "createdAt": 1781794455031,
+    "completedAt": 1781794455814,
+    "error": "execution reverted: \"BEP20: transfer amount exceeds balance\" (action=\"estimateGas\", data=\"0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002642455032303a207472616e7366657220616d6f756e7420657863656564732062616c616e63650000000000000000000000000000000000000000000000000000\", reason=\"BEP20: transfer amount exceeds balance\", transaction={ \"data\": \"0xa9059cbb00000000000000000000000026814bec7d2e7c8115c159183cc747f00295c2c200000000000000000000000000000000000000000000000083d6c7aab6360000\", \"from\": \"0xa01FED9A9B89D03a5479198A44dED3B46B61EcEF\", \"to\": \"0x55d398326f99059fF775485246999027B3197955\" }, invocation=null, revert={ \"args\": [ \"BEP20: transfer amount exceeds balance\" ], \"name\": \"Error\", \"signature\": \"Error(string)\" }, code=CALL_EXCEPTION, version=6.16.0)",
+    "txHash": null,
+    "status": "failed"
+  },
+  {
+    "_id": "bGN1GeboTqwtJgtCPqXc",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 60,
+    "fee": 3,
+    "netAmount": 57,
+    "wallet": "0x55d398326f99059fF775485246999027B3197955",
+    "network": "BEP20",
+    "createdAt": 1780864314475,
+    "completedAt": 1780864865260,
+    "txHash": "0xhuhuj",
+    "status": "completed"
+  },
+  {
+    "_id": "k7SxDFfQqk7fRVI641YF",
+    "uid": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "amount": 80,
+    "fee": 4,
+    "netAmount": 76,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "network": "BEP20",
+    "createdAt": 1781794591536,
+    "completedAt": 1781794647472,
+    "txHash": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "status": "completed"
+  },
+  {
+    "_id": "srVtCwzmmc9bqLn9R1XQ",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 0.01,
+    "fee": 0,
+    "netAmount": 0.01,
+    "wallet": "0x9CB4F96E65804886410473dC1b53469A6D4c5562",
+    "network": "BEP20",
+    "createdAt": 1780571494605,
+    "completedAt": 1780571502425,
+    "txHash": "0xbf558301e60ef9abfeafa245cf192686937a6ed11b18d3acc4ae7e649502ed1c",
+    "status": "completed"
+  }
+]

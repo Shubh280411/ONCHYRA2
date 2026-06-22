@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "AigKUtmBlsiCUF7Mmdmy",
+    "title": "🚨 Bug Report & Reward Program",
+    "message": "If you find any bugs or issues while using ONCHYRA, report them and get rewarded! 💰 📧 Email: onchyra@gmail.com Please include a brief description of the issue and, if possible, attach a screenshot. 🎁 Valid bug reports will receive ONC rewards based on severity. Help us improve ONCHYRA and earn at the same time 🚀",
+    "visible": true,
+    "priority": 2,
+    "createdAt": "2026-06-13T09:56:24.849Z"
+  },
+  {
+    "_id": "hsah8lSn140rHJaojJMf",
+    "title": "ONCHYRA Ecosystem Update 🚀",
+    "message": "The latest ONCHYRA upgrade is now complete. Deposits, withdrawals, OTP verification, booster packages, leadership rewards, matching bonuses, and 3-level referral commissions are now live. The ecosystem has also crossed 100+ users and 200+ ONC mined, marking another important milestone in the growth of the network.\n",
+    "visible": true,
+    "priority": 1,
+    "createdAt": "2026-06-11T21:03:15.025Z"
+  }
+]

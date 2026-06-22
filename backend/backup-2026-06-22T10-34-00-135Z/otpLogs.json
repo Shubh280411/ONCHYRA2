@@ -1,0 +1,2005 @@
+[
+  {
+    "_id": "020itbzcGq1AoUDbCvaC",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990106268
+  },
+  {
+    "_id": "0Cob0pPO4LT6HT3mm65j",
+    "email": "ghaffar.muet01@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781949124400
+  },
+  {
+    "_id": "0FqNAEbPzFCAZHYUEZC0",
+    "email": "faisalsulaiman849+test7@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781975992420
+  },
+  {
+    "_id": "0SE5sMgZENwTYeGX07MY",
+    "email": "toluode2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951269546
+  },
+  {
+    "_id": "0TdSypVf13ChnFE56wJR",
+    "email": "aminuidrisnasarawardokacom@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781984099366
+  },
+  {
+    "_id": "0X4iovlzvoCziO9v2XLl",
+    "email": "khalidshuaibu023@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782017085769
+  },
+  {
+    "_id": "0k12fXg9avwr96uCkzO7",
+    "email": "abdulyakubu119@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781973452094
+  },
+  {
+    "_id": "0klLc1CtPmG8oqslhWvn",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782088748514
+  },
+  {
+    "_id": "0qimhULyfgfIwiTfSapi",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782089546196
+  },
+  {
+    "_id": "14sM8hm35yk6DwtjcakJ",
+    "email": "madisharif68@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781947785932
+  },
+  {
+    "_id": "16dHWiuGO8o00cs3DJZJ",
+    "email": "faisalsulaiman849+test1@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781973392405
+  },
+  {
+    "_id": "1CFlhvGRGW6C5WTIV5Qj",
+    "email": "itunubabe2009@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782031998793
+  },
+  {
+    "_id": "1eXXmiVLOFI02QpwJjNd",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013830704
+  },
+  {
+    "_id": "37HD6BwDscdJqOvMOPDW",
+    "email": "atokolopeter@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782005558341
+  },
+  {
+    "_id": "3CRPRF99DvM4bPfhkbut",
+    "email": "syedu971@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951347051
+  },
+  {
+    "_id": "3RLKBPz9Z7lC4bu6P2Nt",
+    "email": "faisalsulaiman849+test2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781974365675
+  },
+  {
+    "_id": "3XgdGeGI9VCxcyFVQLYW",
+    "email": "zaharadeenahmad32@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781960877386
+  },
+  {
+    "_id": "3a62PtwpvqBxQYDJPZuH",
+    "email": "xammiegold@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781943664205
+  },
+  {
+    "_id": "40c9Bi2vbFcMrVUONyJf",
+    "email": "tosindec@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781849079862
+  },
+  {
+    "_id": "43GYKtpwF7SGrjvSAtvM",
+    "email": "sufiyanuumar10@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781953891637
+  },
+  {
+    "_id": "4FEThanCDKmQuxDX269C",
+    "email": "zaharadeenahmad32@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781961042623
+  },
+  {
+    "_id": "4gJa8yliDre06NsH2VtB",
+    "email": "faisalsulaiman849@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781954500140
+  },
+  {
+    "_id": "52GWrV8zDBG90G3lY7iu",
+    "email": "sadiqdaha100@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782031026901
+  },
+  {
+    "_id": "5bo5H5yf7wR8MKi7ssNU",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013760247
+  },
+  {
+    "_id": "5cG5Hc54k8xMkjHQuV7n",
+    "email": "princedouye1@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781986760504
+  },
+  {
+    "_id": "5yPJuLc1qoP10wI4f9su",
+    "email": "zubairkhan006300@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781949232673
+  },
+  {
+    "_id": "63URr5w0ckveKLAZSXUk",
+    "email": "3boga150@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781910196727
+  },
+  {
+    "_id": "6eiT9xUdK7FcKAUr3R4u",
+    "email": "alishanaseeb23@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948727299
+  },
+  {
+    "_id": "6jTjZ8qeoDHBhrVQW0XR",
+    "email": "muradnaqvi91@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948268160
+  },
+  {
+    "_id": "7GxvCuGbvt3VI4hlf1se",
+    "email": "faisalsulaiman849+test9@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781976224865
+  },
+  {
+    "_id": "7KIrL6nuOP7y9iu6Ir7y",
+    "email": "aisha707@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955932779
+  },
+  {
+    "_id": "7f3Lm1cOquBUIlQUVo76",
+    "email": "bunmistella14@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781988810242
+  },
+  {
+    "_id": "7mkkWHzxeKp2GTgHS0bG",
+    "email": "faisalsulaiman849+test27@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981341459
+  },
+  {
+    "_id": "7nP5YHcWuAIGgGYkhhEh",
+    "email": "3boga150@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781910321672
+  },
+  {
+    "_id": "83l3fkVbniZgBIYosmcD",
+    "email": "3boga150@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781910114507
+  },
+  {
+    "_id": "8caj1iuokOvvI62qCD6O",
+    "email": "yakubumoh3333@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781972343250
+  },
+  {
+    "_id": "8iKkOr1WltOY8FmZMSXC",
+    "email": "toluode2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951175755
+  },
+  {
+    "_id": "945g60PInPGmqrUa2lsA",
+    "email": "adiljalil28786@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948793669
+  },
+  {
+    "_id": "9ggGRYRumU3GW4W3Mfac",
+    "email": "jokodolabillyb@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990332965
+  },
+  {
+    "_id": "AqnSSxboy8KBUXwZ2VBh",
+    "email": "abdulyakubu119@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781971551249
+  },
+  {
+    "_id": "Az0xN1oLOToeATE1djUx",
+    "email": "faisalsulaiman849+test4@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781974854672
+  },
+  {
+    "_id": "B0stfGpXB3QtEbWgWfJu",
+    "email": "faisalsulaiman849+test3@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781974656242
+  },
+  {
+    "_id": "B1wpmRT8WKzyUJpZUO9s",
+    "email": "aw9395907@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948511215
+  },
+  {
+    "_id": "B3FsfRoFT3YMH1IZYCGs",
+    "email": "faisalsulaiman849+test13@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978480399
+  },
+  {
+    "_id": "BXwsODPzeOBPJ8Vb1FZE",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782044578513
+  },
+  {
+    "_id": "Bko9FrgJiqbXkiSfPGJN",
+    "email": "tijjanigajali@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781993614728
+  },
+  {
+    "_id": "BsCH0rPKHYb4Tv3c3N8e",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990253809
+  },
+  {
+    "_id": "BzryjheqYrRXfjdRGW4I",
+    "email": "madisharif68@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781947702980
+  },
+  {
+    "_id": "CC7qicNjXNaD7ppYaQjn",
+    "email": "kouassikouakoujeabets@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948280099
+  },
+  {
+    "_id": "CchQkb69qz6v0syzf2vu",
+    "email": "faisalsulaiman849+test18@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980045225
+  },
+  {
+    "_id": "DGx1l0mqAi1gBXNXKkm0",
+    "email": "ukagwu55@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781969000320
+  },
+  {
+    "_id": "DYKUHQdsEAxR7cF4nIjc",
+    "email": "ashrafarain49@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948223629
+  },
+  {
+    "_id": "Df7S5XITspfZpkp8GJDi",
+    "email": "faisalsulaiman849+test10@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781976791164
+  },
+  {
+    "_id": "DlKV5K4EpwBwzy6i9fwC",
+    "email": "faisalsulaiman849+test10@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781976459661
+  },
+  {
+    "_id": "DpEuntp1AIK1G1Y1lJ2U",
+    "email": "3boga150@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781910484974
+  },
+  {
+    "_id": "DrL2APDybZxKCAkCOA8P",
+    "email": "abdurrahmanmansurabdurrahman8@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782088469986
+  },
+  {
+    "_id": "DyejDd0PCUboOrXmDgKZ",
+    "email": "dayanabbas68@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781950196637
+  },
+  {
+    "_id": "E1MS3bSfIHgfxP5NLicl",
+    "email": "ibrahimnelsonauta@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781814337488
+  },
+  {
+    "_id": "E6KZSaquAZ6XCmwFmhic",
+    "email": "ewuziehenry380@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781815406049
+  },
+  {
+    "_id": "EJJUWwSoy18nqHOnv4QK",
+    "email": "faisalsulaiman849+test22@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980536852
+  },
+  {
+    "_id": "EMe5wU2R9icZz6sByI4H",
+    "email": "yusifadam001@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951730951
+  },
+  {
+    "_id": "ENjytj2FQo1dO3RyFOtQ",
+    "email": "ibrahimnelsonauta@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781814240995
+  },
+  {
+    "_id": "ERE5UwjFzgxmAJJMh9Fb",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782115465624
+  },
+  {
+    "_id": "EpQiwfFIxn3vZoc3Lx51",
+    "email": "muzamalnoor1993@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781967393669
+  },
+  {
+    "_id": "EqqtRkNBJgeY4OqmZcwY",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990805714
+  },
+  {
+    "_id": "FDjNrZ6pZeNLYCEE47qD",
+    "email": "emenikew71@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781945092164
+  },
+  {
+    "_id": "FLw1ItrXdzUuWMIxFOtJ",
+    "email": "faisalsulaiman849+test12@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978416267
+  },
+  {
+    "_id": "FM9tEQE8qui11ogyZRbC",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013551986
+  },
+  {
+    "_id": "FVngnk71ZREIN6mxYhZh",
+    "email": "jawadbaba530@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951874349
+  },
+  {
+    "_id": "Fl5p7nSpq12i2yphMBKk",
+    "email": "addaubaba@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781950294210
+  },
+  {
+    "_id": "G5WeLuiVPxyq6LudWzZD",
+    "email": "muhammadauwalharuna97@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782018018701
+  },
+  {
+    "_id": "GVGwp7UuXoYuSSA04UrA",
+    "email": "awanu2218@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948467677
+  },
+  {
+    "_id": "GkSfxzrxiwxPgCV7XlrT",
+    "email": "faisalsulaiman849+test18@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980060719
+  },
+  {
+    "_id": "GkkwHtU4ls3H1KLyJrq0",
+    "email": "aisha707@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781956134189
+  },
+  {
+    "_id": "GxOCERo3c74klkiheOuY",
+    "email": "umarmuktarmusa2001@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781988308677
+  },
+  {
+    "_id": "HDJHyeX6ez0u9FFjvCWJ",
+    "email": "faisalsulaiman849+test25@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980963859
+  },
+  {
+    "_id": "HSXelUNksJi4Ci8UPgOH",
+    "email": "fahadazeemazeem05@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948775046
+  },
+  {
+    "_id": "I5Rpsg8pMhNcWIAG61iy",
+    "email": "tijjanigajali@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781992716518
+  },
+  {
+    "_id": "Iy5yVeAwuuKrdFdEXahf",
+    "email": "sufiyanuumar10@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781954017619
+  },
+  {
+    "_id": "J6g7VFDIJRdYfKh46Eeq",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990070075
+  },
+  {
+    "_id": "JJyFfxx2245SthtfM0HV",
+    "email": "abdurrahmanmansurabdurrahman8@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782088373494
+  },
+  {
+    "_id": "JamICvhytoLboZ6hmwnR",
+    "email": "ba4217413@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951031062
+  },
+  {
+    "_id": "Jkc7mqG009GCJuiy09dZ",
+    "email": "faisalsulaiman849+test12@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781977451710
+  },
+  {
+    "_id": "JlFGo7dLuEtKldZ8FVq0",
+    "email": "aisha404070@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955264392
+  },
+  {
+    "_id": "JsQUmgmhI4AnuTAwJVKb",
+    "email": "faisalsulaiman849+test3@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781974578220
+  },
+  {
+    "_id": "K2FYh6GHDXSPyh4NS5T7",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013507741
+  },
+  {
+    "_id": "KGqeO2rE9nVPazF49His",
+    "email": "badamasir22@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782024964562
+  },
+  {
+    "_id": "KTVgFSBy67xHobG3PDB9",
+    "email": "faisalsulaiman849+test27@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981211069
+  },
+  {
+    "_id": "KUpgTr44HatExCQTSLoQ",
+    "email": "abdulrazaqabubakar0@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781953285333
+  },
+  {
+    "_id": "KZeouWuq3TnlmrAuruuO",
+    "email": "aisha404070@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955510567
+  },
+  {
+    "_id": "KhzsxvzXwBYs1SAdga4l",
+    "email": "ogintelligentcomedy@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781989147390
+  },
+  {
+    "_id": "KvesEmsvjJalyJvj44Mq",
+    "email": "faisalsulaiman849+test19@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980133434
+  },
+  {
+    "_id": "Kz68VULsTomWLCMyDaIA",
+    "email": "faisalsulaiman849+test26@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981035581
+  },
+  {
+    "_id": "LBI1vXWwVges3yS6p8qD",
+    "email": "jawdbaba530@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951803805
+  },
+  {
+    "_id": "LWalSg0HUDGoDct3jJWP",
+    "email": "rm7428667@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781855967032
+  },
+  {
+    "_id": "MGkC6aWadGRhUI6rQXeL",
+    "email": "damilolamicheal7@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781945208210
+  },
+  {
+    "_id": "MICB3kd7kQRvJeXbiE1e",
+    "email": "faisalsulaiman849+test21@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980337157
+  },
+  {
+    "_id": "MVjvQUw2euVDuUEpYShO",
+    "email": "aminuidrisnasarawardokacom@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781983923520
+  },
+  {
+    "_id": "MhnA966rxyNnK57bGxXb",
+    "email": "aisha404070@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781956313534
+  },
+  {
+    "_id": "MzQguTGIl06Beak2rYxd",
+    "email": "ibres2030@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782054475177
+  },
+  {
+    "_id": "N0MMUfhjpnkJZCWW57VC",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781991010873
+  },
+  {
+    "_id": "NRHRpa5lD2YJzhE3p7IC",
+    "email": "muhammadauwalharuna97@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782018053557
+  },
+  {
+    "_id": "NyzcopNw1yYVA4MpKOgr",
+    "email": "nadiajaan011@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782036702692
+  },
+  {
+    "_id": "ODZlKS3hgYPscH3f8ET8",
+    "email": "egbenga449@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781960998537
+  },
+  {
+    "_id": "OObYvwnYoFD8CSGSTqtw",
+    "email": "shriyesnavik@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781813414273
+  },
+  {
+    "_id": "P0TTRyhMWbs505AL4WWv",
+    "email": "aisha707@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955721743
+  },
+  {
+    "_id": "PZmru9ZLKUJGulnnw0pM",
+    "email": "faisalsulaiman849+test11@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781977286312
+  },
+  {
+    "_id": "Q9ATX3EpfTpuju0jY4rb",
+    "email": "faisalsulaiman849+test14@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781979298840
+  },
+  {
+    "_id": "QboDxrtdH30gRrPPkYsA",
+    "email": "toluode2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951097400
+  },
+  {
+    "_id": "QuUuShDWdfNmfHwdtU5O",
+    "email": "faisalsulaiman849+test27@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981335625
+  },
+  {
+    "_id": "R9GHZOaMl5QNL4naOERo",
+    "email": "khalidshuaibu023@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782017125118
+  },
+  {
+    "_id": "SDnIKE9za9qvKV803ZZu",
+    "email": "tosindec@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781848789369
+  },
+  {
+    "_id": "SQiIhGBQTN8gjteh4VuG",
+    "email": "ag726099@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781950377187
+  },
+  {
+    "_id": "SUNxk2pSevI0lIGZyR9R",
+    "email": "faisalsulaiman849test29@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781984082040
+  },
+  {
+    "_id": "SWze2Wiw5MkzDpaxAugL",
+    "email": "ay6132508@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781985246312
+  },
+  {
+    "_id": "Slu2AoJ2f8CT2h8L9Q2b",
+    "email": "faisalsulaiman849+test13@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978908161
+  },
+  {
+    "_id": "SzgwHeGqvTGSjqCw9H4p",
+    "email": "faisalsulaiman849+test25@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980943840
+  },
+  {
+    "_id": "TC1RdNoIEpwMUMWDJDey",
+    "email": "shriyesnavik@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781895894189
+  },
+  {
+    "_id": "TWQJxNET6lWgRZ9CtKy0",
+    "email": "ikramlove1909@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948267825
+  },
+  {
+    "_id": "Tgi8YKXpVHwyZRQpGSFJ",
+    "email": "faisalsulaiman849+test13@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978208010
+  },
+  {
+    "_id": "UCUGWKpnckcUSypIl6ib",
+    "email": "onuminya4all@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782037144489
+  },
+  {
+    "_id": "UM3fC2vIXUd9Ej3RERW9",
+    "email": "madisharif68@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781947638235
+  },
+  {
+    "_id": "UidHcmYGf6FbG9J3Wrv5",
+    "email": "bluebatti1@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978365085
+  },
+  {
+    "_id": "V6LtRpjDqjQRAAIZtdHJ",
+    "email": "adeyemoralph@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781974231601
+  },
+  {
+    "_id": "VJUErpmbmX7ABOMCXa97",
+    "email": "tosindec@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781849463997
+  },
+  {
+    "_id": "VWIoIRRNrYN0KQvRbalL",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782044813478
+  },
+  {
+    "_id": "WIU39iRhnCsW7xQO3xtY",
+    "email": "jchinecherem946@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782062986193
+  },
+  {
+    "_id": "WK94jbvu2xbgjHzxggLb",
+    "email": "mkfbmuhammad6832@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781952225316
+  },
+  {
+    "_id": "WU0VfNL3b4a11lZM1DNU",
+    "email": "emenikew71@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781945255428
+  },
+  {
+    "_id": "WXizAwyff3mqwETTdARb",
+    "email": "aminuidrisnasarawardokacom@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781983960479
+  },
+  {
+    "_id": "Wu6gr5x7OXTMYaPfAlFY",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990743408
+  },
+  {
+    "_id": "WwhwuH2zZVnuRJZjxYBS",
+    "email": "faisalsulaiman849+test29@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981938591
+  },
+  {
+    "_id": "YQ5jrKMCINWFCQOlRlrT",
+    "email": "faisalsulaiman849+test7@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781975464196
+  },
+  {
+    "_id": "YX0jWtsG02OHGR9pQhfr",
+    "email": "abdurrahmanmansurabdurrahman8@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782080763236
+  },
+  {
+    "_id": "ZDTg5FahVSNGvu66Iqb5",
+    "email": "faisalsulaiman849+test17@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781979901712
+  },
+  {
+    "_id": "ZIpNaKvOoFz9jej0vxRz",
+    "email": "sanaveed12182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782045028629
+  },
+  {
+    "_id": "aBiEMQzIV5C3eHmwCpfl",
+    "email": "faisalsulaiman849+test23@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980662926
+  },
+  {
+    "_id": "aTTUcOXA4qpJHdsZ6MKD",
+    "email": "faisalsulaiman849+test25@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980897329
+  },
+  {
+    "_id": "acuEQM4PQOH3QkHM28Kc",
+    "email": "faisalsulaiman849+test21@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980377218
+  },
+  {
+    "_id": "b192rhPdqSGyUVxolEei",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781996473541
+  },
+  {
+    "_id": "b9o2cWxXDsm6ILghvSmk",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781991103801
+  },
+  {
+    "_id": "bTFlBx05O9yXGIrl255i",
+    "email": "musahassanungogo@ggmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951594005
+  },
+  {
+    "_id": "bZFyA3nPQl7aWJLPkuUY",
+    "email": "faisalsulaiman849+test22@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980501507
+  },
+  {
+    "_id": "bmERHJXthowAuWHmqKCh",
+    "email": "jokodolabillyb@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990295231
+  },
+  {
+    "_id": "bn9Z2ZwHD7OaNcX4jOde",
+    "email": "yusifadam001@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951856594
+  },
+  {
+    "_id": "c3H33A2gXiyvy8FeakmD",
+    "email": "bintello36@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782024556484
+  },
+  {
+    "_id": "c8bUw1eqMHnJpULZmTFG",
+    "email": "yaqubasalisu@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948298598
+  },
+  {
+    "_id": "cOWazHIKBd3RDdyiyxT4",
+    "email": "abdurrahmanmansurabdurrahman4@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782030169352
+  },
+  {
+    "_id": "cWaPITkI64aoxciDV3fe",
+    "email": "bunmistella14@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781988803540
+  },
+  {
+    "_id": "cYztuU92cqlM3xqlOV7e",
+    "email": "concornel101@yahoo.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781987238505
+  },
+  {
+    "_id": "cf7BG8CRjtmD0SV2L8bS",
+    "email": "faisalsulaiman849+test23@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980668655
+  },
+  {
+    "_id": "ckZSrjvzK2z2euiTmxnL",
+    "email": "faisalsulaiman849+test24@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980781231
+  },
+  {
+    "_id": "czXuYJBujGOf84VaTSJw",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781991143606
+  },
+  {
+    "_id": "d2d8eIDKHErprwrwLINV",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013707569
+  },
+  {
+    "_id": "dZk9A5MUHhsXHDoF3lPd",
+    "email": "mamansultan974@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782036855925
+  },
+  {
+    "_id": "dkCTsc53LYtn7PkxcGnW",
+    "email": "zaharadeenahmad32@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781960790369
+  },
+  {
+    "_id": "dm0gJYE5t2xMXRHoXhQp",
+    "email": "eyotremoses75@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782018735343
+  },
+  {
+    "_id": "e8BEnshxZKFThij1xCbr",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990032416
+  },
+  {
+    "_id": "eho7gcQjqvzVgKDglBgL",
+    "email": "faisalsulaiman849+test15@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781979681792
+  },
+  {
+    "_id": "fJtozTOEldSPoetxIJc7",
+    "email": "khantrader2394@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948006313
+  },
+  {
+    "_id": "fLkpcIqU3nr83GcwofU3",
+    "email": "daffilhussain@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781957769306
+  },
+  {
+    "_id": "fUOP8rMD8HTpEK3ZJJ6S",
+    "email": "abdurrahmanmansut6@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782031135335
+  },
+  {
+    "_id": "fveJ7IKjSng5AUrbsgHL",
+    "email": "favourujiagbe35@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781897261746
+  },
+  {
+    "_id": "g2NfOA6iHBNmmkW4g0eQ",
+    "email": "iqbalhaseena85@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781949217524
+  },
+  {
+    "_id": "g5RUzUaYdTxqklyNJpke",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781991051893
+  },
+  {
+    "_id": "gAh7LLGQOYJyAaibjFhX",
+    "email": "toluode2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951335738
+  },
+  {
+    "_id": "gz3Z5kSqyLNvEmj6XIAs",
+    "email": "zaharadeenahmad32@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782109077787
+  },
+  {
+    "_id": "hGNurl738HmVIwU8vqTM",
+    "email": "bintello36@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782024515618
+  },
+  {
+    "_id": "hGiFBVpRkJ3m9wZR5XON",
+    "email": "mustaphaabdulazeez448@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990177740
+  },
+  {
+    "_id": "hWhmFjmtyDHsVs9WF35Q",
+    "email": "faisalsulaiman849+test28@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981500856
+  },
+  {
+    "_id": "i5DLpfXtWy4DNxm6Xuxh",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782089045620
+  },
+  {
+    "_id": "iUJVxh92xcLDotr4SrTB",
+    "email": "badamasir22@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782025001442
+  },
+  {
+    "_id": "iV51XWZzJTKMJEy6raM4",
+    "email": "kzmrdwn@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781946695740
+  },
+  {
+    "_id": "ik2nK5285jpGGzmqbL0C",
+    "email": "faisalsulaiman849+test28@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981475670
+  },
+  {
+    "_id": "iv4y4JOATXYMdolqQA8t",
+    "email": "nadiajaan011@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782036890495
+  },
+  {
+    "_id": "j8ZQfovrRYn0eMw8pZwF",
+    "email": "beatricechidi848@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782109959875
+  },
+  {
+    "_id": "jtemGcWJ0PGOQAJ8prfA",
+    "email": "aisha707@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955822328
+  },
+  {
+    "_id": "jxLcDqwdoWDkmE2BeoEG",
+    "email": "faisalsulaiman849+test12@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781977908988
+  },
+  {
+    "_id": "k2hYVjvhxK8EVSm58GAs",
+    "email": "basseyntukidem09@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781814066245
+  },
+  {
+    "_id": "k7bYRh53JyKVonE5xysZ",
+    "email": "faisalsulaiman849+test1@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781973755054
+  },
+  {
+    "_id": "kbBJGW5HQOVfVXEKEb2O",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781991090641
+  },
+  {
+    "_id": "liFB1YugBf8mE3PsJt4d",
+    "email": "de.minirin@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782030846067
+  },
+  {
+    "_id": "lj2zxuSxmtZpWA4S2HAW",
+    "email": "xammiegold@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781943923933
+  },
+  {
+    "_id": "mBQLoIpxyNdfvr10aUK1",
+    "email": "mainasarausman1983@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781955488301
+  },
+  {
+    "_id": "mPfGcQTiJ5rOS53MQ0ZG",
+    "email": "divinefavourgm@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781886166346
+  },
+  {
+    "_id": "mu6TK9lqqaRymk3AASY3",
+    "email": "xammiegold@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781943893281
+  },
+  {
+    "_id": "nMQheqdFWA5xfBIl7Xs4",
+    "email": "philominajacinta@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782063079359
+  },
+  {
+    "_id": "nYaWhKhiTymodLtfuzEm",
+    "email": "abdurrahmanmansurabdurrahman0@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782030794967
+  },
+  {
+    "_id": "nfYluaw2DGq515d0zSKO",
+    "email": "pamola4u@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781840013219
+  },
+  {
+    "_id": "nq4FaHjNA8EZA9OxkM5f",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013615224
+  },
+  {
+    "_id": "o5sBcuF0fVMIz5TqMfcX",
+    "email": "muakadah2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781847658724
+  },
+  {
+    "_id": "oCTMtSGBXMjJkFuW6ye2",
+    "email": "aw9395907@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948365378
+  },
+  {
+    "_id": "oSYybolk70hfRrfYkdVu",
+    "email": "zeshanmumtaz34@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781964135918
+  },
+  {
+    "_id": "oWZvr46uTzq6kfvajVYl",
+    "email": "ahmsadeeq0805@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781992470449
+  },
+  {
+    "_id": "ofikNwskBEMEToCc2TEs",
+    "email": "yusifadam001@email.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781952087722
+  },
+  {
+    "_id": "ouQCCKHjGAFORQXq0MDK",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781996481819
+  },
+  {
+    "_id": "ozyIs4P6ye1DyO3pP5Lg",
+    "email": "faisalsulaiman849+test27@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981136969
+  },
+  {
+    "_id": "pLgBhKGhlwU7pZKD39PY",
+    "email": "faisalsulaiman849+test12@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781978278337
+  },
+  {
+    "_id": "pba4Ge4uZRwi9or27gXZ",
+    "email": "faisalsulaiman849+test29@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981902268
+  },
+  {
+    "_id": "pjvctVoLGIApeReL1fZl",
+    "email": "ahmsadeeq0805@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781989782247
+  },
+  {
+    "_id": "ppWtcnC7q3Arl4tzr4o0",
+    "email": "hafizmuaqqibmustafai@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782032210933
+  },
+  {
+    "_id": "qN5gY2s0mgrseDBr7w97",
+    "email": "sirajoabubakar238@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781950861585
+  },
+  {
+    "_id": "qi1p1i9i2nL5VWLBwqBu",
+    "email": "faisalsulaiman849+test6@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781975126164
+  },
+  {
+    "_id": "qqnEmfuKaz3UY9nB4nPF",
+    "email": "aminuidrisnasarawardokacom@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781983525323
+  },
+  {
+    "_id": "rFPz5ab7buyxx99h4yra",
+    "email": "faisalsulaiman849+test27@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981173327
+  },
+  {
+    "_id": "rmS2iRzRlI8Znyy2ki6k",
+    "email": "faisalsulaiman849+test28@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781981439910
+  },
+  {
+    "_id": "rosxJhdJYqE52ICy7FIH",
+    "email": "concornel101@yahoo.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781987241756
+  },
+  {
+    "_id": "rza4NgQup8QDgemdwOS5",
+    "email": "muakadah2@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781847392906
+  },
+  {
+    "_id": "sBe7m7KtH4xI8hnxkFCM",
+    "email": "khalidshuaibu023@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782016999730
+  },
+  {
+    "_id": "sQCNMUdsLbD2RTjeqCDr",
+    "email": "faisalsulaiman849+test16@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781979754250
+  },
+  {
+    "_id": "sWWtqeyIAOnHi9vk4wCE",
+    "email": "badamasir22@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782024890937
+  },
+  {
+    "_id": "saVa7T7JVhN8pOSO4VcP",
+    "email": "sagirumusa134@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781961256165
+  },
+  {
+    "_id": "slH69W8qnYN90oHtK5fX",
+    "email": "faisalsulaiman849+test18@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980010804
+  },
+  {
+    "_id": "t026jKqyJdATvAnilLwk",
+    "email": "faisalsulaiman849+test14@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781979023437
+  },
+  {
+    "_id": "tKp1IvqexnifUqOZNb5I",
+    "email": "adiljalil28786@gmail.co",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948694339
+  },
+  {
+    "_id": "tRjNcf01o4Jb3p8Juhr2",
+    "email": "pamola4u@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781839892908
+  },
+  {
+    "_id": "tlNaAJ2HtXAc756Vd2Nj",
+    "email": "deleogo4sure@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782071244829
+  },
+  {
+    "_id": "uGZbppdJlEqhwLBUJd7Q",
+    "email": "jawdbaba530@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781951701140
+  },
+  {
+    "_id": "uH1SZzZEVL1gEruQEjGN",
+    "email": "tijjanigajali@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782045062264
+  },
+  {
+    "_id": "uaio2phPZYaMyVJzEQjg",
+    "email": "ukagwu55@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782073624257
+  },
+  {
+    "_id": "ugD7xG8Si2VXrLyfKdyM",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781990797331
+  },
+  {
+    "_id": "uiE3KjtyBVRO84JaGSp1",
+    "email": "deexpert2014@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781952904438
+  },
+  {
+    "_id": "uiFKS0hsDVK5r6UDlVSe",
+    "email": "3boga150@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781910411212
+  },
+  {
+    "_id": "v0w48JF8uHqvUQz9yMYA",
+    "email": "wegwudick@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781973767517
+  },
+  {
+    "_id": "vE35nsD51uP5Ua4hr8Jc",
+    "email": "faisalsulaiman849+test21@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980384872
+  },
+  {
+    "_id": "vKRTp3iOC2BUold2eh4E",
+    "email": "yaqubasalisu@gmail.com",
+    "purpose": "withdrawal",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781958842378
+  },
+  {
+    "_id": "vj709QMBDdSbhyHiDDju",
+    "email": "faisalsulaiman849test29@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781984101517
+  },
+  {
+    "_id": "vt3ODWmQJ12MxcIxfv1V",
+    "email": "zaharadeenahmad32@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781960705597
+  },
+  {
+    "_id": "wAe7VzrhAqQjkPiUSxey",
+    "email": "khalidshuaibu023@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782017050527
+  },
+  {
+    "_id": "wCRaYtIjdMQbBFh3oimO",
+    "email": "princedouye1@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781986695065
+  },
+  {
+    "_id": "wK5Ghyj9QtOv1G6nVeL4",
+    "email": "faisalsulaiman849+test20@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781980219411
+  },
+  {
+    "_id": "wcvqm44xKn2EMJHel4qy",
+    "email": "tanveer8508@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782013671969
+  },
+  {
+    "_id": "wwoSIrRRbpOIv15ZuCoE",
+    "email": "tijjanigajali@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781992764680
+  },
+  {
+    "_id": "x2K0dKA3K2DofMo7hNdL",
+    "email": "aa662462334@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781893403401
+  },
+  {
+    "_id": "x8v6qb35rmfL03EvWnwz",
+    "email": "shabbirsaleh182@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1782044379970
+  },
+  {
+    "_id": "xF5siwBr781lI8AGbfNG",
+    "email": "timothyfleecy@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781945757094
+  },
+  {
+    "_id": "xYjLw1T6HBwi1wo9t8PC",
+    "email": "fazalbalochofficial1@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781950956791
+  },
+  {
+    "_id": "xlCb2UC6c15wR77BJ9gI",
+    "email": "ktksiraj981@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781948377383
+  },
+  {
+    "_id": "xzs2iEhz2Gk5eiGLH0Dl",
+    "email": "muhammadidreesshahhashmi085@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781958664177
+  },
+  {
+    "_id": "yMKOO2bsfSrQdktzP7wA",
+    "email": "aa662462334@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781893007094
+  },
+  {
+    "_id": "z1VhGZ5vVaIaNCxrM7PX",
+    "email": "ahmsadeeq0805@gmail.com",
+    "purpose": "registration",
+    "event": "failed",
+    "error": "Connection timeout",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781989817228
+  },
+  {
+    "_id": "zLFDkdNYDzxH47nJYEKn",
+    "email": "akmalafaq895@gmail.com",
+    "purpose": "registration",
+    "event": "delivered",
+    "provider": "gmail-apps-script",
+    "createdAt": 1781958877519
+  }
+]

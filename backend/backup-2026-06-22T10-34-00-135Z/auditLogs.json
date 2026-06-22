@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "7i6PEDTE5YFbcQcxqQEI",
+    "type": "withdrawal",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 10,
+    "fee": 0.5,
+    "net": 9.5,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "status": "processing",
+    "createdAt": 1780956375188
+  },
+  {
+    "_id": "V5b6ymfJ5MiSZLPLiTb6",
+    "type": "withdrawal",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 0.01,
+    "fee": 0,
+    "net": 0.01,
+    "wallet": "0x9CB4F96E65804886410473dC1b53469A6D4c5562",
+    "status": "processing",
+    "createdAt": 1780571494605
+  },
+  {
+    "_id": "VNpZSMz7siyRI0MzTvCN",
+    "type": "withdrawal",
+    "uid": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "amount": 10,
+    "fee": 0.5,
+    "net": 9.5,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "status": "processing",
+    "createdAt": 1781794455031
+  },
+  {
+    "_id": "WcYoEQsDYUzAhALuJqo5",
+    "type": "withdrawal",
+    "uid": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "amount": 80,
+    "fee": 4,
+    "net": 76,
+    "wallet": "0x26814bec7d2e7c8115c159183cc747f00295c2c2",
+    "status": "pending",
+    "createdAt": 1781794591536
+  },
+  {
+    "_id": "aXjVkzv1bYIPkrmYb08T",
+    "type": "withdrawal",
+    "uid": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "amount": 60,
+    "fee": 3,
+    "net": 57,
+    "wallet": "0x55d398326f99059fF775485246999027B3197955",
+    "status": "pending",
+    "createdAt": 1780864314475
+  }
+]

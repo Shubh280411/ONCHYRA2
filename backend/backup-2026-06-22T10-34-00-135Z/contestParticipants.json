@@ -1,0 +1,133 @@
+[
+  {
+    "_id": "4HUasp6Keav9cQXtO7S0",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "28jEthJOGJRp39ie8A8gUs6NN233",
+    "joinTime": 1782069713994,
+    "contestReferrals": 4
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "walletAddress": "",
+    "joinTime": 1782123720502,
+    "joinRefLevel1": 3,
+    "joinRefLevel2": 5,
+    "joinRefLevel3": 18,
+    "addedByAdmin": true,
+    "scoreType": "l3",
+    "contestReferrals": 18
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_4zOmQ7tVJwbl4lxCPPPQLfqVGvo1",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "4zOmQ7tVJwbl4lxCPPPQLfqVGvo1",
+    "walletAddress": "0x963286877821e7b2242069205e8d75fc3111a751",
+    "joinTime": 1778740764037,
+    "joinReferrals": 0,
+    "contestReferrals": 1
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "walletAddress": "0xdddgfgsddgzfdhe56ddtr73477eyty767e",
+    "joinTime": 1778070926788,
+    "joinReferrals": 23,
+    "contestReferrals": 18
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_7lhGewGEepbGuD5BLRncuFrcZ1v2",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "7lhGewGEepbGuD5BLRncuFrcZ1v2",
+    "walletAddress": "0x9691f3d411fad1a6815e2458b44dc81508d69cc1",
+    "joinTime": 1778529656444,
+    "joinReferrals": 0,
+    "contestReferrals": 2,
+    "winnerRank": 3,
+    "payoutSent": false
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_Cmg5yrz3z3fkmc9CnA7JJZgYJ552",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "Cmg5yrz3z3fkmc9CnA7JJZgYJ552",
+    "walletAddress": "0x1209f7c64637040bce7237a694378f3707e4d7e5",
+    "joinTime": 1778401800720,
+    "joinReferrals": 0,
+    "contestReferrals": 2,
+    "winnerRank": 2,
+    "payoutSent": false
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_STEnViLDKkapFNWwdZkxfpR3Olv1",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "STEnViLDKkapFNWwdZkxfpR3Olv1",
+    "walletAddress": "0xd318cf36633d99f6bcefb7ed949e62cf1cfe9b72",
+    "joinTime": 1778170301531,
+    "joinReferrals": 2,
+    "contestReferrals": 0
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_TrN8doKQ5xdDTm3mGa3JNTfoMs63",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "TrN8doKQ5xdDTm3mGa3JNTfoMs63",
+    "walletAddress": "0xaf27c2de665b8a247c6cafed595373945110e120",
+    "joinTime": 1778175090089,
+    "joinReferrals": 0,
+    "contestReferrals": 0
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_azaNyou0X7TFt3glCc4QGqfw5o92",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "azaNyou0X7TFt3glCc4QGqfw5o92",
+    "walletAddress": "",
+    "joinTime": 1782123625680,
+    "joinRefLevel1": 1,
+    "joinRefLevel2": 9,
+    "joinRefLevel3": 23,
+    "addedByAdmin": true,
+    "scoreType": "l3",
+    "contestReferrals": 23
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_jvXJ9adWpNdx4Q19BUMk6h9WRgM2",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "jvXJ9adWpNdx4Q19BUMk6h9WRgM2",
+    "walletAddress": "0x88734d50b4d5643efd88e84bd7ce8870dd00d439",
+    "joinTime": 1778366815935,
+    "joinReferrals": 0,
+    "contestReferrals": 0
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_s0wWUDTcJhesrUVM0IDd0qW817n2",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "s0wWUDTcJhesrUVM0IDd0qW817n2",
+    "walletAddress": "0xded6e454622777d6e617c26ad823c45a6809da66",
+    "joinTime": 1778493816991,
+    "joinReferrals": 0,
+    "contestReferrals": 0
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_uanW7Xmnd2RaaQhKz1Vw9tpCJGg1",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "uanW7Xmnd2RaaQhKz1Vw9tpCJGg1",
+    "walletAddress": "0x7718dde7b49c3738099c333cbba3195c7053b5d5",
+    "joinTime": 1777878882091,
+    "joinReferrals": 0,
+    "contestReferrals": 0
+  },
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu_z2jgiF1rThOEZ8xNzvhWh0bDyji2",
+    "contestId": "SMx0SWiM7OPYHoFuVVXu",
+    "userId": "z2jgiF1rThOEZ8xNzvhWh0bDyji2",
+    "walletAddress": "",
+    "joinTime": 1782123828340,
+    "joinRefLevel1": 17,
+    "joinRefLevel2": 18,
+    "joinRefLevel3": 12,
+    "addedByAdmin": true,
+    "scoreType": "l3",
+    "contestReferrals": 12
+  }
+]

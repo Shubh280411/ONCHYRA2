@@ -1,0 +1,14 @@
+[
+  {
+    "_id": "hdWalletCounter",
+    "nextIndex": 13
+  },
+  {
+    "_id": "maintenance",
+    "message": "🚀 ONCHYRA is currently undergoing maintenance as we prepare a major platform update. Our team is working on new features, performance improvements, and enhanced security to deliver a better experience for the community. Thank you for your patience and support — we'll be back online soon with exciting upgrades.",
+    "durationHours": 36.50547527777778,
+    "startedAt": "2026-06-08T17:10:38.960Z",
+    "enabled": false,
+    "endAt": 1781422200000
+  }
+]

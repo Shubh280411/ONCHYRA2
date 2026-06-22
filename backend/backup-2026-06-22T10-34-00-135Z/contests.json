@@ -1,0 +1,31 @@
+[
+  {
+    "_id": "SMx0SWiM7OPYHoFuVVXu",
+    "name": "Referrals War May",
+    "active": true,
+    "startTime": "2026-05-01T14:00:00.000Z",
+    "rewardPool": 30,
+    "rewards": [
+      {
+        "rank": 1,
+        "reward": 15
+      },
+      {
+        "rank": 2,
+        "reward": 10
+      },
+      {
+        "rank": 3,
+        "reward": 5
+      }
+    ],
+    "createdAt": "2026-05-01T13:00:00.000Z",
+    "description": "",
+    "prizes": {
+      "rank1": 10,
+      "rank2": 5,
+      "rank3": 3
+    },
+    "endTime": 1784005200000
+  }
+]

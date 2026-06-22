@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "zbeZAYiUOtvboZzUstr5",
+    "question": "Where do you see yourself in ONCHYRA by the end of this year?",
+    "options": [
+      "Top Miner",
+      "Team Builder",
+      "Leadership Rank Holder",
+      "All of the Above"
+    ],
+    "createdAt": "2026-06-11T20:59:51.428Z",
+    "results": {
+      "Top Miner": 15,
+      "All of the Above": 30,
+      "Leadership Rank Holder": 4,
+      "Team Builder": 4
+    }
+  }
+]

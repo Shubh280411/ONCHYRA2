@@ -1,0 +1,203 @@
+[
+  {
+    "_id": "BKmiSiTwMTQx5V1tHnUC",
+    "roundId": "bitcoin_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "down",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779559954692
+  },
+  {
+    "_id": "DdHEAT9D6hZhlJ6UJ5Io",
+    "roundId": "bitcoin_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779528202710
+  },
+  {
+    "_id": "EUkfPdPZatkbIlPoWLoc",
+    "roundId": "ethereum_15min_1779560100000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 10,
+    "timestamp": 1779560139796,
+    "claimed": true,
+    "payout": 10
+  },
+  {
+    "_id": "JO0MSQ5A8VfbzIAELSZh",
+    "roundId": "bitcoin_15min_1779561900000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779562287402
+  },
+  {
+    "_id": "PMKbKzeslUi47TMlGFzj",
+    "roundId": "bitcoin_15min_1779482700000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779482478146
+  },
+  {
+    "_id": "Qkp1sZivu73bHA0UMk5N",
+    "roundId": "bitcoin_15min_1779562800000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779563004268,
+    "cancelled": true
+  },
+  {
+    "_id": "RxRNIv0NUD1eRhFgUbnx",
+    "roundId": "bitcoin_15min_1779484500000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779484850793
+  },
+  {
+    "_id": "YICEunmsdiin3L65IrZy",
+    "roundId": "bitcoin_15min_1779482700000",
+    "userId": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779483037511
+  },
+  {
+    "_id": "ZqexX5ZKbNnW1oRvoi8u",
+    "roundId": "bitcoin_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779559971288
+  },
+  {
+    "_id": "aU27AaZEwwceLcxZnVZl",
+    "roundId": "bitcoin_15min_1779553800000",
+    "userId": "z2jgiF1rThOEZ8xNzvhWh0bDyji2",
+    "prediction": "up",
+    "stake": 0.5,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779554331342
+  },
+  {
+    "_id": "dEF6Rhg4hvqxdwc0cWSt",
+    "roundId": "bitcoin_15min_1780338600000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "down",
+    "stake": 0.11,
+    "timestamp": 1780339455046,
+    "claimed": true,
+    "payout": 0.11
+  },
+  {
+    "_id": "gdwTT3ch7bObvhHjeMsK",
+    "roundId": "bitcoin_15min_1779482700000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "down",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779482711984
+  },
+  {
+    "_id": "ix5PIEmtQHStqqlCkdWu",
+    "roundId": "solana_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779561334188
+  },
+  {
+    "_id": "lcMbyztoKNDZAvb6Pd4Q",
+    "roundId": "bitcoin_15min_1780302600000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "timestamp": 1780303373255,
+    "claimed": true,
+    "payout": 0.1
+  },
+  {
+    "_id": "lqeGLM9jhiJOg2NrFH4m",
+    "roundId": "bitcoin_15min_1779526800000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779527476129
+  },
+  {
+    "_id": "mtqwPEPAiqPoV2F06oe6",
+    "roundId": "bitcoin_15min_1779484500000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "down",
+    "stake": 1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779484859365
+  },
+  {
+    "_id": "nRQ0k9zWSgoZm0pDohoZ",
+    "roundId": "bitcoin_15min_1780335900000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1780336631813
+  },
+  {
+    "_id": "sizO41mhlH3s753OKzYe",
+    "roundId": "bitcoin_15min_1779482700000",
+    "userId": "0G0A9hp1Mkc0I1aD1UGQjbam1xG3",
+    "prediction": "up",
+    "stake": 0.1,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779483061489
+  },
+  {
+    "_id": "xoAi64wLf8sLeiyL7V6w",
+    "roundId": "ethereum_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "up",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779528211380
+  },
+  {
+    "_id": "yuUTXE0eYs6oGeBc4vdz",
+    "roundId": "solana_1day_1779494400000",
+    "userId": "6AsI8MC5PRTYbCcvW8h0d8uvqt53",
+    "prediction": "down",
+    "stake": 10,
+    "payout": null,
+    "claimed": false,
+    "timestamp": 1779528222668
+  }
+]
