@@ -28,16 +28,43 @@ function rest(path, opts = {}) {
     }
     if (r.status === 204) return null;
     const ct = r.headers.get('content-type') || '';
-    if (ct.includes('json')) return r.json();
+    if (ct.includes('json')) return deepCamelize(await r.json());
     const text = await r.text();
     return text ? JSON.parse(text) : null;
   }).catch(e => { throw e; });
 }
 
+// Convert snake_case keys to camelCase recursively (Firestore compatibility)
+function deepCamelize(obj) {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(deepCamelize);
+  if (typeof obj !== 'object') return obj;
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[snakeToCamel(k)] = deepCamelize(v);
+  }
+  return out;
+}
+
+function snakeToCamel(s) {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+function camelToSnake(s) {
+  return s.replace(/[A-Z]/g, c => '_' + c.toLowerCase());
+}
+
+// Convert object keys camelCase → snake_case for PostgreSQL writes
+function deepSnake(obj) {
+  if (obj === null || obj === undefined || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(deepSnake);
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[camelToSnake(k)] = deepSnake(v);
+  }
+  return out;
+}
+
 const supabase = { _rest: true };
-const db = { _adapter: 'supabase' };
-
-
 const db = { _adapter: 'supabase' };
 
 const PK_MAP = { users: 'uid', admins: 'uid', settings: 'key', otpStore: 'email' };
@@ -64,16 +91,17 @@ class QuerySnapshot {
 function buildUrl(table, filters, orders, limitVal, startAfterCursor) {
   const params = { select: '*' };
   for (const f of filters) {
-    if (f.op === '==') params[f.field] = 'eq.' + f.val;
-    else if (f.op === '<') params[f.field] = 'lt.' + f.val;
-    else if (f.op === '<=') params[f.field] = 'lte.' + f.val;
-    else if (f.op === '>') params[f.field] = 'gt.' + f.val;
-    else if (f.op === '>=') params[f.field] = 'gte.' + f.val;
-    else if (f.op === '!=') params[f.field] = 'neq.' + f.val;
-    else if (f.op === 'in') params[f.field] = 'in.(' + f.val.map(encodeURIComponent).join(',') + ')';
+    const sfield = camelToSnake(f.field);
+    if (f.op === '==') params[sfield] = 'eq.' + f.val;
+    else if (f.op === '<') params[sfield] = 'lt.' + f.val;
+    else if (f.op === '<=') params[sfield] = 'lte.' + f.val;
+    else if (f.op === '>') params[sfield] = 'gt.' + f.val;
+    else if (f.op === '>=') params[sfield] = 'gte.' + f.val;
+    else if (f.op === '!=') params[sfield] = 'neq.' + f.val;
+    else if (f.op === 'in') params[sfield] = 'in.(' + f.val.map(encodeURIComponent).join(',') + ')';
   }
   if (orders.length) {
-    params.order = orders.map(o => o.field + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
+    params.order = orders.map(o => camelToSnake(o.field) + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
   }
   if (limitVal) params.limit = limitVal;
   return { _table: table, _params: params, _filters: filters };
@@ -108,16 +136,17 @@ async function getDocs(queryRef) {
   try {
     const params = { select: '*' };
     for (const f of filters) {
-      if (f.op === '==') params[f.field] = 'eq.' + f.val;
-      else if (f.op === '<') params[f.field] = 'lt.' + f.val;
-      else if (f.op === '<=') params[f.field] = 'lte.' + f.val;
-      else if (f.op === '>') params[f.field] = 'gt.' + f.val;
-      else if (f.op === '>=') params[f.field] = 'gte.' + f.val;
-      else if (f.op === '!=') params[f.field] = 'neq.' + f.val;
-      else if (f.op === 'in') params[f.field] = 'in.(' + f.val.map(encodeURIComponent).join(',') + ')';
-      else if (f.op === 'array-contains') params[f.field] = 'cs.{"' + f.val + '"}';
+      const sfield = camelToSnake(f.field);
+      if (f.op === '==') params[sfield] = 'eq.' + f.val;
+      else if (f.op === '<') params[sfield] = 'lt.' + f.val;
+      else if (f.op === '<=') params[sfield] = 'lte.' + f.val;
+      else if (f.op === '>') params[sfield] = 'gt.' + f.val;
+      else if (f.op === '>=') params[sfield] = 'gte.' + f.val;
+      else if (f.op === '!=') params[sfield] = 'neq.' + f.val;
+      else if (f.op === 'in') params[sfield] = 'in.(' + f.val.map(encodeURIComponent).join(',') + ')';
+      else if (f.op === 'array-contains') params[sfield] = 'cs.{"' + f.val + '"}';
     }
-    if (orders.length) params.order = orders.map(o => o.field + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
+    if (orders.length) params.order = orders.map(o => camelToSnake(o.field) + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
     if (limitVal) params.limit = limitVal;
 
     const data = await rest(table, { params });
@@ -138,7 +167,7 @@ async function setDoc(ref, data) {
     if (v && typeof v === 'object' && v.seconds !== undefined) clean[k] = v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
   }
   try {
-    await rest(table, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(clean) });
+    await rest(table, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(deepSnake(clean)) });
   } catch (e) { console.error('setDoc error:', e); }
 }
 
@@ -148,10 +177,10 @@ async function updateDoc(ref, data) {
   const regular = {}; const increments = []; const arrayUnions = []; const arrayRemoves = [];
   for (const [k, v] of Object.entries(data)) {
     if (v === undefined) continue;
-    if (v && v._isIncrement) increments.push({ field: k, amount: v.value });
-    else if (v && v._isArrayUnion) arrayUnions.push({ field: k, values: v.values });
-    else if (v && v._isArrayRemove) arrayRemoves.push({ field: k, values: v.values });
-    else regular[k] = v;
+    if (v && v._isIncrement) increments.push({ field: camelToSnake(k), cfield: k, amount: v.value });
+    else if (v && v._isArrayUnion) arrayUnions.push({ field: camelToSnake(k), cfield: k, values: v.values });
+    else if (v && v._isArrayRemove) arrayRemoves.push({ field: camelToSnake(k), cfield: k, values: v.values });
+    else regular[camelToSnake(k)] = v;
   }
   for (const [k, v] of Object.entries(regular)) {
     if (v && typeof v === 'object' && v.seconds !== undefined) regular[k] = v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
@@ -160,19 +189,19 @@ async function updateDoc(ref, data) {
     if (Object.keys(regular).length > 0) await rest(table, { method: 'PATCH', params: { [pk]: 'eq.' + ref._id }, body: JSON.stringify(regular) });
     for (const inc of increments) {
       const rows = await rest(table, { params: { select: inc.field, [pk]: 'eq.' + ref._id } });
-      const current = rows && rows.length ? (Number(rows[0][inc.field]) || 0) : 0;
+      const current = rows && rows.length ? (Number(rows[0][inc.cfield]) || 0) : 0;
       await rest(table, { method: 'PATCH', params: { [pk]: 'eq.' + ref._id }, body: JSON.stringify({ [inc.field]: current + inc.amount }) });
     }
     for (const au of arrayUnions) {
       const rows = await rest(table, { params: { select: au.field, [pk]: 'eq.' + ref._id } });
-      let arr = rows && rows.length ? rows[0][au.field] : [];
+      let arr = rows && rows.length ? rows[0][au.cfield] : [];
       if (!Array.isArray(arr)) arr = [];
       for (const v of au.values) { if (!arr.includes(v)) arr.push(v); }
       await rest(table, { method: 'PATCH', params: { [pk]: 'eq.' + ref._id }, body: JSON.stringify({ [au.field]: arr }) });
     }
     for (const ar of arrayRemoves) {
       const rows = await rest(table, { params: { select: ar.field, [pk]: 'eq.' + ref._id } });
-      let arr = rows && rows.length ? rows[0][ar.field] : [];
+      let arr = rows && rows.length ? rows[0][ar.cfield] : [];
       if (!Array.isArray(arr)) arr = [];
       arr = arr.filter(v => !ar.values.includes(v));
       await rest(table, { method: 'PATCH', params: { [pk]: 'eq.' + ref._id }, body: JSON.stringify({ [ar.field]: arr }) });
@@ -192,7 +221,7 @@ async function addDoc(collectionRef, data) {
   for (const [k, v] of Object.entries(data)) { if (v !== undefined && !(v && v._isIncrement)) clean[k] = v; }
   for (const [k, v] of Object.entries(clean)) { if (v && typeof v === 'object' && v.seconds !== undefined) clean[k] = v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6); }
   if (!clean[pk]) clean[pk] = crypto.randomUUID();
-  try { await rest(table, { method: 'POST', body: JSON.stringify(clean) }); } catch (e) { console.error('addDoc error:', e); }
+  try { await rest(table, { method: 'POST', body: JSON.stringify(deepSnake(clean)) }); } catch (e) { console.error('addDoc error:', e); }
   return { id: clean[pk] };
 }
 
