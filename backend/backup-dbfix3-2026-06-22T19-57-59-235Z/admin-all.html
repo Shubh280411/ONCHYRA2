@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — All Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; display:none; }
+        .container { max-width:1100px; margin:0 auto; padding:20px 16px 80px; }
+        .header { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border); margin-bottom:24px; }
+        .header .logo { display:flex; align-items:center; gap:12px; font-family:'Space Grotesk'; font-weight:900; font-size:18px; }
+        .header .logo svg { width:36px; height:36px; }
+        .header .logo span { background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .header .actions { display:flex; align-items:center; gap:12px; }
+        .header .badge { font-size:11px; color:var(--text-dim); background:var(--card); padding:6px 12px; border-radius:20px; border:1px solid var(--border); }
+        .btn { padding:8px 16px; border-radius:10px; font-weight:600; font-size:12px; cursor:pointer; border:none; font-family:'Inter'; transition:all .2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+        .btn-sm { padding:6px 12px; font-size:11px; }
+        .btn-primary { background:var(--primary); color:#000; }
+        .btn-primary:hover { opacity:.85; }
+        .btn-outline { background:transparent; color:var(--text); border:1px solid var(--border); }
+        .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+        .btn-success { background:var(--success); color:#000; }
+        .btn-success:hover { opacity:.85; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-danger:hover { opacity:.85; }
+        .btn-warning { background:var(--warning); color:#000; }
+        .btn:disabled { opacity:.4; cursor:not-allowed; }
+        .tabs { display:flex; gap:4px; margin-bottom:20px; background:var(--card); padding:4px; border-radius:12px; border:1px solid var(--border); overflow-x:auto; }
+        .tab { flex-shrink:0; padding:10px 16px; text-align:center; border-radius:8px; font-weight:600; font-size:11px; cursor:pointer; transition:all .2s; color:var(--text-dim); border:none; background:transparent; font-family:'Inter'; display:flex; align-items:center; gap:6px; }
+        .tab.active { background:var(--primary); color:#000; }
+        .tab:hover:not(.active) { color:var(--text); }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
+        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
+        .stat-card .label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-dim); margin-bottom:4px; }
+        .stat-card .value { font-family:'Space Grotesk'; font-weight:800; font-size:18px; }
+        .search-bar { display:flex; gap:8px; margin-bottom:12px; }
+        .search-bar input { flex:1; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:white; font-size:13px; font-family:'Inter'; outline:none; }
+        .search-bar input:focus { border-color:var(--primary); }
+        .search-bar input::placeholder { color:var(--text-dim); }
+        .search-bar select { padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:12px; font-family:'Inter'; outline:none; cursor:pointer; }
+        .search-bar select:focus { border-color:var(--primary); }
+        .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+        .table-scroll { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        thead th { padding:10px 12px; text-align:left; font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap; }
+        tbody tr { border-bottom:1px solid rgba(255,255,255,0.03); transition:background .2s; }
+        tbody tr:hover { background:var(--card-hover); }
+        tbody td { padding:10px 12px; vertical-align:middle; }
+        .status { display:inline-block; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:800; text-transform:uppercase; }
+        .status.completed { color:var(--success); background:rgba(34,197,94,0.08); }
+        .status.pending { color:var(--warning); background:rgba(245,158,11,0.08); }
+        .status.rejected { color:var(--danger); background:rgba(239,68,68,0.08); }
+        .status.processed { color:var(--primary); background:rgba(167,139,250,0.08); }
+        .empty-state { padding:32px 20px; text-align:center; color:var(--text-dim); font-size:13px; }
+        .empty-state svg { width:40px; height:40px; opacity:.2; margin-bottom:8px; }
+        .toast-wrap { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:3000; display:flex; flex-direction:column; gap:8px; align-items:center; }
+        .toast { padding:12px 24px; border-radius:12px; font-weight:700; font-size:13px; font-family:'Inter'; animation:slideUp .3s ease; white-space:nowrap; }
+        .toast.success { background:var(--success); color:#000; }
+        .toast.error { background:var(--danger); color:#fff; }
+        .toast.info { background:var(--primary); color:#000; }
+        @keyframes slideUp { from { transform:translateY(20px); opacity:0; } }
+        .error-msg { padding:12px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:12px; font-size:12px; color:var(--danger); text-align:center; margin-bottom:16px; display:none; }
+        .config-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+        .config-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; }
+        .config-card h4 { font-family:'Space Grotesk'; font-weight:700; font-size:12px; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .config-card h4 svg { width:16px; height:16px; color:var(--primary); }
+        .config-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:12px; border-bottom:1px solid var(--border); }
+        .config-row:last-child { border-bottom:none; }
+        .config-row .cl { color:var(--text-dim); }
+        .config-row .cv { font-family:'Space Grotesk'; font-weight:600; color:var(--text); }
+        .toggle { position:relative; width:40px; height:22px; background:var(--border); border-radius:11px; cursor:pointer; transition:background .2s; flex-shrink:0; }
+        .toggle.on { background:var(--success); }
+        .toggle::after { content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; background:white; border-radius:50%; transition:transform .2s; }
+        .toggle.on::after { transform:translateX(18px); }
+        .refresh-bar { display:flex; justify-content:flex-end; margin-bottom:10px; }
+        @media (max-width:600px) {
+            .container { padding:12px 12px 60px; }
+            .tabs { flex-wrap:nowrap; }
+            .tab { padding:8px 12px; font-size:10px; }
+            .config-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="mainContainer" style="display:none">
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><text x="18" y="24" text-anchor="middle" fill="#000" font-family="'Space Grotesk'" font-weight="900" font-size="18">X</text></svg>
+            <span>All Tools</span>
+        </div>
+        <div class="actions">
+            <span class="badge" id="adminBadge">Admin</span>
+            <a href="admin.html" class="btn btn-outline btn-sm">Panel</a>
+            <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="tabs" id="tabBar">
+        <button class="tab active" data-tab="commissions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Commissions</button>
+        <button class="tab" data-tab="packages"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>Packages</button>
+        <button class="tab" data-tab="audit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Audit</button>
+        <button class="tab" data-tab="deposits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Deposits</button>
+        <button class="tab" data-tab="config"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- COMMISSIONS TAB -->
+    <div class="tab-content active" id="tabCommissions">
+        <div class="stats-row">
+            <div class="stat-card"><div class="label">Total Commissions</div><div class="value" id="commTotal" style="color:var(--primary)">0</div></div>
+            <div class="stat-card"><div class="label">Package</div><div class="value" id="commPackage">0</div></div>
+            <div class="stat-card"><div class="label">Matching Bonus</div><div class="value" id="commMatching">0</div></div>
+            <div class="stat-card"><div class="label">Records</div><div class="value" id="commCount">0</div></div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="commSearch" placeholder="Search by UID or name..." oninput="filterCommissions()">
+            <select id="commTypeFilter" onchange="filterCommissions()">
+                <option value="">All Types</option>
+                <option value="package_commission">Package</option>
+                <option value="registration_bonus">Registration</option>
+                <option value="matching_bonus">Matching Bonus</option>
+            </select>
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr><th>Date</th><th>User</th><th>From</th><th>Type</th><th>Level</th><th>Amount</th></tr></thead><tbody id="commBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="commEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg><br>No commissions found</div>
+        </div>
+    </div>
+
+    <!-- PACKAGES TAB -->
+    <div class="tab-content" id="tabPackages">
+        <div class="stats-row">
+            <div class="stat-card"><div class="label">Total Purchases</div><div class="value" id="pkgCount" style="color:var(--primary)">0</div></div>
+            <div class="stat-card"><div class="label">Total Volume</div><div class="value" id="pkgVolume" style="color:var(--success)">0</div></div>
+            <div class="stat-card"><div class="label">Unique Users</div><div class="value" id="pkgUsers">0</div></div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="pkgSearch" placeholder="Search by UID or package name..." oninput="filterPackages()">
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr><th>Date</th><th>User</th><th>Package</th><th>Amount</th><th>Paid</th><th>Boost</th></tr></thead><tbody id="pkgBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="pkgEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><br>No packages found</div>
+        </div>
+    </div>
+
+    <!-- AUDIT TAB -->
+    <div class="tab-content" id="tabAudit">
+        <div class="stats-row">
+            <div class="stat-card"><div class="label">Total Logs</div><div class="value" id="auditCount" style="color:var(--primary)">0</div></div>
+            <div class="stat-card"><div class="label">Withdrawals</div><div class="value" id="auditWithdrawals">0</div></div>
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr><th>Date</th><th>Type</th><th>User</th><th>Amount</th><th>Status</th><th>Wallet</th></tr></thead><tbody id="auditBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="auditEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><br>No audit logs found</div>
+        </div>
+    </div>
+
+    <!-- DEPOSITS TAB -->
+    <div class="tab-content" id="tabDeposits">
+        <div class="stats-row">
+            <div class="stat-card"><div class="label">Total Deposits</div><div class="value" id="depTotal" style="color:var(--success)">0</div></div>
+            <div class="stat-card"><div class="label">Count</div><div class="value" id="depCount" style="color:var(--primary)">0</div></div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="depSearch" placeholder="Search by UID or tx hash..." oninput="filterDeposits()">
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Network</th><th>Tx Hash</th><th>Status</th></tr></thead><tbody id="depBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="depEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><br>No deposits found</div>
+        </div>
+    </div>
+
+    <!-- CONFIG TAB -->
+    <div class="tab-content" id="tabConfig">
+        <div class="config-grid">
+            <div class="config-card">
+                <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Maintenance Mode</h4>
+                <div class="config-row"><span class="cl">Status</span><span id="maintStatus" class="cv" style="color:var(--success)">Off</span></div>
+                <div class="config-row"><span class="cl">Message</span><span id="maintMsg" class="cv">-</span></div>
+                <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+                    <div class="toggle" id="maintToggle" onclick="toggleMaintenance()"></div>
+                    <span id="maintToggleLabel" style="font-size:11px;color:var(--text-dim)">Enable</span>
+                    <button class="btn btn-outline btn-sm" onclick="loadConfig()" style="margin-left:auto">&#x21bb;</button>
+                </div>
+            </div>
+            <div class="config-card">
+                <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Platform Config</h4>
+                <div class="config-row"><span class="cl">Withdrawal Fee</span><span class="cv">5%</span></div>
+                <div class="config-row"><span class="cl">Min Withdrawal</span><span class="cv">10 USDT</span></div>
+                <div class="config-row"><span class="cl">Auto-Process</span><span class="cv">10-50 USDT</span></div>
+                <div class="config-row"><span class="cl">Level 1 Commission</span><span class="cv">10%</span></div>
+                <div class="config-row"><span class="cl">Level 2 Commission</span><span class="cv">5%</span></div>
+                <div class="config-row"><span class="cl">Level 3 Commission</span><span class="cv">3%</span></div>
+            </div>
+            <div class="config-card">
+                <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Package Tiers</h4>
+                <div class="config-row"><span class="cl">Starter</span><span class="cv">$5 / 4x</span></div>
+                <div class="config-row"><span class="cl">Builder</span><span class="cv">$10 / 8x</span></div>
+                <div class="config-row"><span class="cl">Pioneer</span><span class="cv">$25 / 15x</span></div>
+                <div class="config-row"><span class="cl">Elite</span><span class="cv">$50 / 30x</span></div>
+                <div class="config-row"><span class="cl">Titan</span><span class="cv">$100 / 60x</span></div>
+                <div class="config-row"><span class="cl">Dominion</span><span class="cv">$250 / 120x</span></div>
+                <div class="config-row"><span class="cl">Legacy</span><span class="cv">$500 / 300x</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+    import { db,  initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc, collection, getDocs, query, orderBy, limit   } from "./supabase-adapter.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const API = localStorage.getItem('onc_api') ||
+        (location.hostname === 'localhost' || location.protocol === 'file:'
+            ? 'http://localhost:5000/api'
+            : 'https://onchyra-backend.onrender.com/api');
+
+    let commData = [], pkgData = [], depData = [];
+
+    function toast(msg, type) {
+        const wrap = document.getElementById('toastWrap');
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        wrap.appendChild(t);
+        setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(() => t.remove(),300); },3000);
+    }
+
+    function formatDate(ts) {
+        if (!ts) return '-';
+        const d = new Date(ts);
+        return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    }
+
+    function formatRelative(ts) {
+        if (!ts) return '-';
+        const s = Math.floor((Date.now()-ts)/1000);
+        if (s<60) return 'Just now';
+        if (s<3600) return Math.floor(s/60)+'m ago';
+        if (s<86400) return Math.floor(s/3600)+'h ago';
+        return Math.floor(s/86400)+'d ago';
+    }
+
+    function shortId(id) { return id ? id.slice(0,8)+'...' : '-'; }
+
+    // Tab switching
+    document.getElementById('tabBar').addEventListener('click', e => {
+        const tab = e.target.closest('.tab');
+        if (!tab) return;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab'+tab.dataset.tab.charAt(0).toUpperCase()+tab.dataset.tab.slice(1)).classList.add('active');
+    });
+
+    // ---- COMMISSIONS ----
+    async function loadCommissions() {
+        try {
+            const q = query(collection(db,'commissions'), orderBy('createdAt','desc'), limit(100));
+            const snap = await getDocs(q);
+            const users = {};
+            commData = [];
+            for (const d of snap.docs) {
+                const w = d.data();
+                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
+                if (w.fromUid && !users[w.fromUid]) { try { const u = await getDoc(doc(db,'users',w.fromUid)); users[w.fromUid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.fromUid]='?'; } }
+                commData.push({ ...w, userName: users[w.uid], fromName2: users[w.fromUid] || w.fromName || '?' });
+            }
+            filterCommissions();
+            // Stats
+            let total=0, pkgTotal=0, matchTotal=0;
+            commData.forEach(c => { total+=c.amount||0; if (c.type==='package_commission') pkgTotal+=c.amount||0; if (c.type==='matching_bonus') matchTotal+=c.amount||0; });
+            document.getElementById('commTotal').textContent = total.toFixed(2);
+            document.getElementById('commPackage').textContent = pkgTotal.toFixed(2);
+            document.getElementById('commMatching').textContent = matchTotal.toFixed(2);
+            document.getElementById('commCount').textContent = commData.length;
+        } catch(e) { console.error(e); }
+    }
+
+    window.filterCommissions = function() {
+        const term = document.getElementById('commSearch').value.toLowerCase();
+        const type = document.getElementById('commTypeFilter').value;
+        let filtered = commData;
+        if (term) filtered = filtered.filter(c => (c.uid||'').includes(term) || (c.userName||'').toLowerCase().includes(term) || (c.fromUid||'').includes(term) || (c.fromName2||'').toLowerCase().includes(term));
+        if (type) filtered = filtered.filter(c => c.type === type);
+        const body = document.getElementById('commBody');
+        const empty = document.getElementById('commEmpty');
+        if (!filtered.length) { body.innerHTML=''; empty.style.display='block'; return; }
+        empty.style.display='none';
+        body.innerHTML = filtered.map(c => `<tr>
+            <td style="white-space:nowrap">${formatRelative(c.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(c.createdAt)}</span></td>
+            <td><strong>${c.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(c.uid)}</span></td>
+            <td><span style="font-size:11px">${c.fromName2||'?'}</span><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(c.fromUid)}</span></td>
+            <td><span class="status ${c.type==='package_commission'?'completed':'processed'}">${c.type==='package_commission'?'Package':c.type==='registration_bonus'?'Registration':c.type==='matching_bonus'?'Matching':c.type||'Other'}</span></td>
+            <td>${c.level||'-'}</td>
+            <td style="font-family:'Space Grotesk';font-weight:700;color:var(--success)">${(c.amount||0).toFixed(2)}</td>
+        </tr>`).join('');
+    };
+
+    // ---- PACKAGES ----
+    async function loadPackages() {
+        try {
+            const q = query(collection(db,'packagePurchases'), orderBy('createdAt','desc'), limit(100));
+            const snap = await getDocs(q);
+            const users = {};
+            pkgData = [];
+            for (const d of snap.docs) {
+                const w = d.data();
+                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
+                pkgData.push({ ...w, userName: users[w.uid] });
+            }
+            filterPackages();
+            const vol = pkgData.reduce((s,p)=>s+(p.amount||0),0);
+            const unique = new Set(pkgData.map(p=>p.uid)).size;
+            document.getElementById('pkgCount').textContent = pkgData.length;
+            document.getElementById('pkgVolume').textContent = vol.toFixed(2);
+            document.getElementById('pkgUsers').textContent = unique;
+        } catch(e) { console.error(e); }
+    }
+
+    window.filterPackages = function() {
+        const term = document.getElementById('pkgSearch').value.toLowerCase();
+        let filtered = pkgData;
+        if (term) filtered = filtered.filter(p => (p.uid||'').includes(term) || (p.userName||'').toLowerCase().includes(term) || (p.name||'').toLowerCase().includes(term));
+        const body = document.getElementById('pkgBody');
+        const empty = document.getElementById('pkgEmpty');
+        if (!filtered.length) { body.innerHTML=''; empty.style.display='block'; return; }
+        empty.style.display='none';
+        body.innerHTML = filtered.map(p => `<tr>
+            <td style="white-space:nowrap">${formatRelative(p.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(p.createdAt)}</span></td>
+            <td><strong>${p.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(p.uid)}</span></td>
+            <td style="font-weight:600">${p.name||p.packageId||'-'}</td>
+            <td style="font-family:'Space Grotesk';font-weight:700">${(p.amount||0).toFixed(2)}</td>
+            <td>${(p.paid||p.amount||0).toFixed(2)}</td>
+            <td style="color:var(--primary);font-weight:700">${p.boost||'-'}x</td>
+        </tr>`).join('');
+    };
+
+    // ---- AUDIT ----
+    async function loadAudit() {
+        try {
+            const q = query(collection(db,'auditLogs'), orderBy('createdAt','desc'), limit(100));
+            const snap = await getDocs(q);
+            const users = {};
+            const list = [];
+            for (const d of snap.docs) {
+                const w = d.data();
+                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
+                list.push({ ...w, userName: users[w.uid] });
+            }
+            document.getElementById('auditCount').textContent = list.length;
+            document.getElementById('auditWithdrawals').textContent = list.filter(l=>l.type==='withdrawal').length;
+            const body = document.getElementById('auditBody');
+            const empty = document.getElementById('auditEmpty');
+            if (!list.length) { body.innerHTML=''; empty.style.display='block'; return; }
+            empty.style.display='none';
+            body.innerHTML = list.map(l => `<tr>
+                <td style="white-space:nowrap">${formatRelative(l.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(l.createdAt)}</span></td>
+                <td><span class="status processed">${l.type||'-'}</span></td>
+                <td><strong>${l.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(l.uid)}</span></td>
+                <td style="font-family:'Space Grotesk';font-weight:700">${(l.amount||0).toFixed(2)}</td>
+                <td><span class="status ${l.status||'pending'}">${l.status||'-'}</span></td>
+                <td style="font-size:10px;color:var(--text-dim);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block">${l.wallet||'-'}</td>
+            </tr>`).join('');
+        } catch(e) { console.error(e); }
+    }
+
+    // ---- DEPOSITS ----
+    async function loadDeposits() {
+        try {
+            const q = query(collection(db,'deposits'), orderBy('createdAt','desc'), limit(100));
+            const snap = await getDocs(q);
+            const users = {};
+            depData = [];
+            for (const d of snap.docs) {
+                const w = d.data();
+                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
+                depData.push({ ...w, userName: users[w.uid] });
+            }
+            filterDeposits();
+            const total = depData.reduce((s,d)=>s+(d.amount||0),0);
+            document.getElementById('depTotal').textContent = total.toFixed(2);
+            document.getElementById('depCount').textContent = depData.length;
+        } catch(e) { console.error(e); }
+    }
+
+    window.filterDeposits = function() {
+        const term = document.getElementById('depSearch').value.toLowerCase();
+        let filtered = depData;
+        if (term) filtered = filtered.filter(d => (d.uid||'').includes(term) || (d.userName||'').toLowerCase().includes(term) || (d.txHash||'').toLowerCase().includes(term));
+        const body = document.getElementById('depBody');
+        const empty = document.getElementById('depEmpty');
+        if (!filtered.length) { body.innerHTML=''; empty.style.display='block'; return; }
+        empty.style.display='none';
+        body.innerHTML = filtered.map(d => `<tr>
+            <td style="white-space:nowrap">${formatRelative(d.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(d.createdAt)}</span></td>
+            <td><strong>${d.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(d.uid)}</span></td>
+            <td style="font-family:'Space Grotesk';font-weight:700;color:var(--success)">${(d.amount||0).toFixed(2)}</td>
+            <td>${d.network||'BEP20'}</td>
+            <td><a href="https://bscscan.com/tx/${d.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;font-family:monospace">${shortId(d.txHash)}</a></td>
+            <td><span class="status completed">${d.status||'completed'}</span></td>
+        </tr>`).join('');
+    };
+
+    // ---- CONFIG ----
+    window.loadConfig = async function() {
+        try {
+            const snap = await getDoc(doc(db,'settings','maintenance'));
+            if (snap.exists()) {
+                const d = snap.data();
+                const on = d.enabled === true;
+                document.getElementById('maintToggle').className = 'toggle' + (on?' on':'');
+                document.getElementById('maintToggleLabel').textContent = on?'Enabled':'Disabled';
+                document.getElementById('maintStatus').textContent = on?'On':'Off';
+                document.getElementById('maintStatus').style.color = on?'var(--danger)':'var(--success)';
+                document.getElementById('maintMsg').textContent = d.message||'-';
+            }
+        } catch(e) { console.error('Config load error:', e); }
+    };
+
+    window.toggleMaintenance = async function() {
+        const toggle = document.getElementById('maintToggle');
+        const newState = !toggle.classList.contains('on');
+        try {
+            const res = await fetch(API+'/api/maintenance/toggle', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ enabled: newState })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error||'Failed');
+            toast('Maintenance '+(newState?'enabled':'disabled'), newState?'info':'success');
+            loadConfig();
+        } catch(e) { toast(e.message,'error'); }
+    };
+
+    window.handleLogout = function() {
+        signOut(auth);
+        window.location.replace('admin-login.html');
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.replace('admin-login.html'); return; }
+        try {
+            const adminSnap = await getDoc(doc(db,'admins',user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+                document.body.style.display = 'block';
+                return;
+            }
+            document.getElementById('adminBadge').textContent = user.email || 'Admin';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.body.style.display = 'block';
+            loadCommissions();
+            loadPackages();
+            loadAudit();
+            loadDeposits();
+            loadConfig();
+        } catch(e) { console.error(e); }
+    });
+</script>
+</body>
+</html>

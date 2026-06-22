@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deposit — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --bsc:#f0b90b; --pol:#8247e5; }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:20px 16px; }
+        .phone-frame { width:100%; max-width:480px; display:flex; flex-direction:column; gap:16px; position:relative; }
+        .header { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 16px; }
+        .back-btn { width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0;}
+        .logo { font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1;}
+        .bal { font-size:11px;font-weight:700;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15);padding:6px 14px;border-radius:100px;white-space:nowrap; }
+        .bal .num { font-family:'Space Grotesk';color:var(--primary); }
+        .section-title { font-family:'Space Grotesk';font-weight:800;font-size:22px;margin:4px 0 2px; }
+        .section-sub { font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px; }
+
+        .net-card { display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;cursor:pointer;transition:0.25s; }
+        .net-card:active { transform:scale(0.97); }
+        .net-card .n-icon { width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,0.04); }
+        .net-card .n-info { flex:1; }
+        .net-card .n-name { font-weight:800;font-size:15px; }
+        .net-card .n-desc { font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px; }
+        .net-card .n-arrow { color:rgba(255,255,255,0.2); }
+
+        /* Modal */
+        .overlay { position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:flex-end;justify-content:center;padding:20px;animation:fadeIn 0.25s; }
+        .overlay.show { display:flex; }
+        .modal { background:var(--bg);border:1px solid var(--border);border-radius:32px;padding:28px 24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp 0.35s;text-align:center; }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        @keyframes slideUp { from{transform:translateY(40px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+        @keyframes pulseRing { 0%{transform:scale(1);opacity:0.4;} 50%{transform:scale(1.15);opacity:0.1;} 100%{transform:scale(1);opacity:0.4;} }
+        .modal .m-badge { font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:4px 14px;border-radius:100px; }
+        .modal .m-badge.bsc { background:rgba(240,185,11,0.1);color:var(--bsc); }
+        .modal .m-badge.pol { background:rgba(130,71,229,0.1);color:var(--pol); }
+        .modal .m-address { font-size:11px;font-family:monospace;font-weight:600;color:rgba(255,255,255,0.6);word-break:break-all;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0; }
+        .modal .m-copy { padding:10px 24px;border:none;border-radius:12px;font-weight:800;font-size:12px;cursor:pointer; }
+        .modal .m-copy.bsc { background:var(--bsc);color:#000; }
+        .modal .m-copy.pol { background:var(--pol);color:#fff; }
+        .modal .m-warn { font-size:10px;color:rgba(239,68,68,0.6);padding:10px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.08);border-radius:10px;margin-top:10px;line-height:1.5; }
+        .modal .m-close { margin-top:16px;padding:10px;border:none;background:rgba(255,255,255,0.04);border-radius:10px;color:rgba(255,255,255,0.3);font-weight:700;font-size:11px;cursor:pointer;width:100%; }
+
+        /* History */
+        .dep-item { display:flex;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:6px;font-size:11px;align-items:center; }
+
+        .bal-hero { background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(96,165,250,0.05));border:1px solid rgba(167,139,250,0.12);border-radius:24px;padding:24px 20px;text-align:center;position:relative;overflow:hidden; }
+        .bal-hero::before { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(167,139,250,0.08);filter:blur(40px);pointer-events:none; }
+        .bal-hero .bal-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.25);margin-bottom:4px; }
+        .bal-hero .bal-amount { font-family:'Space Grotesk';font-weight:900;font-size:42px;background:linear-gradient(135deg,#fff 20%,rgba(167,139,250,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1; }
+        .bal-hero .bal-sub { font-size:11px;color:rgba(255,255,255,0.2);margin-top:6px; }
+        .toast { position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;animation:slideUp 0.3s;white-space:nowrap; }
+        .toast.success { background:var(--green);color:#000; }
+        .toast.error { background:#ef4444;color:white; }
+
+        .card { background:var(--card);border:1px solid var(--border);border-radius:22px;padding:16px; }
+    </style>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="header">
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="logo">ONCHYRA</div>
+    </div>
+
+    <div class="bal-hero">
+        <div class="bal-label">Available Balance</div>
+        <div class="bal-amount" id="walletBalance">$0.00</div>
+        <div class="bal-sub">Deposit to start mining</div>
+    </div>
+
+    <div class="section-title">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" style="vertical-align:-4px;margin-right:6px;color:var(--primary);"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="16 3 21 3 21 8"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Deposit Funds
+    </div>
+    <div class="section-sub">Choose a network to deposit</div>
+
+    <!-- BEP20 Card -->
+    <div class="net-card" onclick="openDeposit('BEP20')">
+        <div class="n-icon bsc">
+            <img src="https://cryptologos.cc/logos/bnb-bnb-logo.svg" alt="BNB" style="width:28px;height:28px;">
+        </div>
+        <div class="n-info">
+            <div class="n-name">USDT (BEP20)</div>
+            <div class="n-desc">Binance Smart Chain</div>
+        </div>
+        <svg class="n-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+
+    <!-- Polygon Card -->
+    <div class="net-card" onclick="openDeposit('Polygon')">
+        <div class="n-icon pol">
+            <img src="https://cryptologos.cc/logos/polygon-matic-logo.svg" alt="POL" style="width:28px;height:28px;">
+        </div>
+        <div class="n-info">
+            <div class="n-name">POL (Polygon)</div>
+            <div class="n-desc">Polygon Network</div>
+        </div>
+        <svg class="n-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="overlay" id="depositOverlay">
+        <div class="modal">
+            <div id="modalContent">
+                <div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">Generating address...</div>
+            </div>
+            <button class="m-close" onclick="closeDeposit()">Close</button>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div class="overlay" id="successOverlay">
+        <div class="modal" style="text-align:center;">
+            <div style="position:relative;width:80px;height:80px;margin:0 auto 16px;">
+                <div style="position:absolute;inset:0;border-radius:50%;background:rgba(34,197,94,0.12);animation:pulseRing 1.5s infinite;"></div>
+                <div style="position:absolute;inset:4px;border-radius:50%;background:rgba(34,197,94,0.2);display:flex;align-items:center;justify-content:center;">
+                    <svg width="36" height="36" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+            </div>
+            <div style="font-size:20px;font-weight:900;margin-bottom:4px;font-family:'Space Grotesk';">Deposit Successful</div>
+            <div id="successMsg" style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:6px;"></div>
+            <button class="m-close" onclick="closeSuccess()" style="margin-top:0;">Done</button>
+        </div>
+    </div>
+
+    <!-- Recent Deposits -->
+    <div class="card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.3);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Recent Deposits
+        </div>
+        <div id="depHistory"><div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div></div>
+    </div>
+
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, getDocs, collection, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid, currentNetwork = 'BEP20', currentAddress = null;
+const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
+
+function showToast(msg, isErr) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast' + (isErr ? ' error' : ' success');
+    t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 5000);
+}
+
+async function sha256(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+window.openDeposit = async (network) => {
+    currentNetwork = network;
+    const overlay = document.getElementById('depositOverlay');
+    overlay.classList.add('show');
+    const mc = document.getElementById('modalContent');
+    mc.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">Generating address...</div>';
+
+    try {
+        const resp = await fetch(API_BASE + '/api/deposit/create-wallet', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid, network })
+        });
+        const data = await resp.json();
+        if (!data.address) throw new Error(data.error || 'Failed');
+
+        currentAddress = data.address;
+        const isBsc = network === 'BEP20';
+        const badgeClass = isBsc ? 'bsc' : 'pol';
+        const badgeText = isBsc ? 'USDT (BEP20)' : 'POL (Polygon)';
+        const btnClass = isBsc ? 'bsc' : 'pol';
+
+        mc.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+                <div style="background:white;border-radius:16px;padding:12px;display:inline-block;margin-bottom:12px;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.address)}" alt="QR" style="width:200px;height:200px;display:block;">
+                </div>
+                <div class="m-badge ${badgeClass}" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 16px;margin-bottom:12px;">
+                    ${isBsc ? '<img src="https://cryptologos.cc/logos/bnb-bnb-logo.svg" style="width:14px;height:14px;">' : '<img src="https://cryptologos.cc/logos/polygon-matic-logo.svg" style="width:14px;height:14px;">'}
+                    ${badgeText}
+                </div>
+                <div class="m-address">${data.address}</div>
+                <button class="m-copy ${btnClass}" onclick="copyModalAddr()" style="display:block;margin:0 auto;">Copy Address</button>
+                <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:8px;">#${data.index} — ${network}</div>
+                <div class="m-warn">Send only ${isBsc ? 'USDT (BEP20)' : 'POL (Polygon)'}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px;" id="waitLabel">Waiting for deposit... (typically 1-5 min)</div>
+            </div>
+        `;
+
+        // Start listening for this deposit
+        listenForDeposit(data.address, network);
+    } catch(e) {
+        mc.innerHTML = '<div style="padding:40px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:16px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#ef4444;margin-bottom:8px;">Backend Offline</div><div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">Deposit system is temporarily unavailable.<br>Please try again in a few minutes.<br><br>Your funds are safe — any existing deposit<br>addresses will still work when the<br>service is restored.</div></div>';
+    }
+};
+
+window.closeDeposit = () => {
+    document.getElementById('depositOverlay').classList.remove('show');
+};
+
+window.closeSuccess = () => {
+    document.getElementById('successOverlay').classList.remove('show');
+};
+
+window.copyModalAddr = async () => {
+    if (!currentAddress) return;
+    try {
+        await navigator.clipboard.writeText(currentAddress);
+        const btn = document.querySelector('.m-copy');
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy Address', 2000); }
+    } catch(e) {}
+};
+
+function listenForDeposit(address, network) {
+    const q = query(collection(db, 'deposits'), where('uid', '==', uid), where('address', '==', address.toLowerCase()), limit(1));
+    onSnapshot(q, (snap) => {
+        snap.docChanges().forEach(change => {
+            if (change.type === 'added') {
+                const d = change.doc.data();
+                const symbol = d.network === 'Polygon' ? 'POL' : 'USDT';
+                let msg, icon;
+                if (symbol === 'POL') {
+                    msg = (d.polAmount || 0) + ' POL received';
+                    icon = 'https://cryptologos.cc/logos/polygon-matic-logo.svg';
+                } else {
+                    msg = '$' + d.amount.toFixed(2) + ' USDT received';
+                    icon = 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
+                }
+                document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
+                document.getElementById('successOverlay').classList.add('show');
+                const wl = document.getElementById('waitLabel');
+                if (wl) wl.textContent = '✅ Received';
+                loadDepHistory();
+            }
+        });
+    });
+}
+
+async function loadDepHistory() {
+    const container = document.getElementById('depHistory');
+    try {
+        const snap = await getDocs(query(collection(db, 'deposits'), where('uid', '==', uid), limit(20)));
+        if (snap.empty) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
+        let items = snap.docs.map(d => { return { id: d.id, ...d.data() }; });
+        items = items.filter(p => (p.amount || 0) > 0);
+        if (items.length === 0) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
+        items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        container.innerHTML = items.map(p => {
+            const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-';
+            const symbol = p.network === 'Polygon' ? 'POL' : 'USDT';
+            const logo = p.network === 'Polygon' ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
+            let label;
+            if (symbol === 'POL') {
+                label = p.polAmount + ' POL';
+            } else {
+                label = '$' + (p.amount || 0).toFixed(2) + ' USDT';
+            }
+            const statusColor = p.status === 'completed' ? '#22c55e' : '#fbbf24';
+            return `<div class="dep-item"><span><img src="${logo}" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;">${label} <span style="opacity:0.3">${date}</span></span><span style="color:${statusColor};font-weight:700;">${p.status || 'pending'}</span></div>`;
+        }).join('');
+    } catch(e) {
+        console.error('[Deposit] History error:', e);
+        container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>';
+    }
+}
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { window.location = 'register.html'; return; }
+    uid = user.uid;
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) { window.location = 'register.html'; return; }
+    const data = snap.data();
+    document.getElementById('walletBalance').textContent = '$' + (data.walletBalance || 0).toFixed(2);
+    loadDepHistory();
+});
+</script>
+</body>
+</html>

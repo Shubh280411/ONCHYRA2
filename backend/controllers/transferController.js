@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const pg = require('../config/pg');
 
 exports.send = async (req, res) => {
     try {
@@ -7,31 +6,31 @@ exports.send = async (req, res) => {
         if (!fromUid || !referralCode || !amount) return res.status(400).json({ error: 'Missing fields' });
         if (amount < 1) return res.status(400).json({ error: 'Minimum transfer is 1 ONC' });
 
-        const senderSnap = await db.doc(`users/${fromUid}`).get();
-        if (!senderSnap.exists) return res.status(404).json({ error: 'Sender not found' });
-        const sender = senderSnap.data();
+        const sender = await pg.get('users', fromUid);
+        if (!sender) return res.status(404).json({ error: 'Sender not found' });
 
         if ((sender.balance || 0) < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
-        const receiverSnap = await db.collection('users').where('referralCode', '==', referralCode.toUpperCase()).limit(1).get();
-        if (receiverSnap.empty) return res.status(404).json({ error: 'Receiver not found' });
-        const receiverDoc = receiverSnap.docs[0];
-        const receiver = receiverDoc.data();
+        const receivers = await pg.findWhere('users', { referral_code: referralCode.toUpperCase() });
+        if (!receivers.length) return res.status(404).json({ error: 'Receiver not found' });
+        const receiver = receivers[0];
 
-        if (receiverDoc.id === fromUid) return res.status(400).json({ error: 'Cannot send to yourself' });
+        if (receiver.uid === fromUid) return res.status(400).json({ error: 'Cannot send to yourself' });
 
         const burn = Math.round(amount * 0.1 * 100) / 100;
         const net = Math.round((amount - burn) * 100) / 100;
 
-        const batch = db.batch();
-        batch.update(db.doc(`users/${fromUid}`), { balance: admin.firestore.FieldValue.increment(-amount) });
-        batch.update(db.doc(`users/${receiverDoc.id}`), { balance: admin.firestore.FieldValue.increment(net) });
-        batch.create(db.collection('allTransfers').doc(), {
-            fromUid, toUid: receiverDoc.id,
-            fromCode: sender.referralCode || '?', toCode: referralCode.toUpperCase(),
-            grossAmount: amount, burn, netAmount: net, createdAt: Date.now()
-        });
-        await batch.commit();
+        await pg.increment('users', fromUid, 'balance', -amount);
+        await pg.increment('users', receiver.uid, 'balance', net);
+
+        await pg.query(
+            `INSERT INTO p2p_transfers (id, from_uid, to_uid, from_code, to_code, from_name, to_name, gross_amount, burn, net_amount, status, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'completed', $11)`,
+            ['trf_' + fromUid + '_' + Date.now(), fromUid, receiver.uid,
+             sender.referral_code || '?', referralCode.toUpperCase(),
+             sender.name || '?', receiver.name || '?',
+             amount, burn, net, Date.now()]
+        );
 
         res.json({ success: true, amount, burn, received: net });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -39,16 +38,15 @@ exports.send = async (req, res) => {
 
 exports.adminGetAll = async (req, res) => {
     try {
-        const snap = await db.collection('allTransfers').orderBy('createdAt', 'desc').limit(100).get();
+        const rows = await pg.query(`SELECT * FROM p2p_transfers ORDER BY created_at DESC LIMIT 100`);
         const transfers = [];
-        for (const d of snap.docs) {
-            const t = d.data();
-            const fromSnap = await db.doc(`users/${t.fromUid}`).get();
-            const toSnap = await db.doc(`users/${t.toUid}`).get();
+        for (const t of rows.rows) {
+            const fromUser = await pg.get('users', t.from_uid);
+            const toUser = await pg.get('users', t.to_uid);
             transfers.push({
-                id: d.id, ...t,
-                fromName: fromSnap.exists ? (fromSnap.data().name || fromSnap.data().referralCode) : '?',
-                toName: toSnap.exists ? (toSnap.data().name || toSnap.data().referralCode) : '?',
+                ...t,
+                fromName: fromUser ? (fromUser.name || fromUser.referral_code) : '?',
+                toName: toUser ? (toUser.name || toUser.referral_code) : '?',
             });
         }
         res.json(transfers);

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Device Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #05060f; --card: #161b22; --border: rgba(255,255,255,0.08); --primary: #a78bfa; --secondary: #60a5fa; --danger: #ef4444; --success: #22c55e; --info: #3b82f6; --text: rgba(255,255,255,0.7); --text-dim: rgba(255,255,255,0.35); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 20px; margin: 0; min-height:100vh; background-image: radial-gradient(ellipse at 20% 0%, rgba(167,139,250,0.06) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(96,165,250,0.04) 0%, transparent 50%); }
+
+        .container { max-width: 1100px; margin: auto; }
+
+        .header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; margin-bottom:20px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; }
+        .header-left { display:flex; align-items:center; gap:14px; }
+        .header-logo { width:42px; height:42px; background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-weight:900; font-size:18px; color:#000; }
+        .header-title { font-family:'Space Grotesk'; font-weight:800; font-size:18px; }
+        .header-title span { color:var(--primary); }
+        .header-nav { display:flex; gap:8px; flex-wrap:wrap; }
+        .header-nav a { padding:8px 14px; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; color:var(--text); transition:0.2s; background:rgba(255,255,255,0.03); border:1px solid transparent; }
+        .header-nav a:hover, .header-nav a.active { background:rgba(167,139,250,0.1); color:var(--primary); border-color:rgba(167,139,250,0.2); }
+
+        .page-title { font-family:'Space Grotesk'; font-size:24px; font-weight:800; margin:0 0 20px; display:flex; align-items:center; gap:10px; }
+        .page-title .sub { font-size:12px; font-weight:600; color:var(--text-dim); font-family:'Inter'; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 10px; font-weight:700; text-transform: uppercase; letter-spacing:1px; color: var(--text-dim); }
+        .stat-card p { margin: 5px 0 0; font-family:'Space Grotesk'; font-size: 26px; font-weight: 800; }
+
+        .search-area { margin-bottom: 16px; }
+        .search-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; font-size: 14px; font-family: 'Inter'; outline: none; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(167, 139, 250, 0.15); }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        .table-container { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(255,255,255,0.02); padding: 14px 16px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); border-bottom: 1px solid var(--border); }
+        td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+
+        .row-duplicate { background: rgba(239, 68, 68, 0.06); border-left: 3px solid var(--danger); }
+        .row-safe { background: rgba(59, 130, 246, 0.06); border-left: 3px solid var(--info); }
+        .row-banned { opacity: 0.4; background: #000; }
+
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; display: inline-block; }
+        .badge-red { background: rgba(239,68,68,0.12); color: var(--danger); }
+        .badge-green { background: rgba(34,197,94,0.12); color: var(--success); }
+        .badge-blue { background: rgba(59,130,246,0.12); color: var(--info); }
+        .badge-gray { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+        .btn { border: none; padding: 7px 14px; border-radius: 8px; color: white; cursor: pointer; font-weight: 700; font-size: 11px; margin-right: 4px; transition: 0.2s; }
+        .btn-ban { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .btn-ban:hover { background: rgba(239,68,68,0.25); }
+        .btn-safe { background: rgba(59,130,246,0.15); color: var(--info); }
+        .btn-safe:hover { background: rgba(59,130,246,0.25); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        code { background: rgba(255,255,255,0.04); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; color: #e5c07b; }
+
+        .empty-state { text-align:center; padding:50px; color:var(--text-dim); font-size:13px; }
+
+        @media (max-width:768px) {
+            .header { flex-direction:column; gap:12px; align-items:stretch; }
+            .header-nav { flex-wrap:wrap; }
+            td, th { padding:10px 8px; font-size:12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">O</div>
+            <div class="header-title">ONCHYRA <span>Admin</span></div>
+        </div>
+        <div class="header-nav">
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-user-panel.html">Users</a>
+            <a href="admin-transfers.html">Transfers</a>
+            <a href="#" class="active">Devices</a>
+            <a href="dashboard.html" style="color:var(--danger);">Exit</a>
+        </div>
+    </div>
+
+    <div class="page-title">
+        Device Monitor
+        <span class="sub">Detect duplicate accounts by device ID</span>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><h3>Total Users</h3><p id="statTotal" style="color:var(--primary);">0</p></div>
+        <div class="stat-card"><h3>Suspected Duplicates</h3><p id="statDupes" style="color:var(--danger);">0</p></div>
+        <div class="stat-card"><h3>Marked Safe</h3><p id="statSafe" style="color:var(--info);">0</p></div>
+    </div>
+
+    <div class="search-area">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by email or device ID...">
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>User / Email</th>
+                    <th>Device ID</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <tr><td colspan="4" class="empty-state">Verifying admin access...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let usersMasterList = [];
+    let deviceCounts = {};
+
+    // ── Admin Auth Check ──
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            document.getElementById("userTable").innerHTML = '<tr><td colspan="4" class="empty-state"><a href="login.html" style="color:var(--primary);font-weight:700;">Sign in required</a></td></tr>';
+            return;
+        }
+        try {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;"><div style="font-size:40px;margin-bottom:16px;">&#x1f512;</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;margin-top:8px;font-size:14px;">Admin privileges required.</p></div>';
+                return;
+            }
+            loadData();
+        } catch (e) {
+            console.error(e);
+            document.getElementById("userTable").innerHTML = '<tr><td colspan="4" class="empty-state">Error verifying admin access</td></tr>';
+        }
+    });
+
+    // ── Load users ──
+    async function loadData() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            usersMasterList = [];
+            deviceCounts = {};
+
+            querySnapshot.forEach((d) => {
+                const data = d.data();
+                const user = { 
+                    id: d.id, 
+                    ...data,
+                    isSafe: data.isSafe === true, 
+                    banned: data.banned === true 
+                };
+                usersMasterList.push(user);
+
+                if (!user.isSafe) {
+                    const dId = user.deviceId || "Unknown";
+                    deviceCounts[dId] = (deviceCounts[dId] || 0) + 1;
+                }
+            });
+
+            renderTable();
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            document.getElementById("userTable").innerHTML = `<tr><td colspan="4" class="empty-state" style="color:var(--danger);">Error: ${err.message}</td></tr>`;
+        }
+    }
+
+    // ── Render ──
+    function renderTable(filterText = "") {
+        const tbody = document.getElementById("userTable");
+        tbody.innerHTML = "";
+        
+        let dupeCounter = 0;
+        let safeCounter = 0;
+
+        const searchStr = filterText.toLowerCase();
+        const filtered = usersMasterList.filter(u => {
+            return (u.email || '').toLowerCase().includes(searchStr) || 
+                   (u.deviceId || '').toLowerCase().includes(searchStr);
+        });
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users found</td></tr>';
+            document.getElementById("statTotal").innerText = usersMasterList.length;
+            document.getElementById("statDupes").innerText = '0';
+            document.getElementById("statSafe").innerText = '0';
+            return;
+        }
+
+        filtered.forEach(user => {
+            const dId = user.deviceId || "Unknown";
+            const isDuplicate = deviceCounts[dId] > 1 && !user.isSafe;
+            
+            if(isDuplicate) dupeCounter++;
+            if(user.isSafe) safeCounter++;
+
+            const tr = document.createElement("tr");
+            if(isDuplicate) tr.className = "row-duplicate";
+            else if(user.banned) tr.className = "row-banned";
+            else if(user.isSafe) tr.className = "row-safe";
+
+            let statusBadge = '<span class="badge badge-green">SINGLE</span>';
+            if(user.banned) statusBadge = '<span class="badge badge-red">BANNED</span>';
+            else if(user.isSafe) statusBadge = '<span class="badge badge-blue">TRUSTED</span>';
+            else if(isDuplicate) statusBadge = '<span class="badge badge-red">DUPLICATE</span>';
+
+            tr.innerHTML = `
+                <td>
+                    <b style="font-size:13px;">${escHtml(user.email || 'No Email')}</b><br>
+                    <small style="color:var(--text-dim);font-size:10px;">UID: ${user.id}</small>
+                </td>
+                <td><code>${escHtml(dId.slice(0, 8))}...${escHtml(dId.slice(-4))}</code></td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-ban" data-uid="${user.id}" data-action="ban" ${user.banned ? 'disabled' : ''}>Ban</button>
+                    <button class="btn btn-safe" data-uid="${user.id}" data-action="safe" ${user.isSafe ? 'disabled' : ''}>Safe</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Attach event listeners (no inline onclick)
+        tbody.querySelectorAll('.btn-ban').forEach(b => b.addEventListener('click', () => userAction(b.dataset.uid, 'ban')));
+        tbody.querySelectorAll('.btn-safe').forEach(b => b.addEventListener('click', () => userAction(b.dataset.uid, 'safe')));
+
+        document.getElementById("statTotal").innerText = usersMasterList.length;
+        document.getElementById("statDupes").innerText = dupeCounter;
+        document.getElementById("statSafe").innerText = safeCounter;
+    }
+
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    // ── Search ──
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+        renderTable(e.target.value);
+    });
+
+    // ── Ban / Safe ──
+    async function userAction(uid, type) {
+        const userRef = doc(db, "users", uid);
+        const actionText = type === 'ban' ? "Ban this user?" : "Mark this user as SAFE?";
+        
+        if(!confirm(actionText)) return;
+
+        try {
+            const updateData = type === 'ban' ? { banned: true } : { isSafe: true };
+            await updateDoc(userRef, updateData);
+            loadData();
+        } catch (error) {
+            console.error("Action Error:", error);
+            alert("Action failed. Check Firestore rules.");
+        }
+    }
+</script>
+
+</body>
+</html>

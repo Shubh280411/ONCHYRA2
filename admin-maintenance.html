@@ -83,21 +83,17 @@ textarea { resize:vertical; min-height:80px; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp   } from "./supabase-adapter.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
-const db = {};
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 let currentData = {};
 
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
   try {
-    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
-      window.location = 'dashboard.html';
-      return;
-    }
+    const r = await fetch(API + '/admin/check', { headers: { 'x-auth-uid': user.uid } });
+    if (!r.ok) { window.location = 'dashboard.html'; return; }
   } catch(e) { window.location = 'dashboard.html'; return; }
   loadMaint();
 });
@@ -106,13 +102,6 @@ function showToast(m) {
   const t = document.getElementById('toast');
   t.textContent = m; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function toMillis(ts) {
-  if (!ts) return 0;
-  if (typeof ts === 'object' && ts.toMillis) return ts.toMillis();
-  if (typeof ts === 'number') return ts;
-  return Date.parse(ts) || 0;
 }
 
 function toLocalDatetime(ts) {
@@ -124,35 +113,34 @@ function toLocalDatetime(ts) {
 
 async function loadMaint() {
   try {
-    const snap = await getDoc(doc(db, 'settings', 'maintenance'));
-    if (snap.exists()) {
-      currentData = snap.data();
-      const enabled = currentData.enabled || false;
-      const badge = document.getElementById('statusBadge');
-      const btn = document.getElementById('toggleBtn');
-      if (enabled) {
-        badge.className = 'status-badge status-on';
-        badge.innerHTML = '<span class="dot dot-on"></span> Maintenance ON';
-        btn.className = 'btn btn-danger';
-        btn.textContent = 'Disable';
-      } else {
-        badge.className = 'status-badge status-off';
-        badge.innerHTML = '<span class="dot dot-off"></span> Maintenance OFF';
-        btn.className = 'btn btn-success';
-        btn.textContent = 'Enable';
-      }
-      if (currentData.message) {
-        document.getElementById('maintMsg').value = currentData.message;
-        document.getElementById('previewMsg').textContent = currentData.message;
-      }
-      if (currentData.endAt) {
-        document.getElementById('endDatetime').value = toLocalDatetime(toMillis(currentData.endAt));
-      } else if (currentData.startedAt && currentData.durationHours) {
-        const endTs = toMillis(currentData.startedAt) + (currentData.durationHours * 3600000);
-        document.getElementById('endDatetime').value = toLocalDatetime(endTs);
-      }
-      updatePreview();
+    const r = await fetch(API + '/maintenance');
+    if (!r.ok) return;
+    currentData = await r.json();
+    const enabled = currentData.enabled || false;
+    const badge = document.getElementById('statusBadge');
+    const btn = document.getElementById('toggleBtn');
+    if (enabled) {
+      badge.className = 'status-badge status-on';
+      badge.innerHTML = '<span class="dot dot-on"></span> Maintenance ON';
+      btn.className = 'btn btn-danger';
+      btn.textContent = 'Disable';
+    } else {
+      badge.className = 'status-badge status-off';
+      badge.innerHTML = '<span class="dot dot-off"></span> Maintenance OFF';
+      btn.className = 'btn btn-success';
+      btn.textContent = 'Enable';
     }
+    if (currentData.message) {
+      document.getElementById('maintMsg').value = currentData.message;
+      document.getElementById('previewMsg').textContent = currentData.message;
+    }
+    if (currentData.endAt) {
+      document.getElementById('endDatetime').value = toLocalDatetime(currentData.endAt);
+    } else if (currentData.startedAt && currentData.durationHours) {
+      const endTs = currentData.startedAt + (currentData.durationHours * 3600000);
+      document.getElementById('endDatetime').value = toLocalDatetime(endTs);
+    }
+    updatePreview();
   } catch(e) { showToast('Error loading: ' + e.message); }
 }
 
@@ -185,21 +173,32 @@ document.getElementById('maintMsg').addEventListener('input', function() {
 
 window.toggleMaintenance = async () => {
   const enabled = !currentData.enabled;
-  const updates = { enabled };
   if (enabled) {
     const val = document.getElementById('endDatetime').value;
     if (!val) { showToast('Please set an end date & time first!'); return; }
     const endMs = new Date(val).getTime();
     const now = Date.now();
     if (endMs <= now) { showToast('End time must be in the future!'); return; }
-    const durationHours = (endMs - now) / 3600000;
-    updates.startedAt = serverTimestamp();
-    updates.durationHours = durationHours;
-    updates.endAt = endMs;
-    updates.message = document.getElementById('maintMsg').value.trim() || 'We are currently performing scheduled maintenance to improve your experience. Please check back shortly.';
+    try {
+      const r = await fetch(API + '/maintenance/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: true, endAt: endMs, message: document.getElementById('maintMsg').value.trim() })
+      });
+      if (!r.ok) throw new Error((await r.json()).error || 'Failed');
+      showToast('Maintenance ENABLED');
+    } catch(e) { showToast(e.message); }
+  } else {
+    try {
+      const r = await fetch(API + '/maintenance/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: false })
+      });
+      if (!r.ok) throw new Error((await r.json()).error || 'Failed');
+      showToast('Maintenance DISABLED');
+    } catch(e) { showToast(e.message); }
   }
-  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
-  showToast(enabled ? 'Maintenance ENABLED' : 'Maintenance DISABLED');
   loadMaint();
 };
 
@@ -208,11 +207,17 @@ window.saveSettings = async () => {
   const val = document.getElementById('endDatetime').value;
   const updates = { message: msg };
   if (val) {
-    const endMs = new Date(val).getTime();
-    updates.endAt = endMs;
+    updates.endAt = new Date(val).getTime();
   }
-  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
-  showToast('Settings saved!');
+  try {
+    const r = await fetch(API + '/maintenance/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: currentData.enabled, ...updates })
+    });
+    if (!r.ok) throw new Error((await r.json()).error || 'Failed');
+    showToast('Settings saved!');
+  } catch(e) { showToast(e.message); }
   loadMaint();
 };
 </script>

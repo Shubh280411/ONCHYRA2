@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ONCHYRA — Maintenance Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:white; padding:24px; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+.container { max-width:480px; width:100%; }
+h1 { font-family:'Space Grotesk'; font-weight:900; font-size:24px; text-align:center; margin-bottom:24px; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px; margin-bottom:16px; }
+label { display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.3); margin-bottom:6px; }
+.input, textarea, select { width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:white; font-family:'Inter',sans-serif; font-size:13px; outline:none; }
+.input:focus, textarea:focus { border-color:var(--primary); }
+textarea { resize:vertical; min-height:80px; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:10px 24px; border-radius:10px; border:none; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+.btn-primary { background:var(--primary); color:white; }
+.btn-primary:hover { opacity:0.85; }
+.btn-danger { background:rgba(239,68,68,0.15); color:#ef4444; }
+.btn-success { background:rgba(34,197,94,0.15); color:#22c55e; }
+.btn-group { display:flex; gap:10px; margin-top:16px; }
+.status-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:6px 14px; border-radius:100px; }
+.status-on { background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.15); }
+.status-off { background:rgba(34,197,94,0.1); color:#22c55e; border:1px solid rgba(34,197,94,0.15); }
+.dot { width:6px; height:6px; border-radius:50%; }
+.dot-on { background:#ef4444; animation:pulse 1.5s infinite; }
+.dot-off { background:#22c55e; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); padding:12px 24px; border-radius:12px; font-size:13px; font-weight:600; border:1px solid var(--border); opacity:0; transition:opacity .3s; pointer-events:none; z-index:999; }
+.toast.show { opacity:1; }
+.back-link { display:inline-flex; align-items:center; gap:6px; color:rgba(255,255,255,0.3); text-decoration:none; font-size:12px; font-weight:600; margin-bottom:20px; }
+.back-link:hover { color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="container">
+<a href="admin.html" class="back-link"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back to Admin</a>
+<h1>Maintenance Control</h1>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div>
+      <div style="font-weight:700;font-size:14px;">Status</div>
+      <div id="statusBadge" class="status-badge status-off" style="margin-top:6px;"><span class="dot dot-off"></span> Loading...</div>
+    </div>
+    <button id="toggleBtn" class="btn btn-success" onclick="toggleMaintenance()">Enable</button>
+  </div>
+</div>
+
+<div class="card">
+  <label>End Date & Time</label>
+  <input type="datetime-local" id="endDatetime" class="input" style="width:100%;color-scheme:dark;">
+  <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.2);margin-top:6px;">Set the exact date & time when maintenance should end</div>
+</div>
+
+<div class="card">
+  <label>Message</label>
+  <textarea id="maintMsg" placeholder="Message shown to users during maintenance...">We are currently performing scheduled maintenance to improve your experience. Please check back shortly.</textarea>
+</div>
+
+<div class="card">
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="saveSettings()" style="flex:1;">Save Settings</button>
+  </div>
+</div>
+
+<div class="card">
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.3);margin-bottom:12px;">Preview</div>
+  <div style="background:var(--bg);border-radius:16px;padding:24px;text-align:center;border:1px solid var(--border);">
+    <div style="font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">ONCHYRA</div>
+    <div style="font-size:16px;font-weight:800;margin:12px 0 6px;">Under Maintenance</div>
+    <div id="previewMsg" style="font-size:12px;color:rgba(255,255,255,0.5);">We are currently performing scheduled maintenance...</div>
+    <div id="previewTimer" style="font-size:11px;font-weight:700;color:var(--primary);margin-top:8px;"></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "./supabase-adapter.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+let currentData = {};
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location = 'admin-login.html'; return; }
+  try {
+    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+      window.location = 'dashboard.html';
+      return;
+    }
+  } catch(e) { window.location = 'dashboard.html'; return; }
+  loadMaint();
+});
+
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function toMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts === 'object' && ts.toMillis) return ts.toMillis();
+  if (typeof ts === 'number') return ts;
+  return Date.parse(ts) || 0;
+}
+
+function toLocalDatetime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+async function loadMaint() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'maintenance'));
+    if (snap.exists()) {
+      currentData = snap.data();
+      const enabled = currentData.enabled || false;
+      const badge = document.getElementById('statusBadge');
+      const btn = document.getElementById('toggleBtn');
+      if (enabled) {
+        badge.className = 'status-badge status-on';
+        badge.innerHTML = '<span class="dot dot-on"></span> Maintenance ON';
+        btn.className = 'btn btn-danger';
+        btn.textContent = 'Disable';
+      } else {
+        badge.className = 'status-badge status-off';
+        badge.innerHTML = '<span class="dot dot-off"></span> Maintenance OFF';
+        btn.className = 'btn btn-success';
+        btn.textContent = 'Enable';
+      }
+      if (currentData.message) {
+        document.getElementById('maintMsg').value = currentData.message;
+        document.getElementById('previewMsg').textContent = currentData.message;
+      }
+      if (currentData.endAt) {
+        document.getElementById('endDatetime').value = toLocalDatetime(toMillis(currentData.endAt));
+      } else if (currentData.startedAt && currentData.durationHours) {
+        const endTs = toMillis(currentData.startedAt) + (currentData.durationHours * 3600000);
+        document.getElementById('endDatetime').value = toLocalDatetime(endTs);
+      }
+      updatePreview();
+    }
+  } catch(e) { showToast('Error loading: ' + e.message); }
+}
+
+function updatePreview() {
+  const val = document.getElementById('endDatetime').value;
+  if (!val) {
+    document.getElementById('previewTimer').textContent = 'No end time set';
+    return;
+  }
+  const endMs = new Date(val).getTime();
+  const now = Date.now();
+  const diff = endMs - now;
+  if (diff <= 0) {
+    document.getElementById('previewTimer').textContent = 'End time is in the past!';
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hrs = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  let label = '';
+  if (days > 0) label += days + 'd ';
+  label += hrs + 'h ' + mins + 'm';
+  document.getElementById('previewTimer').textContent = 'Ends in ' + label;
+}
+
+document.getElementById('endDatetime').addEventListener('change', updatePreview);
+document.getElementById('maintMsg').addEventListener('input', function() {
+  document.getElementById('previewMsg').textContent = this.value || 'We are currently performing scheduled maintenance...';
+});
+
+window.toggleMaintenance = async () => {
+  const enabled = !currentData.enabled;
+  const updates = { enabled };
+  if (enabled) {
+    const val = document.getElementById('endDatetime').value;
+    if (!val) { showToast('Please set an end date & time first!'); return; }
+    const endMs = new Date(val).getTime();
+    const now = Date.now();
+    if (endMs <= now) { showToast('End time must be in the future!'); return; }
+    const durationHours = (endMs - now) / 3600000;
+    updates.startedAt = serverTimestamp();
+    updates.durationHours = durationHours;
+    updates.endAt = endMs;
+    updates.message = document.getElementById('maintMsg').value.trim() || 'We are currently performing scheduled maintenance to improve your experience. Please check back shortly.';
+  }
+  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
+  showToast(enabled ? 'Maintenance ENABLED' : 'Maintenance DISABLED');
+  loadMaint();
+};
+
+window.saveSettings = async () => {
+  const msg = document.getElementById('maintMsg').value.trim();
+  const val = document.getElementById('endDatetime').value;
+  const updates = { message: msg };
+  if (val) {
+    const endMs = new Date(val).getTime();
+    updates.endAt = endMs;
+  }
+  await setDoc(doc(db, 'settings', 'maintenance'), updates, { merge: true });
+  showToast('Settings saved!');
+  loadMaint();
+};
+</script>
+</body>
+</html>

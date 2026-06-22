@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #fbbf24;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            display: none;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(167,139,250,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(96,165,250,0.04) 0%, transparent 50%);
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 80px; }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            margin-bottom: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-left { display: flex; align-items: center; gap: 14px; }
+
+        .header-logo {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900; font-size: 18px; color: #000;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px; font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .header-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+        .logout-btn {
+            padding: 10px 18px; border: none; border-radius: 14px;
+            background: rgba(239,68,68,0.1); color: var(--danger);
+            font-weight: 700; font-size: 12px; cursor: pointer;
+            transition: 0.2s; border: 1px solid rgba(239,68,68,0.15);
+        }
+
+        .logout-btn:hover { background: rgba(239,68,68,0.2); }
+
+        /* STATS ROW */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover { border-color: rgba(167,139,250,0.2); background: var(--card-hover); }
+
+        .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 700; }
+        .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 800; margin-top: 6px; }
+        .stat-value.purple { color: var(--primary); }
+        .stat-value.blue { color: var(--secondary); }
+        .stat-value.green { color: var(--success); }
+        .stat-value.yellow { color: var(--warning); }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-dim);
+            border: none;
+            background: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab.active { background: rgba(167,139,250,0.15); color: var(--primary); }
+        .tab:hover:not(.active) { color: var(--text); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* SEARCH */
+        .search-wrap { position: relative; margin-bottom: 16px; }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 48px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        .search-icon {
+            position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+            color: var(--text-dim); pointer-events: none;
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0; width: 100%;
+            background: #0d0f1e;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .search-result-item {
+            padding: 14px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover { background: rgba(167,139,250,0.08); }
+
+        .sr-avatar {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(96,165,250,0.15));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800; font-size: 16px; color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .sr-info { flex: 1; min-width: 0; }
+        .sr-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sr-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .sr-badge {
+            padding: 4px 10px; border-radius: 8px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; flex-shrink: 0;
+        }
+
+        .badge-active { background: rgba(34,197,94,0.12); color: var(--success); border: 1px solid rgba(34,197,94,0.2); }
+        .badge-banned { background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+
+        /* USER PROFILE CARD */
+        .profile-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+        .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+
+        .profile-avatar {
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900; font-size: 24px; color: #000;
+            flex-shrink: 0;
+        }
+
+        .profile-name { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 800; }
+        .profile-ref { font-size: 12px; color: var(--warning); font-weight: 700; margin-top: 4px; letter-spacing: 1px; }
+
+        .profile-status { margin-left: auto; }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 700; }
+        .detail-value { font-size: 15px; font-weight: 700; margin-top: 6px; word-break: break-all; }
+        .detail-value.highlight { color: var(--success); font-family: 'Space Grotesk', sans-serif; font-size: 18px; }
+
+        .ref-levels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .ref-level {
+            text-align: center;
+            background: rgba(167,139,250,0.04);
+            border: 1px solid rgba(167,139,250,0.08);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .ref-level-num { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--primary); }
+        .ref-level-label { font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* ACTION PANELS */
+        .action-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .action-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-title-icon {
+            width: 30px; height: 30px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+
+        .action-title-icon.purple { background: rgba(167,139,250,0.15); color: var(--primary); }
+        .action-title-icon.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+        .amount-input-wrap { position: relative; margin-bottom: 14px; }
+
+        .amount-input {
+            width: 100%;
+            padding: 16px 50px 16px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .amount-input:focus { border-color: var(--primary); }
+        .amount-input::placeholder { color: var(--text-dim); }
+
+        .amount-suffix {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            font-size: 12px; font-weight: 800; color: var(--text-dim);
+        }
+
+        .quick-amounts { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+        .quick-amt-btn {
+            padding: 8px 16px; border: 1px solid var(--border); border-radius: 10px;
+            background: rgba(255,255,255,0.03); color: var(--text);
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+
+        .quick-amt-btn:hover { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2); color: var(--primary); }
+
+        .action-btns { display: flex; gap: 10px; }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-add { background: linear-gradient(135deg, var(--success), #16a34a); color: #fff; }
+        .btn-add:hover { box-shadow: 0 4px 15px rgba(34,197,94,0.3); transform: translateY(-1px); }
+
+        .btn-remove { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.15); }
+        .btn-remove:hover { background: rgba(239,68,68,0.2); }
+
+        .btn-ban { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.15); }
+        .btn-ban:hover { background: rgba(239,68,68,0.2); }
+
+        .btn-unban { background: linear-gradient(135deg, var(--success), #16a34a); color: #fff; }
+        .btn-unban:hover { box-shadow: 0 4px 15px rgba(34,197,94,0.3); transform: translateY(-1px); }
+
+        /* TRANSACTION HISTORY */
+        .tx-list { max-height: 500px; overflow-y: auto; }
+
+        .tx-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            transition: 0.15s;
+        }
+
+        .tx-item:hover { background: var(--card-hover); }
+
+        .tx-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .tx-icon.add { background: rgba(34,197,94,0.12); color: var(--success); }
+        .tx-icon.remove { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+        .tx-info { flex: 1; min-width: 0; }
+        .tx-user { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tx-date { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .tx-amount { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 15px; text-align: right; }
+        .tx-amount.add { color: var(--success); }
+        .tx-amount.remove { color: var(--danger); }
+
+        .tx-empty { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+        .tx-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.3; }
+
+        /* TOAST */
+        .toast-wrap {
+            position: fixed;
+            bottom: 30px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+
+        .toast {
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            backdrop-filter: blur(20px);
+        }
+
+        .toast.success { background: rgba(34,197,94,0.9); color: white; border: 1px solid rgba(34,197,94,0.3); }
+        .toast.error { background: rgba(239,68,68,0.9); color: white; border: 1px solid rgba(239,68,68,0.3); }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+
+        /* LOADING */
+        .loading-spinner {
+            text-align: center; padding: 40px;
+            color: var(--text-dim); font-size: 12px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .spinner-ring {
+            width: 32px; height: 32px;
+            border: 3px solid rgba(167,139,250,0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        @media (max-width: 600px) {
+            .detail-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; gap: 14px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer" style="display:none;">
+
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">ON</div>
+            <div>
+                <h1>ONCHYRA Control Center</h1>
+                <div class="header-sub">Admin Panel — User Management</div>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Miners</div>
+            <div class="stat-value purple" id="statTotal">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Banned</div>
+            <div class="stat-value yellow" id="statBanned">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total ONC</div>
+            <div class="stat-value blue" id="statOnc">—</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('search')">Search</button>
+        <button class="tab" onclick="switchTab('transactions')">Transactions</button>
+    </div>
+
+    <!-- SEARCH TAB -->
+    <div class="tab-content active" id="tab-search">
+        <div class="search-wrap">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="searchInput" placeholder="Search by name, email, referral code, UID..." oninput="handleSearch(this.value)" autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <div id="userPanel"></div>
+    </div>
+
+    <!-- TRANSACTIONS TAB -->
+    <div class="tab-content" id="tab-transactions">
+        <div class="action-panel" style="padding:0;border:none;background:transparent;">
+            <div class="tx-list" id="txList">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    Loading transactions...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, updateDoc, deleteDoc, collection, getDocs, getDoc, addDoc, increment, setDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const API = 'https://onchyra-backend.onrender.com/api';
+
+    let currentUID = null;
+    let currentUserData = null;
+    let adminUID = null;
+    let allUsers = [];
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.replace("login.html");
+            return;
+        }
+        try {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;"><div style="font-size:40px;margin-bottom:16px;">🔒</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;margin-top:8px;font-size:14px;">Admin privileges required.</p></div>';
+                document.body.style.display = 'block';
+                return;
+            }
+            adminUID = user.uid;
+            document.getElementById('mainContainer').style.display = 'block';
+            document.body.style.display = 'block';
+            loadStats();
+            loadTransactions();
+        } catch(e) {
+            console.error(e);
+        }
+    });
+
+    window.logout = () => {
+        signOut(auth).then(() => window.location.replace("login.html"));
+    };
+
+    window.switchTab = (name) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
+        document.getElementById(`tab-${name}`).classList.add('active');
+    };
+
+    async function loadStats() {
+        try {
+            const snap = await getDocs(collection(db, "users"));
+            let total = 0, active = 0, banned = 0, totalOnc = 0;
+            allUsers = [];
+            snap.forEach(d => {
+                const u = { id: d.id, ...d.data() };
+                allUsers.push(u);
+                total++;
+                if (u.banned) banned++; else active++;
+                totalOnc += (u.balance || 0);
+            });
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statBanned').innerText = banned;
+            document.getElementById('statOnc').innerText = totalOnc.toFixed(1);
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadTransactions() {
+        try {
+            const q = query(collection(db, "admin_transactions"), orderBy("createdAt", "desc"), limit(50));
+            const snap = await getDocs(q);
+            const list = document.getElementById('txList');
+
+            if (snap.empty) {
+                list.innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">📋</div><div>No transactions yet</div></div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            snap.forEach(d => {
+                const t = d.data();
+                const ts = t.createdAt ? formatTime(t.createdAt.toDate()) : 'Recently';
+                const isAdd = t.type === 'add';
+                list.innerHTML += `
+                    <div class="tx-item">
+                        <div class="tx-icon ${isAdd ? 'add' : 'remove'}">${isAdd ? '+' : '−'}</div>
+                        <div class="tx-info">
+                            <div class="tx-user">${t.targetUserName || 'Unknown'}</div>
+                            <div class="tx-date">${ts}</div>
+                        </div>
+                        <div class="tx-amount ${isAdd ? 'add' : 'remove'}">${isAdd ? '+' : '-'}${t.amount}</div>
+                    </div>
+                `;
+            });
+        } catch(e) {
+            document.getElementById('txList').innerHTML = `<div class="tx-empty"><div class="tx-empty-icon">⚠️</div><div>Error loading transactions</div></div>`;
+        }
+    }
+
+    function formatTime(d) {
+        const s = Math.floor((Date.now() - d) / 1000);
+        if (s < 60) return 'Just now';
+        if (s < 3600) return Math.floor(s / 60) + 'm ago';
+        if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+        return Math.floor(s / 86400) + 'd ago';
+    }
+
+    let searchTimeout;
+    window.handleSearch = (val) => {
+        document.getElementById('userPanel').innerHTML = '';
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => filterUsers(val), 250);
+    };
+
+    function filterUsers(val) {
+        const resDiv = document.getElementById('searchResults');
+        if (val.length < 2) { resDiv.style.display = 'none'; return; }
+
+        const sk = val.toLowerCase();
+        const matches = allUsers.filter(u =>
+            (u.name && u.name.toLowerCase().includes(sk)) ||
+            (u.email && u.email.toLowerCase().includes(sk)) ||
+            (u.referralCode && u.referralCode.toLowerCase().includes(sk)) ||
+            (u.id && u.id.toLowerCase().includes(sk))
+        );
+
+        resDiv.innerHTML = '';
+        if (matches.length === 0) {
+            resDiv.innerHTML = '<div class="tx-empty" style="padding:24px;"><div>No users found</div></div>';
+            resDiv.style.display = 'block';
+            return;
+        }
+
+        matches.slice(0, 20).forEach(u => {
+            const initial = (u.name || '?').charAt(0).toUpperCase();
+            resDiv.innerHTML += `
+                <div class="search-result-item" onclick="selectUser('${u.id}')">
+                    <div class="sr-avatar">${initial}</div>
+                    <div class="sr-info">
+                        <div class="sr-name">${u.name || 'Unknown'}</div>
+                        <div class="sr-meta">${u.email || ''} • ${u.referralCode || 'No code'}</div>
+                    </div>
+                    <div class="sr-badge ${u.banned ? 'badge-banned' : 'badge-active'}">${u.banned ? 'Banned' : 'Active'}</div>
+                </div>
+            `;
+        });
+        resDiv.style.display = 'block';
+    }
+
+    window.selectUser = (uid) => {
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+
+        const u = allUsers.find(x => x.id === uid);
+        if (!u) return;
+
+        currentUID = uid;
+        currentUserData = u;
+
+        const initial = (u.name || '?').charAt(0).toUpperCase();
+        const isBanned = u.banned === true;
+        let lastClaimed = 'Never';
+        if (u.lastClaim) {
+            try {
+                const ts = u.lastClaim.toDate ? u.lastClaim.toDate() : new Date(u.lastClaim);
+                lastClaimed = formatTime(ts);
+            } catch(e) { lastClaimed = 'Unknown'; }
+        }
+        const referrer = u.referredBy || 'Direct Join';
+        const refCode = u.referralCode || 'Not Set';
+        const bal = Number(u.balance || 0).toFixed(4);
+
+        document.getElementById('userPanel').innerHTML = `
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">${initial}</div>
+                    <div>
+                        <div class="profile-name">${u.name || 'Unknown'} ${u.streak ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none" style="vertical-align:middle;margin-left:4px;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4 4 4.5 1.5.5 2.5 1.5 2.5 3.5a4 4 0 0 1-4 4c-1.5 0-2.5-.5-3-1z"/><path d="M12 22c-3.5 0-6-2-6-5.5 0-2.5 1.5-4 2.5-5 1-1 1.5-1.5 1.5-2.5.5 2 2 3.5 4 4 1.5.5 2.5 2 2.5 3.5 0 2-1.5 3.5-3 4.5 1.5.5 3 .5 4.5-.5 1.5-1 2.5-2.5 2.5-4.5 0-1.5-.5-3-1.5-4-.5-.5-1-1-1.5-1.5.5 1 1 2 1 3 0 2-2 4-4.5 4z"/></svg>' : ''}</div>
+                        <div class="profile-ref">${refCode}</div>
+                    </div>
+                    <div class="profile-status">
+                        <div class="sr-badge ${isBanned ? 'badge-banned' : 'badge-active'}">${isBanned ? 'BANNED' : 'ACTIVE'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">ONC Balance</div>
+                        <div class="detail-value highlight">${bal} ONC</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Wallet (USD)</div>
+                        <div class="detail-value" style="color:var(--secondary);font-weight:700;">$${Number(u.walletBalance || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Commission (USD)</div>
+                        <div class="detail-value" style="color:var(--warning);font-weight:700;">$${Number(u.commissionBalance || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Streak</div>
+                        <div class="detail-value" style="display:flex;align-items:center;gap:4px;">${u.streak || 0} <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4 4 4.5 1.5.5 2.5 1.5 2.5 3.5a4 4 0 0 1-4 4c-1.5 0-2.5-.5-3-1z"/><path d="M12 22c-3.5 0-6-2-6-5.5 0-2.5 1.5-4 2.5-5 1-1 1.5-1.5 1.5-2.5.5 2 2 3.5 4 4 1.5.5 2.5 2 2.5 3.5 0 2-1.5 3.5-3 4.5 1.5.5 3 .5 4.5-.5 1.5-1 2.5-2.5 2.5-4.5 0-1.5-.5-3-1.5-4-.5-.5-1-1-1.5-1.5.5 1 1 2 1 3 0 2-2 4-4.5 4z"/></svg> days</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Total Deposits</div>
+                        <div class="detail-value" style="color:var(--success);font-weight:700;">$${Number(u.totalDeposits || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Total Commissions</div>
+                        <div class="detail-value" style="color:var(--success);font-weight:700;">$${Number(u.totalCommissions || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Package Spend</div>
+                        <div class="detail-value" style="font-weight:700;">$${Number(u.totalPackageSpend || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Team Business</div>
+                        <div class="detail-value" style="font-weight:700;">$${Number(u.teamBiz || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" style="font-size:12px;text-transform:capitalize;">${u.status || 'inactive'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Claimed</div>
+                        <div class="detail-value" style="font-size:12px;">${lastClaimed}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Referred By</div>
+                        <div class="detail-value" style="font-size:12px;">${referrer}</div>
+                    </div>
+                    <div class="detail-item" style="grid-column:span 2;">
+                        <div class="detail-label">UID</div>
+                        <div class="detail-value" style="font-size:11px;color:var(--text-dim);word-break:break-all;">${uid}</div>
+                    </div>
+                </div>
+
+                <div style="font-size:10px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Referral Network</div>
+                <div class="ref-levels">
+                    <div class="ref-level"><div class="ref-level-num">${u.refLevel1 || 0}</div><div class="ref-level-label">Level 1</div></div>
+                    <div class="ref-level"><div class="ref-level-num">${u.refLevel2 || 0}</div><div class="ref-level-label">Level 2</div></div>
+                    <div class="ref-level"><div class="ref-level-num">${u.refLevel3 || 0}</div><div class="ref-level-label">Level 3</div></div>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M16 12h4v4h-4z"/><path d="M2 8h20"/></svg></div>
+                    Adjust Balance
+                </div>
+                <div class="amount-input-wrap">
+                    <input class="amount-input" id="amountInput" type="number" placeholder="0.00" step="0.01">
+                    <span class="amount-suffix">ONC</span>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amt-btn" onclick="setAmt(10)">+10</button>
+                    <button class="quick-amt-btn" onclick="setAmt(25)">+25</button>
+                    <button class="quick-amt-btn" onclick="setAmt(50)">+50</button>
+                    <button class="quick-amt-btn" onclick="setAmt(100)">+100</button>
+                    <button class="quick-amt-btn" onclick="setAmt(250)">+250</button>
+                    <button class="quick-amt-btn" onclick="setAmt(500)">+500</button>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-add" onclick="updateBalance(true)">Add ONC</button>
+                    <button class="btn btn-remove" onclick="updateBalance(false)">Remove ONC</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div>
+                    Commission Balance (USD)
+                </div>
+                <div class="amount-input-wrap">
+                    <input class="amount-input" id="comAmountInput" type="number" placeholder="0.00" step="0.01">
+                    <span class="amount-suffix">USD</span>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amt-btn" onclick="setComAmt(10)">+10</button>
+                    <button class="quick-amt-btn" onclick="setComAmt(25)">+25</button>
+                    <button class="quick-amt-btn" onclick="setComAmt(50)">+50</button>
+                    <button class="quick-amt-btn" onclick="setComAmt(100)">+100</button>
+                    <button class="quick-amt-btn" onclick="setComAmt(250)">+250</button>
+                    <button class="quick-amt-btn" onclick="setComAmt(500)">+500</button>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-add" onclick="updateCommissionBalance(true)">Add Commission</button>
+                    <button class="btn btn-remove" onclick="updateCommissionBalance(false)">Remove Commission</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg></div>
+                    Wallet Balance (USD)
+                </div>
+                <div class="amount-input-wrap">
+                    <input class="amount-input" id="walletAmountInput" type="number" placeholder="0.00" step="0.01">
+                    <span class="amount-suffix">USD</span>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amt-btn" onclick="setWalletAmt(10)">+10</button>
+                    <button class="quick-amt-btn" onclick="setWalletAmt(25)">+25</button>
+                    <button class="quick-amt-btn" onclick="setWalletAmt(50)">+50</button>
+                    <button class="quick-amt-btn" onclick="setWalletAmt(100)">+100</button>
+                    <button class="quick-amt-btn" onclick="setWalletAmt(250)">+250</button>
+                    <button class="quick-amt-btn" onclick="setWalletAmt(500)">+500</button>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-add" onclick="updateWalletBalance(true)">Add to Wallet</button>
+                    <button class="btn btn-remove" onclick="updateWalletBalance(false)">Remove from Wallet</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                    User Status
+                </div>
+                <div style="display:flex;gap:10px;margin-bottom:12px;">
+                    <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;">
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;">Banned</div>
+                        <div style="font-size:16px;font-weight:800;margin-top:4px;color:${isBanned ? 'var(--danger)' : 'var(--success)'};">${isBanned ? 'YES' : 'NO'}</div>
+                    </div>
+                    <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;">
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;">Safe</div>
+                        <div style="font-size:16px;font-weight:800;margin-top:4px;color:${u.isSafe ? 'var(--success)' : 'var(--text-dim)'};">${u.isSafe ? 'YES' : 'NO'}</div>
+                    </div>
+                    <div style="flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;">
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;">Under Review</div>
+                        <div style="font-size:16px;font-weight:800;margin-top:4px;color:${u.leaderStatus === 'under_review' ? 'var(--warning)' : 'var(--text-dim)'};">${u.leaderStatus === 'under_review' ? 'YES' : 'NO'}</div>
+                    </div>
+                </div>
+                <div class="action-btns" style="flex-direction:column;gap:8px;">
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn ${isBanned ? 'btn-unban' : 'btn-ban'}" onclick="handleBan(${!isBanned})">
+                            ${isBanned ? 'Unban User' : 'Ban User'}
+                        </button>
+                        <button class="btn ${u.isSafe ? 'btn-remove' : 'btn-add'}" onclick="toggleSafe()">
+                            ${u.isSafe ? 'Unmark Safe' : 'Mark Safe'}
+                        </button>
+                        <button class="btn ${u.leaderStatus === 'under_review' ? 'btn-remove' : 'btn-add'}" onclick="toggleUnderReview()">
+                            ${u.leaderStatus === 'under_review' ? 'Clear Review' : 'Mark Review'}
+                        </button>
+                    </div>
+                    <button class="btn btn-remove" onclick="resetStreak()" style="flex:none;width:100%;">Reset Streak</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+                    Package Management
+                </div>
+                <div class="detail-grid" style="margin-bottom:14px;">
+                    <div class="detail-item">
+                        <div class="detail-label">Current Package</div>
+                        <div class="detail-value" style="font-size:13px;text-transform:capitalize;">${u.activePackage && u.activePackage !== 'none' ? u.activePackage : 'None'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" style="font-size:13px;">${u.packageStatus || 'none'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Usage / Cap</div>
+                        <div class="detail-value" style="font-size:12px;">$${Number(u.packageUsage||0).toFixed(2)} / $${Number(u.packageCap||0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Boost</div>
+                        <div class="detail-value" style="font-size:13px;">${u.packageBoost || 1}x</div>
+                    </div>
+                </div>
+                <div class="amount-input-wrap">
+                    <select id="pkgSelect" style="width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:white;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;cursor:pointer;">
+                        <option value="">— Select Package —</option>
+                        <option value="starter">Starter — $5 / 4x / $50 cap</option>
+                        <option value="builder">Builder — $10 / 8x / $100 cap</option>
+                        <option value="pioneer">Pioneer — $25 / 15x / $250 cap</option>
+                        <option value="elite">Elite — $50 / 30x / $500 cap</option>
+                        <option value="titan">Titan — $100 / 60x / $1000 cap</option>
+                        <option value="dominion">Dominion — $250 / 120x / $2500 cap</option>
+                        <option value="legacy">Legacy — $500 / 300x / $5000 cap</option>
+                    </select>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-add" onclick="activatePackage()">Activate Package</button>
+                    <button class="btn btn-remove" onclick="expirePackage()">Expire Package</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></div>
+                    Rank Management
+                </div>
+                <div class="detail-grid" style="margin-bottom:14px;">
+                    <div class="detail-item" style="grid-column:span 2;">
+                        <div class="detail-label">Current Rank</div>
+                        <div class="detail-value" style="font-size:15px;text-transform:capitalize;">${u.rank || 'Unranked'}</div>
+                    </div>
+                </div>
+                <div class="amount-input-wrap">
+                    <select id="rankSelect" style="width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:white;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;cursor:pointer;">
+                        <option value="">— Set Rank —</option>
+                        <option value="Ignition">Ignition</option>
+                        <option value="Momentum">Momentum</option>
+                        <option value="Velocity">Velocity</option>
+                        <option value="Quantum">Quantum</option>
+                        <option value="Fusion">Fusion</option>
+                        <option value="Infinity">Infinity</option>
+                        <option value="Titan">Titan</option>
+                        <option value="Apex">Apex</option>
+                        <option value="Zenith">Zenith</option>
+                        <option value="Legacy">Legacy</option>
+                    </select>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-add" onclick="setRank()">Set Rank</button>
+                    <button class="btn btn-remove" onclick="setRankUnranked()">Remove Rank</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+                    Leadership Rewards
+                </div>
+                <div class="detail-grid" style="margin-bottom:14px;">
+                    <div class="detail-item">
+                        <div class="detail-label">Reward Rank</div>
+                        <div class="detail-value" style="font-size:13px;">${u.leadershipRewardRank || '-'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Daily Reward</div>
+                        <div class="detail-value" style="font-size:13px;">$${Number(u.leadershipRewardDay || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Payouts</div>
+                        <div class="detail-value" style="font-size:13px;">${u.leadershipRewardPayouts || 0} / ${u.leadershipRewardDays || 0}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Paid</div>
+                        <div class="detail-value" style="font-size:12px;">${u.rewardLastPaid || 'Never'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Bonus Claimed</div>
+                        <div class="detail-value" style="font-size:13px;color:${u.achievementBonusClaimed ? 'var(--success)' : 'var(--text-dim)'};">${u.achievementBonusClaimed ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Start</div>
+                        <div class="detail-value" style="font-size:11px;">${u.leadershipRewardStart ? new Date(u.leadershipRewardStart).toLocaleDateString() : '-'}</div>
+                    </div>
+                </div>
+                <div class="action-btns" style="flex-direction:column;gap:8px;">
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-add" onclick="resetLeadershipPayouts()" style="font-size:11px;">Reset Payouts</button>
+                        <button class="btn btn-remove" onclick="clearLeadershipRewards()" style="font-size:11px;">Clear Rewards</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-title">
+                    <div class="action-title-icon danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+                    Danger Zone
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-ban" onclick="deleteUser()">Delete User Account</button>
+                </div>
+            </div>
+        `;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.setAmt = (v) => { document.getElementById('amountInput').value = v; };
+
+    window.updateBalance = async (isAdd) => {
+        const amtEl = document.getElementById('amountInput');
+        const amt = parseFloat(amtEl.value);
+
+        if (!currentUID || isNaN(amt) || amt <= 0) {
+            showToast('Enter a valid amount', true);
+            return;
+        }
+
+        if (!confirm(`${isAdd ? 'Add' : 'Remove'} ${amt} ONC ${isAdd ? 'to' : 'from'} ${currentUserData?.name || 'user'}?`)) return;
+
+        try {
+            await setDoc(doc(collection(db, "admin_transactions")), {
+                adminId: adminUID,
+                targetUserId: currentUID,
+                targetUserName: currentUserData?.name || 'Unknown',
+                amount: amt,
+                type: isAdd ? 'add' : 'remove',
+                previousBalance: currentUserData?.balance || 0,
+                newBalance: (currentUserData?.balance || 0) + (isAdd ? amt : -amt),
+                createdAt: serverTimestamp()
+            });
+
+            await updateDoc(doc(db, "users", currentUID), {
+                balance: increment(isAdd ? amt : -amt)
+            });
+
+            if (allUsers) {
+                const idx = allUsers.findIndex(u => u.id === currentUID);
+                if (idx >= 0) allUsers[idx].balance = (allUsers[idx].balance || 0) + (isAdd ? amt : -amt);
+            }
+
+            showToast(`${amt} ONC ${isAdd ? 'added' : 'removed'}!`);
+            amtEl.value = '';
+            loadStats();
+            loadTransactions();
+        } catch(e) {
+            showToast('Error: ' + e.message, true);
+        }
+    };
+
+    window.handleBan = async (ban) => {
+        if (!currentUID) return;
+        if (!confirm(`${ban ? 'BAN' : 'UNBAN'} ${currentUserData?.name || 'user'}?`)) return;
+
+        try {
+            await updateDoc(doc(db, "users", currentUID), { banned: ban });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].banned = ban;
+            showToast(`User ${ban ? 'banned' : 'unbanned'}!`);
+            loadStats();
+            selectUser(currentUID);
+        } catch(e) {
+            showToast('Error: ' + e.message, true);
+        }
+    };
+
+    window.activatePackage = async () => {
+        if (!currentUID) return;
+        const pkgId = document.getElementById('pkgSelect').value;
+        if (!pkgId) { showToast('Select a package first', true); return; }
+        if (!confirm(`Activate ${pkgId.charAt(0).toUpperCase()+pkgId.slice(1)} for ${currentUserData?.name || 'user'}? This will overwrite their current package.`)) return;
+        const PACKAGES = {
+            starter: { price: 5, boost: 4, cap: 50, name: 'Starter' },
+            builder: { price: 10, boost: 8, cap: 100, name: 'Builder' },
+            pioneer: { price: 25, boost: 15, cap: 250, name: 'Pioneer' },
+            elite: { price: 50, boost: 30, cap: 500, name: 'Elite' },
+            titan: { price: 100, boost: 60, cap: 1000, name: 'Titan' },
+            dominion: { price: 250, boost: 120, cap: 2500, name: 'Dominion' },
+            legacy: { price: 500, boost: 300, cap: 5000, name: 'Legacy' },
+        };
+        const pkg = PACKAGES[pkgId];
+        if (!pkg) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), {
+                activePackage: pkgId,
+                packageAmount: pkg.price,
+                packageBoost: pkg.boost,
+                packageCap: pkg.cap,
+                packageUsage: 0,
+                packageStatus: 'active',
+                packagePurchasedAt: Date.now(),
+                totalPackageSpend: increment(pkg.price),
+            });
+            await addDoc(collection(db, 'packagePurchases'), {
+                uid: currentUID,
+                packageId: pkgId,
+                name: pkg.name,
+                amount: pkg.price,
+                paid: 0,
+                credit: true,
+                boost: pkg.boost,
+                createdAt: Date.now(),
+                adminActivated: true,
+                activatedBy: adminUID,
+            });
+            // Trigger commission + teamBiz via backend
+            fetch(API + '/admin/process-commission', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid: currentUID, packageId: pkgId })
+            }).catch(e => console.error('Commission trigger failed:', e));
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) {
+                allUsers[idx].activePackage = pkgId;
+                allUsers[idx].packageStatus = 'active';
+                allUsers[idx].packageCap = pkg.cap;
+                allUsers[idx].packageUsage = 0;
+                allUsers[idx].packageBoost = pkg.boost;
+                allUsers[idx].packageAmount = pkg.price;
+            }
+            showToast(`Package ${pkg.name} activated!`);
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.expirePackage = async () => {
+        if (!currentUID) return;
+        if (!confirm(`Expire package for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), {
+                packageStatus: 'expired',
+                activePackage: 'none',
+            });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) { allUsers[idx].packageStatus = 'expired'; allUsers[idx].activePackage = 'none'; }
+            showToast('Package expired!');
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.deleteUser = async () => {
+        if (!currentUID) return;
+        const name = currentUserData?.name || 'user';
+        if (!confirm(`⚠️ PERMANENTLY DELETE ${name}? This cannot be undone!\n\nUID: ${currentUID}`)) return;
+        const confirmation = prompt(`Type "delete" to permanently remove ${name}'s account and all data:`);
+        if (confirmation !== 'delete') { showToast('Cancelled — type "delete" to confirm', true); return; }
+        try {
+            await deleteDoc(doc(db, "users", currentUID));
+            allUsers = allUsers.filter(u => u.id !== currentUID);
+            currentUID = null;
+            currentUserData = null;
+            document.getElementById('userPanel').innerHTML = '<div class="action-panel"><div class="action-title"><div class="action-title-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>User deleted successfully</div></div>';
+            showToast(`${name} permanently deleted!`);
+            loadStats();
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.setRank = async () => {
+        if (!currentUID) return;
+        const rank = document.getElementById('rankSelect').value;
+        if (!rank) { showToast('Select a rank first', true); return; }
+        if (!confirm(`Set rank to ${rank} for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { rank, rankCalculatedAt: Date.now() });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].rank = rank;
+            showToast(`Rank set to ${rank}!`);
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.setRankUnranked = async () => {
+        if (!currentUID) return;
+        if (!confirm(`Remove rank for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { rank: '', rankCalculatedAt: Date.now() });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].rank = '';
+            showToast('Rank removed!');
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.resetStreak = async () => {
+        if (!currentUID) return;
+        if (!confirm(`Reset streak for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { streak: 0 });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].streak = 0;
+            showToast('Streak reset to 0!');
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.setComAmt = (v) => { document.getElementById('comAmountInput').value = v; };
+    window.setWalletAmt = (v) => { document.getElementById('walletAmountInput').value = v; };
+
+    window.updateCommissionBalance = async (isAdd) => {
+        const el = document.getElementById('comAmountInput');
+        const amt = parseFloat(el.value);
+        if (!currentUID || isNaN(amt) || amt <= 0) { showToast('Enter a valid amount', true); return; }
+        if (!confirm(`${isAdd ? 'Add' : 'Remove'} $${amt} commission ${isAdd ? 'to' : 'from'} ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), {
+                commissionBalance: increment(isAdd ? amt : -amt)
+            });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].commissionBalance = (allUsers[idx].commissionBalance || 0) + (isAdd ? amt : -amt);
+            showToast(`$${amt} commission ${isAdd ? 'added' : 'removed'}!`);
+            el.value = '';
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.updateWalletBalance = async (isAdd) => {
+        const el = document.getElementById('walletAmountInput');
+        const amt = parseFloat(el.value);
+        if (!currentUID || isNaN(amt) || amt <= 0) { showToast('Enter a valid amount', true); return; }
+        if (!confirm(`${isAdd ? 'Add' : 'Remove'} $${amt} ${isAdd ? 'to' : 'from'} wallet of ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), {
+                walletBalance: increment(isAdd ? amt : -amt)
+            });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].walletBalance = (allUsers[idx].walletBalance || 0) + (isAdd ? amt : -amt);
+            showToast(`$${amt} wallet ${isAdd ? 'added' : 'removed'}!`);
+            el.value = '';
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.toggleSafe = async () => {
+        if (!currentUID) return;
+        const newVal = !currentUserData?.isSafe;
+        if (!confirm(`${newVal ? 'Mark' : 'Unmark'} ${currentUserData?.name || 'user'} as safe?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { isSafe: newVal });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].isSafe = newVal;
+            showToast(`User ${newVal ? 'marked safe' : 'unmarked safe'}!`);
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.toggleUnderReview = async () => {
+        if (!currentUID) return;
+        const nowUnderReview = currentUserData?.leaderStatus !== 'under_review';
+        if (!confirm(`${nowUnderReview ? 'Mark' : 'Clear'} ${currentUserData?.name || 'user'} as under review?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { leaderStatus: nowUnderReview ? 'under_review' : '' });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) allUsers[idx].leaderStatus = nowUnderReview ? 'under_review' : '';
+            showToast(`User ${nowUnderReview ? 'marked under review' : 'cleared from review'}!`);
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.resetLeadershipPayouts = async () => {
+        if (!currentUID) return;
+        if (!confirm(`Reset leadership reward payouts to 0 for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), { leadershipRewardPayouts: 0, rewardLastPaid: '' });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) { allUsers[idx].leadershipRewardPayouts = 0; allUsers[idx].rewardLastPaid = ''; }
+            showToast('Leadership payouts reset!');
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.clearLeadershipRewards = async () => {
+        if (!currentUID) return;
+        if (!confirm(`Clear ALL leadership reward data for ${currentUserData?.name || 'user'}?`)) return;
+        try {
+            await updateDoc(doc(db, "users", currentUID), {
+                leadershipRewardRank: '',
+                leadershipRewardDay: 0,
+                leadershipRewardDays: 0,
+                leadershipRewardPayouts: 0,
+                leadershipRewardStart: 0,
+                rewardLastPaid: '',
+            });
+            const idx = allUsers.findIndex(u => u.id === currentUID);
+            if (idx >= 0) {
+                allUsers[idx].leadershipRewardRank = '';
+                allUsers[idx].leadershipRewardDay = 0;
+                allUsers[idx].leadershipRewardDays = 0;
+                allUsers[idx].leadershipRewardPayouts = 0;
+                allUsers[idx].leadershipRewardStart = 0;
+                allUsers[idx].rewardLastPaid = '';
+            }
+            showToast('Leadership rewards cleared!');
+            selectUser(currentUID);
+        } catch(e) { showToast('Error: ' + e.message, true); }
+    };
+
+    window.showToast = (msg, isError = false) => {
+        const wrap = document.getElementById('toastWrap');
+        const t = document.createElement('div');
+        t.className = `toast ${isError ? 'error' : 'success'}`;
+        t.innerText = msg;
+        wrap.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrap')) {
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>

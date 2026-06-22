@@ -1,7 +1,6 @@
-const admin = require('firebase-admin');
+const pg = require('../config/pg');
 const { Mnemonic, HDNodeWallet, ethers } = require('ethers');
 const https = require('https');
-const db = admin.firestore();
 
 const MNEMONIC = process.env.HD_WALLET_SEED;
 const BSC_RPC = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
@@ -19,7 +18,7 @@ const ERC20_ABI = [
 ];
 
 let polPriceCache = { price: 0, time: 0 };
-const MIN_SCAN_INTERVAL = parseInt(process.env.MONITOR_SCAN_INTERVAL || '3600000'); // 1 hour between re-checks of same wallet
+const MIN_SCAN_INTERVAL = parseInt(process.env.MONITOR_SCAN_INTERVAL || '3600000');
 
 function httpGet(url) {
     return new Promise((resolve, reject) => {
@@ -36,17 +35,17 @@ async function fetchPolPrice() {
         const body = await httpGet('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd');
         const parsed = JSON.parse(body);
         if (parsed && parsed['matic-network'] && parsed['matic-network'].usd) return parsed['matic-network'].usd;
-    } catch(e) { /* try next source */ }
+    } catch(e) { }
     try {
         const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
-    } catch(e) { /* try next source */ }
+    } catch(e) { }
     try {
         const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
-    } catch(e) { /* all sources failed */ }
+    } catch(e) { }
     throw new Error('All price sources failed');
 }
 
@@ -85,7 +84,6 @@ function getChildWallet(index) {
     return new ethers.Wallet(child.privateKey);
 }
 
-// BEP20: check USDT token balance
 async function checkUSDT(index, provider) {
     const child = getChildWallet(index);
     const token = new ethers.Contract(USDT_CONTRACT, ERC20_ABI, provider);
@@ -94,7 +92,6 @@ async function checkUSDT(index, provider) {
     return { address: child.address, balance: Number(ethers.formatUnits(raw, decimals)), raw };
 }
 
-// Polygon: check native POL balance
 async function checkPOL(index, provider) {
     const child = getChildWallet(index);
     const raw = await provider.getBalance(child.address);
@@ -107,7 +104,6 @@ async function checkBalance(index, network) {
     return checkPOL(index, provider);
 }
 
-// Sweep USDT (BEP20) via token transfer
 async function sweepUSDT(index, provider, rawBalance) {
     const child = getChildWallet(index);
     const { wallet: master } = getMaster();
@@ -119,7 +115,6 @@ async function sweepUSDT(index, provider, rawBalance) {
     return { swept: amount, txHash: receipt.hash };
 }
 
-// Sweep POL (Polygon) via native transfer
 async function sweepPOL(index, provider, rawBalance) {
     const child = getChildWallet(index);
     const { wallet: master } = getMaster();
@@ -162,53 +157,39 @@ async function processUnusedWallets() {
     const cutoff = Date.now() - MIN_SCAN_INTERVAL;
     let wallets;
     try {
-        const snap = await db.collection('depositWallets')
-            .where('used', '==', false)
-            .where('checkedAt', '<', cutoff)
-            .orderBy('checkedAt')
-            .limit(MAX_PER_CYCLE).get();
-        wallets = snap.docs;
+        wallets = await pg.query(
+            `SELECT * FROM deposit_wallets WHERE used = false AND (checked_at IS NULL OR checked_at < $1) ORDER BY checked_at NULLS FIRST LIMIT $2`,
+            [cutoff, MAX_PER_CYCLE]
+        );
+        wallets = wallets.rows;
     } catch (e) {
-        // Index might not exist yet; fallback to unindexed query
-        const snap = await db.collection('depositWallets')
-            .where('used', '==', false)
-            .limit(MAX_PER_CYCLE).get();
-        wallets = snap.docs;
+        wallets = await pg.findWhere('deposit_wallets', { used: false }, null, MAX_PER_CYCLE);
     }
 
-    // Also fetch wallets that have never been checked (no checkedAt field)
-    // Firestore won't return them with the < cutoff query, so fetch separately
     let neverChecked = [];
     try {
-        const snap2 = await db.collection('depositWallets')
-            .where('used', '==', false)
-            .where('checkedAt', '==', 0)
-            .limit(MAX_PER_CYCLE).get();
-        neverChecked = snap2.docs;
-    } catch (e) {
-        // fallback — merge manually from wallets list
-    }
-    const seen = new Set(wallets.map(d => d.id));
-    for (const d of neverChecked) {
-        if (!seen.has(d.id)) wallets.push(d);
+        const res = await pg.query(
+            `SELECT * FROM deposit_wallets WHERE used = false AND checked_at IS NULL LIMIT $1`,
+            [MAX_PER_CYCLE]
+        );
+        neverChecked = res.rows;
+    } catch (e) {}
+    const seen = new Set(wallets.map(r => r.id));
+    for (const r of neverChecked) {
+        if (!seen.has(r.id)) wallets.push(r);
     }
     if (wallets.length > MAX_PER_CYCLE) wallets = wallets.slice(0, MAX_PER_CYCLE);
 
     let checked = 0;
-    for (const d of wallets) {
-        const w = d.data();
-
-        // Skip master wallet (index 0) just in case
+    for (const w of wallets) {
         if (w.index === 0) {
-            await d.ref.update({ used: true, note: 'Master wallet - skipped', checkedAt: Date.now() });
+            await pg.update('deposit_wallets', w.id, { used: true, note: 'Master wallet - skipped', checked_at: Date.now() }, 'id');
             continue;
         }
 
-        const age = Date.now() - (w.createdAt || 0);
-
-        // Mark wallets older than 48h as expired so they never get checked again
+        const age = Date.now() - (w.created_at || 0);
         if (age > WALLET_TTL_MS) {
-            await d.ref.update({ used: true, expired: true, expiredAt: Date.now() });
+            await pg.update('deposit_wallets', w.id, { used: true, expired: true, expired_at: Date.now() }, 'id');
             continue;
         }
 
@@ -216,7 +197,7 @@ async function processUnusedWallets() {
         try {
             const info = await checkBalance(w.index, w.network);
             if (info.raw <= 0n) {
-                await d.ref.update({ checkedAt: Date.now() });
+                await pg.update('deposit_wallets', w.id, { checked_at: Date.now() }, 'id');
                 continue;
             }
 
@@ -229,46 +210,45 @@ async function processUnusedWallets() {
             }
             console.log(`[MONITOR] Deposit detected! Wallet #${w.index} on ${w.network}: ${info.balance} ${symbol} ($${usdAmount.toFixed(2)} USD)`);
 
-            const existing = await db.collection('deposits')
-                .where('address', '==', info.address.toLowerCase())
-                .where('amount', '==', usdAmount).limit(1).get();
-            if (!existing.empty) {
-                await d.ref.update({ checkedAt: Date.now() });
+            const existing = await pg.findWhere('deposits', { address: info.address.toLowerCase() });
+            if (existing.length) {
+                await pg.update('deposit_wallets', w.id, { checked_at: Date.now() }, 'id');
                 continue;
             }
 
-            const batch = db.batch();
-            const depDoc = {
+            const depId = 'dep_auto_' + w.index + '_' + Date.now();
+            const depFields = {
                 uid: w.uid, address: info.address, network: w.network,
                 amount: usdAmount, token: symbol,
-                txHash: 'auto:' + Date.now(),
-                status: 'completed', detectedAt: Date.now(), createdAt: Date.now()
+                tx_hash: 'auto:' + Date.now(),
+                status: 'completed', detected_at: Date.now(), created_at: Date.now()
             };
             if (w.network === 'Polygon') {
-                depDoc.polAmount = info.balance;
-                depDoc.polPrice = polPrice;
+                depFields.pol_amount = info.balance;
+                depFields.pol_price = polPrice;
             }
-            batch.create(db.collection('deposits').doc(), depDoc);
-            batch.update(db.doc(`users/${w.uid}`), {
-                walletBalance: admin.firestore.FieldValue.increment(usdAmount),
-                totalDeposits: admin.firestore.FieldValue.increment(usdAmount),
-            });
-            await batch.commit();
+            await pg.query(
+                `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, pol_amount, pol_price, detected_at, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9, $10, $10)`,
+                [depId, w.uid, info.address, w.network, usdAmount, depFields.tx_hash, symbol, depFields.pol_amount || 0, depFields.pol_price || 0, Date.now()]
+            );
+
+            await pg.increment('users', w.uid, 'wallet_balance', usdAmount);
+            await pg.increment('users', w.uid, 'total_deposits', usdAmount);
 
             try {
                 if (w.network === 'BEP20') {
                     await fundGasIfNeeded(w.index, w.network);
                 }
                 const sweep = await sweepWallet(w.index, w.network, info.raw);
-                await d.ref.update({ used: true, usedAt: Date.now(), sweepTx: sweep.txHash, checkedAt: Date.now() });
+                await pg.update('deposit_wallets', w.id, { used: true, used_at: Date.now(), sweep_tx: sweep.txHash, checked_at: Date.now() }, 'id');
                 console.log(`[MONITOR] Swept ${sweep.swept} ${symbol} from wallet #${w.index} to master (tx: ${sweep.txHash})`);
             } catch (e) {
                 console.error(`[MONITOR] Sweep failed for #${w.index}: ${e.message}`);
-                await d.ref.update({ checkedAt: Date.now() });
+                await pg.update('deposit_wallets', w.id, { checked_at: Date.now() }, 'id');
             }
         } catch (e) {
-            // RPC error - still mark checkedAt to avoid re-trying same wallet too quickly
-            try { await d.ref.update({ checkedAt: Date.now() }); } catch (_) {}
+            try { await pg.update('deposit_wallets', w.id, { checked_at: Date.now() }, 'id'); } catch (_) {}
         }
     }
     if (checked > 0) console.log(`[MONITOR] Checked ${checked} wallets this cycle`);

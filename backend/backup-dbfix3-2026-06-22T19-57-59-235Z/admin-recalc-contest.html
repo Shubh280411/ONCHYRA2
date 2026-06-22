@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Recalculate Contest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #fbbf24;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(167,139,250,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(96,165,250,0.04) 0%, transparent 50%);
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 20px 16px 80px; }
+
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; margin-bottom: 30px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px;
+        }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .header-logo {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900; font-size: 18px; color: #000;
+        }
+        .header-title { font-family: 'Space Grotesk'; font-weight: 800; font-size: 18px; }
+        .header-title span { color: var(--primary); }
+        .header-nav a {
+            padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
+            text-decoration: none; color: var(--text); transition: 0.2s;
+            background: rgba(255,255,255,0.03); border: 1px solid transparent;
+        }
+        .header-nav a:hover { background: rgba(167,139,250,0.1); color: var(--primary); }
+
+        .page-title { font-family: 'Space Grotesk'; font-size: 26px; font-weight: 800; margin: 0 0 20px; display: flex; align-items: center; gap: 12px; }
+        .page-title .sub { font-size: 13px; font-weight: 600; color: var(--text-dim); font-family: 'Inter'; }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+        .card-title { font-family: 'Space Grotesk'; font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+        .stat-card .slabel { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+        .stat-card .svalue { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 800; margin-top: 4px; }
+        .stat-card .svalue.purple { color: var(--primary); }
+        .stat-card .svalue.green { color: var(--success); }
+        .stat-card .svalue.red { color: var(--danger); }
+
+        .progress-wrap { margin: 16px 0; display: none; }
+        .progress-wrap.active { display: block; }
+        .progress-bar {
+            width: 100%; height: 8px; border-radius: 100px; background: rgba(255,255,255,0.06);
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%; border-radius: 100px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s; width: 0%;
+        }
+        .progress-label { font-size: 11px; color: var(--text-dim); margin-top: 6px; display: flex; justify-content: space-between; }
+
+        .log-wrap { max-height: 400px; overflow-y: auto; margin-top: 12px; font-size: 11px; font-family: monospace; }
+        .log-wrap::-webkit-scrollbar { width: 4px; }
+        .log-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+        .log-item { padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+        .log-item .icon { flex-shrink: 0; }
+        .log-item.ok { color: var(--success); }
+        .log-item.fixed { color: var(--warning); }
+        .log-item.err { color: var(--danger); }
+        .log-item.skipped { color: var(--text-dim); }
+
+        .btn-primary {
+            padding: 16px 32px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000; font-family: 'Space Grotesk'; font-size: 14px;
+            font-weight: 800; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            padding: 12px 24px; border: 1px solid var(--border); border-radius: 12px;
+            background: transparent; color: var(--text); font-size: 13px;
+            font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.04); }
+
+        .empty-state { text-align: center; padding: 30px; color: var(--text-dim); font-size: 13px; }
+
+        .toast {
+            position: fixed; bottom: 30px; right: 30px;
+            padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 13px;
+            display: none; z-index: 3000; animation: slideIn 0.3s ease;
+        }
+        .toast.success { background: var(--success); color: #000; }
+        .toast.error { background: var(--danger); color: white; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } }
+
+        .contest-select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; font-size: 13px; font-family: 'Inter'; outline: none; }
+        .contest-select:focus { border-color: var(--primary); }
+
+        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+        .summary-row:last-child { border: none; }
+        .summary-row .sl { color: var(--text-dim); }
+        .summary-row .sv { font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .container { padding: 12px 10px 60px; }
+            .header { flex-direction: column; gap: 12px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">O</div>
+            <div class="header-title">ONCHYRA <span>Admin</span></div>
+        </div>
+        <div class="header-nav">
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-user-panel.html">Users</a>
+            <a href="admin-transfers.html">Transfers</a>
+        </div>
+    </div>
+
+    <!-- Title -->
+    <div class="page-title">
+        Recalculate Contest
+        <span class="sub" id="subtitle">Fix missing referral scores</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid" style="display:none;">
+        <div class="stat-card">
+            <div class="slabel">Participants</div>
+            <div class="svalue purple" id="statParticipants">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="slabel">Stale Scores</div>
+            <div class="svalue red" id="statStale">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="slabel">Fixed</div>
+            <div class="svalue green" id="statFixed">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="slabel">Errors</div>
+            <div class="svalue" id="statErrors" style="color:#f472b6;">0</div>
+        </div>
+    </div>
+
+    <!-- Contest selector -->
+    <div class="card" id="contestCard">
+        <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L2 7l7 5 7-5-7-5z"/><path d="M2 12l7 5 7-5"/><path d="M2 9.5l7 5 7-5"/></svg>
+            Select Contest
+        </div>
+        <select class="contest-select" id="contestSelect" onchange="onContestChange()">
+            <option value="">-- Choose a contest --</option>
+        </select>
+        <div id="contestInfo" style="margin-top: 14px; display: none;">
+            <div class="summary-row"><span class="sl">Name</span><span class="sv" id="cName">--</span></div>
+            <div class="summary-row"><span class="sl">Status</span><span class="sv" id="cStatus">--</span></div>
+            <div class="summary-row"><span class="sl">Participants</span><span class="sv" id="cParticipants">--</span></div>
+            <div class="summary-row"><span class="sl">Stale</span><span class="sv" id="cStale">--</span></div>
+        </div>
+    </div>
+
+    <!-- Recalc button -->
+    <div class="card" id="actionCard" style="display:none;">
+        <button class="btn-primary" id="recalcBtn" onclick="startRecalc()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Recalculate All Scores
+        </button>
+
+        <!-- Progress -->
+        <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+            <div class="progress-label">
+                <span id="progressText">Scanning...</span>
+                <span id="progressPct">0%</span>
+            </div>
+        </div>
+
+        <!-- Log -->
+        <div class="log-wrap" id="logWrap"></div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { db,  initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, getDocs, collection, query, orderBy, updateDoc, where, writeBatch
+  } from "./supabase-adapter.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+let selectedContestId = null;
+let allParticipants = [];
+let staleEntries = [];
+let isRunning = false;
+
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (isError ? 'error' : 'success');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function log(msg, type = 'ok') {
+    const wrap = document.getElementById('logWrap');
+    const icons = { ok: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>', fixed: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', err: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>', skipped: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>' };
+    const el = document.createElement('div');
+    el.className = 'log-item ' + type;
+    el.innerHTML = '<span class="icon">' + (icons[type] || icons.ok) + '</span> ' + msg;
+    wrap.appendChild(el);
+    wrap.scrollTop = wrap.scrollHeight;
+}
+
+function setProgress(pct, label) {
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    if (label) document.getElementById('progressText').textContent = label;
+    document.getElementById('progressWrap').classList.add('active');
+}
+
+// ── Load contests ──
+async function loadContests() {
+    const sel = document.getElementById('contestSelect');
+    sel.innerHTML = '<option value="">-- Choose a contest --</option>';
+    try {
+        const snap = await getDocs(query(collection(db, "contests"), orderBy("endTime", "desc")));
+        snap.forEach(d => {
+            const data = d.data();
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = (data.name || 'Unnamed') + (data.active ? ' [ACTIVE]' : ' [ENDED]');
+            sel.appendChild(opt);
+        });
+    } catch (e) {
+        sel.innerHTML = '<option value="">Error loading contests</option>';
+        showToast('Error loading contests', true);
+    }
+}
+
+window.onContestChange = () => {
+    const id = document.getElementById('contestSelect').value;
+    if (!id) {
+        document.getElementById('contestInfo').style.display = 'none';
+        document.getElementById('actionCard').style.display = 'none';
+        document.getElementById('statsGrid').style.display = 'none';
+        selectedContestId = null;
+        return;
+    }
+    selectedContestId = id;
+    loadContestInfo(id);
+};
+
+async function loadContestInfo(contestId) {
+    const info = document.getElementById('contestInfo');
+    const action = document.getElementById('actionCard');
+    const stats = document.getElementById('statsGrid');
+    const logWrap = document.getElementById('logWrap');
+    logWrap.innerHTML = '';
+    document.getElementById('recalcBtn').disabled = false;
+    document.getElementById('recalcBtn').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Recalculate All Scores';
+
+    try {
+        const cSnap = await getDoc(doc(db, "contests", contestId));
+        if (!cSnap.exists()) return;
+        const cData = cSnap.data();
+        document.getElementById('cName').textContent = cData.name || '--';
+        document.getElementById('cStatus').textContent = cData.active ? 'Active' : 'Ended';
+
+        // Fetch participants
+        const pSnap = await getDocs(query(collection(db, "contestParticipants"), where("contestId", "==", contestId)));
+        allParticipants = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('cParticipants').textContent = allParticipants.length;
+
+        // Scan for stale entries
+        staleEntries = [];
+
+        // Build full referral tree from users collection
+        let referralTree = {};
+        let userMap = {};
+        let treeFailed = false;
+        try {
+            const allSnap = await getDocs(collection(db, "users"));
+            for (const d of allSnap.docs) {
+                const u = { id: d.id, ...d.data() };
+                const refBy = u.referredBy || '';
+                if (!referralTree[refBy]) referralTree[refBy] = [];
+                referralTree[refBy].push({ referralCode: u.referralCode, userId: u.id });
+                userMap[u.id] = u;
+            }
+        } catch(e) {
+            treeFailed = true;
+            log('Warning: Could not load all users (fallback to per-user)', 'err');
+        }
+
+        // Count all 3 levels for a given referral code
+        function countReferralLevels(code) {
+            const l1 = referralTree[code] || [];
+            const l1Count = l1.length;
+            let l2Count = 0, l3Count = 0;
+            for (const l1u of l1) {
+                const l2 = referralTree[l1u.referralCode] || [];
+                l2Count += l2.length;
+                for (const l2u of l2) {
+                    l3Count += (referralTree[l2u.referralCode] || []).length;
+                }
+            }
+            return { l1: l1Count, l2: l2Count, l3: l3Count };
+        }
+
+        for (const p of allParticipants) {
+            try {
+                let uData;
+                if (!treeFailed) {
+                    uData = userMap[p.userId];
+                } else {
+                    const uSnap = await getDoc(doc(db, "users", p.userId));
+                    uData = uSnap.exists() ? { id: uSnap.id, ...uSnap.data() } : null;
+                }
+                if (!uData) {
+                    staleEntries.push({ p, reason: 'missing_user' });
+                    continue;
+                }
+                const curL1 = Number(uData.refLevel1 || 0);
+                const curL2 = Number(uData.refLevel2 || 0);
+                const curL3 = Number(uData.refLevel3 || 0);
+                const baseL1 = Number(p.joinRefLevel1 || p.joinReferrals || 0);
+
+                const actual = treeFailed
+                    ? { l1: curL1, l2: curL2, l3: curL3 }
+                    : countReferralLevels(uData.referralCode || '');
+
+                const levelMismatch = (curL1 !== actual.l1 || curL2 !== actual.l2 || curL3 !== actual.l3);
+                if (levelMismatch) {
+                    staleEntries.push({ p, actual, current: { l1: curL1, l2: curL2, l3: curL3 }, baseL1, reason: 'wrong_reflevel' });
+                    continue;
+                }
+
+                const expected = Math.max(0, actual.l1 - baseL1);
+                const current = Number(p.contestReferrals || 0);
+                if (expected !== current) {
+                    staleEntries.push({ p, expected, current, reason: 'wrong_score' });
+                }
+            } catch (e) {
+                staleEntries.push({ p, reason: 'error', error: e.message });
+            }
+        }
+        document.getElementById('cStale').textContent = staleEntries.length;
+
+        info.style.display = 'block';
+        action.style.display = 'block';
+
+        stats.style.display = 'grid';
+        document.getElementById('statParticipants').textContent = allParticipants.length;
+        document.getElementById('statStale').textContent = staleEntries.length;
+        document.getElementById('statFixed').textContent = '0';
+        document.getElementById('statErrors').textContent = '0';
+
+        log('Scan complete. ' + staleEntries.length + ' stale entries found out of ' + allParticipants.length + ' participants.', staleEntries.length > 0 ? 'fixed' : 'ok');
+        if (staleEntries.length === 0) {
+            document.getElementById('recalcBtn').disabled = true;
+            document.getElementById('recalcBtn').innerHTML = 'All Scores Up to Date';
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('Error loading contest info', true);
+    }
+}
+
+// ── Recalculate ──
+window.startRecalc = async () => {
+    if (isRunning || !selectedContestId || staleEntries.length === 0) return;
+    isRunning = true;
+    const btn = document.getElementById('recalcBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Recalculating...';
+
+    const logWrap = document.getElementById('logWrap');
+    let fixed = 0;
+    let errors = 0;
+    let skipped = 0;
+
+    try {
+        // Process in batches of 500 (Firestore batch limit)
+        const batchSize = 500;
+        const batches = [];
+        for (let i = 0; i < staleEntries.length; i += batchSize) {
+            batches.push(staleEntries.slice(i, i + batchSize));
+        }
+
+        let processed = 0;
+        for (const batch of batches) {
+            const writeBatchOp = writeBatch(db);
+            let batchCount = 0;
+
+            for (const entry of batch) {
+                processed++;
+                const pct = Math.round((processed / staleEntries.length) * 100);
+                setProgress(pct, 'Processing ' + processed + ' of ' + staleEntries.length);
+
+                if (entry.reason === 'missing_user') {
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... doc not found', 'err');
+                    errors++;
+                    continue;
+                }
+
+                if (entry.reason === 'wrong_score') {
+                    const diff = entry.expected - entry.current;
+                    const sign = diff > 0 ? '+' : '';
+                    const pRef = doc(db, "contestParticipants", entry.p.id);
+                    writeBatchOp.update(pRef, { contestReferrals: entry.expected });
+                    batchCount++;
+                    fixed++;
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... ' + entry.current + ' → ' + entry.expected + ' (' + sign + diff + ')', 'fixed');
+                }
+
+                if (entry.reason === 'wrong_reflevel') {
+                    const a = entry.actual;
+                    const c = entry.current;
+                    const bL1 = Number(entry.baseL1 || entry.p.joinRefLevel1 || entry.p.joinReferrals || 0);
+                    const newScore = Math.max(0, a.l1 - bL1);
+                    const pRef = doc(db, "contestParticipants", entry.p.id);
+                    const uRef = doc(db, "users", entry.p.userId);
+                    writeBatchOp.update(uRef, { refLevel1: a.l1, refLevel2: a.l2, refLevel3: a.l3 });
+                    writeBatchOp.update(pRef, { contestReferrals: newScore });
+                    batchCount++;
+                    fixed++;
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... L1:' + c.l1 + '→' + a.l1 + ' L2:' + c.l2 + '→' + a.l2 + ' L3:' + c.l3 + '→' + a.l3 + ' score:' + newScore, 'fixed');
+                }
+
+                if (entry.reason === 'error') {
+                    log('User ' + (entry.p.userId || '').slice(0, 8) + '... error: ' + (entry.error || ''), 'err');
+                    errors++;
+                }
+            }
+
+            if (batchCount > 0) {
+                await writeBatchOp.commit();
+                log('Batch committed (' + batchCount + ' updates)', 'ok');
+            }
+        }
+
+        setProgress(100, 'Done');
+        document.getElementById('statFixed').textContent = fixed;
+        document.getElementById('statErrors').textContent = errors;
+
+        log('--- Complete: ' + fixed + ' fixed, ' + errors + ' errors, ' + skipped + ' skipped ---', 'ok');
+        showToast('Recalculation done! ' + fixed + ' scores updated.');
+
+        // Refresh
+        loadContestInfo(selectedContestId);
+    } catch (e) {
+        console.error(e);
+        showToast('Error during recalculation', true);
+        log('Fatal error: ' + e.message, 'err');
+    }
+
+    isRunning = false;
+};
+
+// ── Auth ──
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.replace('login.html'); return; }
+    try {
+        const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+        if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+            document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;"><div style="font-size:40px;margin-bottom:16px;">&#x1f512;</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;margin-top:8px;font-size:14px;">Admin privileges required.</p></div>';
+            document.body.style.display = 'block';
+            return;
+        }
+        document.body.style.display = 'block';
+        loadContests();
+    } catch (e) {
+        console.error(e);
+        document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;"><h2>Error</h2><p style="opacity:0.4;">' + e.message + '</p></div>';
+        document.body.style.display = 'block';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Join — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.08) 0%,transparent 60%)}
+.phone-frame{width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:22px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;letter-spacing:-0.5px}
+.logo-sub{font-size:10px;color:rgba(255,255,255,0.2);text-align:center;text-transform:uppercase;letter-spacing:3px;margin-top:2px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px 28px;backdrop-filter:blur(20px)}
+.card-title{font-size:15px;font-weight:800;text-align:center;margin-bottom:4px}
+.card-sub{font-size:10px;color:rgba(255,255,255,0.25);text-align:center;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px}
+.input-wrap{position:relative;margin-top:14px}
+.input-wrap input{width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:white;font-size:13px;font-family:'Inter';outline:none;transition:0.25s}
+.input-wrap input:focus{border-color:rgba(167,139,250,0.35);background:rgba(255,255,255,0.06)}
+.input-wrap input::placeholder{color:rgba(255,255,255,0.2);font-weight:500}
+.input-wrap input:disabled{opacity:0.4}
+.pass-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:4px;display:flex;transition:0.2s}
+.pass-toggle:hover{color:rgba(255,255,255,0.6)}
+.ref-badge{display:flex;align-items:center;gap:8px;margin-top:14px;padding:12px 16px;border-radius:12px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12)}
+.ref-badge svg{flex-shrink:0}
+.ref-badge span{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.4}
+.ref-badge strong{color:var(--primary)}
+.otp-row{display:flex;gap:8px;margin-top:14px}
+.otp-row input{flex:1;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:white;font-size:20px;font-weight:900;font-family:'Space Grotesk';outline:none;transition:0.25s;text-align:center;letter-spacing:6px}
+.otp-row input:focus{border-color:rgba(167,139,250,0.35)}
+.otp-row input::placeholder{font-size:13px;letter-spacing:1px;font-weight:500}
+.otp-row button{padding:10px 18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:11px;cursor:pointer;font-family:'Inter';transition:0.25s;white-space:nowrap}
+.otp-row button:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{width:100%;margin-top:16px;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter';transition:0.25s;letter-spacing:0.3px}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-outline{width:100%;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:transparent;color:rgba(255,255,255,0.4);font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter';transition:0.2s}
+.btn-outline:hover{border-color:rgba(167,139,250,0.3);color:var(--primary)}
+.footer-link{display:block;margin-top:18px;text-align:center;font-size:12px;color:rgba(255,255,255,0.25);text-decoration:none;transition:0.2s}
+.footer-link:hover{color:var(--primary)}
+.footer-link span{color:var(--primary);font-weight:700}
+.input-error{border-color:rgba(239,68,68,0.4)!important}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;font-family:'Inter';animation:slideUp 0.3s;white-space:nowrap}
+.toast.success{background:var(--green);color:#000}
+.toast.error{background:var(--red);color:#fff}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}}
+
+.notice-box{display:none;margin-top:14px;padding:16px;border-radius:14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12);font-size:11px;color:rgba(255,255,255,0.6);line-height:1.7}
+.notice-box.show{display:block;animation:fadeIn 0.3s ease}
+.notice-box .nb-title{font-weight:800;font-size:12px;color:var(--primary);margin-bottom:6px}
+.notice-box strong{color:rgba(255,255,255,0.8)}
+
+.resend-area{margin-top:10px;text-align:center;min-height:20px}
+.resend-area .resend-timer{font-size:11px;color:rgba(255,255,255,0.3);font-weight:600}
+.resend-area .resend-btn{display:none;background:none;border:none;color:var(--primary);font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter';padding:6px 12px;border-radius:8px;transition:0.2s}
+.resend-area .resend-btn:hover{background:rgba(167,139,250,0.1)}
+
+.help-text{margin-top:6px;font-size:10px;color:rgba(255,255,255,0.2);text-align:center;display:none}
+.help-text.show{display:block;animation:fadeIn 0.3s ease}
+.help-text a{color:var(--primary);text-decoration:none;font-weight:600}
+
+.alert-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:24px}
+.alert-overlay.show{display:flex;animation:fadeIn 0.3s ease}
+.alert-box{background:#0b0b20;border:1px solid var(--border);border-radius:24px;padding:32px 24px;max-width:360px;width:100%;text-align:center}
+.alert-box .al-icon{font-size:36px;margin-bottom:10px}
+.alert-box .al-title{font-weight:800;font-size:15px;margin-bottom:8px}
+.alert-box .al-body{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:18px}
+.alert-box .al-btn{padding:12px 24px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:800;font-size:13px;cursor:pointer;font-family:'Inter';width:100%}
+.alert-box .al-btn:hover{opacity:0.9}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="logo">
+    <img src="logo.png" alt="ONCHYRA" style="height:32px;vertical-align:middle;margin-right:6px">
+    ONCHYRA
+  </div>
+  <div class="logo-sub">Create Your Account</div>
+
+    <div class="card">
+      <div class="card-title">Get Started</div>
+      <div class="card-sub">Join the mining revolution</div>
+
+      <div class="input-wrap">
+        <input type="text" id="name" placeholder="Full Name" autocomplete="name">
+      </div>
+
+    <div class="input-wrap">
+      <input type="email" id="email" placeholder="Email Address" autocomplete="email">
+    </div>
+
+    <div class="input-wrap">
+      <input type="password" id="password" placeholder="Password" autocomplete="new-password">
+      <button class="pass-toggle" id="passToggle" type="button" onclick="togglePass()" tabindex="-1">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path id="eyeIcon" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle id="eyeDot" cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="input-wrap">
+      <input type="text" id="referral" placeholder="Referral Code *" autocomplete="off">
+    </div>
+
+    <div class="ref-badge">
+      <svg width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Referral code is <strong>required</strong> — you must have an inviter to join</span>
+    </div>
+
+    <div class="otp-row" id="otpRow" style="display:none;">
+      <input type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    </div>
+    <div class="help-text" id="helpText">📩 Can't find the email? <a href="#" onclick="showAlert();return false;">Check Spam/Junk folder</a> first.</div>
+
+    <div class="notice-box" id="noticeBox">
+      <div class="nb-title">📩 OTP not received?</div>
+      Please check your <strong>Spam/Junk folder</strong>. Some email providers may place verification emails there.<br><br>
+      If you find the email in Spam, mark it as <strong>"Not Spam"</strong> to ensure future ONCHYRA emails arrive in your inbox.
+    </div>
+    <div class="resend-area" id="resendArea"></div>
+
+    <button class="btn-primary" id="regBtn" onclick="registerUser()" style="display:none;">Create Account</button>
+    <button class="btn-primary" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+  </div>
+  <a href="login.html" class="footer-link" style="margin-top:6px">Already have an account? <span>Login</span></a>
+</div>
+<div class="toast" id="toast"></div>
+<div class="alert-overlay" id="alertOverlay">
+  <div class="alert-box">
+    <div class="al-icon">⚠️</div>
+    <div class="al-title">Check Your Spam Folder</div>
+    <div class="al-body">
+      Your verification email may appear in the <strong style="color:rgba(255,255,255,0.8);">Spam/Junk folder</strong>.<br><br>
+      Please check <strong style="color:rgba(255,255,255,0.8);">all folders</strong> before requesting another OTP.
+    </div>
+    <button class="al-btn" onclick="closeAlert()">Got it</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp, increment, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra",
+  storageBucket: "onchyra.firebasestorage.app",
+  messagingSenderId: "441822770982",
+  appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+let deviceId = localStorage.getItem("onc_device") || crypto.randomUUID();
+localStorage.setItem("onc_device", deviceId);
+
+const referralInput = document.getElementById('referral');
+
+window.addEventListener("DOMContentLoaded", () => {
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  if(ref) referralInput.value = ref.toUpperCase();
+});
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (isError ? 'error' : 'success');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+window.togglePass = () => {
+  const p = document.getElementById("password");
+  const icon = document.getElementById("eyeIcon");
+  const dot = document.getElementById("eyeDot");
+  if (p.type === "password") {
+    p.type = "text";
+    icon.setAttribute("d", "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24");
+    dot.style.display = "none";
+  } else {
+    p.type = "password";
+    icon.setAttribute("d", "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z");
+    dot.style.display = "";
+  }
+};
+
+function validateForm() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const refCode = referralInput.value.trim().toUpperCase();
+
+  if(!name || !email || !password) {
+    showToast("Please fill in all fields", true);
+    return null;
+  }
+  if (email.includes('+')) {
+    showToast("Email aliases (+) are not allowed", true);
+    return null;
+  }
+  if(!refCode) {
+    referralInput.classList.add('input-error');
+    setTimeout(() => referralInput.classList.remove('input-error'), 2000);
+    showToast("Referral code is required", true);
+    return null;
+  }
+  return { name, email, password, refCode };
+}
+
+let otpCooldownTimer = null;
+let otpCooldownRemaining = 0;
+
+function startResendTimer() {
+  const area = document.getElementById('resendArea');
+  otpCooldownRemaining = 60;
+  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+  otpCooldownTimer = setInterval(() => {
+    otpCooldownRemaining--;
+    if (otpCooldownRemaining <= 0) {
+      clearInterval(otpCooldownTimer);
+      otpCooldownTimer = null;
+      area.innerHTML = '<button class="resend-btn" onclick="resendOtp()">Resend OTP</button>';
+      area.querySelector('.resend-btn').style.display = 'inline-block';
+    } else {
+      area.innerHTML = '<span class="resend-timer">Resend OTP in ' + otpCooldownRemaining + 's</span>';
+    }
+  }, 1000);
+}
+
+window.showAlert = () => {
+  document.getElementById('alertOverlay').classList.add('show');
+};
+window.closeAlert = () => {
+  document.getElementById('alertOverlay').classList.remove('show');
+};
+
+window.resendOtp = async () => {
+  const data = validateForm();
+  if (!data) return;
+  const area = document.getElementById('resendArea');
+  area.innerHTML = '<span class="resend-timer">Sending...</span>';
+  try {
+    const res = await fetch(API + '/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email })
+    });
+    const bodyText = await res.text();
+    let result;
+    try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status); }
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+    showToast('✅ OTP resent successfully');
+    startResendTimer();
+  } catch(e) {
+    showToast(e.message, true);
+    area.innerHTML = '<button class="resend-btn" onclick="resendOtp()" style="display:inline-block">Resend OTP</button>';
+  }
+};
+
+window.sendOtp = async () => {
+  const data = validateForm();
+  if (!data) return;
+
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(API + '/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email })
+    });
+    const bodyText = await res.text();
+    let result;
+    try { result = JSON.parse(bodyText); } catch { throw new Error('Status ' + res.status + ': ' + bodyText.slice(0,120)); }
+    if (!res.ok) throw new Error(result.error || 'Request failed');
+
+    showToast('✅ Verification email sent successfully to your email address.');
+    document.getElementById('sendOtpBtn').style.display = 'none';
+    document.getElementById('otpRow').style.display = 'flex';
+    document.getElementById('regBtn').style.display = 'block';
+    document.getElementById('otpInput').focus();
+    document.getElementById('noticeBox').classList.add('show');
+    document.getElementById('helpText').classList.add('show');
+    startResendTimer();
+    setTimeout(() => showAlert(), 500);
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Send OTP';
+  }
+};
+
+window.registerUser = async function() {
+  const data = validateForm();
+  if (!data) return;
+
+  const otp = document.getElementById('otpInput').value.trim();
+  if (!otp || otp.length !== 6) {
+    showToast('Enter the 6-digit OTP', true);
+    return;
+  }
+
+  const btn = document.getElementById('regBtn');
+  btn.disabled = true;
+  btn.innerText = 'Verifying...';
+
+  // Step 1 — Verify OTP
+  try {
+    const vRes = await fetch(API + '/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email, otp })
+    });
+    const vData = await vRes.json();
+    if (!vRes.ok) throw new Error(vData.error || 'OTP verification failed');
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.innerText = 'Create Account';
+    return;
+  }
+
+  // Step 2 — Create account
+  btn.innerText = 'Creating...';
+
+  try {
+    const refRes = await fetch(API + '/check-referral/' + data.refCode);
+    if (!refRes.ok) { const e = await refRes.json(); throw new Error(e.error || 'Referral check failed'); }
+    const refData = await refRes.json();
+    if (!refData.valid) {
+      showToast('Invalid referral code', true);
+      btn.disabled = false;
+      btn.innerText = 'Create Account';
+      return;
+    }
+
+    const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+    const uid = userCred.user.uid;
+    const myRefCode = Math.random().toString(36).substring(2,8).toUpperCase();
+
+    await setDoc(doc(db,'users',uid),{
+      name: data.name, email: data.email, uid, deviceId,
+      balance:0, status:'inactive',
+      referralCode: myRefCode,
+      referredBy: data.refCode,
+      referrals:0,
+      refLevel1:0, refLevel2:0, refLevel3:0,
+      totalPackageSpend:0, teamBiz:0,
+      totalDirects:0, activeDirects:0,
+      commissionBalance:0,
+      streak:0, lastClaim:0,
+      createdAt: serverTimestamp()
+    });
+
+    const commRes = await fetch(API + '/register-commission', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, referredBy: data.refCode })
+    });
+    if (!commRes.ok) {
+      const commErr = await commRes.json();
+      console.error('Commission error:', commErr);
+    }
+
+    showToast('Registration Successful!');
+    setTimeout(() => window.location.href = 'dashboard.html', 800);
+  } catch(e) {
+    showToast(e.message, true);
+    btn.disabled = false;
+    btn.innerText = 'Create Account';
+  }
+};
+</script>
+</body>
+</html>

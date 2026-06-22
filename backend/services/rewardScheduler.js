@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const pg = require('../config/pg');
 
 const REWARD_INTERVAL = parseInt(process.env.REWARD_INTERVAL || '14400000');
 const MAX_PER_CYCLE = parseInt(process.env.REWARD_MAX || '50');
@@ -17,86 +16,93 @@ const RANKS = [
   { name: 'Legacy',     reqDirect: 40, reqTeam: 2500000,reqLeg: 1250000,bonus: 50000,rewardDay: 3000,rewardDays: 30 },
 ];
 
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 async function distribute() {
   const today = todayStr();
   const now = Date.now();
   const rankNames = RANKS.map(r => r.name);
   const cutoff = Date.now() - REWARD_INTERVAL;
-  let snap;
+
+  let rows = [];
   try {
-    snap = await db.collection('users')
-      .where('rank', 'in', rankNames)
-      .where('rewardCheckedAt', '<', cutoff)
-      .orderBy('rewardCheckedAt')
-      .limit(MAX_PER_CYCLE).get();
+    const rankPlaceholders = rankNames.map((_, i) => `$${i + 2}`).join(',');
+    const res = await pg.query(
+      `SELECT * FROM users WHERE rank IN (${rankPlaceholders}) AND (reward_checked_at IS NULL OR reward_checked_at < $1) ORDER BY reward_checked_at NULLS FIRST LIMIT $${rankNames.length + 2}`,
+      [cutoff, ...rankNames, MAX_PER_CYCLE]
+    );
+    rows = res.rows;
   } catch (e) {
-    // Fallback if index doesn't exist yet
-    snap = await db.collection('users').where('rank', 'in', rankNames).limit(MAX_PER_CYCLE).get();
+    const res = await pg.query(
+      `SELECT * FROM users WHERE rank IN (${rankNames.map((_, i) => `$${i + 1}`).join(',')}) LIMIT $${rankNames.length + 1}`,
+      [...rankNames, MAX_PER_CYCLE]
+    );
+    rows = res.rows;
   }
-  // Also grab users who have never been checked (no rewardCheckedAt field)
+
   let neverChecked = [];
   try {
-    const snap2 = await db.collection('users')
-      .where('rank', 'in', rankNames)
-      .where('rewardCheckedAt', '==', 0)
-      .limit(MAX_PER_CYCLE).get();
-    neverChecked = snap2.docs;
+    const res = await pg.query(
+      `SELECT * FROM users WHERE rank IN (${rankNames.map((_, i) => `$${i + 2}`).join(',')}) AND reward_checked_at IS NULL LIMIT $1`,
+      [MAX_PER_CYCLE, ...rankNames]
+    );
+    neverChecked = res.rows;
   } catch (e) {}
-  const seen = new Set(snap.docs.map(d => d.id));
-  for (const d of neverChecked) {
-    if (!seen.has(d.id)) snap.docs.push(d);
-  }
-  if (snap.docs.length > MAX_PER_CYCLE) snap.docs = snap.docs.slice(0, MAX_PER_CYCLE);
 
-  console.log(`[REWARD] Checking ${snap.docs.length} users (${today})...`);
+  const seen = new Set(rows.map(r => r.uid));
+  for (const r of neverChecked) {
+    if (!seen.has(r.uid)) rows.push(r);
+  }
+  if (rows.length > MAX_PER_CYCLE) rows = rows.slice(0, MAX_PER_CYCLE);
+
+  console.log(`[REWARD] Checking ${rows.length} users (${today})...`);
   let distributed = 0;
 
-  for (const d of snap.docs) {
-    const u = d.data();
+  for (const u of rows) {
     const rank = u.rank || 'Unranked';
     if (rank === 'Unranked') continue;
-    if (!u.activePackage || u.activePackage === 'none' || u.packageStatus === 'expired') continue;
+    if (!u.active_package || u.active_package === 'none' || u.package_status === 'expired') continue;
 
     const rd = RANKS.find(r => r.name === rank);
     if (!rd) continue;
 
-    // Already paid today — mark checked so we don't re-read next cycle
-    if (u.rewardLastPaid === today) {
-      await d.ref.update({ rewardCheckedAt: now }).catch(() => {});
+    if (u.reward_last_paid === today) {
+      await pg.update('users', u.uid, { reward_checked_at: now }).catch(() => {});
       continue;
     }
 
-    const paid = u.leadershipRewardPayouts || 0;
+    const paid = u.leadership_reward_payouts || 0;
     if (paid >= rd.rewardDays) continue;
 
     const dailyAmt = rd.rewardDay;
     if (dailyAmt <= 0) continue;
 
-    const cap = u.packageCap || Infinity;
-    const usage = u.packageUsage || 0;
+    const cap = u.package_cap || Infinity;
+    const usage = u.package_usage || 0;
     const canAdd = Math.min(dailyAmt, cap - usage);
     if (canAdd <= 0) continue;
 
-    await d.ref.update({
-      commissionBalance: admin.firestore.FieldValue.increment(canAdd),
-      packageUsage: admin.firestore.FieldValue.increment(canAdd),
-      leadershipRewardPayouts: admin.firestore.FieldValue.increment(1),
-      leadershipRewardRank: rank,
-      leadershipRewardDay: dailyAmt,
-      leadershipRewardDays: rd.rewardDays,
-      rewardLastPaid: today,
-      rewardCheckedAt: now,
+    await pg.increment('users', u.uid, 'commission_balance', canAdd);
+    await pg.increment('users', u.uid, 'package_usage', canAdd);
+    await pg.increment('users', u.uid, 'leadership_reward_payouts', 1);
+
+    await pg.update('users', u.uid, {
+      leadership_reward_rank: rank,
+      leadership_reward_day: dailyAmt,
+      leadership_reward_days: rd.rewardDays,
+      reward_last_paid: today,
+      reward_checked_at: now,
     });
 
-    await db.collection('leadershipRewards').add({
-      uid: d.id, rank, amount: canAdd, day: paid + 1, createdAt: now
-    });
+    await pg.query(
+      `INSERT INTO leadership_rewards (id, uid, rank, amount, day, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      ['lr_' + u.uid + '_' + now, u.uid, rank, canAdd, paid + 1, now]
+    );
 
-    await payMatchingBonus(d.id, canAdd);
+    await payMatchingBonus(u.uid, canAdd);
     distributed++;
-    console.log(`[REWARD] Credited $${canAdd} to ${u.email || d.id} (${rank}, day ${paid+1}/${rd.rewardDays})`);
+    console.log(`[REWARD] Credited $${canAdd} to ${u.email || u.uid} (${rank}, day ${paid + 1}/${rd.rewardDays})`);
   }
 
   if (distributed > 0) console.log(`[REWARD] Distributed ${distributed} daily rewards today`);
@@ -104,10 +110,9 @@ async function distribute() {
 }
 
 async function payMatchingBonus(uid, rewardAmount) {
-  const snap = await db.doc(`users/${uid}`).get();
-  if (!snap.exists) return;
-  const u = snap.data();
-  const refCode = u.referredBy;
+  const u = await pg.get('users', uid);
+  if (!u) return;
+  const refCode = u.referred_by;
   if (!refCode) return;
 
   const sponsorLookup = await lookupByRefCode(refCode);
@@ -115,35 +120,34 @@ async function payMatchingBonus(uid, rewardAmount) {
   const sponsorUid = sponsorLookup.id;
   const sponsor = sponsorLookup.data;
 
-  if (!sponsor.activePackage || sponsor.packageStatus === 'expired') return;
+  if (!sponsor.active_package || sponsor.package_status === 'expired') return;
 
   const matchAmt = rewardAmount * 0.1;
   if (matchAmt <= 0) return;
 
-  const cap = sponsor.packageCap || Infinity;
-  const usage = sponsor.packageUsage || 0;
+  const cap = sponsor.package_cap || Infinity;
+  const usage = sponsor.package_usage || 0;
   const canAdd = Math.min(matchAmt, cap - usage);
   if (canAdd <= 0) return;
 
-  await db.doc(`users/${sponsorUid}`).update({
-    commissionBalance: admin.firestore.FieldValue.increment(canAdd),
-    totalMatchingBonus: admin.firestore.FieldValue.increment(canAdd),
-    packageUsage: admin.firestore.FieldValue.increment(canAdd),
-  });
+  await pg.increment('users', sponsorUid, 'commission_balance', canAdd);
+  await pg.increment('users', sponsorUid, 'total_matching_bonus', canAdd);
+  await pg.increment('users', sponsorUid, 'package_usage', canAdd);
 
-  await db.collection('commissions').add({
-    uid: sponsorUid, fromUid: uid, amount: canAdd,
-    type: 'matching_bonus', createdAt: Date.now()
-  });
+  await pg.query(
+    `INSERT INTO commissions (id, uid, from_uid, amount, type, created_at)
+     VALUES ($1, $2, $3, $4, 'matching_bonus', $5)`,
+    ['mb_' + sponsorUid + '_' + Date.now(), sponsorUid, uid, canAdd, Date.now()]
+  );
 
   console.log(`[REWARD] Matching bonus $${canAdd} paid to sponsor ${sponsorUid}`);
 }
 
 async function lookupByRefCode(refCode) {
   if (!refCode) return null;
-  const snap = await db.collection('users').where('referralCode', '==', refCode).get();
-  if (snap.empty) return null;
-  return { id: snap.docs[0].id, data: snap.docs[0].data() };
+  const rows = await pg.findWhere('users', { referral_code: refCode });
+  if (!rows.length) return null;
+  return { id: rows[0].uid, data: rows[0] };
 }
 
 let intervalId = null;

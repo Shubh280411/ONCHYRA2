@@ -40,54 +40,57 @@
                 <div class="cd-unit"><div class="cd-num" id="cdSecs">00</div><div class="cd-label">Sec</div></div>
             </div>
         </div>
-        <div class="done-msg" id="doneMsg">Maintenance complete! Please check back later.</div>
+        <div class="done-msg" id="doneMsg">Maintenance complete! Redirecting to dashboard...</div>
     </div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { doc, getDoc   } from "./supabase-adapter.js";
-
-const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
-const db = {};
+<script>
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 let endTime = null;
 
 function toMillis(ts) {
   if (!ts) return 0;
-  if (typeof ts === 'object' && ts.toMillis) return ts.toMillis();
   if (typeof ts === 'number') return ts;
   return Date.parse(ts) || 0;
 }
 
 async function loadMaint() {
     try {
-        const snap = await getDoc(doc(db, 'settings', 'maintenance'));
-        if (snap.exists()) {
-            const d = snap.data();
-            if (d.message) document.getElementById('maintenanceMsg').textContent = d.message;
-            const startedAt = toMillis(d.startedAt);
-            const durationMs = (d.durationHours || 2) * 3600000;
-            if (startedAt > 0) {
-                endTime = startedAt + durationMs;
-                const now = Date.now();
-                if (endTime > now) {
-                    document.getElementById('countdownWrap').style.display = 'block';
-                    tick();
-                } else {
-                    document.getElementById('countdownWrap').style.display = 'none';
-                    document.getElementById('doneMsg').style.display = 'block';
-                }
+        const r = await fetch(API + '/maintenance');
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.enabled) { window.location = 'dashboard.html'; return; }
+        if (d.message) document.getElementById('maintenanceMsg').textContent = d.message;
+        if (d.endAt) {
+            endTime = toMillis(d.endAt);
+            const now = Date.now();
+            if (endTime > now) {
+                document.getElementById('countdownWrap').style.display = 'block';
+                tick();
+            } else {
+                done();
+            }
+        } else if (d.startedAt && d.durationHours) {
+            endTime = toMillis(d.startedAt) + (d.durationHours * 3600000);
+            const now = Date.now();
+            if (endTime > now) {
+                document.getElementById('countdownWrap').style.display = 'block';
+                tick();
+            } else {
+                done();
             }
         }
     } catch(e) {}
 }
 
+function done() {
+    document.getElementById('countdownWrap').style.display = 'none';
+    document.getElementById('doneMsg').style.display = 'block';
+    setTimeout(() => window.location = 'dashboard.html', 2000);
+}
+
 function tick() {
     if (!endTime) return;
     const diff = endTime - Date.now();
-    if (diff <= 0) {
-        document.getElementById('countdownWrap').style.display = 'none';
-        document.getElementById('doneMsg').style.display = 'block';
-        return;
-    }
+    if (diff <= 0) { done(); return; }
     document.getElementById('cdDays').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
     document.getElementById('cdHours').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
     document.getElementById('cdMins').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');

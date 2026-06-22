@@ -1,12 +1,10 @@
-const admin = require('firebase-admin');
+const pg = require('../config/pg');
 const otpTransporter = require('../config/otpMailer');
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const COOLDOWN_MS = 30 * 1000;
 
-// In-memory OTP store — no Firestore reads needed
 const otpStore = new Map();
-// Cleanup expired OTPs every 60s
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of otpStore) {
@@ -52,7 +50,6 @@ exports.send = async (req, res) => {
     const now = Date.now();
     const existing = otpStore.get(key);
 
-    // Cooldown check from memory
     if (existing && !existing.verified && now < existing.cooldownUntil) {
       const wait = Math.ceil((existing.cooldownUntil - now) / 1000);
       return res.status(429).json({ error: `Wait ${wait}s before resending` });
@@ -66,18 +63,17 @@ exports.send = async (req, res) => {
       verified: false, attempts: 0
     });
 
-    // Persist OTP to Firestore (1 doc per email for low-read fallback)
-    const db = admin.firestore();
-    db.collection('otps').add({
-      email: key, otp, purpose: purpose || 'registration',
-      createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
-      verified: false, attempts: 0
-    }).catch(e => console.warn('[OTP] Firestore log write failed:', e.message));
-    db.collection('otpStore').doc(key).set({
-      otp, email, purpose: purpose || 'registration',
-      createdAt: now, expiresAt: now + OTP_EXPIRY_MS,
-      cooldownUntil: now + COOLDOWN_MS, verified: false, attempts: 0
-    }).catch(e => console.warn('[OTP] otpStore write failed:', e.message));
+    pg.query(
+      `INSERT INTO otp_store (email, otp, purpose, created_at, expires_at, cooldown_until, verified, attempts)
+       VALUES ($1, $2, $3, $4, $5, $6, false, 0)
+       ON CONFLICT (email) DO UPDATE SET otp = $2, purpose = $3, created_at = $4, expires_at = $5, cooldown_until = $6, verified = false, attempts = 0`,
+      [key, otp, purpose || 'registration', now, now + OTP_EXPIRY_MS, now + COOLDOWN_MS]
+    ).catch(e => console.warn('[OTP] PG upsert failed:', e.message));
+    pg.query(
+      `INSERT INTO otp_logs (id, email, purpose, event, provider, created_at)
+       VALUES ('otp_' || $1 || '_' || $2, $1, $3, 'sent', $4, $5)`,
+      [key, now, purpose || 'registration', otpTransporter.mailSettings.providerLabel, now]
+    ).catch(e => console.warn('[OTP] PG log write failed:', e.message));
 
     const subject = purpose === 'withdrawal' ? 'Withdrawal Verification - ONCHYRA' : 'Email Verification - ONCHYRA';
 
@@ -91,26 +87,21 @@ exports.send = async (req, res) => {
       });
       console.log(`[OTP] Sent to ${email}`);
 
-      // Log successful delivery to Firestore (write-only)
-      const db = admin.firestore();
-      db.collection('otpLogs').add({
-        email: key, purpose: purpose || 'registration',
-        event: 'delivered', provider: otpTransporter.mailSettings.providerLabel,
-        createdAt: Date.now()
-      }).catch(e => console.warn('[OTP] Delivery log write failed:', e.message));
+      pg.query(
+        `INSERT INTO otp_logs (id, email, purpose, event, provider, created_at)
+         VALUES ('otp_delivered_' || $1 || '_' || $2, $1, $3, 'delivered', $4, $5)`,
+        [key, now, purpose || 'registration', otpTransporter.mailSettings.providerLabel, Date.now()]
+      ).catch(e => console.warn('[OTP] Delivery log write failed:', e.message));
 
       res.json({ success: true, message: 'OTP sent to your email' });
     } catch (sendErr) {
       console.error('[OTP] Send failed:', sendErr.message);
 
-      // Log delivery failure to Firestore (write-only)
-      const db = admin.firestore();
-      db.collection('otpLogs').add({
-        email: key, purpose: purpose || 'registration',
-        event: 'failed', error: sendErr.message,
-        provider: otpTransporter.mailSettings.providerLabel,
-        createdAt: Date.now()
-      }).catch(e => console.warn('[OTP] Failure log write failed:', e.message));
+      pg.query(
+        `INSERT INTO otp_logs (id, email, purpose, event, error, provider, created_at)
+         VALUES ('otp_failed_' || $1 || '_' || $2, $1, $3, 'failed', $4, $5, $6)`,
+        [key, now, purpose || 'registration', sendErr.message, otpTransporter.mailSettings.providerLabel, Date.now()]
+      ).catch(e => console.warn('[OTP] Failure log write failed:', e.message));
 
       throw sendErr;
     }
@@ -124,31 +115,31 @@ exports.list = async (_req, res) => {
   try {
     const now = Date.now();
     const list = [];
-    // Merge in-memory OTPs with Firestore OTPs (old records)
+
     try {
-      const db = admin.firestore();
-      const snap = await db.collection('otps').orderBy('createdAt', 'desc').limit(100).get();
-      snap.forEach(d => {
-        const d2 = d.data();
-        const createdAt = typeof d2.createdAt === 'number' ? d2.createdAt : 0;
+      const rows = await pg.query(
+        `SELECT * FROM otp_logs ORDER BY created_at DESC LIMIT 100`
+      );
+      for (const r of rows.rows) {
         list.push({
-          email: d2.email || '',
-          otp: d2.otp || '',
-          createdAt,
-          expiresAt: d2.expiresAt || (createdAt + 300000),
-          verified: !!d2.verified,
-          attempts: d2.attempts || 0,
-          usedAt: d2.usedAt || null
+          email: r.email || '',
+          otp: '',
+          createdAt: r.created_at || 0,
+          expiresAt: r.created_at ? r.created_at + OTP_EXPIRY_MS : 0,
+          verified: false,
+          attempts: 0,
+          usedAt: null,
+          event: r.event || '',
+          error: r.error || ''
         });
-      });
+      }
     } catch (e) {
-      console.warn('[OTP] Firestore list unavailable (quota?), using in-memory only');
+      console.warn('[OTP] PG list unavailable, using in-memory only');
     }
-    // Add in-memory OTPs (dedup by email + otp)
-    const memKeys = new Set(list.map(i => i.email + '|' + i.otp));
+
+    const memKeys = new Set(list.map(i => i.email));
     for (const [key, entry] of otpStore) {
-      const memKey = key + '|' + entry.otp;
-      if (memKeys.has(memKey)) continue;
+      if (memKeys.has(key)) continue;
       if (now > entry.expiresAt) continue;
       list.push({
         email: key,
@@ -160,6 +151,7 @@ exports.list = async (_req, res) => {
         usedAt: null
       });
     }
+
     list.sort((a, b) => b.createdAt - a.createdAt);
     res.json(list.slice(0, 200));
   } catch (e) {
@@ -167,28 +159,24 @@ exports.list = async (_req, res) => {
   }
 };
 
-// Shared OTP verification — used by both /otp/verify endpoint and withdraw controller
 async function verifyOtp(email, otp) {
   const key = email.toLowerCase();
   let entry = otpStore.get(key);
 
-  // If not in memory (server restart), try Firestore single-doc fallback (1 read)
   if (!entry) {
     try {
-      const db = admin.firestore();
-      const doc = await db.collection('otpStore').doc(key).get();
-      if (doc.exists) {
-        const data = doc.data();
+      const row = await pg.get('otp_store', key, 'email');
+      if (row) {
         entry = {
-          otp: data.otp, email: data.email, purpose: data.purpose || 'registration',
-          createdAt: data.createdAt, expiresAt: data.expiresAt || data.createdAt + OTP_EXPIRY_MS,
-          cooldownUntil: data.cooldownUntil || 0, verified: data.verified || false,
-          attempts: data.attempts || 0
+          otp: row.otp, email: row.email, purpose: row.purpose || 'registration',
+          createdAt: row.created_at, expiresAt: row.expires_at || row.created_at + OTP_EXPIRY_MS,
+          cooldownUntil: row.cooldown_until || 0, verified: row.verified || false,
+          attempts: row.attempts || 0
         };
         otpStore.set(key, entry);
       }
     } catch (e) {
-      console.warn('[OTP] Firestore restore failed:', e.message);
+      console.warn('[OTP] PG restore failed:', e.message);
     }
   }
 
@@ -212,13 +200,15 @@ async function verifyOtp(email, otp) {
   }
 
   entry.verified = true;
-  // Update Firestore log
-  const db = admin.firestore();
-  db.collection('otps').add({
-    email: key, otp, purpose: entry.purpose || 'registration',
-    createdAt: entry.createdAt, expiresAt: entry.expiresAt,
-    verified: true, attempts: entry.attempts, usedAt: Date.now()
-  }).catch(e => console.warn('[OTP] Firestore verify log write failed:', e.message));
+  pg.query(
+    `UPDATE otp_store SET verified = true, attempts = $1 WHERE email = $2`,
+    [entry.attempts, key]
+  ).catch(e => console.warn('[OTP] PG verify update failed:', e.message));
+  pg.query(
+    `INSERT INTO otp_logs (id, email, purpose, event, created_at)
+     VALUES ('otp_verified_' || $1 || '_' || $2, $1, $3, 'verified', $4)`,
+    [key, Date.now(), entry.purpose || 'registration', Date.now()]
+  ).catch(e => console.warn('[OTP] PG verify log write failed:', e.message));
   return { valid: true };
 }
 

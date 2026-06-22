@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Leaderboard — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --bg: #05060f;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            background: radial-gradient(circle at 20% 30%, #6d28d933, transparent 40%),
+                        radial-gradient(circle at 80% 70%, #2563eb33, transparent 40%);
+            z-index: -1;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5px; margin-bottom: 10px;
+        }
+        .back-link { color: var(--primary); text-decoration: none; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .logo { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: white; }
+
+        .my-rank-card {
+            background: linear-gradient(135deg, #1e1b4b, #0f172a);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            transition: opacity 0.3s;
+        }
+        .my-rank-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 60%);
+        }
+        .rank-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.6; margin-bottom: 8px; position:relative; z-index:1; }
+        .rank-val { font-family: 'Space Grotesk'; font-size: 48px; font-weight: 800; color: white; line-height: 1; margin-bottom: 10px; position:relative; z-index:1;}
+        .bal-val { font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 5px 15px; border-radius: 20px; display: inline-block; position:relative; z-index:1; }
+
+        .list-container {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 20px 10px;
+        }
+        .list-header {
+            display: flex; flex-direction:column; gap:10px;
+            padding: 0 15px 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px;
+        }
+        .list-header-top { display:flex; justify-content:space-between; align-items:center; width:100%; }
+        .list-header h3 { font-family: 'Space Grotesk'; font-size: 18px; }
+        .miner-count { font-size: 12px; opacity: 0.5; }
+
+        .search-box input {
+            width:100%; padding:10px 14px; border-radius:12px; border:1px solid var(--border);
+            background:rgba(255,255,255,0.03); color:white; font-size:13px; font-family:'Inter'; outline:none;
+        }
+        .search-box input:focus { border-color:var(--primary); }
+        .search-box input::placeholder { color:rgba(255,255,255,0.2); }
+
+        .leader-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 15px; margin-bottom: 10px; border-radius: 18px;
+            background: rgba(255,255,255,0.02); transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .leader-item:hover { background:rgba(255,255,255,0.04); }
+        .leader-item.me { border-color: var(--primary); background: rgba(167, 139, 250, 0.08); }
+
+        .rank-num { width: 40px; font-weight: 800; font-family: 'Space Grotesk'; font-size: 16px; color: rgba(255,255,255,0.3); text-align:center; }
+        .top-rank { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink:0; }
+
+        .info { flex: 1; margin-left: 10px; min-width:0; }
+        .name { font-weight: 700; font-size: 14px; margin-bottom: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .team { font-size: 10px; font-weight: 600; color: var(--primary); text-transform: uppercase; display:flex; align-items:center; gap:4px; }
+
+        .score { text-align: right; flex-shrink:0; }
+        .onc-val { font-family: 'Space Grotesk'; font-weight: 800; font-size: 16px; color: #fff; }
+        .onc-label { font-size: 9px; opacity: 0.4; font-weight: 700; }
+
+        /* Skeleton */
+        .skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:18px; height:60px; margin-bottom:10px; }
+        .skeleton-rank { height:120px; border-radius:24px; margin-bottom:25px; }
+        @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+
+        .scroll-btn-wrap { text-align:center; padding:10px 0 5px; display:none; }
+        .scroll-btn {
+            padding:8px 20px; border:1px solid var(--border); border-radius:100px;
+            background:rgba(167,139,250,0.1); color:var(--primary); font-size:11px;
+            font-weight:700; cursor:pointer; transition:0.2s;
+        }
+        .scroll-btn:hover { background:rgba(167,139,250,0.2); }
+
+        .error-state { text-align:center; padding:30px 20px; opacity:0.5; font-size:13px; }
+        .empty-state { text-align:center; padding:30px 20px; opacity:0.3; font-size:13px; }
+
+        @media (max-width:420px) {
+            .rank-val { font-size:36px; }
+            .leader-item { padding:10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="dashboard.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        DASHBOARD
+    </a>
+    <div class="logo">ONCHYRA</div>
+</div>
+
+<!-- Rank Card -->
+<div class="my-rank-card" id="rankCard">
+    <div class="rank-title">Global Standing</div>
+    <div class="rank-val" id="yourRank">
+        <div class="skeleton" style="width:80px;height:48px;margin:0 auto;border-radius:8px;"></div>
+    </div>
+    <div class="bal-val" id="yourBalance">
+        <div class="skeleton" style="width:100px;height:16px;border-radius:4px;"></div>
+    </div>
+</div>
+
+<!-- List -->
+<div class="list-container">
+    <div class="list-header">
+        <div class="list-header-top">
+            <h3>Top Validators</h3>
+            <span class="miner-count" id="miners">
+                <div class="skeleton" style="width:80px;height:12px;display:inline-block;border-radius:4px;"></div>
+            </span>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by name..." oninput="filterLeaderboard()" autocomplete="off">
+        </div>
+    </div>
+
+    <div id="leaderboard">
+        <!-- Skeleton placeholders -->
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+    </div>
+
+    <div class="scroll-btn-wrap" id="scrollBtnWrap">
+        <button class="scroll-btn" id="scrollBtn" onclick="scrollToMe()">Scroll to my rank</button>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    collection, query, orderBy, limit, getDocs, doc, getDoc,
+    getCountFromServer, where, initializeFirestore
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+
+// ── State ──
+let topUsers = [];
+let myUid = null;
+let myUserData = null;
+let myExactRank = null;
+
+// ── SVG icons ──
+const MEDAL_SVG = {
+    gold: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/></svg>`,
+    silver: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#94a3b8" stroke="#475569" stroke-width="1.5"/></svg>`,
+    bronze: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#d97706" stroke="#78350f" stroke-width="1.5"/><path d="M8 21l4-3 4 3V12H8v9z" fill="#d97706" stroke="#78350f" stroke-width="1.5"/></svg>`
+};
+
+// ── Load ──
+onAuthStateChanged(auth, user => {
+    myUid = user ? user.uid : null;
+    loadLeaderboard();
+});
+
+async function loadLeaderboard() {
+    const container = document.getElementById("leaderboard");
+    try {
+        // 1. Get total user count
+        const countSnap = await getCountFromServer(collection(db, "users"));
+        document.getElementById("miners").innerText = countSnap.data().count.toLocaleString() + " Validators";
+
+        // 2. Fetch top 100 by balance
+        const q = query(collection(db, "users"), orderBy("balance", "desc"), limit(100));
+        const snap = await getDocs(q);
+
+        topUsers = [];
+        let rank = 1;
+        let myRankInTop = null;
+
+        snap.forEach(docSnap => {
+            const d = { id: docSnap.id, ...docSnap.data(), _rank: rank };
+            topUsers.push(d);
+            if (myUid && docSnap.id === myUid) myRankInTop = rank;
+            rank++;
+        });
+
+        // 3. If user is logged in, find their data and rank
+        if (myUid) {
+            const myDoc = await getDoc(doc(db, "users", myUid));
+            if (myDoc.exists()) {
+                myUserData = myDoc.data();
+                if (myRankInTop) {
+                    myExactRank = myRankInTop;
+                } else {
+                    // Count how many have more balance
+                    const myBal = myUserData.balance || 0;
+                    const ahead = await getCountFromServer(
+                        query(collection(db, "users"), where("balance", ">", myBal))
+                    );
+                    myExactRank = ahead.data().count + 1;
+                }
+                updateRankCard();
+            }
+        }
+
+        renderTable();
+        document.getElementById("scrollBtnWrap").style.display = myRankInTop ? 'block' : 'none';
+
+    } catch (e) {
+        console.error('Leaderboard error:', e);
+        container.innerHTML = `<div class="error-state">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><br>
+            Missing database index. Ask admin to run:<br>
+            <code style="font-size:11px;background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;display:inline-block;margin-top:8px;">firebase deploy --only firestore:indexes</code>
+        </div>`;
+    }
+}
+
+function updateRankCard() {
+    const r = document.getElementById('yourRank');
+    const b = document.getElementById('yourBalance');
+    const bal = (myUserData?.balance || 0).toFixed(2);
+    r.innerHTML = '#' + myExactRank.toLocaleString();
+    b.innerHTML = bal + ' ONC';
+}
+
+// ── Render ──
+function renderTable() {
+    const container = document.getElementById("leaderboard");
+    const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+    let items = topUsers;
+    if (search) {
+        items = items.filter(u => (u.name || '').toLowerCase().includes(search));
+    }
+
+    if (!items.length) {
+        container.innerHTML = `<div class="empty-state">${search ? 'No validators match your search' : 'No validators found'}</div>`;
+        return;
+    }
+
+    container.innerHTML = items.map(u => {
+        const isMe = myUid && u.id === myUid;
+        const team = (u.refLevel1 || 0) + (u.refLevel2 || 0) + (u.refLevel3 || 0);
+
+        let rankDisplay = '';
+        if (u._rank === 1) rankDisplay = `<div class="top-rank">${MEDAL_SVG.gold}</div>`;
+        else if (u._rank === 2) rankDisplay = `<div class="top-rank">${MEDAL_SVG.silver}</div>`;
+        else if (u._rank === 3) rankDisplay = `<div class="top-rank">${MEDAL_SVG.bronze}</div>`;
+        else rankDisplay = `<div class="rank-num">${u._rank < 10 ? '0' + u._rank : u._rank}</div>`;
+
+        return `
+            <div class="leader-item ${isMe ? 'me' : ''}" ${isMe ? 'id="myRankItem"' : ''}>
+                ${rankDisplay}
+                <div class="info">
+                    <div class="name">${u.name || 'Anonymous Miner'}</div>
+                    <div class="team">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Team: ${team}
+                    </div>
+                </div>
+                <div class="score">
+                    <div class="onc-val">${(u.balance || 0).toFixed(2)}</div>
+                    <div class="onc-label">ONC</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ── Search ──
+window.filterLeaderboard = () => renderTable();
+
+// ── Scroll to me ──
+window.scrollToMe = () => {
+    const el = document.getElementById('myRankItem');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+// ── Keyboard: Enter triggers search ──
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') filterLeaderboard();
+});
+</script>
+
+</body>
+</html>

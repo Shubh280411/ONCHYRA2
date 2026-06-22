@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Admin Notifications</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red:#ef4444; --green:#22c55e; --yellow:#eab308; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Inter'; background:var(--bg); color:white; }
+
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: rgba(10,12,25,0.95); border-right: 1px solid var(--border); padding: 20px 0; z-index: 100; }
+.sidebar h2 { font-family:'Space Grotesk'; font-size: 22px; font-weight: 800; padding: 0 20px; margin: 0 0 30px; letter-spacing: -1px; }
+.sidebar h2 span { color: var(--primary); }
+.nav-item { padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.5); transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+.nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { border-right: 3px solid var(--primary); }
+
+.main { margin-left: 240px; padding: 30px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+.page-title { font-family:'Space Grotesk'; font-size: 28px; font-weight: 800; margin: 0 0 25px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.stat-card .label { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.stat-card .value { font-family:'Space Grotesk'; font-size: 32px; font-weight: 800; margin-top: 5px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 12px 10px; color: rgba(255,255,255,0.5); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+.badge-blue { background: rgba(96,165,250,0.15); color: var(--secondary); }
+
+input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; outline: none; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+textarea { resize: vertical; min-height: 100px; }
+.form-label { font-size: 12px; color: rgba(255,255,255,0.5); display: block; margin-bottom: 6px; margin-top: 12px; }
+.form-label:first-of-type { margin-top: 0; }
+
+.btn-primary { background: linear-gradient(135deg,var(--primary),var(--secondary)); color: #000; padding: 14px 24px; border:none; border-radius:12px; font-weight:800; cursor:pointer; width: 100%; font-size: 14px; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border:none; padding: 6px 12px; border-radius:8px; cursor:pointer; font-size: 11px; font-weight: 700; }
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+.quick-btns { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+.quick-btn { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: rgba(255,255,255,0.7); cursor: pointer; }
+.quick-btn:hover { background: rgba(167,139,250,0.1); border-color: var(--primary); color: var(--primary); }
+
+.toast { position: fixed; bottom: 30px; right: 30px; background: var(--green); color: #000; padding: 14px 24px; border-radius: 12px; font-weight: 700; display: none; z-index: 3000; font-size: 13px; }
+.toast.error { background: var(--red); color: white; }
+
+.empty-state { text-align: center; padding: 30px; color: rgba(255,255,255,0.3); font-size: 13px; }
+
+.noti-preview { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 15px; display: none; }
+.noti-preview .pv-label { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+.noti-preview .pv-title { font-weight: 700; margin-bottom: 4px; }
+.noti-preview .pv-msg { font-size: 12px; opacity: 0.5; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar h2 span, .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 15px; }
+  .main { margin-left: 60px; padding: 20px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" style="position:fixed;inset:0;background:#03040a;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;">
+  <div style="width:40px;height:40px;border:3px solid rgba(167,139,250,0.1);border-top:3px solid #a78bfa;border-radius:50%;animation:spin 1s linear infinite;"></div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;font-weight:700;">Verifying Admin Access...</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<nav class="sidebar">
+  <h2>ONCHY<span>RA</span></h2>
+  <div class="nav-item active" onclick="showPage('send')"><span>🚀 Send</span></div>
+  <div class="nav-item" onclick="showPage('history')"><span>📜 History</span></div>
+  <div class="nav-item" onclick="showPage('users')"><span>👥 Users</span></div>
+</nav>
+
+<div class="main">
+
+  <!-- SEND -->
+  <div id="send" class="page active">
+    <h1 class="page-title">Send Notification</h1>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total Sent</div><div class="value" id="statTotal" style="color:var(--primary)">0</div></div>
+      <div class="stat-card"><div class="label">Total Users</div><div class="value" id="statUsers" style="color:var(--green)">0</div></div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:'Space Grotesk';font-size:14px;font-weight:700;margin-bottom:10px;">Quick Templates</div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="useTemplate('update')">📢 Update</button>
+        <button class="quick-btn" onclick="useTemplate('poll')">📊 Poll</button>
+        <button class="quick-btn" onclick="useTemplate('contest')">🏆 Contest</button>
+        <button class="quick-btn" onclick="useTemplate('warning')">⚠️ Warning</button>
+      </div>
+
+      <label class="form-label">TARGET</label>
+      <select id="notiTarget"><option value="all">🌐 All Users</option></select>
+
+      <label class="form-label">TYPE</label>
+      <select id="notiType">
+        <option value="update">📢 Update</option>
+        <option value="poll">📊 Poll</option>
+        <option value="personal">💬 Personal</option>
+      </select>
+
+      <label class="form-label">TITLE</label>
+      <input id="notiTitle" placeholder="Notification title..." oninput="updatePreview()">
+
+      <label class="form-label">MESSAGE</label>
+      <textarea id="notiMsg" placeholder="Write your message..." oninput="updatePreview()"></textarea>
+
+      <label class="form-label">REDIRECT LINK (optional)</label>
+      <input id="notiLink" placeholder="e.g. updates.html">
+
+      <div class="noti-preview" id="notiPreview">
+        <div class="pv-label">PREVIEW</div>
+        <div class="pv-title" id="pvTitle"></div>
+        <div class="pv-msg" id="pvMsg"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="btn-primary" onclick="sendNotification()">🚀 Send Now</button>
+        <button class="quick-btn" style="flex:1;text-align:center;" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="history" class="page">
+    <h1 class="page-title">History</h1>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Time</th><th>Actions</th></tr></thead>
+        <tbody id="historyTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div id="users" class="page">
+    <h1 class="page-title">Users</h1>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Balance</th></tr></thead>
+        <tbody id="usersTable"><tr><td colspan="3" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, orderBy, onSnapshot, getDocs, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allUsersData = [];
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location = "login.html"; return; }
+
+  try {
+    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+    if (adminSnap.exists() && adminSnap.data().role === 'admin') {
+      document.getElementById('loginScreen').style.display = 'none';
+      await loadStats();
+      loadUsers();
+      loadHistory();
+    } else {
+      document.getElementById('loginScreen').innerHTML = `
+        <h2 style="color:#ef4444;font-family:'Space Grotesk';">Access Denied</h2>
+        <p style="font-size:12px;opacity:0.4;margin-top:8px;">Your account is not in the admins collection.</p>
+        <p style="font-size:10px;opacity:0.2;margin-top:12px;word-break:break-all;">${user.uid}</p>`;
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('loginScreen').innerHTML = `<h2 style="color:#ef4444;">Error: ${e.message}</h2>`;
+  }
+});
+
+window.showPage = (page) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  document.querySelectorAll('.nav-item')[['send','history','users'].indexOf(page)].classList.add('active');
+};
+
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.innerText = msg; t.className = 'toast' + (error ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function loadStats() {
+  const nSnap = await getDocs(collection(db, 'notifications'));
+  const uSnap = await getDocs(collection(db, 'users'));
+  document.getElementById('statTotal').innerText = nSnap.size;
+  document.getElementById('statUsers').innerText = uSnap.size;
+
+  const targetSelect = document.getElementById('notiTarget');
+  targetSelect.innerHTML = '<option value="all">🌐 All Users</option>';
+  allUsersData = [];
+  uSnap.forEach(d => {
+    const data = d.data();
+    allUsersData.push({ id: d.id, name: data.name || 'Unknown', email: data.email || '-', balance: (data.balance || 0).toFixed(2) });
+    targetSelect.innerHTML += `<option value="${d.id}">👤 ${data.name || data.email || d.id.slice(0,8)}</option>`;
+  });
+}
+
+window.useTemplate = (type) => {
+  const templates = {
+    update: { type: 'update', title: 'Protocol Update', msg: 'A new update has been posted. Check the Updates section.', link: 'updates.html' },
+    poll: { type: 'poll', title: 'New Poll is Live!', msg: 'Your vote matters! Cast your vote now.', link: '' },
+    contest: { type: 'update', title: '🏆 Referral Contest Active!', msg: 'Invite friends and climb the leaderboard to win POL rewards!', link: 'contests.html' },
+    warning: { type: 'personal', title: '⚠️ Important Notice', msg: 'Please review your account. Action required.', link: '' }
+  };
+  const t = templates[type];
+  document.getElementById('notiType').value = t.type;
+  document.getElementById('notiTitle').value = t.title;
+  document.getElementById('notiMsg').value = t.msg;
+  document.getElementById('notiLink').value = t.link;
+  updatePreview();
+};
+
+window.updatePreview = () => {
+  const title = document.getElementById('notiTitle').value;
+  const msg = document.getElementById('notiMsg').value;
+  const pv = document.getElementById('notiPreview');
+  if (title || msg) {
+    pv.style.display = 'block';
+    document.getElementById('pvTitle').innerText = title || '(no title)';
+    document.getElementById('pvMsg').innerText = msg || '(no message)';
+  } else {
+    pv.style.display = 'none';
+  }
+};
+
+window.clearForm = () => {
+  document.getElementById('notiTitle').value = '';
+  document.getElementById('notiMsg').value = '';
+  document.getElementById('notiLink').value = '';
+  document.getElementById('notiTarget').value = 'all';
+  document.getElementById('notiPreview').style.display = 'none';
+};
+
+window.sendNotification = async () => {
+  const target = document.getElementById('notiTarget').value;
+  const type = document.getElementById('notiType').value;
+  const title = document.getElementById('notiTitle').value.trim();
+  const msg = document.getElementById('notiMsg').value.trim();
+  const link = document.getElementById('notiLink').value.trim();
+
+  if (!title || !msg) { showToast('Title and Message required!', true); return; }
+
+  try {
+    await setDoc(doc(collection(db, 'notifications')), {
+      userId: target,
+      type,
+      title,
+      message: msg,
+      link: link || '',
+      read: false,
+      createdAt: serverTimestamp()
+    });
+    showToast('Notification sent successfully! ✅');
+    clearForm();
+    loadStats();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+function loadHistory() {
+  onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
+    const tbody = document.getElementById('historyTable');
+    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No notifications yet</td></tr>'; return; }
+    let html = '';
+    snap.forEach(d => {
+      const n = d.data();
+      const typeBadge = n.type === 'update' ? '<span class="badge badge-blue">Update</span>' : n.type === 'poll' ? '<span class="badge badge-green">Poll</span>' : '<span class="badge badge-yellow">Personal</span>';
+      const target = n.userId === 'all' ? '<span class="badge badge-green">All</span>' : '<span class="badge badge-blue">Single</span>';
+      const time = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString() : '-';
+      html += `<tr>
+        <td>${typeBadge}</td>
+        <td style="font-weight:700">${n.title || '-'}</td>
+        <td>${target}</td>
+        <td style="font-size:11px;opacity:0.4;white-space:nowrap">${time}</td>
+        <td><button class="btn-danger" onclick="deleteNoti('${d.id}')">Delete</button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  });
+}
+
+window.deleteNoti = async (id) => {
+  if (!confirm('Delete this notification?')) return;
+  try {
+    await deleteDoc(doc(db, 'notifications', id));
+    showToast('Deleted!');
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+};
+
+async function loadUsers() {
+  const uSnap = await getDocs(collection(db, 'users'));
+  let html = '';
+  uSnap.forEach(d => {
+    const u = d.data();
+    html += `<tr>
+      <td style="font-weight:700">${u.name || 'N/A'}</td>
+      <td style="font-size:12px;opacity:0.5">${u.email || 'N/A'}</td>
+      <td style="font-weight:700;color:var(--primary)">${(u.balance || 0).toFixed(2)}</td>
+    </tr>`;
+  });
+  document.getElementById('usersTable').innerHTML = html || '<tr><td colspan="3" class="empty-state">No users found</td></tr>';
+}
+</script>
+</body>
+</html>

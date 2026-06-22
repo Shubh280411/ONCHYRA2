@@ -1,53 +1,49 @@
-const admin = require('firebase-admin');
+const pg = require('../config/pg');
 const transporter = require('../config/mailer');
 
 const MAX_EMAILS_PER_CAMPAIGN = 450;
 const DAILY_LIMIT = 450;
-const FIRESTORE_TIMEOUT = 5000;
-
-function withTimeout(promise, ms) {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), ms))
-    ]);
-}
 
 let campaignState = { running: false, logs: [], sent: 0, failed: 0, skipped: 0, total: 0 };
 let sseClients = [];
 
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 async function getDailyDoc(dateStr) {
-    const ref = admin.firestore().doc(`emailCounts/${dateStr}`);
-    const snap = await withTimeout(ref.get(), FIRESTORE_TIMEOUT);
-    if (!snap.exists) {
-        try {
-            await withTimeout(ref.set({ count: 0, limit: DAILY_LIMIT, date: dateStr }), FIRESTORE_TIMEOUT);
-        } catch (e) {
-            console.log('[getDailyDoc] Failed to create doc:', e.message);
-        }
-        return { count: 0, limit: DAILY_LIMIT, ref };
-    }
-    return { count: snap.data().count || 0, limit: snap.data().limit || DAILY_LIMIT, ref };
+    const row = await pg.get('settings', 'emailCounts', 'key');
+    const counts = row ? (row.value || {}) : {};
+    const day = counts[dateStr] || { count: 0, limit: DAILY_LIMIT };
+    return { count: day.count || 0, limit: day.limit || DAILY_LIMIT };
+}
+
+async function persistCounts(dateStr, count, limit) {
+    const row = await pg.get('settings', 'emailCounts', 'key');
+    const counts = row ? (row.value || {}) : {};
+    counts[dateStr] = { count, limit };
+    await pg.query(
+        `INSERT INTO settings (key, value) VALUES ('emailCounts', $1::jsonb)
+         ON CONFLICT (key) DO UPDATE SET value = $1::jsonb`,
+        [JSON.stringify(counts)]
+    );
 }
 
 async function incrementDailyCount(amount) {
-    const { ref } = await getDailyDoc(todayStr());
-    await withTimeout(ref.update({ count: admin.firestore.FieldValue.increment(amount) }), FIRESTORE_TIMEOUT);
+    const { count, limit } = await getDailyDoc(todayStr());
+    await persistCounts(todayStr(), count + amount, limit);
 }
 
 const dailyStats = async (req, res) => {
     try {
         let today = { count: 0, limit: DAILY_LIMIT };
-        try { today = await getDailyDoc(todayStr()); } catch (e) { console.log('[Stats] Firestore unavailable:', e.message); }
+        try { today = await getDailyDoc(todayStr()); } catch (e) { console.log('[Stats] PG unavailable:', e.message); }
         const history = [];
         for (let i = 1; i <= 7; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const ds = d.toISOString().slice(0,10);
+            const ds = d.toISOString().slice(0, 10);
             try {
-                const snap = await withTimeout(admin.firestore().doc(`emailCounts/${ds}`).get(), FIRESTORE_TIMEOUT);
-                history.push({ date: ds, count: snap.exists ? (snap.data().count || 0) : 0, limit: snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT });
+                const day = await getDailyDoc(ds);
+                history.push({ date: ds, count: day.count, limit: day.limit });
             } catch (e) {
                 history.push({ date: ds, count: 0, limit: DAILY_LIMIT });
             }
@@ -65,9 +61,8 @@ function usernameReplace(html, name) {
 }
 
 function isOnCooldown(user) {
-    if (!user.lastEmailSentAt) return false;
-    const lastSent = user.lastEmailSentAt.toDate ? user.lastEmailSentAt.toDate() : new Date(user.lastEmailSentAt);
-    return Date.now() - lastSent.getTime() < 24 * 60 * 60 * 1000;
+    if (!user.last_email_sent_at) return false;
+    return Date.now() - user.last_email_sent_at < 24 * 60 * 60 * 1000;
 }
 
 async function runCampaign(recipients, subject, customHtml, label) {
@@ -90,10 +85,8 @@ async function runCampaign(recipients, subject, customHtml, label) {
             broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
             console.log(`[SENT] ${r.email} — ${r.name}`);
 
-            if (r.docId) {
-                admin.firestore().collection('users').doc(r.docId).update({
-                    lastEmailSentAt: admin.firestore.FieldValue.serverTimestamp()
-                }).catch(() => {});
+            if (r.uid) {
+                pg.update('users', r.uid, { last_email_sent_at: Date.now() }).catch(() => {});
             }
         } catch (err) {
             campaignState.failed++;
@@ -132,28 +125,26 @@ const sendCustomBulk = async (req, res) => {
             return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
         }
 
-        const snapshot = await withTimeout(admin.firestore().collection('users').get(), FIRESTORE_TIMEOUT);
-        const users = snapshot.docs
-            .map(d => ({ docId: d.id, ...d.data() }))
-            .filter(u => {
-                if (userType === 'all') return true;
-                return u.status && u.status.toLowerCase() === userType.toLowerCase();
-            });
+        const users = await pg.all('users');
+        const filtered = users.filter(u => {
+            if (userType === 'all') return true;
+            return u.status && u.status.toLowerCase() === userType.toLowerCase();
+        });
 
-        let recipients = users.map(u => ({ email: u.email, name: u.name, docId: u.docId }));
+        let recipients = filtered.map(u => ({ email: u.email, name: u.name, uid: u.uid }));
 
         let cooldownSkipped = 0;
         if (!skipCooldown) {
-            const filtered = [];
+            const out = [];
             for (const r of recipients) {
-                const userDoc = users.find(u => u.docId === r.docId);
-                if (userDoc && isOnCooldown(userDoc)) {
+                const u = filtered.find(f => f.uid === r.uid);
+                if (u && isOnCooldown(u)) {
                     cooldownSkipped++;
                     continue;
                 }
-                filtered.push(r);
+                out.push(r);
             }
-            recipients = filtered;
+            recipients = out;
         }
 
         let safetyTrimmed = 0;
@@ -163,12 +154,12 @@ const sendCustomBulk = async (req, res) => {
         }
 
         if (!recipients.length) {
-            return res.status(200).json({ success: true, message: cooldownSkipped > 0 ? `All ${cooldownSkipped} users are on cooldown (received email in last 24hrs)` : `No ${userType} users found`, sent: 0, failed: 0, skipped: cooldownSkipped });
+            return res.status(200).json({ success: true, message: cooldownSkipped > 0 ? `All ${cooldownSkipped} users are on cooldown` : `No ${userType} users found`, sent: 0, failed: 0, skipped: cooldownSkipped });
         }
 
         const totalSkipped = cooldownSkipped + safetyTrimmed;
         campaignState = { running: true, logs: [], sent: 0, failed: 0, skipped: totalSkipped, total: recipients.length };
-        res.json({ success: true, message: `Campaign started for ${recipients.length} users${totalSkipped > 0 ? ` (${totalSkipped} skipped — ${cooldownSkipped > 0 ? 'cooldown, ' : ''}${safetyTrimmed > 0 ? 'safety limit)' : 'cooldown)'}` : '.'}` });
+        res.json({ success: true, message: `Campaign started for ${recipients.length} users${totalSkipped > 0 ? ` (${totalSkipped} skipped)` : '.'}` });
         broadcast({ type: 'start', total: recipients.length, label: `Bulk — ${userType}` });
 
         for (let i = 0; i < recipients.length; i++) {
@@ -188,10 +179,8 @@ const sendCustomBulk = async (req, res) => {
                 broadcast({ type: 'sent', email: r.email, name: r.name, sent: campaignState.sent, failed: campaignState.failed });
                 console.log(`[SENT] ${r.email} — ${r.name}`);
 
-                if (r.docId) {
-                    admin.firestore().collection('users').doc(r.docId).update({
-                        lastEmailSentAt: admin.firestore.FieldValue.serverTimestamp()
-                    }).catch(() => {});
+                if (r.uid) {
+                    pg.update('users', r.uid, { last_email_sent_at: Date.now() }).catch(() => {});
                 }
             } catch (err) {
                 campaignState.failed++;
@@ -230,14 +219,13 @@ const sendManual = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
-        // Try to check daily limit, but proceed if Firestore is unavailable
         try {
             const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
             if (todayCount >= todayLimit) {
                 return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
             }
         } catch (e) {
-            console.log('[Manual] Firestore unavailable, skipping daily limit check:', e.message);
+            console.log('[Manual] PG unavailable, skipping daily limit check:', e.message);
         }
 
         const recipients = emails.map(e => {
@@ -252,7 +240,7 @@ const sendManual = async (req, res) => {
         }
 
         campaignState = { running: true, logs: [], sent: 0, failed: 0, skipped: safetyTrimmed, total: recipients.length };
-        res.json({ success: true, message: `Manual send started for ${recipients.length} recipient(s)${safetyTrimmed > 0 ? ` (${safetyTrimmed} trimmed — safety limit)` : ''}`, total: recipients.length });
+        res.json({ success: true, message: `Manual send started for ${recipients.length} recipient(s)${safetyTrimmed > 0 ? ` (${safetyTrimmed} trimmed)` : ''}`, total: recipients.length });
         broadcast({ type: 'start', total: recipients.length, label: 'Manual' });
 
         for (let i = 0; i < recipients.length; i++) {
@@ -310,14 +298,13 @@ const sendCsv = async (req, res) => {
             return res.status(429).json({ success: false, message: 'A campaign is already running. Wait for it to finish.' });
         }
 
-        // Try to check daily limit, but proceed if Firestore is unavailable
         try {
             const { count: todayCount, limit: todayLimit } = await getDailyDoc(todayStr());
             if (todayCount >= todayLimit) {
                 return res.status(429).json({ success: false, message: `Daily limit reached (${todayCount}/${todayLimit}). Try again tomorrow.` });
             }
         } catch (e) {
-            console.log('[CSV] Firestore unavailable, skipping daily limit check:', e.message);
+            console.log('[CSV] PG unavailable, skipping daily limit check:', e.message);
         }
 
         const text = req.file.buffer.toString('utf-8');
@@ -342,7 +329,7 @@ const sendCsv = async (req, res) => {
         }
 
         campaignState = { running: true, logs: [], sent: 0, failed: 0, skipped: safetyTrimmed, total: recipients.length };
-        res.json({ success: true, message: `CSV campaign started for ${recipients.length} recipient(s)${safetyTrimmed > 0 ? ` (${safetyTrimmed} trimmed — safety limit)` : ''}`, total: recipients.length });
+        res.json({ success: true, message: `CSV campaign started for ${recipients.length} recipient(s)${safetyTrimmed > 0 ? ` (${safetyTrimmed} trimmed)` : ''}`, total: recipients.length });
         broadcast({ type: 'start', total: recipients.length, label: 'CSV' });
 
         for (let i = 0; i < recipients.length; i++) {
@@ -397,7 +384,7 @@ const previewEmail = (req, res) => {
     }
 };
 
-const campaignStream = (req, res) => {
+const campaignStream = async (req, res) => {
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -405,14 +392,12 @@ const campaignStream = (req, res) => {
         'Access-Control-Allow-Origin': '*'
     });
 
-    const dailyDoc = admin.firestore().doc(`emailCounts/${todayStr()}`);
-    withTimeout(dailyDoc.get(), FIRESTORE_TIMEOUT).then(snap => {
-        const count = snap.exists ? (snap.data().count || 0) : 0;
-        const dailylimit = snap.exists ? (snap.data().limit || DAILY_LIMIT) : DAILY_LIMIT;
-        broadcast({ type: 'daily', count, limit: dailylimit, remaining: dailylimit - count });
-    }).catch(() => {
+    try {
+        const { count, limit } = await getDailyDoc(todayStr());
+        broadcast({ type: 'daily', count, limit, remaining: limit - count });
+    } catch (e) {
         broadcast({ type: 'daily', count: 0, limit: DAILY_LIMIT, remaining: DAILY_LIMIT });
-    });
+    }
 
     const initData = {
         type: 'init',
@@ -433,22 +418,12 @@ const campaignStream = (req, res) => {
 
 const migrateUserStatus = async (req, res) => {
     try {
-        const snapshot = await admin.firestore().collection('users').get();
-        const batch = admin.firestore().batch();
+        const rows = await pg.query(`SELECT uid, status FROM users WHERE status IS NULL OR status = ''`);
         let count = 0;
-
-        snapshot.docs.forEach(doc => {
-            const data = doc.data();
-            if (!data.status) {
-                batch.update(doc.ref, { status: 'active' });
-                count++;
-            }
-        });
-
-        if (count > 0) {
-            await batch.commit();
+        for (const r of rows.rows) {
+            await pg.update('users', r.uid, { status: 'active' });
+            count++;
         }
-
         res.json({ success: true, message: `${count} users updated with status: active` });
     } catch (err) {
         console.error('migrate error:', err);

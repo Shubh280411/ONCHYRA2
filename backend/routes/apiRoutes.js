@@ -1,6 +1,6 @@
 const express = require('express');
-const admin = require('firebase-admin');
 const router = express.Router();
+const pg = require('../config/pg');
 
 const maintenance = require('../controllers/maintenanceController');
 const deposit = require('../controllers/depositController');
@@ -12,6 +12,17 @@ const sweep = require('../controllers/sweepController');
 const otp = require('../controllers/otpController');
 const refCache = require('../services/referralCache');
 
+// Convert snake_case object keys to camelCase
+function cc(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(cc);
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = v;
+  }
+  return out;
+}
+
 // Maintenance
 router.get('/maintenance', maintenance.getStatus);
 router.post('/maintenance/toggle', maintenance.toggle);
@@ -22,8 +33,6 @@ router.post('/deposit/verify', deposit.verifyDeposit);
 router.get('/deposits', deposit.getDeposits);
 router.get('/deposits/:uid', deposit.userDeposits);
 router.get('/deposit/wallets/:uid', deposit.userWallets);
-// REMOVED - security risk (exposed private keys without auth)
-// router.get('/deposit/key/:index', deposit.getWalletPrivateKey);
 
 // Packages
 router.get('/packages', packages.list);
@@ -58,19 +67,18 @@ router.post('/otp/send', otp.send);
 router.post('/otp/verify', otp.verify);
 router.get('/otp/list', otp.list);
 
-// Referral (uses in-memory cache — no Firestore read)
+// Referral (uses in-memory cache — no DB read for hot path)
 router.get('/check-referral/:code', async (req, res) => {
     try {
         const code = req.params.code.toUpperCase();
         const entry = refCache.lookup(code);
         if (!entry) {
-            // Fallback to Firestore if cache misses (e.g. just-registered user)
             try {
-                const snap = await admin.firestore().collection('users').where('referralCode', '==', code).get();
-                if (snap.empty) return res.json({ valid: false });
-                const d = snap.docs[0].data();
-                refCache.add(code, snap.docs[0].id, d.name, d.referredBy);
-                return res.json({ valid: true, uid: snap.docs[0].id, name: d.name, referredBy: d.referredBy || null });
+                const rows = await pg.findWhere('users', { referral_code: code });
+                if (!rows.length) return res.json({ valid: false });
+                const d = rows[0];
+                refCache.add(code, d.uid, d.name, d.referred_by);
+                return res.json({ valid: true, uid: d.uid, name: d.name, referredBy: d.referred_by || null });
             } catch(e) {
                 return res.json({ valid: false });
             }
@@ -79,121 +87,109 @@ router.get('/check-referral/:code', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Referrals — Team & Commissions
+// Referrals — Team
 router.get('/referrals/team/:uid', async (req, res) => {
     try {
         const { uid } = req.params;
         const maxLevel = parseInt(req.query.maxLevel) || 1;
-        const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+        const limitVal = Math.min(parseInt(req.query.limit) || 10, 50);
         const offset = parseInt(req.query.offset) || 0;
-        const userSnap = await admin.firestore().doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
-        const refCode = user.referralCode;
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        const refCode = user.referral_code;
         if (!refCode) return res.json({ levels: { 1: [], 2: [], 3: [] } });
 
-        const s1 = await admin.firestore().collection('users').where('referredBy', '==', refCode).get();
-        const allL1 = s1.docs.map(d => ({ id: d.id, ...d.data() }));
-        const total = allL1.length;
-        const l1 = allL1.slice(offset, offset + limit);
+        const l1Rows = await pg.findWhere('users', { referred_by: refCode });
+        const total = l1Rows.length;
+        const l1 = l1Rows.slice(offset, offset + limitVal);
         let l2 = [], l3 = [];
-        let total2 = 0, total3 = 0;
 
         if (maxLevel >= 2 && l1.length > 0) {
-            const l1Codes = l1.map(u => u.referralCode).filter(Boolean);
-            for (let i = 0; i < l1Codes.length; i += 10) {
-                const s2 = await admin.firestore().collection('users').where('referredBy', 'in', l1Codes.slice(i, i + 10)).get();
-                l2.push(...s2.docs.map(d => ({ id: d.id, ...d.data() })));
-            }
+            const l1Codes = l1.map(u => u.referral_code).filter(Boolean);
+            if (l1Codes.length) l2 = await pg.findWhereIn('users', 'referred_by', l1Codes);
         }
 
         if (maxLevel >= 3 && l2.length > 0) {
-            const l2Codes = l2.map(u => u.referralCode).filter(Boolean);
-            for (let i = 0; i < l2Codes.length; i += 10) {
-                const s3 = await admin.firestore().collection('users').where('referredBy', 'in', l2Codes.slice(i, i + 10)).get();
-                l3.push(...s3.docs.map(d => ({ id: d.id, ...d.data() })));
-            }
+            const l2Codes = l2.map(u => u.referral_code).filter(Boolean);
+            if (l2Codes.length) l3 = await pg.findWhereIn('users', 'referred_by', l2Codes);
         }
 
         const clean = (list) => list.map(u => ({
-            uid: u.id, name: u.name, referralCode: u.referralCode,
-            activePackage: u.activePackage, packageStatus: u.packageStatus,
-            totalPackageSpend: u.totalPackageSpend || 0,
-            createdAt: u.createdAt,
-            refLevel1: u.refLevel1 || 0, refLevel2: u.refLevel2 || 0, refLevel3: u.refLevel3 || 0,
+            uid: u.uid, name: u.name, referralCode: u.referral_code,
+            activePackage: u.active_package, packageStatus: u.package_status,
+            totalPackageSpend: u.total_package_spend || 0,
+            createdAt: u.created_at,
+            refLevel1: u.ref_level1 || 0, refLevel2: u.ref_level2 || 0, refLevel3: u.ref_level3 || 0,
         }));
 
-        res.json({ levels: { 1: clean(l1), 2: clean(l2), 3: clean(l3) }, total, total2, total3 });
+        res.json({ levels: { 1: clean(l1), 2: clean(l2), 3: clean(l3) }, total, total2: l2.length, total3: l3.length });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get('/referrals/commissions/:uid', async (req, res) => {
     try {
         const { uid } = req.params;
-        const snap = await admin.firestore().collection('commissions')
-            .where('uid', '==', uid)
-            .limit(30)
-            .get();
-        const commissions = snap.docs.map(d => {
-            const data = d.data();
-            return {
-                id: d.id, amount: data.amount, level: data.level,
-                type: data.type, packageName: data.packageName,
-                fromName: data.fromName, createdAt: data.createdAt,
-            };
-        });
+        const rows = await pg.findWhere('commissions', { uid }, 'created_at', 30);
+        const commissions = rows.map(r => ({
+            id: r.id, amount: r.amount, level: r.level,
+            type: r.type, packageName: r.package_name,
+            fromName: r.from_name, createdAt: r.created_at,
+        }));
         res.json({ commissions });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Income — all income data in one call
+// Income
 router.get('/income/:uid', async (req, res) => {
     try {
         const { uid } = req.params;
-        const db = admin.firestore();
-        const [commSnap, achSnap, rewSnap] = await Promise.all([
-            db.collection('commissions').where('uid', '==', uid).limit(200).get(),
-            db.collection('achievementBonuses').where('uid', '==', uid).limit(200).get(),
-            db.collection('leadershipRewards').where('uid', '==', uid).limit(200).get(),
+        const [commissions, achievements, rewards] = await Promise.all([
+            pg.findWhere('commissions', { uid }, 'created_at', 200),
+            pg.findWhere('achievement_bonuses', { uid }, 'created_at', 200),
+            pg.findWhere('leadership_rewards', { uid }, 'created_at', 200),
         ]);
-        const commissions = commSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const achievements = achSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const rewards = rewSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        res.json({ commissions, achievements, rewards });
+        res.json({ commissions: commissions.map(cc), achievements: achievements.map(cc), rewards: rewards.map(cc) });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Users (supports ?limit=N, defaults to 500)
+// Admin — Users
 router.get('/admin/users', async (req, res) => {
     try {
         const maxLimit = Math.min(parseInt(req.query.limit) || 500, 500);
-        const snap = await admin.firestore().collection('users').limit(maxLimit).get();
-        const users = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
-        res.json(users);
+        const rows = await pg.query(`SELECT * FROM users LIMIT $1`, [maxLimit]);
+        res.json(rows.rows.map(cc));
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
-// Admin — Leaders (only ranked users with active packages)
+
 router.get('/admin/leaders', async (req, res) => {
     try {
         const rankNames = ['Ignition','Momentum','Velocity','Quantum','Fusion','Infinity','Titan','Apex','Zenith','Legacy'];
-        const snap = await admin.firestore().collection('users').limit(500).get();
-        const users = snap.docs
-            .map(d => ({ uid: d.id, ...d.data() }))
+        const rows = await pg.query(`SELECT * FROM users LIMIT 500`);
+        const users = rows.rows
+            .map(cc)
             .filter(u => (u.rank && rankNames.includes(u.rank)) || u.verifiedLeader || u.leaderStatus);
         res.json(users);
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
 router.get('/admin/user/:uid', async (req, res) => {
     try {
-        const snap = await admin.firestore().doc(`users/${req.params.uid}`).get();
-        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
-        res.json({ uid: snap.id, ...snap.data() });
+        const user = await pg.get('users', req.params.uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(cc(user));
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
 router.post('/admin/user/update', async (req, res) => {
     try {
         const { uid, updates } = req.body;
-        await admin.firestore().doc(`users/${uid}`).update(updates);
+        if (!uid || !updates) return res.status(400).json({ error: 'Missing uid or updates' });
+        // Convert camelCase keys to snake_case for the DB
+        const dbUpdates = {};
+        for (const [k, v] of Object.entries(updates)) {
+            dbUpdates[k.replace(/[A-Z]/g, c => '_' + c.toLowerCase())] = v;
+        }
+        await pg.update('users', uid, dbUpdates);
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -203,55 +199,44 @@ router.post('/admin/sync-status', async (req, res) => {
     try {
         const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
-        const snap = await admin.firestore().collection('users').get();
+        const rows = await pg.query(`SELECT uid, last_claim, role FROM users`);
         let active = 0, inactive = 0, skipped = 0, total = 0;
-        const batches = [];
-        let currentBatch = admin.firestore().batch();
-        let opCount = 0;
-
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
+        for (const u of rows.rows) {
             total++;
-            if (data.role === 'admin') { skipped++; return; }
-            const lastClaim = data.lastClaim || 0;
+            if (u.role === 'admin') { skipped++; continue; }
+            const lastClaim = u.last_claim || 0;
             const claimedRecently = lastClaim > 0 && (now - lastClaim) < SEVEN_DAYS;
-            const newStatus = claimedRecently ? 'active' : 'inactive';
             if (claimedRecently) active++; else inactive++;
-            currentBatch.update(docSnap.ref, { status: newStatus });
-            opCount++;
-            if (opCount >= 500) { batches.push(currentBatch.commit()); currentBatch = admin.firestore().batch(); opCount = 0; }
-        });
-        if (opCount > 0) batches.push(currentBatch.commit());
-        await Promise.all(batches);
+            await pg.query(`UPDATE users SET status = $1 WHERE uid = $2`, [claimedRecently ? 'active' : 'inactive', u.uid]);
+        }
         res.json({ success: true, total, active, inactive, skipped });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Stats (single endpoint replacing 40+ individual reads)
+// Admin — Stats
 router.get('/admin/stats', async (req, res) => {
     try {
-        const db = admin.firestore();
-        const [uSnap, depSnap, wdSnap, rewSnap, achSnap, pkgSnap, claimSnap] = await Promise.all([
-            db.collection('users').get(),
-            db.collection('deposits').where('status', '==', 'completed').get(),
-            db.collection('withdrawals').get(),
-            db.collection('leadershipRewards').get(),
-            db.collection('achievementBonuses').get(),
-            db.collection('packagePurchases').get(),
-            db.collection('claims').get(),
+        const [uRes, depRes, wdRes, rewRes, achRes, pkgRes, claimRes] = await Promise.all([
+            pg.query(`SELECT * FROM users`),
+            pg.query(`SELECT * FROM deposits WHERE status = 'completed'`),
+            pg.query(`SELECT * FROM withdrawals`),
+            pg.query(`SELECT * FROM leadership_rewards`),
+            pg.query(`SELECT * FROM achievement_bonuses`),
+            pg.query(`SELECT * FROM package_purchases`),
+            pg.query(`SELECT * FROM claims`),
         ]);
 
-        const users = uSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        const users = uRes.rows.map(cc);
         const totalUsers = users.length;
-        const totalDeposits = depSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
-        const totalWithdrawals = wdSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
-        const pendingWithdrawals = wdSnap.docs.filter(d => d.data().status === 'pending').length;
-        const completedWithdrawals = wdSnap.docs.filter(d => d.data().status === 'completed').length;
-        const totalRewards = rewSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
-        const totalBonuses = achSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
-        const totalPackageSales = pkgSnap.docs.reduce((s, d) => s + (d.data().amount || 0), 0);
-        const packageCount = pkgSnap.docs.length;
-        const totalClaims = claimSnap.docs.length;
+        const totalDeposits = depRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const totalWithdrawals = wdRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const pendingWithdrawals = wdRes.rows.filter(d => d.status === 'pending').length;
+        const completedWithdrawals = wdRes.rows.filter(d => d.status === 'completed').length;
+        const totalRewards = rewRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const totalBonuses = achRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const totalPackageSales = pkgRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const packageCount = pkgRes.rows.length;
+        const totalClaims = claimRes.rows.length;
 
         const usersWithPackage = users.filter(u => u.activePackage).length;
         const usersWithoutPackage = totalUsers - usersWithPackage;
@@ -260,36 +245,29 @@ router.get('/admin/stats', async (req, res) => {
         for (const u of users) rankCounts[u.rank || 'member'] = (rankCounts[u.rank || 'member'] || 0) + 1;
 
         const nameMap = {};
-        for (const u of users) nameMap[u.uid] = u.name || u.uid.slice(0, 8);
+        for (const u of users) nameMap[u.uid] = u.name || (u.uid || '').slice(0, 8);
 
         const depositByUser = {};
-        for (const d of depSnap.docs) {
-            const uid = d.data().uid;
-            if (uid) depositByUser[uid] = (depositByUser[uid] || 0) + (d.data().amount || 0);
+        for (const d of depRes.rows) {
+            if (d.uid) depositByUser[d.uid] = (depositByUser[d.uid] || 0) + (d.amount || 0);
         }
         const topDepositors = Object.entries(depositByUser)
             .sort((a, b) => b[1] - a[1]).slice(0, 10)
             .map(([uid, amount]) => ({ uid, name: nameMap[uid] || 'Unknown', amount }));
 
-        const toMs = (val) => {
-            if (!val) return 0;
-            if (typeof val.toMillis === 'function') return val.toMillis();
-            if (val instanceof Date) return val.getTime();
-            return Number(val) || 0;
-        };
+        const toMs = (val) => Number(val) || 0;
 
-        const pendingWithdrawalsList = wdSnap.docs
-            .filter(d => d.data().status === 'pending')
-            .map(d => ({ id: d.id, uid: d.data().uid, amount: d.data().amount, wallet: d.data().walletAddress || d.data().wallet, createdAt: d.data().createdAt }))
+        const pendingWithdrawalsList = wdRes.rows
+            .filter(d => d.status === 'pending')
+            .map(d => ({ id: d.id, uid: d.uid, amount: d.amount, wallet: d.wallet, createdAt: d.created_at }))
             .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
 
         const packageSales = {};
-        pkgSnap.docs.forEach(d => {
-            const p = d.data();
-            const name = p.packageName || p.name || 'unknown';
+        pkgRes.rows.forEach(d => {
+            const name = d.package_name || d.name || 'unknown';
             if (!packageSales[name]) packageSales[name] = { count: 0, revenue: 0 };
             packageSales[name].count++;
-            packageSales[name].revenue += (p.amount || 0);
+            packageSales[name].revenue += (d.amount || 0);
         });
         const packageBreakdown = Object.entries(packageSales).map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
 
@@ -297,31 +275,25 @@ router.get('/admin/stats', async (req, res) => {
         todayStart.setHours(0, 0, 0, 0);
         const todayMs = todayStart.getTime();
         let todayDeposits = 0, todayWithdrawals = 0, todayRewards = 0, todayRegistrations = 0;
-        depSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayDeposits += (d.data().amount || 0); });
-        wdSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayWithdrawals += (d.data().amount || 0); });
-        rewSnap.docs.forEach(d => { if (toMs(d.data().createdAt) >= todayMs) todayRewards += (d.data().amount || 0); });
+        depRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayDeposits += (d.amount || 0); });
+        wdRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayWithdrawals += (d.amount || 0); });
+        rewRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayRewards += (d.amount || 0); });
         users.forEach(u => { if (toMs(u.createdAt) >= todayMs) todayRegistrations++; });
 
-        const allRewards = [];
-        rewSnap.docs.forEach(d => {
-            const r = { id: d.id, ...d.data(), userName: nameMap[d.data().uid] || (d.data().uid || '').slice(0, 8) };
-            allRewards.push(r);
-        });
+        const allRewards = rewRes.rows.map(r => ({ ...cc(r), userName: nameMap[r.uid] || (r.uid || '').slice(0, 8) }));
         allRewards.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
         const recentRewards = allRewards.slice(0, 15);
 
-        const allDeposits = depSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const allDeposits = depRes.rows.map(cc);
         allDeposits.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
         const recentDeposits = allDeposits.slice(0, 15);
 
         const wdByUser = {}, wdCountByUser = {};
-        wdSnap.docs.forEach(d => {
-            const w = d.data();
-            if (w.status !== 'completed') return;
-            const uid = w.uid || w.userId;
-            if (!uid) return;
-            wdByUser[uid] = (wdByUser[uid] || 0) + (w.amount || 0);
-            wdCountByUser[uid] = (wdCountByUser[uid] || 0) + 1;
+        wdRes.rows.forEach(d => {
+            if (d.status !== 'completed') return;
+            if (!d.uid) return;
+            wdByUser[d.uid] = (wdByUser[d.uid] || 0) + (d.amount || 0);
+            wdCountByUser[d.uid] = (wdCountByUser[d.uid] || 0) + 1;
         });
         const topWithdrawers = Object.entries(wdByUser)
             .sort((a, b) => b[1] - a[1])
@@ -333,7 +305,6 @@ router.get('/admin/stats', async (req, res) => {
             totalDeposits, totalWithdrawals, pendingWithdrawals, completedWithdrawals,
             totalRewards, totalBonuses, totalPackageSales, packageCount, totalClaims,
             rankCounts, topDepositors, users,
-            // Pre-computed for admin-stats (zero client-side reads needed)
             pendingWithdrawalsList, packageBreakdown,
             todayDeposits, todayWithdrawals, todayRewards, todayRegistrations,
             recentRewards, recentDeposits, topWithdrawers
@@ -345,10 +316,11 @@ router.get('/admin/stats', async (req, res) => {
 router.post('/admin/notifications/send', async (req, res) => {
     try {
         const { userId, title, message, type, link } = req.body;
-        await admin.firestore().collection('notifications').add({
-            userId: userId || 'all', title, message, type: type || 'update',
-            link: link || '', read: false, createdAt: Date.now()
-        });
+        await pg.query(
+            `INSERT INTO notifications (user_id, title, message, type, link, read, created_at)
+             VALUES ($1, $2, $3, $4, $5, false, $6)`,
+            [userId || 'all', title, message, type || 'update', link || '', Date.now()]
+        );
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -359,11 +331,10 @@ router.post('/commissions/process-package', async (req, res) => {
         const { uid } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
 
-        const userSnap = await admin.firestore().doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        if (!user.referredBy) return res.json({ success: true, commissions: [] });
+        if (!user.referred_by) return res.json({ success: true, commissions: [] });
 
         const levels = [
             { level: 1, pct: 0.10 },
@@ -371,73 +342,70 @@ router.post('/commissions/process-package', async (req, res) => {
             { level: 3, pct: 0.03 },
         ];
 
-        let currentRefCode = user.referredBy;
+        let currentRefCode = user.referred_by;
         const results = [];
         for (const lv of levels) {
             if (!currentRefCode) break;
-            const refSnap = await admin.firestore().collection('users').where('referralCode', '==', currentRefCode).get();
-            if (refSnap.empty) break;
+            const refRows = await pg.findWhere('users', { referral_code: currentRefCode });
+            if (!refRows.length) break;
 
-            const refUid = refSnap.docs[0].id;
-            const refData = refSnap.docs[0].data();
+            const refUid = refRows[0].uid;
+            const refData = refRows[0];
 
-            const batch = admin.firestore().batch();
-            batch.update(admin.firestore().doc(`users/${refUid}`), {
-                teamBiz: admin.firestore.FieldValue.increment(user.totalPackageSpend || 0),
-            });
+            // Update teamBiz
+            await pg.increment('users', refUid, 'team_biz', user.total_package_spend || 0);
 
-            if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
-                currentRefCode = refData.referredBy;
+            if (!refData.active_package || refData.active_package === 'none' || refData.package_status === 'expired') {
+                currentRefCode = refData.referred_by;
                 continue;
             }
 
-            const pkgAmount = user.packageAmount || 0;
+            const pkgAmount = user.package_amount || 0;
             const commission = pkgAmount * lv.pct;
-            const used = refData.packageUsage || 0;
-            const cap = refData.packageCap || Infinity;
+            const used = refData.package_usage || 0;
+            const cap = refData.package_cap || 999999;
             const available = Math.max(0, cap - used);
             const capped = Math.min(commission, available);
 
             if (capped > 0) {
                 const newUsed = used + capped;
                 const updates = {
-                    commissionBalance: admin.firestore.FieldValue.increment(capped),
-                    packageUsage: admin.firestore.FieldValue.increment(capped),
-                    totalCommissions: admin.firestore.FieldValue.increment(capped),
+                    commission_balance: capped,
+                    package_usage: capped,
+                    total_commissions: capped,
                 };
-                if (newUsed >= cap) updates.packageStatus = 'expired';
-                batch.update(admin.firestore().doc(`users/${refUid}`), updates);
-                batch.create(admin.firestore().collection('commissions').doc(), {
-                    fromUid: uid, uid: refUid, amount: capped,
-                    level: lv.level, type: 'package_commission',
-                    packageName: user.activePackage || 'Package',
-                    fromName: user.name || 'User', createdAt: Date.now()
-                });
+                await pg.incrementMulti('users', refUid, updates);
+                if (newUsed >= cap) {
+                    await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
+                }
+                await pg.query(
+                    `INSERT INTO commissions (from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                     VALUES ($1, $2, $3, $4, 'package_commission', $5, $6, $7)`,
+                    [uid, refUid, capped, lv.level, user.active_package || 'Package', user.name || 'User', Date.now()]
+                );
                 results.push({ level: lv.level, uid: refUid, amount: capped });
             }
 
-            await batch.commit();
-            currentRefCode = refData.referredBy;
+            currentRefCode = refData.referred_by;
         }
 
         res.json({ success: true, commissions: results });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Lightweight leg stats — reads only L1 members, no L2/L3 tree
+// Leg stats
 router.get('/referrals/leg-stats/:uid', async (req, res) => {
     try {
-        const userSnap = await admin.firestore().doc(`users/${req.params.uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const refCode = userSnap.data().referralCode;
+        const user = await pg.get('users', req.params.uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        const refCode = user.referral_code;
         if (!refCode) return res.json({ totalDirects: 0, activeDirects: 0, legABiz: 0, legBBiz: 0, teamBiz: 0 });
 
-        const s1 = await admin.firestore().collection('users').where('referredBy', '==', refCode).get();
-        const l1 = s1.docs.map(d => d.data());
-        const totalDirects = l1.length;
-        const activeDirects = l1.filter(u => u.activePackage).length;
+        const l1Rows = await pg.findWhere('users', { referred_by: refCode });
+        const totalDirects = l1Rows.length;
+        const activeDirects = l1Rows.filter(u => u.active_package).length;
 
-        const legBiz = l1.map(u => u.totalPackageSpend || 0).sort((a, b) => b - a);
+        const legBiz = l1Rows.map(u => u.total_package_spend || 0).sort((a, b) => b - a);
         const legABiz = legBiz.length > 0 ? legBiz[0] : 0;
         const legBBiz = legBiz.slice(1).reduce((s, x) => s + x, 0);
         const teamBiz = legBiz.reduce((s, x) => s + x, 0);
@@ -449,20 +417,19 @@ router.get('/referrals/leg-stats/:uid', async (req, res) => {
 // Get user stats for referrals page
 router.get('/user/:uid', async (req, res) => {
     try {
-        const snap = await admin.firestore().doc(`users/${req.params.uid}`).get();
-        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
-        const u = snap.data();
+        const u = await pg.get('users', req.params.uid);
+        if (!u) return res.status(404).json({ error: 'User not found' });
         res.json({
-            referralCode: u.referralCode,
-            refLevel1: u.refLevel1 || 0,
-            refLevel2: u.refLevel2 || 0,
-            refLevel3: u.refLevel3 || 0,
-            totalCommissions: u.totalCommissions || 0,
-            totalDirects: u.totalDirects || 0,
-            activeDirects: u.activeDirects || 0,
-            teamBiz: u.teamBiz || 0,
-            legABiz: u.legABiz || 0,
-            legBBiz: u.legBBiz || 0,
+            referralCode: u.referral_code,
+            refLevel1: u.ref_level1 || 0,
+            refLevel2: u.ref_level2 || 0,
+            refLevel3: u.ref_level3 || 0,
+            totalCommissions: u.total_commissions || 0,
+            totalDirects: u.total_directs || 0,
+            activeDirects: u.active_directs || 0,
+            teamBiz: u.team_biz || 0,
+            legABiz: u.leg_a_biz || 0,
+            legBBiz: u.leg_b_biz || 0,
         });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -473,77 +440,66 @@ router.post('/register-commission', async (req, res) => {
         const { uid, referredBy } = req.body;
         if (!uid || !referredBy) return res.status(400).json({ error: 'Missing uid or referredBy' });
 
-        const refSnap = await admin.firestore().collection('users').where('referralCode', '==', referredBy.toUpperCase()).get();
-        if (refSnap.empty) return res.status(400).json({ error: 'Invalid referral code' });
+        const refRows = await pg.findWhere('users', { referral_code: referredBy.toUpperCase() });
+        if (!refRows.length) return res.status(400).json({ error: 'Invalid referral code' });
 
-        const newUserSnap = await admin.firestore().doc(`users/${uid}`).get();
-        const newUserName = newUserSnap.exists ? newUserSnap.data().name : 'New User';
+        const newUserRow = await pg.get('users', uid);
+        const newUserName = newUserRow ? newUserRow.name : 'New User';
 
-        const l1Ref = refSnap.docs[0].ref;
-        const l1Data = refSnap.docs[0].data();
-        const l1Uid = refSnap.docs[0].id;
-        const batch = admin.firestore().batch();
+        const l1Data = refRows[0];
+        const l1Uid = l1Data.uid;
 
-        batch.update(l1Ref, {
-            balance: admin.firestore.FieldValue.increment(0.25),
-            referrals: admin.firestore.FieldValue.increment(1),
-            refLevel1: admin.firestore.FieldValue.increment(1),
-            totalDirects: admin.firestore.FieldValue.increment(1)
-        });
-        batch.create(admin.firestore().collection('commissions').doc(), {
-            uid: l1Uid, fromUid: uid, fromName: newUserName,
-            amount: 0.25, level: 1, type: 'registration_bonus',
-            packageName: 'Registration Bonus', createdAt: Date.now()
-        });
+        // L1 bonus
+        await pg.incrementMulti('users', l1Uid, { balance: 0.25, referrals: 1, ref_level1: 1, total_directs: 1 });
+        await pg.query(
+            `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
+             VALUES ($1, $2, $3, $4, 1, 'registration_bonus', 'Registration Bonus', $5)`,
+            [l1Uid, uid, newUserName, 0.25, Date.now()]
+        );
 
-        if (l1Data.referredBy) {
-            const l2Snap = await admin.firestore().collection('users').where('referralCode', '==', l1Data.referredBy).get();
-            if (!l2Snap.empty) {
-                const l2Ref = l2Snap.docs[0].ref;
-                const l2Data = l2Snap.docs[0].data();
-                const l2Uid = l2Snap.docs[0].id;
-                batch.update(l2Ref, {
-                    balance: admin.firestore.FieldValue.increment(0.10),
-                    refLevel2: admin.firestore.FieldValue.increment(1)
-                });
-                batch.create(admin.firestore().collection('commissions').doc(), {
-                    uid: l2Uid, fromUid: uid, fromName: newUserName,
-                    amount: 0.10, level: 2, type: 'registration_bonus',
-                    packageName: 'Registration Bonus', createdAt: Date.now()
-                });
-                if (l2Data.referredBy) {
-                    const l3Snap = await admin.firestore().collection('users').where('referralCode', '==', l2Data.referredBy).get();
-                    if (!l3Snap.empty) {
-                        const l3Uid = l3Snap.docs[0].id;
-                        batch.update(l3Snap.docs[0].ref, {
-                            balance: admin.firestore.FieldValue.increment(0.05),
-                            refLevel3: admin.firestore.FieldValue.increment(1)
-                        });
-                        batch.create(admin.firestore().collection('commissions').doc(), {
-                            uid: l3Uid, fromUid: uid, fromName: newUserName,
-                            amount: 0.05, level: 3, type: 'registration_bonus',
-                            packageName: 'Registration Bonus', createdAt: Date.now()
-                        });
+        // L2 bonus
+        if (l1Data.referred_by) {
+            const l2Rows = await pg.findWhere('users', { referral_code: l1Data.referred_by });
+            if (l2Rows.length) {
+                const l2Data = l2Rows[0];
+                const l2Uid = l2Data.uid;
+                await pg.incrementMulti('users', l2Uid, { balance: 0.10, ref_level2: 1 });
+                await pg.query(
+                    `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
+                     VALUES ($1, $2, $3, $4, 2, 'registration_bonus', 'Registration Bonus', $5)`,
+                    [l2Uid, uid, newUserName, 0.10, Date.now()]
+                );
+
+                // L3 bonus
+                if (l2Data.referred_by) {
+                    const l3Rows = await pg.findWhere('users', { referral_code: l2Data.referred_by });
+                    if (l3Rows.length) {
+                        const l3Uid = l3Rows[0].uid;
+                        await pg.incrementMulti('users', l3Uid, { balance: 0.05, ref_level3: 1 });
+                        await pg.query(
+                            `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
+                             VALUES ($1, $2, $3, $4, 3, 'registration_bonus', 'Registration Bonus', $5)`,
+                            [l3Uid, uid, newUserName, 0.05, Date.now()]
+                        );
                     }
                 }
             }
         }
 
-	await batch.commit();
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Retroactive Commission Migration (force process past purchases; ?days=6 for last N days)
+// Admin — Retroactive Commission Migration
 router.post('/admin/migrate-commissions', async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 0;
         const fixBizOnly = req.query.fixBizOnly === 'true';
         const cutoff = days > 0 ? Date.now() - days * 86400000 : 0;
-        const usersSnap = await admin.firestore().collection('users').get();
-        const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        let buyers = allUsers.filter(u => (u.packageAmount || 0) > 0 || (u.totalPackageSpend || 0) > 0);
-        if (cutoff > 0) buyers = buyers.filter(u => (u.packagePurchasedAt || 0) >= cutoff);
+        const usersRes = await pg.query(`SELECT * FROM users`);
+        const allUsers = usersRes.rows;
+        let buyers = allUsers.filter(u => (u.package_amount || 0) > 0 || (u.total_package_spend || 0) > 0);
+        if (cutoff > 0) buyers = buyers.filter(u => (u.package_purchased_at || 0) >= cutoff);
         let processed = 0, noReferrer = 0, noUplinePackage = 0, results = [], errors = [];
 
         const levels = [
@@ -554,120 +510,95 @@ router.post('/admin/migrate-commissions', async (req, res) => {
 
         for (const buyer of buyers) {
             try {
-                let currentRefCode = buyer.referredBy;
+                let currentRefCode = buyer.referred_by;
                 if (!currentRefCode) { noReferrer++; continue; }
 
-                const pkgAmount = buyer.packageAmount || buyer.totalPackageSpend || 0;
+                const pkgAmount = buyer.package_amount || buyer.total_package_spend || 0;
                 let levelResults = [];
 
                 for (const lv of levels) {
                     if (!currentRefCode) break;
-                    const refSnap = await admin.firestore().collection('users').where('referralCode', '==', currentRefCode).get();
-                    if (refSnap.empty) break;
+                    const refRows = await pg.findWhere('users', { referral_code: currentRefCode });
+                    if (!refRows.length) break;
 
-                    const refUid = refSnap.docs[0].id;
-                    const refData = refSnap.docs[0].data();
+                    const refUid = refRows[0].uid;
+                    const refData = refRows[0];
 
-                    // Always move up before any continue
-                    currentRefCode = refData.referredBy;
+                    currentRefCode = refData.referred_by;
 
-                    // Always update teamBiz
-                    const batch = admin.firestore().batch();
-                    batch.update(admin.firestore().doc(`users/${refUid}`), {
-                        teamBiz: admin.firestore.FieldValue.increment(pkgAmount),
-                    });
+                    await pg.increment('users', refUid, 'team_biz', pkgAmount);
 
-                    // Only pay commission if upline has active package
-                    if (!fixBizOnly && refData.activePackage && refData.activePackage !== 'none' && refData.packageStatus !== 'expired') {
+                    if (!fixBizOnly && refData.active_package && refData.active_package !== 'none' && refData.package_status !== 'expired') {
                         const commission = pkgAmount * lv.pct;
-                        const used = refData.packageUsage || 0;
-                        const cap = refData.packageCap || Infinity;
+                        const used = refData.package_usage || 0;
+                        const cap = refData.package_cap || 999999;
                         const available = Math.max(0, cap - used);
                         const capped = Math.min(commission, available);
                         if (capped > 0) {
                             const newUsed = used + capped;
-                            const updates = {
-                                commissionBalance: admin.firestore.FieldValue.increment(capped),
-                                packageUsage: admin.firestore.FieldValue.increment(capped),
-                                totalCommissions: admin.firestore.FieldValue.increment(capped),
-                            };
-                            if (newUsed >= cap) updates.packageStatus = 'expired';
-                            batch.update(admin.firestore().doc(`users/${refUid}`), updates);
-                            batch.create(admin.firestore().collection('commissions').doc(), {
-                                fromUid: buyer.id, uid: refUid, amount: capped,
-                                level: lv.level, type: 'package_commission',
-                                packageName: buyer.activePackage || 'Package',
-                                fromName: buyer.name || 'User', createdAt: Date.now()
-                            });
+                            await pg.incrementMulti('users', refUid, { commission_balance: capped, package_usage: capped, total_commissions: capped });
+                            if (newUsed >= cap) {
+                                await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
+                            }
+                            await pg.query(
+                                `INSERT INTO commissions (from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                                 VALUES ($1, $2, $3, $4, 'package_commission', $5, $6, $7)`,
+                                [buyer.uid, refUid, capped, lv.level, buyer.active_package || 'Package', buyer.name || 'User', Date.now()]
+                            );
                             levelResults.push(`${lv.level}: $${capped.toFixed(2)} to ${refData.name || refUid}`);
                         }
                     }
-
-                    await batch.commit();
                 }
 
                 if (levelResults.length > 0 || fixBizOnly) {
-                    results.push(`${buyer.name || buyer.id}: ${fixBizOnly ? 'teamBiz updated' : levelResults.join(', ')}`);
+                    results.push(`${buyer.name || buyer.uid}: ${fixBizOnly ? 'teamBiz updated' : levelResults.join(', ')}`);
                     processed++;
                 } else {
                     noUplinePackage++;
                 }
-            } catch(e) { errors.push(`${buyer.id}: ${e.message}`); }
+            } catch(e) { errors.push(`${buyer.uid}: ${e.message}`); }
         }
 
         res.json({ success: true, processed, noReferrer, noUplinePackage, totalBuyers: buyers.length, results: results.slice(0,50), errors: errors.length, errorDetails: errors.slice(0,10) });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Reset all users' teamBiz to 0 (run before fixBizOnly migration)
+// Admin — Reset all users' teamBiz
 router.post('/admin/reset-teambiz', async (req, res) => {
     try {
-        const snap = await admin.firestore().collection('users').get();
-        let batch = admin.firestore().batch();
-        let count = 0, committed = 0;
-        for (const d of snap.docs) {
-            batch.update(d.ref, { teamBiz: 0 });
-            count++;
-            if (count % 400 === 0) { await batch.commit(); committed += 400; batch = admin.firestore().batch(); }
-        }
-        if (count % 400 !== 0) { await batch.commit(); committed += count % 400; }
-        res.json({ success: true, resetCount: committed });
+        await pg.query(`UPDATE users SET team_biz = 0`);
+        res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Undo Commission Migration (reverts only records from last hour)
+// Admin — Undo Commission Migration
 router.post('/admin/undo-commissions', async (req, res) => {
     try {
         const oneHourAgo = Date.now() - 60 * 60 * 1000;
-        const commSnap = await admin.firestore().collection('commissions')
-            .where('type', '==', 'package_commission')
-            .get();
-        const records = commSnap.docs
-            .map(d => ({ id: d.id, ...d.data() }))
-            .filter(r => r.createdAt > oneHourAgo);
+        const commRes = await pg.query(
+            `SELECT * FROM commissions WHERE type = 'package_commission' AND created_at > $1`, [oneHourAgo]
+        );
+        const records = commRes.rows;
 
         let reverted = 0, errors = [];
         for (const rec of records) {
             try {
-                const userRef = admin.firestore().doc(`users/${rec.uid}`);
-                const userSnap = await userRef.get();
-                if (!userSnap.exists) continue;
-                const user = userSnap.data();
+                const user = await pg.get('users', rec.uid);
+                if (!user) continue;
 
-                const currentUsage = user.packageUsage || 0;
+                const currentUsage = user.package_usage || 0;
                 if (rec.amount > 0 && currentUsage >= rec.amount) {
-                    const updates = {
-                        balance: admin.firestore.FieldValue.increment(-rec.amount),
-                        commissionBalance: admin.firestore.FieldValue.increment(-rec.amount),
-                        packageUsage: admin.firestore.FieldValue.increment(-rec.amount),
-                        totalCommissions: admin.firestore.FieldValue.increment(-rec.amount),
-                    };
-                    if (currentUsage - rec.amount < (user.packageCap || Infinity)) {
-                        updates.packageStatus = 'active';
+                    await pg.incrementMulti('users', rec.uid, {
+                        balance: -rec.amount,
+                        commission_balance: -rec.amount,
+                        package_usage: -rec.amount,
+                        total_commissions: -rec.amount,
+                    });
+                    if (currentUsage - rec.amount < (user.package_cap || 999999)) {
+                        await pg.query(`UPDATE users SET package_status = 'active' WHERE uid = $1`, [rec.uid]);
                     }
-                    await userRef.update(updates);
                 }
-                await admin.firestore().doc(`commissions/${rec.id}`).delete();
+                await pg.query(`DELETE FROM commissions WHERE id = $1`, [rec.id]);
                 reverted++;
             } catch(e) { errors.push(`${rec.id}: ${e.message}`); }
         }
@@ -676,7 +607,7 @@ router.post('/admin/undo-commissions', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Trigger commission + teamBiz for a package purchase (used by admin panel after direct Firestore write)
+// Admin — Process Commission (triggered by admin panel)
 router.post('/admin/process-commission', async (req, res) => {
     try {
         const { uid, packageId } = req.body;
@@ -703,8 +634,7 @@ router.post('/admin/leader/delete', async (req, res) => {
     try {
         const { uid } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
-        await admin.firestore().doc(`users/${uid}`).delete();
-        try { await admin.auth().deleteUser(uid); } catch (e) { /* auth record may not exist */ }
+        await pg.remove('users', uid);
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -715,7 +645,7 @@ router.post('/admin/leader/status', async (req, res) => {
         if (!uid || !status) return res.status(400).json({ error: 'Missing uid or status' });
         const valid = ['active', 'under_review', 'restricted', 'suspended'];
         if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
-        await admin.firestore().doc(`users/${uid}`).update({ leaderStatus: status });
+        await pg.update('users', uid, { leader_status: status });
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -725,6 +655,8 @@ router.post('/admin/leader/reset-password', async (req, res) => {
         const { uid, newPassword } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
         const password = newPassword || 'onchyra123';
+        const { admin } = require('../config/db');
+        if (!admin) return res.status(500).json({ error: 'Auth service unavailable' });
         await admin.auth().updateUser(uid, { password });
         res.json({ success: true, message: `Password reset to: ${password}` });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -735,9 +667,7 @@ router.post('/admin/leader/notes', async (req, res) => {
         const { uid, note } = req.body;
         if (!uid || !note) return res.status(400).json({ error: 'Missing uid or note' });
         const entry = { text: note, addedBy: req.ip || 'admin', createdAt: Date.now() };
-        await admin.firestore().doc(`users/${uid}`).update({
-            adminNotes: admin.firestore.FieldValue.arrayUnion(entry)
-        });
+        await pg.arrayAppend('users', uid, 'admin_notes', entry);
         res.json({ success: true, entry });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -747,10 +677,10 @@ router.post('/admin/assign-promo', async (req, res) => {
         const { uid, promoPackage, promoAccount, promoCommExcluded } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
         const updates = {};
-        if (promoPackage !== undefined) updates.promotionalPackage = promoPackage;
-        if (promoAccount !== undefined) updates.promotionalAccount = promoAccount;
-        if (promoCommExcluded !== undefined) updates.promotionalCommExcluded = promoCommExcluded;
-        await admin.firestore().doc(`users/${uid}`).update(updates);
+        if (promoPackage !== undefined) updates.promotional_package = promoPackage;
+        if (promoAccount !== undefined) updates.promotional_account = promoAccount;
+        if (promoCommExcluded !== undefined) updates.promotional_comm_excluded = promoCommExcluded;
+        await pg.update('users', uid, updates);
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -759,7 +689,7 @@ router.post('/admin/leader/verify-toggle', async (req, res) => {
     try {
         const { uid, verified } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
-        await admin.firestore().doc(`users/${uid}`).update({ verifiedLeader: !!verified });
+        await pg.update('users', uid, { verified_leader: !!verified });
         res.json({ success: true, verified: !!verified });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });

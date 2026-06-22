@@ -1,7 +1,6 @@
-const admin = require('firebase-admin');
+const pg = require('../config/pg');
 const { ethers } = require('ethers');
 const { Mnemonic, HDNodeWallet } = ethers;
-const db = admin.firestore();
 
 const MNEMONIC = process.env.HD_WALLET_SEED;
 const BSC_RPC = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
@@ -38,7 +37,6 @@ function getChildWallet(index) {
     return new ethers.Wallet(child.privateKey);
 }
 
-// Check USDT balance (BEP20)
 async function checkUSDT(index, provider) {
     const child = getChildWallet(index);
     const token = new ethers.Contract(USDT_CONTRACT, ERC20_ABI, provider);
@@ -47,7 +45,6 @@ async function checkUSDT(index, provider) {
     return { address: child.address, balance: Number(ethers.formatUnits(raw, decimals)), raw };
 }
 
-// Check POL balance (Polygon native)
 async function checkPOL(index, provider) {
     const child = getChildWallet(index);
     const raw = await provider.getBalance(child.address);
@@ -64,7 +61,6 @@ async function checkBalance(index, network) {
     }
 }
 
-// Sweep USDT (BEP20) via token transfer
 async function sweepUSDT(index, provider) {
     const child = getChildWallet(index);
     const { wallet: master } = getMaster();
@@ -80,14 +76,12 @@ async function sweepUSDT(index, provider) {
     return { swept: amount, txHash: receipt.hash, gasUsed: receipt.gasUsed?.toString() };
 }
 
-// Sweep POL (Polygon) via native transfer
 async function sweepPOL(index, provider) {
     const child = getChildWallet(index);
     const { wallet: master } = getMaster();
     const rawBalance = await provider.getBalance(child.address);
     if (rawBalance <= 0n) return { swept: 0, reason: 'No balance' };
     const childSigner = child.connect(provider);
-    // Keep gas reserve (0.01 POL for tx fee)
     const gasReserve = ethers.parseEther('0.01');
     if (rawBalance <= gasReserve) return { swept: 0, reason: 'Only gas reserve' };
     const sweepAmount = rawBalance - gasReserve;
@@ -103,7 +97,6 @@ async function sweepWallet(index, network) {
     return sweepPOL(index, provider);
 }
 
-// Fund a child wallet with native token for gas (BEP20 needs BNB, Polygon already has POL)
 async function fundGas(index, network) {
     const provider = getProvider(network);
     const child = getChildWallet(index);
@@ -124,17 +117,15 @@ exports.autoSweepSingle = async (index, network) => {
     try {
         const info = await checkBalance(index, network);
         if (info.balance > 0) {
-            // BEP20 needs BNB for gas; Polygon uses POL so skip funding
-if (network === 'BEP20') {
-    const funded = await fundGas(index, network).catch(e => { console.error(`[SWEEP] fundGas failed for ${index}: ${e.message}`); return { funded: false, reason: e.message }; });
-    if (!funded.funded) console.warn(`[SWEEP] fundGas skipped for ${index}: ${funded.reason}`);
-}
+            if (network === 'BEP20') {
+                const funded = await fundGas(index, network).catch(e => { console.error(`[SWEEP] fundGas failed for ${index}: ${e.message}`); return { funded: false, reason: e.message }; });
+                if (!funded.funded) console.warn(`[SWEEP] fundGas skipped for ${index}: ${funded.reason}`);
+            }
             const result = await sweepWallet(index, network);
             if (result.swept > 0) {
-                const walletSnap = await db.collection('depositWallets')
-                    .where('index', '==', index).where('network', '==', network).limit(1).get();
-                if (!walletSnap.empty) {
-                    await walletSnap.docs[0].ref.update({ swept: true, sweptAt: Date.now(), sweepTx: result.txHash });
+                const wallets = await pg.findWhere('deposit_wallets', { index, network });
+                if (wallets.length) {
+                    await pg.update('deposit_wallets', wallets[0].id, { swept: true, swept_at: Date.now(), sweep_tx: result.txHash }, 'id');
                 }
                 const symbol = network === 'BEP20' ? 'USDT' : 'POL';
                 console.log(`[SWEEP] Index ${index} on ${network}: swept ${result.swept} ${symbol}`);
@@ -148,19 +139,16 @@ exports.check = async (req, res) => {
         const { network } = req.body;
         if (!network) return res.status(400).json({ error: 'Network required' });
 
-        const wallets = await db.collection('depositWallets')
-            .where('network', '==', network)
-            .where('used', '==', false).limit(50).get();
+        const wallets = await pg.findWhere('deposit_wallets', { network, used: false });
 
         const results = [];
-        for (const d of wallets.docs) {
-            const w = d.data();
+        for (const w of wallets) {
             try {
                 const info = await checkBalance(w.index, network);
-                if (info.balance > 0) results.push({ index: w.index, address: info.address, balance: info.balance, docId: d.id });
+                if (info.balance > 0) results.push({ index: w.index, address: info.address, balance: info.balance, docId: w.id });
             } catch (e) { console.error(`Check error index ${w.index}: ${e.message}`); }
         }
-        res.json({ network, checked: wallets.size, withBalance: results.length, results });
+        res.json({ network, checked: wallets.length, withBalance: results.length, results });
     } catch (e) { res.status(500).json({ error: e.message }); }
 };
 
@@ -171,10 +159,9 @@ exports.sweep = async (req, res) => {
 
         const result = await sweepWallet(index, network);
         if (result.swept > 0) {
-            const walletSnap = await db.collection('depositWallets')
-                .where('index', '==', index).where('network', '==', network).limit(1).get();
-            if (!walletSnap.empty) {
-                await walletSnap.docs[0].ref.update({ swept: true, sweptAt: Date.now(), sweepTx: result.txHash });
+            const wallets = await pg.findWhere('deposit_wallets', { index, network });
+            if (wallets.length) {
+                await pg.update('deposit_wallets', wallets[0].id, { swept: true, swept_at: Date.now(), sweep_tx: result.txHash }, 'id');
             }
         }
         res.json({ index, network, ...result });
@@ -187,12 +174,9 @@ exports.autoSweep = async (req, res) => {
         const all = [];
 
         for (const network of networks) {
-            const wallets = await db.collection('depositWallets')
-                .where('network', '==', network)
-                .where('used', '==', false).limit(50).get();
+            const wallets = await pg.findWhere('deposit_wallets', { network, used: false });
 
-            for (const d of wallets.docs) {
-                const w = d.data();
+            for (const w of wallets) {
                 try {
                     const info = await checkBalance(w.index, network);
                     if (info.balance > 0.01) {
@@ -203,7 +187,7 @@ exports.autoSweep = async (req, res) => {
                         const symbol = network === 'BEP20' ? 'USDT' : 'POL';
                         all.push({ index: w.index, network, balance: info.balance, swept: result.swept, txHash: result.txHash || null, symbol });
                         if (result.swept > 0) {
-                            await d.ref.update({ swept: true, sweptAt: Date.now(), sweepTx: result.txHash });
+                            await pg.update('deposit_wallets', w.id, { swept: true, swept_at: Date.now(), sweep_tx: result.txHash }, 'id');
                         }
                     }
                 } catch (e) { console.error(`AutoSweep error index ${w.index}: ${e.message}`); }

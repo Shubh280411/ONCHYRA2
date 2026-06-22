@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const pg = require('../config/pg');
 
 const RANKS = [
     { name: 'Ignition',   reqDirect: 3,  reqTeam: 1000,   reqLeg: 500,   bonus: 25,   rewardDay: 5,   rewardDays: 5  },
@@ -20,24 +19,22 @@ exports.ranks = (req, res) => res.json(RANKS);
 
 const getDownlineVolume = async (refCode, depth = 0, maxDepth = 10) => {
     if (depth >= maxDepth || !refCode) return 0;
-    const snap = await db.collection('users').where('referredBy', '==', refCode).get();
+    const rows = await pg.findWhere('users', { referred_by: refCode });
     let vol = 0;
-    for (const d of snap.docs) {
-        const u = d.data();
-        vol += u.totalPackageSpend || 0;
-        vol += await getDownlineVolume(u.referralCode, depth + 1, maxDepth);
+    for (const u of rows) {
+        vol += u.total_package_spend || 0;
+        vol += await getDownlineVolume(u.referral_code, depth + 1, maxDepth);
     }
     return vol;
 };
 
 const getLegsVolume = async (refCode) => {
     if (!refCode) return [];
-    const snap = await db.collection('users').where('referredBy', '==', refCode).get();
+    const rows = await pg.findWhere('users', { referred_by: refCode });
     const legs = [];
-    for (const d of snap.docs) {
-        const u = d.data();
-        const subVol = await getDownlineVolume(u.referralCode);
-        legs.push((u.totalPackageSpend || 0) + subVol);
+    for (const u of rows) {
+        const subVol = await getDownlineVolume(u.referral_code);
+        legs.push((u.total_package_spend || 0) + subVol);
     }
     legs.sort((a, b) => b - a);
     return legs;
@@ -45,25 +42,24 @@ const getLegsVolume = async (refCode) => {
 
 const lookupByRefCode = async (refCode) => {
     if (!refCode) return null;
-    const snap = await db.collection('users').where('referralCode', '==', refCode).get();
-    if (snap.empty) return null;
-    return { id: snap.docs[0].id, data: snap.docs[0].data() };
+    const rows = await pg.findWhere('users', { referral_code: refCode });
+    if (!rows.length) return null;
+    return { id: rows[0].uid, data: rows[0] };
 };
 
 exports.calculateRank = async (req, res) => {
     try {
         const { uid } = req.params;
-        const userSnap = await db.doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        if (!user.activePackage || user.activePackage === 'none' || user.packageStatus === 'expired') {
+        if (!user.active_package || user.active_package === 'none' || user.package_status === 'expired') {
             return res.json({ rank: 'Unranked', reason: 'No active package' });
         }
 
-        const refCode = user.referralCode;
-        const directSnap = refCode ? await db.collection('users').where('referredBy', '==', refCode).get() : { size: 0 };
-        const directCount = directSnap.size;
+        const refCode = user.referral_code;
+        const directRows = refCode ? await pg.findWhere('users', { referred_by: refCode }) : [];
+        const directCount = directRows.length;
         const legs = await getLegsVolume(refCode);
         const totalTeamVolume = legs.reduce((a, b) => a + b, 0);
         const topLeg = legs[0] || 0;
@@ -93,30 +89,31 @@ exports.calculateRank = async (req, res) => {
             rankAchieved = newRank;
         }
 
-        const updates = { rank: rankAchieved, rankCalculatedAt: Date.now() };
+        const updates = { rank: rankAchieved, rank_calculated_at: Date.now() };
 
-        // Grant one-time achievement bonus if eligible and not yet claimed
-        if (newRankIdx >= 0 && !user.achievementBonusClaimed) {
+        if (newRankIdx >= 0 && !user.achievement_bonus_claimed) {
             const r = RANKS[newRankIdx];
             if (r && r.bonus > 0) {
-                updates.commissionBalance = admin.firestore.FieldValue.increment(r.bonus);
-                updates.achievementBonusClaimed = true;
-                await db.collection('achievementBonuses').add({
-                    uid, rank: rankAchieved, amount: r.bonus, createdAt: Date.now(), type: 'achievement'
-                });
+                await pg.increment('users', uid, 'commission_balance', r.bonus);
+                await pg.update('users', uid, { achievement_bonus_claimed: true });
+                await pg.query(
+                    `INSERT INTO achievement_bonuses (id, uid, rank, amount, type, created_at)
+                     VALUES ($1, $2, $3, $4, 'achievement', $5)`,
+                    ['ab_' + uid + '_' + Date.now(), uid, rankAchieved, r.bonus, Date.now()]
+                );
             }
         }
 
-        if (newAchievement || (newRankIdx >= 0 && !user.leadershipRewardRank)) {
+        if (newAchievement || (newRankIdx >= 0 && !user.leadership_reward_rank)) {
             const r = RANKS[newRankIdx];
-            updates.leadershipRewardRank = rankAchieved;
-            updates.leadershipRewardDay = r.rewardDay;
-            updates.leadershipRewardDays = r.rewardDays;
-            updates.leadershipRewardPayouts = 0;
-            updates.leadershipRewardStart = Date.now();
+            updates.leadership_reward_rank = rankAchieved;
+            updates.leadership_reward_day = r.rewardDay;
+            updates.leadership_reward_days = r.rewardDays;
+            updates.leadership_reward_payouts = 0;
+            updates.leadership_reward_start = Date.now();
         }
 
-        await db.doc(`users/${uid}`).update(updates);
+        await pg.update('users', uid, updates);
 
         res.json({
             rank: rankAchieved, directCount, totalTeamVolume,
@@ -129,13 +126,12 @@ exports.calculateRank = async (req, res) => {
 exports.userRankProgress = async (req, res) => {
     try {
         const { uid } = req.params;
-        const userSnap = await db.doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const refCode = user.referralCode;
-        const directSnap = refCode ? await db.collection('users').where('referredBy', '==', refCode).get() : { size: 0 };
-        const directCount = directSnap.size;
+        const refCode = user.referral_code;
+        const directRows = refCode ? await pg.findWhere('users', { referred_by: refCode }) : [];
+        const directCount = directRows.length;
         const legs = await getLegsVolume(refCode);
         const totalTeamVolume = legs.reduce((a, b) => a + b, 0);
         const topLeg = legs[0] || 0;
@@ -152,15 +148,15 @@ exports.userRankProgress = async (req, res) => {
             directCount, totalTeamVolume,
             topLeg, otherLegs, weakLeg,
             legs: legs.slice(0, 5),
-            achievementBonusClaimed: user.achievementBonusClaimed || false,
-            leadershipReward: user.leadershipRewardRank ? {
-                rank: user.leadershipRewardRank,
-                dayAmount: user.leadershipRewardDay || 0,
-                totalDays: user.leadershipRewardDays || 0,
-                payoutsDone: user.leadershipRewardPayouts || 0,
-                startDate: user.leadershipRewardStart || 0,
+            achievementBonusClaimed: user.achievement_bonus_claimed || false,
+            leadershipReward: user.leadership_reward_rank ? {
+                rank: user.leadership_reward_rank,
+                dayAmount: user.leadership_reward_day || 0,
+                totalDays: user.leadership_reward_days || 0,
+                payoutsDone: user.leadership_reward_payouts || 0,
+                startDate: user.leadership_reward_start || 0,
             } : null,
-            totalMatchingBonus: user.totalMatchingBonus || 0,
+            totalMatchingBonus: user.total_matching_bonus || 0,
             nextRank: nextRank ? {
                 name: nextRank.name,
                 reqDirect: nextRank.reqDirect,
@@ -180,16 +176,14 @@ exports.userRankProgress = async (req, res) => {
 exports.getMatchingBonus = async (req, res) => {
     try {
         const { uid } = req.params;
-        const userSnap = await db.doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const directSnap = user.referralCode ? await db.collection('users').where('referredBy', '==', user.referralCode).get() : { docs: [] };
+        const directRows = user.referral_code ? await pg.findWhere('users', { referred_by: user.referral_code }) : [];
         let total = 0;
-        for (const d of directSnap.docs) {
-            const u = d.data();
-            if (u.leadershipRewardPayouts > 0 && u.leadershipRewardDay > 0) {
-                const earned = u.leadershipRewardPayouts * u.leadershipRewardDay;
+        for (const u of directRows) {
+            if (u.leadership_reward_payouts > 0 && u.leadership_reward_day > 0) {
+                const earned = u.leadership_reward_payouts * u.leadership_reward_day;
                 total += earned * 0.1;
             }
         }
@@ -198,10 +192,9 @@ exports.getMatchingBonus = async (req, res) => {
 };
 
 const payMatchingBonus = async (uid, rewardAmount) => {
-    const snap = await db.doc(`users/${uid}`).get();
-    if (!snap.exists) return;
-    const u = snap.data();
-    const refCode = u.referredBy;
+    const u = await pg.get('users', uid);
+    if (!u) return;
+    const refCode = u.referred_by;
     if (!refCode) return;
 
     const sponsorLookup = await lookupByRefCode(refCode);
@@ -209,55 +202,56 @@ const payMatchingBonus = async (uid, rewardAmount) => {
     const sponsorUid = sponsorLookup.id;
     const sponsor = sponsorLookup.data;
 
-    if (!sponsor.activePackage || sponsor.packageStatus === 'expired') return;
+    if (!sponsor.active_package || sponsor.package_status === 'expired') return;
 
     const matchAmt = rewardAmount * 0.1;
     if (matchAmt <= 0) return;
 
-    const cap = sponsor.packageCap || Infinity;
-    const usage = sponsor.packageUsage || 0;
+    const cap = sponsor.package_cap || Infinity;
+    const usage = sponsor.package_usage || 0;
     const canAdd = Math.min(matchAmt, cap - usage);
     if (canAdd <= 0) return;
 
-    await db.doc(`users/${sponsorUid}`).update({
-        commissionBalance: admin.firestore.FieldValue.increment(canAdd),
-        totalMatchingBonus: admin.firestore.FieldValue.increment(canAdd),
-        packageUsage: admin.firestore.FieldValue.increment(canAdd),
-    });
-    await db.collection('commissions').add({
-        uid: sponsorUid, fromUid: uid, amount: canAdd,
-        type: 'matching_bonus', createdAt: Date.now()
-    });
+    await pg.increment('users', sponsorUid, 'commission_balance', canAdd);
+    await pg.increment('users', sponsorUid, 'total_matching_bonus', canAdd);
+    await pg.increment('users', sponsorUid, 'package_usage', canAdd);
+
+    await pg.query(
+        `INSERT INTO commissions (id, uid, from_uid, amount, type, created_at)
+         VALUES ($1, $2, $3, $4, 'matching_bonus', $5)`,
+        ['mb_' + sponsorUid + '_' + Date.now(), sponsorUid, uid, canAdd, Date.now()]
+    );
 };
 
 exports.distributeDailyRewards = async (req, res) => {
     try {
-        const snap = await db.collection('users').where('leadershipRewardStart', '>', 0).get();
+        const rows = await pg.query(
+            `SELECT * FROM users WHERE leadership_reward_start > 0 AND leadership_reward_start IS NOT NULL`
+        );
         let distributed = 0;
-        for (const d of snap.docs) {
-            const u = d.data();
-            const maxDays = u.leadershipRewardDays || 0;
-            const paid = u.leadershipRewardPayouts || 0;
+        for (const u of rows.rows) {
+            const maxDays = u.leadership_reward_days || 0;
+            const paid = u.leadership_reward_payouts || 0;
             if (paid >= maxDays) continue;
-            if (!u.activePackage || u.activePackage === 'none' || u.packageStatus === 'expired') continue;
+            if (!u.active_package || u.active_package === 'none' || u.package_status === 'expired') continue;
 
-            const dailyAmt = u.leadershipRewardDay || 0;
-            const cap = u.packageCap || Infinity;
-            const usage = u.packageUsage || 0;
+            const dailyAmt = u.leadership_reward_day || 0;
+            const cap = u.package_cap || Infinity;
+            const usage = u.package_usage || 0;
             const canAdd = Math.min(dailyAmt, cap - usage);
             if (canAdd <= 0) continue;
 
-            await db.doc(d.id).update({
-                commissionBalance: admin.firestore.FieldValue.increment(canAdd),
-                packageUsage: admin.firestore.FieldValue.increment(canAdd),
-                leadershipRewardPayouts: admin.firestore.FieldValue.increment(1),
-            });
-            await db.collection('leadershipRewards').add({
-                uid: d.id, rank: u.leadershipRewardRank,
-                amount: canAdd, day: paid + 1,
-                createdAt: Date.now()
-            });
-            await payMatchingBonus(d.id, canAdd);
+            await pg.increment('users', u.uid, 'commission_balance', canAdd);
+            await pg.increment('users', u.uid, 'package_usage', canAdd);
+            await pg.increment('users', u.uid, 'leadership_reward_payouts', 1);
+
+            await pg.query(
+                `INSERT INTO leadership_rewards (id, uid, rank, amount, day, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                ['lr_' + u.uid + '_' + Date.now(), u.uid, u.leadership_reward_rank, canAdd, paid + 1, Date.now()]
+            );
+
+            await payMatchingBonus(u.uid, canAdd);
             distributed++;
         }
         res.json({ success: true, distributed });
@@ -266,15 +260,14 @@ exports.distributeDailyRewards = async (req, res) => {
 
 exports.adminRecalcAllRanks = async (req, res) => {
     try {
-        const snap = await db.collection('users').get();
+        const rows = await pg.all('users');
         let updated = 0;
-        for (const d of snap.docs) {
-            const u = d.data();
-            if (!u.activePackage || u.activePackage === 'none') continue;
+        for (const u of rows) {
+            if (!u.active_package || u.active_package === 'none') continue;
 
-            const refCode = u.referralCode;
-            const directSnap = refCode ? await db.collection('users').where('referredBy', '==', refCode).get() : { size: 0 };
-            const directCount = directSnap.size;
+            const refCode = u.referral_code;
+            const directRows = refCode ? await pg.findWhere('users', { referred_by: refCode }) : [];
+            const directCount = directRows.length;
             const legs = await getLegsVolume(refCode);
             const totalTeamVolume = legs.reduce((a, b) => a + b, 0);
             const topLeg = legs[0] || 0;
@@ -290,29 +283,31 @@ exports.adminRecalcAllRanks = async (req, res) => {
                 }
             }
 
-            const updates = { rank: rankAchieved, rankCalculatedAt: Date.now() };
+            const updates = { rank: rankAchieved, rank_calculated_at: Date.now() };
 
             const currentRank = u.rank || 'Unranked';
             const currentIdx = RANK_INDEX[currentRank] !== undefined ? RANK_INDEX[currentRank] : -1;
             const newIdx = RANK_INDEX[rankAchieved] !== undefined ? RANK_INDEX[rankAchieved] : -1;
 
-            if (newIdx > currentIdx && !u.achievementBonusClaimed) {
+            if (newIdx > currentIdx && !u.achievement_bonus_claimed) {
                 const r = RANKS[newIdx];
                 if (r && r.bonus > 0) {
-                    updates.commissionBalance = admin.firestore.FieldValue.increment(r.bonus);
-                    updates.achievementBonusClaimed = true;
-                    await db.collection('achievementBonuses').add({
-                        uid: d.id, rank: rankAchieved, amount: r.bonus, createdAt: Date.now(), type: 'achievement'
-                    });
+                    await pg.increment('users', u.uid, 'commission_balance', r.bonus);
+                    await pg.update('users', u.uid, { achievement_bonus_claimed: true });
+                    await pg.query(
+                        `INSERT INTO achievement_bonuses (id, uid, rank, amount, type, created_at)
+                         VALUES ($1, $2, $3, $4, 'achievement', $5)`,
+                        ['ab_recalc_' + u.uid + '_' + Date.now(), u.uid, rankAchieved, r.bonus, Date.now()]
+                    );
                 }
-                updates.leadershipRewardRank = rankAchieved;
-                updates.leadershipRewardDay = r.rewardDay;
-                updates.leadershipRewardDays = r.rewardDays;
-                updates.leadershipRewardPayouts = 0;
-                updates.leadershipRewardStart = Date.now();
+                updates.leadership_reward_rank = rankAchieved;
+                updates.leadership_reward_day = r.rewardDay;
+                updates.leadership_reward_days = r.rewardDays;
+                updates.leadership_reward_payouts = 0;
+                updates.leadership_reward_start = Date.now();
             }
 
-            await db.doc(`users/${d.id}`).update(updates);
+            await pg.update('users', u.uid, updates);
             updated++;
         }
         res.json({ success: true, updated });

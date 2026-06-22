@@ -446,9 +446,9 @@ const db = {};
     // ---- CONFIG ----
     window.loadConfig = async function() {
         try {
-            const snap = await getDoc(doc(db,'settings','maintenance'));
-            if (snap.exists()) {
-                const d = snap.data();
+            const r = await fetch(API+'/maintenance');
+            if (r.ok) {
+                const d = await r.json();
                 const on = d.enabled === true;
                 document.getElementById('maintToggle').className = 'toggle' + (on?' on':'');
                 document.getElementById('maintToggleLabel').textContent = on?'Enabled':'Disabled';

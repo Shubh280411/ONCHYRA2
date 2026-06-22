@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const pg = require('../config/pg');
 
 const PACKAGES = {
     starter:  { price: 5,   boost: 4,   cap: 50,   name: 'Starter' },
@@ -19,48 +18,46 @@ exports.purchase = async (req, res) => {
         const pkg = PACKAGES[packageId];
         if (!pkg) return res.status(400).json({ error: 'Invalid package' });
 
-        const userSnap = await db.doc(`users/${uid}`).get();
-        if (!userSnap.exists) return res.status(404).json({ error: 'User not found' });
-        const user = userSnap.data();
+        const user = await pg.get('users', uid);
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        if (user.activePackage && user.activePackage !== 'none' && user.packageStatus !== 'expired') {
+        if (user.active_package && user.active_package !== 'none' && user.package_status !== 'expired') {
             return res.status(400).json({ error: 'Already has an active package. Upgrade instead.' });
         }
 
         let credit = 0;
-        if (user.activePackage && user.activePackage !== 'none') {
-            const currentPkg = PACKAGES[user.activePackage];
+        if (user.active_package && user.active_package !== 'none') {
+            const currentPkg = PACKAGES[user.active_package];
             if (currentPkg) {
-                const usagePct = (user.packageUsage || 0) / currentPkg.cap;
+                const usagePct = (user.package_usage || 0) / currentPkg.cap;
                 if (usagePct < 5) credit = currentPkg.price * 0.7;
             }
         }
 
         const finalPrice = Math.max(0, pkg.price - credit);
-        if ((user.walletBalance || 0) < finalPrice) return res.status(400).json({ error: 'Insufficient wallet balance' });
+        if ((user.wallet_balance || 0) < finalPrice) return res.status(400).json({ error: 'Insufficient wallet balance' });
 
-        const batch = db.batch();
-        const prevCap = user.activePackage && user.activePackage !== 'none' && PACKAGES[user.activePackage]
-            ? PACKAGES[user.activePackage].cap : 0;
+        const prevCap = user.active_package && user.active_package !== 'none' && PACKAGES[user.active_package]
+            ? PACKAGES[user.active_package].cap : 0;
 
-        batch.update(db.doc(`users/${uid}`), {
-            walletBalance: admin.firestore.FieldValue.increment(-finalPrice),
-            activePackage: packageId,
-            packageAmount: pkg.price,
-            packageBoost: pkg.boost,
-            packageCap: prevCap + pkg.cap,
-            packageUsage: 0,
-            packageStatus: 'active',
-            packagePurchasedAt: Date.now(),
-            totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
+        await pg.increment('users', uid, 'wallet_balance', -finalPrice);
+        await pg.update('users', uid, {
+            active_package: packageId,
+            package_amount: pkg.price,
+            package_boost: pkg.boost,
+            package_cap: prevCap + pkg.cap,
+            package_usage: 0,
+            package_status: 'active',
+            package_purchased_at: Date.now(),
         });
+        await pg.increment('users', uid, 'total_package_spend', pkg.price);
 
-        batch.create(db.collection('packagePurchases').doc(), {
-            uid, packageId: pkg.name, amount: pkg.price, paid: finalPrice, credit,
-            boost: pkg.boost, createdAt: Date.now()
-        });
+        await pg.query(
+            `INSERT INTO package_purchases (id, uid, package_id, name, amount, paid, credit, boost, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            ['pp_' + uid + '_' + Date.now(), uid, packageId, pkg.name, pkg.price, finalPrice, credit, pkg.boost, Date.now()]
+        );
 
-        await batch.commit();
         await processReferralCommission(uid, pkg.price, pkg.name);
 
         res.json({ success: true, package: pkg.name, boost: pkg.boost, credit, paid: finalPrice });
@@ -70,17 +67,16 @@ exports.purchase = async (req, res) => {
 exports.checkCap = async (req, res) => {
     try {
         const { uid } = req.params;
-        const snap = await db.doc(`users/${uid}`).get();
-        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
-        const u = snap.data();
+        const u = await pg.get('users', uid);
+        if (!u) return res.status(404).json({ error: 'User not found' });
         res.json({
-            activePackage: u.activePackage || 'none',
-            packageStatus: u.packageStatus || 'none',
-            packageCap: u.packageCap || 0,
-            packageUsage: u.packageUsage || 0,
-            usedCap: u.packageUsage || 0,
-            maxCap: u.packageCap || 0,
-            remainingCap: Math.max(0, (u.packageCap || 0) - (u.packageUsage || 0)),
+            activePackage: u.active_package || 'none',
+            packageStatus: u.package_status || 'none',
+            packageCap: u.package_cap || 0,
+            packageUsage: u.package_usage || 0,
+            usedCap: u.package_usage || 0,
+            maxCap: u.package_cap || 0,
+            remainingCap: Math.max(0, (u.package_cap || 0) - (u.package_usage || 0)),
         });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
@@ -91,16 +87,16 @@ exports.adminActivate = async (req, res) => {
         const pkg = PACKAGES[packageId];
         if (!pkg) return res.status(400).json({ error: 'Invalid package' });
 
-        await db.doc(`users/${uid}`).update({
-            activePackage: packageId,
-            packageAmount: pkg.price,
-            packageBoost: pkg.boost,
-            packageCap: pkg.cap,
-            packageUsage: 0,
-            packageStatus: 'active',
-            packagePurchasedAt: Date.now(),
-            totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
+        await pg.update('users', uid, {
+            active_package: packageId,
+            package_amount: pkg.price,
+            package_boost: pkg.boost,
+            package_cap: pkg.cap,
+            package_usage: 0,
+            package_status: 'active',
+            package_purchased_at: Date.now(),
         });
+        await pg.increment('users', uid, 'total_package_spend', pkg.price);
         await processReferralCommission(uid, pkg.price, pkg.name);
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }
@@ -109,7 +105,7 @@ exports.adminActivate = async (req, res) => {
 exports.adminExpire = async (req, res) => {
     try {
         const { uid } = req.body;
-        await db.doc(`users/${uid}`).update({ packageStatus: 'expired', activePackage: 'none' });
+        await pg.update('users', uid, { package_status: 'expired', active_package: 'none' });
         res.json({ success: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
@@ -120,35 +116,50 @@ exports.adminUpgrade = async (req, res) => {
         const pkg = PACKAGES[packageId];
         if (!pkg) return res.status(400).json({ error: 'Invalid package' });
 
-        const prevCap = await db.doc(`users/${uid}`).get().then(d => d.data().packageCap || 0);
+        const u = await pg.get('users', uid);
+        const prevCap = u ? (u.package_cap || 0) : 0;
 
-        await db.doc(`users/${uid}`).update({
-            activePackage: packageId,
-            packageAmount: pkg.price,
-            packageBoost: pkg.boost,
-            packageCap: prevCap + pkg.cap,
-            packageUsage: 0,
-            packageStatus: 'active',
-            packagePurchasedAt: Date.now(),
-            totalPackageSpend: admin.firestore.FieldValue.increment(pkg.price),
+        await pg.update('users', uid, {
+            active_package: packageId,
+            package_amount: pkg.price,
+            package_boost: pkg.boost,
+            package_cap: prevCap + pkg.cap,
+            package_usage: 0,
+            package_status: 'active',
+            package_purchased_at: Date.now(),
         });
+        await pg.increment('users', uid, 'total_package_spend', pkg.price);
         await processReferralCommission(uid, pkg.price, pkg.name);
         res.json({ success: true, package: pkg.name });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
 
-const lookupByRefCode = async (refCode) => {
-    if (!refCode) return null;
-    const snap = await db.collection('users').where('referralCode', '==', refCode).get();
-    if (snap.empty) return null;
-    return { id: snap.docs[0].id, data: snap.docs[0].data() };
+exports.userPackage = async (req, res) => {
+    try {
+        const u = await pg.get('users', req.params.uid);
+        if (!u) return res.status(404).json({ error: 'User not found' });
+        res.json({
+            activePackage: u.active_package || 'none',
+            packageBoost: u.package_boost || 1,
+            packageUsage: u.package_usage || 0,
+            packageCap: u.package_cap || 0,
+            packageStatus: u.package_status || 'none',
+            remainingCap: Math.max(0, (u.package_cap || 0) - (u.package_usage || 0)),
+        });
+    } catch(e) { res.status(500).json({ error: e.message }); }
 };
+
+async function lookupByRefCode(refCode) {
+    if (!refCode) return null;
+    const rows = await pg.findWhere('users', { referral_code: refCode });
+    if (!rows.length) return null;
+    return { id: rows[0].uid, data: rows[0] };
+}
 
 async function processReferralCommission(uid, amount, pkgName) {
     try {
-        const userSnap = await db.doc(`users/${uid}`).get();
-        const user = userSnap.data();
-        if (!user.referredBy) return;
+        const user = await pg.get('users', uid);
+        if (!user || !user.referred_by) return;
 
         const levels = [
             { level: 1, pct: 0.10 },
@@ -156,7 +167,7 @@ async function processReferralCommission(uid, amount, pkgName) {
             { level: 3, pct: 0.03 },
         ];
 
-        let currentRefCode = user.referredBy;
+        let currentRefCode = user.referred_by;
         for (const lv of levels) {
             if (!currentRefCode) break;
 
@@ -165,65 +176,39 @@ async function processReferralCommission(uid, amount, pkgName) {
             const refUid = refLookup.id;
             const refData = refLookup.data;
 
-            // Always move up before any continue
-            currentRefCode = refData.referredBy;
+            currentRefCode = refData.referred_by;
 
-            // Always update teamBiz for this upline (downline's purchase counts regardless of package)
-            await db.doc(`users/${refUid}`).update({
-                teamBiz: admin.firestore.FieldValue.increment(amount)
-            });
+            await pg.increment('users', refUid, 'team_biz', amount);
 
-            // Only pay commission if upline has active package with remaining cap
-            if (!refData.activePackage || refData.activePackage === 'none' || refData.packageStatus === 'expired') {
+            if (!refData.active_package || refData.active_package === 'none' || refData.package_status === 'expired') {
                 continue;
             }
 
             const commission = amount * lv.pct;
-            const used = refData.packageUsage || 0;
-            const cap = refData.packageCap || Infinity;
+            const used = refData.package_usage || 0;
+            const cap = refData.package_cap || Infinity;
             const available = Math.max(0, cap - used);
             const capped = Math.min(commission, available);
             if (capped <= 0) continue;
 
             const newUsed = used + capped;
-            const updates = {
-                commissionBalance: admin.firestore.FieldValue.increment(capped),
-                packageUsage: admin.firestore.FieldValue.increment(capped),
-                totalCommissions: admin.firestore.FieldValue.increment(capped),
-            };
+
+            await pg.increment('users', refUid, 'commission_balance', capped);
+            await pg.increment('users', refUid, 'package_usage', capped);
+            await pg.increment('users', refUid, 'total_commissions', capped);
 
             if (newUsed >= cap) {
-                updates.packageStatus = 'expired';
+                await pg.update('users', refUid, { package_status: 'expired' });
             }
 
-            const batch = db.batch();
-            batch.update(db.doc(`users/${refUid}`), updates);
-            batch.create(db.collection('commissions').doc(), {
-                fromUid: uid, uid: refUid, amount: capped,
-                level: lv.level, type: 'package_commission',
-                packageName: pkgName || 'Package',
-                fromName: user.name || 'User',
-                createdAt: Date.now()
-            });
-            await batch.commit();
+            await pg.query(
+                `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                 VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
+                ['comm_' + refUid + '_' + uid + '_' + Date.now(), uid, refUid, capped, lv.level,
+                 pkgName || 'Package', user.name || 'User', Date.now()]
+            );
         }
     } catch(e) { console.error('Referral commission error:', e); }
 }
-
-exports.userPackage = async (req, res) => {
-    try {
-        const snap = await db.doc(`users/${req.params.uid}`).get();
-        if (!snap.exists) return res.status(404).json({ error: 'User not found' });
-        const data = snap.data();
-        res.json({
-            activePackage: data.activePackage || 'none',
-            packageBoost: data.packageBoost || 1,
-            packageUsage: data.packageUsage || 0,
-            packageCap: data.packageCap || 0,
-            packageStatus: data.packageStatus || 'none',
-            remainingCap: Math.max(0, (data.packageCap || 0) - (data.packageUsage || 0)),
-        });
-    } catch(e) { res.status(500).json({ error: e.message }); }
-};
 
 exports.processReferralCommission = processReferralCommission;

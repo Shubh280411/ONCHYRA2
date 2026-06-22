@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA | PowerDrop Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #7C3AED;
+            --accent-glow: rgba(124,58,237,0.5);
+            --bg: #03040B;
+            --card: rgba(15,17,26,0.7);
+            --text: #F8FAFC;
+            --muted: #94A3B8;
+        }
+        body { margin:0; font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); background-image:radial-gradient(circle at 50% -20%,#1e1b4b,transparent); min-height:100vh; }
+
+        .top-bar { display:flex; justify-content:space-between; align-items:center; padding:20px 40px; background:rgba(255,255,255,0.02); border-bottom:1px solid rgba(255,255,255,0.05); backdrop-filter:blur(10px); position:sticky; top:0; z-index:100; }
+        .logo { font-weight:800; font-size:20px; letter-spacing:-1px; background:linear-gradient(to right,#A78BFA,#60A5FA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+        .stat-group { display:flex; gap:30px; }
+        .stat-item { text-align:center; }
+        .stat-item span { display:block; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+        .stat-item b { font-size:20px; color:#fff; }
+
+        .main-container { max-width:1200px; margin:40px auto; padding:0 20px; display:grid; grid-template-columns:1.5fr 1fr; gap:25px; }
+
+        .card { background:var(--card); border:1px solid rgba(255,255,255,0.05); border-radius:24px; padding:24px; backdrop-filter:blur(20px); box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+
+        h2 { font-size:18px; margin-top:0; display:flex; align-items:center; gap:10px; color:#A78BFA; }
+
+        .controls { grid-column:1/-1; display:flex; gap:20px; align-items:flex-end; }
+        .input-group { flex:1; }
+        label { font-size:12px; color:var(--muted); margin-bottom:8px; display:block; }
+        select { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:12px; color:#fff; outline:none; }
+
+        .btn { padding:12px 24px; border-radius:12px; border:none; font-weight:700; cursor:pointer; transition:0.3s; font-size:14px; font-family:'Plus Jakarta Sans'; }
+        .btn-pick { background:var(--accent); color:white; box-shadow:0 0 20px var(--accent-glow); }
+        .btn-export { background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); }
+        .btn:hover { transform:translateY(-2px); opacity:0.9; }
+
+        .table-container { height:500px; overflow-y:auto; margin-top:15px; }
+        table { width:100%; border-collapse:separate; border-spacing:0 8px; }
+        th { text-align:left; padding:10px; font-size:11px; color:var(--muted); text-transform:uppercase; }
+        td { padding:14px 10px; background:rgba(255,255,255,0.02); font-size:13px; }
+        td:first-child { border-radius:12px 0 0 12px; font-weight:700; color:#fff; }
+        td:nth-child(2) { color:#A78BFA; font-size:12px; }
+        td:last-child { border-radius:0 12px 12px 0; font-family:monospace; color:var(--muted); font-size:11px; word-break:break-all; }
+
+        .winner-row td { background:rgba(124,58,237,0.12) !important; }
+        .winner-row td:first-child { border-left:3px solid var(--accent); border-radius:12px 0 0 12px; }
+
+        /* Loading spinner */
+        .loading-row td { color:var(--muted); font-size:12px; text-align:center; padding:30px; }
+
+        /* Avatar circle */
+        .avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#7C3AED,#60A5FA); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; margin-right:8px; vertical-align:middle; flex-shrink:0; }
+
+        .name-cell { display:flex; align-items:center; }
+
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:10px; }
+
+        /* Empty state */
+        .empty-state { text-align:center; padding:40px 20px; color:var(--muted); font-size:13px; }
+        .empty-state div { font-size:30px; margin-bottom:10px; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="logo">ONCHYRA ADMIN</div>
+    <div class="stat-group">
+        <div class="stat-item">
+            <span>Live Participants</span>
+            <b id="countTotal">0</b>
+        </div>
+        <div class="stat-item">
+            <span>Selected Winners</span>
+            <b id="countWinners">0</b>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+
+    <div class="card controls">
+        <div class="input-group">
+            <label>Select Event</label>
+            <select id="eventSelect"></select>
+        </div>
+        <button class="btn btn-pick" onclick="pickWinners()">✨ Pick Winners</button>
+        <button class="btn btn-export" onclick="exportCSV()">📤 Export CSV</button>
+    </div>
+
+    <!-- PARTICIPANTS -->
+    <div class="card">
+        <h2>👥 Participants <span id="participantBadge" style="font-size:12px;background:rgba(167,139,250,0.15);color:#A78BFA;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>USDT Address</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr class="loading-row"><td colspan="2">Select an event to load participants</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- WINNERS -->
+    <div class="card">
+        <h2>🏆 Winners <span id="winnerBadge" style="font-size:12px;background:rgba(124,58,237,0.15);color:#c084fc;padding:3px 10px;border-radius:20px;font-weight:700;margin-left:4px;">0</span></h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>USDT Address</th>
+                    </tr>
+                </thead>
+                <tbody id="winnerTable">
+                    <tr class="loading-row"><td colspan="2">
+                        <div class="empty-state"><div>🎲</div>Pick winners to see results</div>
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+import { db,  initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { collection, getDocs, doc, getDoc   } from "./supabase-adapter.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const eventSelect = document.getElementById("eventSelect");
+const tableBody = document.getElementById("tableBody");
+const winnerTable = document.getElementById("winnerTable");
+
+let participants = [];
+let winners = [];
+
+onAuthStateChanged(auth, user => {
+    if (!user) window.location = "admin-login.html";
+});
+
+// Load all powerdrop events into dropdown
+async function loadEvents() {
+    const snap = await getDocs(collection(db, "powerdrops"));
+    if (snap.empty) {
+        eventSelect.innerHTML = '<option>No events found</option>';
+        return;
+    }
+    snap.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = d.data().title || d.id;
+        eventSelect.appendChild(opt);
+    });
+    loadParticipants(eventSelect.value);
+}
+loadEvents();
+
+eventSelect.addEventListener("change", () => loadParticipants(eventSelect.value));
+
+// KEY FIX: doc.id is the userUid (not data.uid)
+async function loadParticipants(eventId) {
+    if (!eventId) return;
+    participants = [];
+    tableBody.innerHTML = `<tr class="loading-row"><td colspan="2">⏳ Syncing participants...</td></tr>`;
+    document.getElementById('countTotal').innerText = "...";
+    document.getElementById('participantBadge').innerText = "...";
+
+    try {
+        const snap = await getDocs(collection(db, "powerdrops", eventId, "participants"));
+
+        if (snap.empty) {
+            tableBody.innerHTML = `<tr class="loading-row"><td colspan="2"><div class="empty-state"><div>📭</div>No participants yet</div></td></tr>`;
+            document.getElementById('countTotal').innerText = 0;
+            document.getElementById('participantBadge').innerText = 0;
+            return;
+        }
+
+        document.getElementById('countTotal').innerText = snap.size;
+        document.getElementById('participantBadge').innerText = snap.size;
+
+        // Fetch each user's name using doc.id as uid
+        const rows = await Promise.all(snap.docs.map(async (pDoc) => {
+            const uid = pDoc.id; // ← THE FIX: doc ID = uid
+            const address = pDoc.data().address || "—";
+
+            // Try to get user name from users collection
+            let name = "Miner #" + uid.slice(0, 6).toUpperCase();
+            try {
+                const uSnap = await getDoc(doc(db, "users", uid));
+                if (uSnap.exists() && uSnap.data().name) {
+                    name = uSnap.data().name;
+                }
+            } catch (e) { /* use fallback name */ }
+
+            participants.push({ uid, name, address });
+
+            const initials = name.substring(0, 2).toUpperCase();
+            return `
+                <tr>
+                    <td>
+                        <div class="name-cell">
+                            <div class="avatar">${initials}</div>
+                            ${name}
+                        </div>
+                    </td>
+                    <td style="font-family:monospace; font-size:11px; color:#94A3B8; word-break:break-all;">${address}</td>
+                </tr>`;
+        }));
+
+        tableBody.innerHTML = rows.join("");
+
+    } catch (e) {
+        console.error("Load error:", e);
+        tableBody.innerHTML = `<tr class="loading-row"><td colspan="2" style="color:#f87171;">❌ Error loading data: ${e.message}</td></tr>`;
+    }
+}
+
+window.pickWinners = () => {
+    if (!participants.length) return alert("Load participants first!");
+    const input = prompt(`Enter number of winners (max ${participants.length}):`);
+    if (!input) return;
+    const num = Math.min(parseInt(input), participants.length);
+    if (isNaN(num) || num <= 0) return alert("Invalid number!");
+
+    // Shuffle and pick
+    winners = [...participants].sort(() => 0.5 - Math.random()).slice(0, num);
+
+    document.getElementById('countWinners').innerText = num;
+    document.getElementById('winnerBadge').innerText = num;
+
+    winnerTable.innerHTML = winners.map((w, i) => `
+        <tr class="winner-row">
+            <td>
+                <div class="name-cell">
+                    <div class="avatar" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);">${i + 1}</div>
+                    ${w.name}
+                </div>
+            </td>
+            <td style="font-family:monospace; font-size:11px; word-break:break-all;">${w.address}</td>
+        </tr>`).join("");
+};
+
+window.exportCSV = () => {
+    if (!winners.length) return alert("Pick winners first!");
+    const csv = "Rank,Name,USDT Address\n" +
+        winners.map((w, i) => `${i + 1},"${w.name}","${w.address}"`).join("\n");
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `onchyra_winners_${Date.now()}.csv`;
+    a.click();
+};
+</script>
+</body>
+</html>

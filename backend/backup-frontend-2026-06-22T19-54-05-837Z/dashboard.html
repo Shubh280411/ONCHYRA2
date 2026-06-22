@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONCHYRA — Global Node</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #a78bfa; --secondary: #60a5fa; --success: #22c55e; --danger: #ef4444; --bg: #03040a; --card: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; overflow-x:hidden; }
+
+        #loader { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:15px; }
+        .spinner { width:45px; height:45px; border:3px solid rgba(167,139,250,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+        #loadingText { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:800; text-transform:uppercase; animation:pulse 1.5s infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        @keyframes fire-glow { 0%,100% { filter:drop-shadow(0 0 6px rgba(251,191,36,0.4)) drop-shadow(0 0 12px rgba(251,191,36,0.2)); } 50% { filter:drop-shadow(0 0 10px rgba(251,191,36,0.7)) drop-shadow(0 0 20px rgba(251,191,36,0.4)); } }
+        @keyframes streak-ignite { 0% { background:rgba(251,191,36,0.05); box-shadow:0 0 0 0 rgba(251,191,36,0); } 100% { background:rgba(251,191,36,0.12); box-shadow:0 0 25px 5px rgba(251,191,36,0.2); } }
+        @keyframes tacho-pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+        @keyframes needle-shake { 0%,100% { transform-origin:100px 120px; } 25% { transform-origin:100px 120px; } 75% { transform-origin:100px 120px; } }
+        @keyframes redzone-flicker { 0%,100% { opacity:0.5; } 20% { opacity:1; } 40% { opacity:0.3; } 60% { opacity:0.9; } 80% { opacity:0.4; } }
+        .tacho-red .tacho-spike { animation:tacho-pulse 0.8s ease-in-out infinite; }
+        .tacho-red { animation:redzone-flicker 2s ease-in-out infinite; }
+
+        .nav-container { position:fixed; top:0; left:0; right:0; z-index:1000; padding:15px; background:linear-gradient(to bottom,var(--bg) 90%,transparent); }
+        .nav { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:rgba(255,255,255,0.03); border-radius:22px; border:1px solid var(--border); backdrop-filter:blur(25px); }
+
+        #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; z-index:1100; backdrop-filter:blur(10px); }
+        .menu { position:fixed; top:0; left:-280px; width:280px; height:100%; background:#080914; padding:30px 15px; transition:0.4s cubic-bezier(0.4,0,0.2,1); z-index:1200; border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; }
+        .menu-item { color:rgba(255,255,255,0.7); text-decoration:none; font-size:13px; font-weight:600; padding:14px; border-radius:14px; margin-bottom:5px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+        .menu-item.active { background:rgba(167,139,250,0.1); color:var(--primary); }
+        .menu-item.hot { color:#fbbf24; }
+
+        .container { max-width:1200px; margin:0 auto; padding:100px 15px 40px; }
+        .dashboard-grid { display:grid; grid-template-columns:1fr; gap:18px; }
+        @media (min-width:992px) { .dashboard-grid { grid-template-columns:1fr 1fr; } .full-width { grid-column:span 2; } }
+        .mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        @media (max-width:480px) { .mini-grid { grid-template-columns:1fr 1fr; } .mini-grid .card:last-child:nth-child(odd) { grid-column:span 2; } }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:25px; position:relative; overflow:hidden; }
+
+        #rankTag { font-size:9px; font-weight:900; padding:4px 12px; border-radius:6px; text-transform:uppercase; letter-spacing:1px; display:inline-block; margin-bottom:10px; }
+        .tag-rookie { background:rgba(167,139,250,0.1); color:var(--primary); border:1px solid var(--primary); }
+        .tag-shark  { background:rgba(96,165,250,0.1); color:var(--secondary); border:1px solid var(--secondary); }
+        .tag-whale  { background:rgba(251,191,36,0.1); color:#fbbf24; border:1px solid #fbbf24; }
+
+        #claimBtn { width:100%; padding:22px; border:none; border-radius:22px; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; font-weight:900; font-size:16px; cursor:pointer; text-transform:uppercase; }
+        #claimBtn:disabled { background:#1a1a1a; color:#444; cursor:not-allowed; }
+        .view-all-btn { font-size:10px; font-weight:800; color:var(--primary); text-decoration:none; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.3); padding:6px 14px; border-radius:20px; white-space:nowrap; }
+        .copy-btn { background:#fff; color:#000; border:none; border-radius:16px; font-weight:900; font-size:12px; cursor:pointer; white-space:nowrap; padding:14px 24px; }
+
+        .lb-row, .feed-item { display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.02); border-radius:14px; margin-bottom:8px; font-size:11px; border:1px solid rgba(255,255,255,0.03); align-items:center; }
+        .user-name { font-weight:700; color:#fff; }
+        .time-ago { opacity:0.5; font-size:10px; }
+
+        .v-btn-dynamic { width:100%; padding:15px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; color:white; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; transition:0.2s; }
+        .v-btn-dynamic.selected { border-color:var(--primary); background:rgba(167,139,250,0.1); }
+        .v-btn-dynamic:disabled { cursor:default; opacity:1; }
+
+        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:12px 25px; border-radius:50px; font-weight:800; display:none; z-index:2000; font-size:11px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+
+        /* TELEGRAM POPUP */
+        #tgPopup { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:5000; padding:20px; backdrop-filter:blur(10px); }
+        #tgPopup.show { display:flex; }
+        .popup-box {
+            background: linear-gradient(160deg, #0b0d18 0%, #120e24 100%);
+            border: 1px solid rgba(96,165,250,0.25);
+            border-radius: 32px; padding: 40px 30px 30px; width: 100%; max-width: 380px;
+            text-align: center; position: relative; overflow: hidden;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn { from { transform:scale(0.7) translateY(40px); opacity:0; } to { transform:scale(1) translateY(0); opacity:1; } }
+        .popup-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 50% 30%, rgba(96,165,250,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .popup-close {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            background: rgba(255,255,255,0.05); border: none; border-radius: 50%;
+            color: rgba(255,255,255,0.5); font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .popup-close:hover { background: rgba(255,255,255,0.1); color: white; }
+        .popup-icon { display:flex; align-items:center; justify-content:center; margin: 0 auto 20px; width:56px;height:56px;border-radius:50%;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2); }
+        .popup-title {
+            font-family: 'Space Grotesk'; font-size: 28px; font-weight: 900;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6, #2563eb);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 0 0 8px; letter-spacing: -1px;
+        }
+        .popup-badge {
+            display: inline-block; font-size: 9px; font-weight: 900; color: #60a5fa;
+            background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3);
+            padding: 4px 12px; border-radius: 20px; letter-spacing: 2px; margin-bottom: 16px;
+        }
+        .popup-sub { font-size: 13px; color: rgba(255,255,255,0.45); margin: 0 0 24px; line-height: 1.6; }
+        .popup-join-btn {
+            width: 100%; padding: 18px; border: none; border-radius: 18px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #fff; font-family: 'Space Grotesk'; font-size: 16px; font-weight: 900;
+            cursor: pointer; letter-spacing: 1px; transition: 0.2s;
+        }
+        .popup-join-btn:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(96,165,250,0.3); }
+        .popup-later {
+            margin-top: 16px; font-size: 11px; color: rgba(255,255,255,0.2);
+            background: none; border: none; cursor: pointer; font-weight: 600;
+        }
+        .popup-later:hover { color: rgba(255,255,255,0.4); }
+        #toolsPopup { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:5000; padding:20px; backdrop-filter:blur(10px); }
+        .tools-btn-view { background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.3);padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;transition:0.2s;font-family:'Inter';display:inline-flex;align-items:center; }
+        .tools-btn-view:hover { background:rgba(167,139,250,0.25); }
+        .tools-btn-dl { background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;transition:0.2s;font-family:'Inter';display:inline-flex;align-items:center; }
+        .tools-btn-dl:hover { background:rgba(255,255,255,0.12);color:white; }
+
+        /* NOTIFICATION BELL */
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .bell-wrap { position: relative; cursor: pointer; padding: 4px; }
+        .bell-badge { position: absolute; top: -2px; right: -4px; width: 16px; height: 16px; background: #ef4444; border-radius: 50%; font-size: 9px; font-weight: 800; color: white; display: none; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+        .bell-badge.show { display: flex; }
+        .bell-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 320px; max-height: 400px; background: #0b0d18; border: 1px solid var(--border); border-radius: 20px; overflow-y: auto; display: none; z-index: 2000; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .bell-dropdown.open { display: block; animation: dropIn 0.2s ease; }
+        @keyframes dropIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+        .bell-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+        .bell-header span { font-family: 'Space Grotesk'; font-weight: 700; font-size: 14px; }
+        .bell-clear { font-size: 10px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 700; }
+        .noti-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.15s; }
+        .noti-item:hover { background: rgba(255,255,255,0.02); }
+        .noti-item.unread { border-left: 3px solid var(--primary); }
+        .noti-item .noti-type { font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .noti-type-update { color: var(--secondary); }
+        .noti-type-poll { color: #22c55e; }
+        .noti-type-personal { color: #fbbf24; }
+        .noti-type-trade_won { color: var(--success); }
+        .noti-type-trade_lost { color: var(--danger); }
+        .noti-item .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .noti-item .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
+        .noti-item .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
+        .noti-empty { padding: 40px 20px; text-align: center; font-size: 12px; opacity: 0.3; }
+        @media (max-width: 600px) { .bell-dropdown { width: calc(100vw - 40px); right: -60px; } }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="loadingText">Synchronizing Nodes...</div>
+</div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<div class="menu" id="menu">
+    <div style="font-family:'Space Grotesk';font-size:24px;font-weight:900;color:var(--primary);padding:25px;">ONCHYRA</div>
+    <a href="dashboard.html" class="menu-item active">Dashboard</a>
+    <a href="p2p-transfer.html" class="menu-item">P2P Transfer</a>
+    <a href="referrals.html" class="menu-item">Referrals</a>
+    <a href="packages.html" class="menu-item">Packages</a>
+    <a href="income.html" class="menu-item">Income</a>
+    <a href="leadership.html" class="menu-item">Leadership</a>
+    <a href="deposit.html" class="menu-item">Deposit</a>
+    <a href="withdraw.html" class="menu-item">Withdraw</a>
+    <a href="contests.html" class="menu-item">Contest</a>
+    <a href="leaderboard.html" class="menu-item">Leaderboard</a>
+    <a href="updates.html" class="menu-item">Updates</a>
+    <a onclick="openTools()" class="menu-item">Tools</a>
+    <a onclick="logout()" class="menu-item" style="color:#ef4444;margin-top:auto;padding-bottom:30px;">Logout</a>
+</div>
+
+<div class="nav-container">
+    <div class="nav">
+        <div onclick="toggleMenu()" style="cursor:pointer;">
+            <svg width="24" height="24" stroke="white" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </div>
+        <div style="font-family:'Space Grotesk';font-weight:900;">ONCHYRA</div>
+        <div class="nav-right">
+            <div class="bell-wrap" onclick="toggleNotiDropdown(event)">
+                <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <div class="bell-badge" id="notiBadge">0</div>
+                <div class="bell-dropdown" id="notiDropdown">
+                    <div class="bell-header">
+                        <span>Notifications</span>
+                        <button class="bell-clear" onclick="markAllRead(event)">Mark all read</button>
+                    </div>
+                    <div id="notiList"><div class="noti-empty">No notifications</div></div>
+                </div>
+            </div>
+            <div onclick="window.location='profile.html'" style="cursor:pointer;">
+                <svg width="22" height="22" stroke="white" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="dashboardData" class="dashboard-grid" style="display:none;">
+
+        <div id="monitorBanner" class="card" style="display:none;text-align:center;padding:12px 16px;border:1px solid rgba(251,191,36,0.25);background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.04));margin-bottom:12px;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="font-size:10px;font-weight:700;color:#f59e0b;letter-spacing:0.5px;">
+                    Your account is being monitored. Please be careful with all future activities.
+                </span>
+            </div>
+        </div>
+
+        <div class="card" style="text-align:center;position:relative;overflow:visible;">
+            <div id="rankTag" class="tag-rookie">SCANNING...</div>
+            <h2 id="balance" style="font-family:'Space Grotesk';font-size:60px;margin:5px 0;">0.00</h2>
+            <div id="streakWrap" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:8px 18px;border-radius:30px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);">
+                <svg id="flameIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 0 6px rgba(251,191,36,0.6));">
+                    <path d="M12 23c-4.97 0-9-3.58-9-8 0-3.07 2.25-5.74 3.84-7.54C8.29 5.86 9.5 4.2 9.5 2c0 0 1.5 1 3 3.5C14 8 15 10 15 12c0-1 1-3 3-4.5.5 1.5.5 3.5.5 5.5 0 5.52-2.91 10-6.5 10z" fill="#fbbf24" opacity="0.9"/>
+                    <path d="M12 20c-2.76 0-5-2.24-5-5 0-2.15 1.65-3.86 2.5-4.8.8-1.06 1.5-2.2 1.5-3.7 0 0 0.8 1.1 1.5 2.7.7 1.6 1.5 3.2 1.5 4.8 0-0.7 0.7-2 2.5-3.2.3 0.9.3 2 0.3 3.2 0 3.31-2.02 6-4.8 6z" fill="#f59e0b"/>
+                </svg>
+                <span style="font-size:14px;font-weight:800;color:#fbbf24;">
+                    <span id="streakDays">0</span> <span style="font-size:10px;opacity:0.6;">days</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Row: 3 mini cards (Wallet, Daily Claim, Withdraw) -->
+        <div class="mini-grid">
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(34,197,94,0.15);background:linear-gradient(180deg,rgba(34,197,94,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Wallet</div>
+                <div id="walletBalance" style="font-weight:800;font-size:16px;color:#22c55e;font-family:'Space Grotesk';">$0.00</div>
+                <a href="deposit.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:7px;font-weight:800;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(34,197,94,0.2);">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    DEPOSIT
+                </a>
+            </div>
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(251,191,36,0.15);background:linear-gradient(180deg,rgba(251,191,36,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Daily Claim</div>
+                <div style="font-weight:800;font-size:16px;color:#fbbf24;font-family:'Space Grotesk';"><span id="dailyClaimAmount">0.05</span> ONC</div>
+                <div style="font-size:7px;color:rgba(255,255,255,0.2);margin-top:2px;">+<span id="dailyClaimBoost">0</span>x boost</div>
+            </div>
+            <div class="card" style="text-align:center;padding:16px 10px;border:1px solid rgba(239,68,68,0.15);background:linear-gradient(180deg,rgba(239,68,68,0.04),transparent);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Withdraw</div>
+                <div id="withdrawBalance" style="font-weight:800;font-size:16px;color:#ef4444;font-family:'Space Grotesk';">$0.00</div>
+                <a href="withdraw.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:7px;font-weight:800;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(239,68,68,0.2);">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    WITHDRAW
+                </a>
+            </div>
+        </div>
+        <!-- Row: Active Directs / Team Business -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+            <div class="card" style="text-align:center;padding:14px 10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Active Directs</div>
+                <div style="font-weight:800;font-size:22px;font-family:'Space Grotesk';">
+                    <span id="activeDirectsNum" style="color:#22c55e;">0</span>
+                    <span style="opacity:0.3;">/</span>
+                    <span id="totalDirectsNum" style="color:#60a5fa;">0</span>
+                </div>
+            </div>
+            <div class="card" style="text-align:center;padding:14px 10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Team Business</div>
+                <div id="teamBizAmount" style="font-weight:800;font-size:18px;color:#f59e0b;font-family:'Space Grotesk';display:flex;align-items:center;justify-content:center;gap:6px;min-height:22px;">
+                    <span id="teamBizText">$0</span>
+                    <span id="teamBizLoader" style="display:none;width:14px;height:14px;border:2px solid rgba(245,158,11,0.2);border-top:2px solid #f59e0b;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
+                </div>
+            </div>
+        </div>
+        <!-- Row: Mining Boost, Rank, Package -->
+        <div class="mini-grid" style="margin-top:10px;">
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Mining Boost</div>
+                <div id="miningBoost" style="font-weight:800;font-size:15px;color:#22c55e;font-family:'Space Grotesk';">1x</div>
+            </div>
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 8 5 9 7v2"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 16 5 15 7v2"/><path d="M4 22h16"/><path d="M10 22V8h4v14"/><path d="M12 2v3"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Rank</div>
+                <div id="userRank" style="font-weight:800;font-size:15px;color:#fbbf24;font-family:'Space Grotesk';">-</div>
+            </div>
+            <div class="card" style="text-align:center;padding:12px 10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <div style="font-size:7px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Package</div>
+                <div id="dashPkg" style="font-weight:800;font-size:15px;color:#a78bfa;font-family:'Space Grotesk';">-</div>
+                <span id="dashPkgStatus" style="font-size:6px;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:2px;background:rgba(34,197,94,0.1);color:#22c55e;">Active</span>
+            </div>
+        </div>
+
+        <!-- Cap Tachometer -->
+
+        <div class="card full-width">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Mining Protocol</span>
+                <span id="dashPkgBoost" style="font-size:8px;font-weight:700;margin-left:auto;background:rgba(34,197,94,0.1);color:#22c55e;padding:2px 8px;border-radius:5px;">0x Boost</span>
+            </div>
+            <div style="background:#111;height:8px;border-radius:20px;overflow:hidden;margin-bottom:18px;">
+                <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#60a5fa,#22c55e);transition:1s linear;"></div>
+            </div>
+            <button id="claimBtn" onclick="claim()" disabled>CONNECTING...</button>
+        </div>
+
+        <div class="card full-width" style="text-align:center;padding:18px 16px 14px;" id="tachocard">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:6px;font-size:8px;opacity:0.4;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="url(#tachoRainbow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span style="background:linear-gradient(90deg,#a78bfa,#60a5fa,#22c55e,#eab308);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Cap Earnings</span>
+                </div>
+                <div>
+                    <span id="tachoPkg" style="font-size:8px;font-weight:700;color:var(--primary);">-</span>
+                    <span id="tachoStatus" style="font-size:7px;font-weight:800;padding:2px 7px;border-radius:5px;margin-left:6px;background:rgba(34,197,94,0.1);color:#22c55e;">Active</span>
+                </div>
+            </div>
+            <div style="position:relative;display:inline-block;width:200px;height:120px;overflow:hidden;margin:0 auto 4px;">
+                <svg width="200" height="130" viewBox="0 0 200 130" style="display:block;">
+                    <defs>
+                        <linearGradient id="tachoRainbow" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#8b5cf6"/>
+                            <stop offset="20%" stop-color="#3b82f6"/>
+                            <stop offset="40%" stop-color="#06b6d4"/>
+                            <stop offset="55%" stop-color="#22c55e"/>
+                            <stop offset="70%" stop-color="#eab308"/>
+                            <stop offset="85%" stop-color="#f97316"/>
+                            <stop offset="100%" stop-color="#ef4444"/>
+                        </linearGradient>
+                        <linearGradient id="needleGrad" x1="0" y1="1" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#a78bfa"/>
+                            <stop offset="50%" stop-color="#f472b6"/>
+                            <stop offset="100%" stop-color="#60a5fa"/>
+                        </linearGradient>
+                        <filter id="needleGlow">
+                            <feGaussianBlur stdDeviation="3" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="arcGlow">
+                            <feGaussianBlur stdDeviation="6"/>
+                        </filter>
+                    </defs>
+
+                    <!-- glow behind arc -->
+                    <path d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="url(#tachoRainbow)" stroke-width="18" stroke-linecap="round" opacity="0.08" filter="url(#arcGlow)"/>
+
+                    <!-- background arc -->
+                    <path d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="12" stroke-linecap="round"/>
+
+                    <!-- rainbow arc -->
+                    <path id="tachoArc" d="M 30 120 A 85 85 0 0 1 170 120" fill="none" stroke="url(#tachoRainbow)" stroke-width="12" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="267" style="transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s"/>
+
+                    <!-- tick marks (spikes) in 10% steps -->
+                    <g stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round">
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-90 100 120)" stroke="#8b5cf6" opacity="0.4"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-63 100 120)" stroke="#3b82f6" opacity="0.5"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-36 100 120)" stroke="#06b6d4" opacity="0.5"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(-9 100 120)" stroke="#22c55e" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(18 100 120)" stroke="#65a30d" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(45 100 120)" stroke="#eab308" opacity="0.6"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(72 100 120)" stroke="#f97316" opacity="0.7"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(99 100 120)" stroke="#ef4444" opacity="0.7"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(126 100 120)" stroke="#ef4444" opacity="0.8"/>
+                        <line x1="34" y1="40" x2="41" y2="49" transform="rotate(153 100 120)" stroke="#dc2626" opacity="0.8"/>
+                        <line x1="32" y1="38" x2="41" y2="49" transform="rotate(180 100 120)" stroke="#b91c1c" opacity="0.5"/>
+                    </g>
+
+                    <!-- red zone spikes with extra glow -->
+                    <g class="tacho-spike" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" opacity="0.8">
+                        <line x1="36" y1="42" x2="45" y2="53" transform="rotate(126 100 120)"/>
+                        <line x1="36" y1="42" x2="45" y2="53" transform="rotate(153 100 120)"/>
+                    </g>
+
+                    <!-- decorative inner arc dots -->
+                    <g fill="rgba(255,255,255,0.15)">
+                        <circle cx="42" cy="73" r="1.5"/>
+                        <circle cx="53" cy="50" r="1.5"/>
+                        <circle cx="72" cy="36" r="1.5"/>
+                        <circle cx="100" cy="29" r="1.5"/>
+                        <circle cx="128" cy="36" r="1.5"/>
+                        <circle cx="147" cy="50" r="1.5"/>
+                        <circle cx="158" cy="73" r="1.5"/>
+                    </g>
+
+                    <!-- needle -->
+                    <g id="tachoNeedle" transform="rotate(-90 100 120)" style="transform-origin:100px 120px;transition:transform 1.2s cubic-bezier(0.4,0,0.2,1)">
+                        <line x1="100" y1="120" x2="100" y2="44" stroke="url(#needleGrad)" stroke-width="3" stroke-linecap="round" filter="url(#needleGlow)"/>
+                        <circle cx="100" cy="120" r="6" fill="#a78bfa" opacity="0.9" filter="url(#needleGlow)"/>
+                        <circle cx="100" cy="120" r="3" fill="#fff"/>
+                        <circle cx="100" cy="120" r="1.5" fill="#a78bfa"/>
+                        <line x1="100" y1="120" x2="100" y2="127" stroke="url(#needleGrad)" stroke-width="2.5" opacity="0.5"/>
+                    </g>
+                </svg>
+                <!-- center display -->
+                <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;">
+                    <div id="tachoPct" style="font-family:'Space Grotesk';font-weight:900;font-size:18px;line-height:1;color:white;">0%</div>
+                    <div style="font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:1px;">USED</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:20px;font-size:9px;">
+                <div><span style="opacity:0.4;">Used </span><span id="tachoUsed" style="font-weight:800;color:#a78bfa;">$0</span></div>
+                <div><span style="opacity:0.4;">Max </span><span id="tachoMax" style="font-weight:800;color:#60a5fa;">$0</span></div>
+                <div><span style="opacity:0.4;">Remaining </span><span id="tachoRemaining" style="font-weight:800;color:#22c55e;">$0</span></div>
+            </div>
+        </div>
+
+        <div class="card full-width" onclick="window.location='updates.html'" style="border-left:4px solid var(--primary);cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <div style="font-size:9px;font-weight:800;color:var(--primary);">PROTOCOL UPDATE</div>
+            </div>
+            <div id="latestUpdateTitle" style="font-size:14px;font-weight:600;margin-top:6px;">Searching for updates...</div>
+        </div>
+
+        <div class="card full-width" style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(96,165,250,0.06));border-color:rgba(167,139,250,0.25);">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2 2"/><polyline points="22,6 12,13 2,6"/></svg>
+                <div style="font-size:9px;font-weight:800;color:var(--primary);letter-spacing:2px;text-transform:uppercase;">Your Referral Code</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+                <div>
+                    <div id="refCodeText" style="font-family:'Space Grotesk';font-weight:900;color:#fff;letter-spacing:5px;font-size:24px;">...</div>
+                    <div style="font-size:10px;opacity:0.45;margin-top:6px;">Share & earn bonus ONC for every friend who joins</div>
+                </div>
+                <button class="copy-btn" id="copyBtn" onclick="copyInvite()">INVITE</button>
+            </div>
+        </div>
+
+        <!-- ── Referral Rewards Hub ── -->
+        <style>
+          .ref-hub-card { background:rgba(255,255,255,0.05);border:1px solid rgba(167,139,250,0.2);border-radius:24px;padding:18px 14px 12px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px); }
+          .ref-hub-header { display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:0 4px; }
+          .ref-hub-header svg { flex-shrink:0; }
+          .ref-hub-header span { font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35); }
+          .ref-tier { display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:14px 18px;margin-bottom:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;overflow:hidden; }
+          .ref-badge { width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative; }
+          .ref-badge svg { position:absolute;inset:0;width:100%;height:100%; }
+          .ref-badge span { position:relative;z-index:1;font-family:'Space Grotesk';font-weight:900;font-size:16px;color:#fff; }
+          .ref-level-text { font-family:'Space Grotesk';font-weight:800;font-size:13px;letter-spacing:-0.2px; }
+          .ref-level-label { font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.2);margin-top:1px; }
+          .ref-metrics { display:flex;gap:18px;margin-left:auto;flex-shrink:0; }
+          .ref-metric { text-align:center; }
+          .ref-metric .val { font-family:'Space Grotesk';font-weight:900;font-size:15px;line-height:1.2; }
+          .ref-metric .lbl { font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.2);margin-top:2px; }
+          .ref-arrow { flex-shrink:0;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.12);color:var(--primary);text-decoration:none;transition:0.2s; }
+          .ref-arrow:hover { background:rgba(167,139,250,0.2);border-color:rgba(167,139,250,0.3);transform:translateX(2px); }
+          @media (max-width:420px) {
+            .ref-tier { flex-wrap:wrap;gap:10px;padding:12px 14px; }
+            .ref-metrics { margin-left:56px;gap:14px; }
+          }
+        </style>
+        <div class="card full-width" style="padding:0;border:none;background:transparent;">
+          <div class="ref-hub-card">
+            <div class="ref-hub-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Referral Rewards Hub</span>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(167,139,250,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(167,139,250,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(167,139,250,0.3)" stroke-width="1"/></svg>
+                <span>1</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#a78bfa;">Level 1</div>
+                <div class="ref-level-label">Direct Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL1Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL1Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(96,165,250,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(96,165,250,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(96,165,250,0.3)" stroke-width="1"/></svg>
+                <span>2</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#60a5fa;">Level 2</div>
+                <div class="ref-level-label">Indirect Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL2Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL2Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="ref-tier">
+              <div class="ref-badge">
+                <svg viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="20" stroke="rgba(251,191,36,0.4)" stroke-width="1.5"/><circle cx="21" cy="21" r="16" fill="rgba(251,191,36,0.12)"/><circle cx="21" cy="21" r="16" stroke="rgba(251,191,36,0.3)" stroke-width="1"/></svg>
+                <span>3</span>
+              </div>
+              <div>
+                <div class="ref-level-text" style="color:#fbbf24;">Level 3</div>
+                <div class="ref-level-label">Tier 3 Referrals</div>
+              </div>
+              <div class="ref-metrics">
+                <div class="ref-metric">
+                  <div class="val" style="color:#22c55e;" id="refL3Earned">0.00 ONC</div>
+                  <div class="lbl">Referral Earned</div>
+                </div>
+                <div class="ref-metric">
+                  <div class="val" style="color:#60a5fa;"                     id="refL3Team">0</div>
+                  <div class="lbl">Team Members</div>
+                </div>
+                <a href="referrals.html" class="ref-arrow" aria-label="View details">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── P2P Quick Transfer ── -->
+        <div class="card full-width" style="position:relative;overflow:visible;border:1px solid rgba(167,139,250,0.2);">
+            <div style="position:absolute;top:0;left:15%;width:70%;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.3),rgba(96,165,250,0.4),transparent);"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <h3 style="font-size:12px;font-family:'Space Grotesk';display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    Quick Send
+                </h3>
+                <a href="p2p-transfer.html" style="font-size:9px;color:var(--primary);font-weight:700;text-decoration:none;letter-spacing:0.5px;">FULL VIEW →</a>
+            </div>
+
+            <!-- Compact two-column inputs -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                <div>
+                    <div style="font-size:8px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;">Network ID</div>
+                    <input id="dashP2pRecipient" type="text" placeholder="Referral code" maxlength="12" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:13px;color:white;outline:none;transition:0.2s;" autocomplete="off">
+                </div>
+                <div>
+                    <div style="font-size:8px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:6px;">Amount</div>
+                    <input id="dashP2pAmount" type="text" inputmode="decimal" placeholder="ONC" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:13px;color:white;outline:none;transition:0.2s;" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Recipient status -->
+            <div id="dashP2pStatus" style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.25);margin-bottom:12px;min-height:16px;display:flex;align-items:center;gap:6px;"></div>
+
+            <!-- Breakdown mini -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Total</div>
+                    <div id="dashTotal" style="font-size:12px;font-weight:800;color:var(--secondary);">0.00</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Burn 10%</div>
+                    <div id="dashBurn" style="font-size:12px;font-weight:800;color:#f472b6;">0.00</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Receive</div>
+                    <div id="dashReceive" style="font-size:12px;font-weight:800;color:#22c55e;">0.00</div>
+                </div>
+            </div>
+
+            <!-- Limits mini -->
+            <div style="display:flex;gap:6px;margin-bottom:14px;">
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Max / Tx</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--secondary);">500 ONC</div>
+                </div>
+                <div style="flex:1;background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;text-align:center;">
+                    <div style="font-size:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);">Daily</div>
+                    <div style="font-size:10px;font-weight:700;color:#f472b6;">3 / 24h</div>
+                </div>
+            </div>
+
+            <button id="dashP2pBtn" disabled style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-family:'Space Grotesk';font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(167,139,250,0.2);transition:0.3s;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Send ONC
+            </button>
+        </div>
+
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <h3 style="font-size:13px;font-family:'Space Grotesk';display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    TOP VALIDATORS
+                </h3>
+                <a href="leaderboard.html" class="view-all-btn">VIEW ALL →</a>
+            </div>
+            <div id="miniLeaderboard"></div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:12px;margin-bottom:15px;display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                <span>COMMUNITY POLL</span>
+            </h3>
+            <h3 id="pollQuestion" style="font-size:14px;font-family:'Space Grotesk';margin-bottom:15px;">...</h3>
+            <div id="pollOptions"></div>
+        </div>
+
+        <div class="card full-width">
+            <h3 style="font-size:12px;margin-bottom:15px;display:flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                LIVE ACTIVITY
+            </h3>
+            <div id="liveFeedList"></div>
+        </div>
+
+        <div class="card full-width" style="background:linear-gradient(135deg,rgba(167,139,250,0.05),rgba(96,165,250,0.03));border-color:rgba(167,139,250,0.12);text-align:center;padding:40px 25px;">
+            <div style="font-family:'Space Grotesk';font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">ONCHYRA</div>
+            <div style="font-size:10px;opacity:0.4;letter-spacing:3px;margin-bottom:6px;">DECENTRALIZED VALIDATION NETWORK</div>
+            <div style="font-size:10px;opacity:0.3;margin-bottom:24px;">Mine The Future.</div>
+            <div style="display:flex;justify-content:center;gap:16px;margin-bottom:24px;">
+                <a href="https://t.me/onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#60a5fa"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.216s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                </a>
+                <a href="https://youtube.com/@onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+                <a href="https://instagram.com/onchyra" target="_blank" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="url(#igGrad)"><defs><linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#feda75"/><stop offset="25%" stop-color="#fa7e1e"/><stop offset="50%" stop-color="#d62976"/><stop offset="75%" stop-color="#962fbf"/><stop offset="100%" stop-color="#4f5bd5"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+                </a>
+            </div>
+            <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,var(--primary),transparent);margin:0 auto 16px;"></div>
+            <div style="font-size:9px;opacity:0.2;letter-spacing:1px;">© 2026 ONCHYRA PROTOCOL · ALL RIGHTS RESERVED</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- TELEGRAM POPUP -->
+<div id="tgPopup" onclick="if(event.target===this)closeTgPopup()">
+    <div class="popup-box">
+        <button class="popup-close" onclick="closeTgPopup()">✕</button>
+        <div class="popup-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#60a5fa"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        </div>
+        <div class="popup-badge">JOIN COMMUNITY</div>
+        <div class="popup-title">ONCHYRA Telegram</div>
+        <p class="popup-sub">Get real-time announcements, ecosystem updates & community support directly from the team.</p>
+        <button class="popup-join-btn" onclick="window.open('https://t.me/onchyraofficial','_blank');closeTgPopup()">JOIN TELEGRAM →</button>
+        <button class="popup-later" onclick="closeTgPopup()">Maybe later</button>
+    </div>
+</div>
+
+<!-- TOOLS MODAL -->
+<div id="toolsPopup" onclick="if(event.target===this)closeTools()">
+    <div class="popup-box" style="max-width:420px;">
+        <button class="popup-close" onclick="closeTools()">✕</button>
+        <div class="popup-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="popup-badge">RESOURCES</div>
+        <div class="popup-title">Tools</div>
+        <p class="popup-sub">Access project documents & resources.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div style="text-align:left;"><div style="font-size:12px;font-weight:700;">Whitepaper</div><div style="font-size:9px;color:rgba(255,255,255,0.3);">Project overview & tokenomics</div></div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="./Onchyra_Whitepaper.pdf" target="_blank" class="btn btn-sm tools-btn-view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    <a href="./Onchyra_Whitepaper.pdf" download class="btn btn-sm tools-btn-dl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div style="text-align:left;"><div style="font-size:12px;font-weight:700;">Presentation</div><div style="font-size:9px;color:rgba(255,255,255,0.3);">Official project deck</div></div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="./Onchyra_Official_Presentation.pdf" target="_blank" class="btn btn-sm tools-btn-view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    <a href="./Onchyra_Official_Presentation.pdf" download class="btn btn-sm tools-btn-dl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    doc, onSnapshot, updateDoc, collection, addDoc,
+    query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
+    increment, where, arrayUnion,
+    initializeFirestore
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    useFetchStreams: false
+});
+
+
+
+let uid, userData, currentPollId, currentPollData;
+let miningTimer = null;
+
+setTimeout(() => {
+    document.getElementById('loader').style.display = "none";
+    document.getElementById('dashboardData').style.display = "grid";
+}, 8000);
+
+function timeAgo(t) {
+    if (!t) return "Just now";
+    try {
+        const d = t.toDate ? t.toDate() : new Date(t);
+        const s = Math.floor((new Date() - d) / 1000);
+        if (s < 60) return s + "s ago";
+        if (s < 3600) return Math.floor(s / 60) + "m ago";
+        if (s < 86400) return Math.floor(s / 3600) + "h ago";
+        return Math.floor(s / 86400) + "d ago";
+    } catch (e) { return "Recently"; }
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location = "login.html"; return; }
+    uid = user.uid;
+
+    try {
+        const initialSnap = await getDoc(doc(db, "users", uid));
+        if (initialSnap.exists() && initialSnap.data().banned === true) {
+            window.location = "banned.html";
+            return;
+        }
+    } catch(e) { console.error("Ban check error:", e); }
+
+    // Maintenance mode check
+    try {
+        const maintSnap = await getDoc(doc(db, 'settings', 'maintenance'));
+        if (maintSnap.exists() && maintSnap.data().enabled === true) {
+            window.location = 'maintenance.html';
+            return;
+        }
+    } catch(e) { console.error("Maint check error:", e); }
+
+    onSnapshot(doc(db, "users", uid), (snap) => {
+        if (snap.exists()) {
+            const data = snap.data();
+            if (data.banned === true) {
+                window.location = "banned.html";
+                return;
+            }
+            userData = data;
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+            const lastClaim = data.lastClaim || 0;
+            if (data.status === 'active' && lastClaim > 0 && Date.now() - lastClaim > sevenDays) {
+                updateDoc(doc(db, "users", uid), { status: 'inactive' }).catch(() => {});
+            }
+            updateUI();
+            checkMining();
+
+            let code = userData.referralCode;
+            if (!code) {
+                code = uid.substring(0, 6).toUpperCase();
+                updateDoc(doc(db, "users", uid), { referralCode: code });
+            }
+            document.getElementById('refCodeText').innerText = code;
+
+            // Fetch directs & team biz
+            loadDirects(code);
+        }
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "grid";
+    }, (err) => {
+        // Fallback on error (e.g. quota exceeded)
+        document.getElementById('loader').style.display = "none";
+        document.getElementById('dashboardData').style.display = "grid";
+    });
+
+    fetchStats();
+    loadPoll();
+    fetchLatestUpdate();
+    loadNotifications();
+
+    if (sessionStorage.getItem('tgPopupSeen')) return;
+    setTimeout(() => {
+        document.getElementById('tgPopup').classList.add('show');
+    }, 1000);
+});
+
+window.closeTgPopup = () => {
+    document.getElementById('tgPopup').classList.remove('show');
+    sessionStorage.setItem('tgPopupSeen', 'true');
+};
+
+async function fetchStats() {
+    try {
+        const snap = await getDocs(query(collection(db, "users"), orderBy("balance", "desc"), limit(3)));
+        const lb = document.getElementById('miniLeaderboard');
+        lb.innerHTML = "";
+        let rank = 1;
+        const rankLabels = ["#1", "#2", "#3"];
+        snap.forEach(d => {
+            lb.innerHTML += `<div class="lb-row">
+                <span class="user-name">
+                    <span style="color:var(--primary);font-size:10px;margin-right:6px;">${rankLabels[rank-1]}</span>
+                    ${d.data().name || "Anonymous"}
+                </span>
+                <b>${(d.data().balance || 0).toFixed(2)} ONC</b>
+            </div>`;
+            rank++;
+        });
+    } catch(e) {}
+    try {
+        const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc"), limit(5)));
+        const list = document.getElementById('liveFeedList');
+        list.innerHTML = "";
+        snap.forEach(d => {
+            list.innerHTML += `<div class="feed-item"><span><b class="user-name">${d.data().name || "Anonymous"}</b> synchronized</span><span class="time-ago">${timeAgo(d.data().createdAt)}</span></div>`;
+        });
+    } catch(e) {}
+}
+
+async function fetchLatestUpdate() {
+    onSnapshot(query(collection(db, "updates"), orderBy("createdAt", "desc"), limit(1)), (snap) => {
+        if (!snap.empty) {
+            document.getElementById('latestUpdateTitle').innerText = snap.docs[0].data().title;
+        }
+    });
+}
+
+async function loadPoll() {
+    onSnapshot(query(collection(db, "polls"), limit(1)), async (snap) => {
+        if (!snap.empty) {
+            const pDoc = snap.docs[0];
+            currentPollId = pDoc.id;
+            currentPollData = pDoc.data();
+            document.getElementById('pollQuestion').innerText = currentPollData.question;
+
+            const userVote = await getDoc(doc(db, "user_votes", `${uid}_${currentPollId}`));
+            const container = document.getElementById('pollOptions');
+            container.innerHTML = "";
+            const total = Object.values(currentPollData.results || {}).reduce((a, b) => a + b, 0);
+
+            currentPollData.options.forEach(opt => {
+                const count = currentPollData.results[opt] || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                const btn = document.createElement('button');
+                btn.className = "v-btn-dynamic";
+                if (userVote.exists() && userVote.data().choice === opt) btn.classList.add('selected');
+                btn.innerHTML = `<span>${opt}</span><span style="color:var(--primary);font-weight:800;">${userVote.exists() ? pct + '%' : ''}</span>`;
+                btn.disabled = userVote.exists();
+                btn.onclick = () => castVote(opt);
+                container.appendChild(btn);
+            });
+        }
+    });
+}
+
+window.castVote = async (choice) => {
+    try {
+        const res = { ...currentPollData.results };
+        res[choice] = (res[choice] || 0) + 1;
+        await updateDoc(doc(db, "polls", currentPollId), { results: res });
+        await setDoc(doc(db, "user_votes", `${uid}_${currentPollId}`), { choice, uid });
+        showToast("VOTE REGISTERED");
+    } catch (e) { showToast("Error voting"); }
+};
+
+function checkMining() {
+    if (!userData) return;
+    if (miningTimer) clearTimeout(miningTimer);
+
+    const lastClaim = userData.lastClaim || 0;
+    const diff = 86400000 - (Date.now() - lastClaim);
+    const btn = document.getElementById('claimBtn');
+
+    if (diff <= 0) {
+        btn.disabled = false;
+        btn.innerText = "START MINING SESSION";
+        document.getElementById('progressBar').style.width = "100%";
+    } else {
+        btn.disabled = true;
+        document.getElementById('progressBar').style.width = ((86400000 - diff) / 86400000 * 100) + "%";
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        btn.innerText = `${h}h ${m}m ${s}s UNTIL BLOCK`;
+        miningTimer = setTimeout(checkMining, 1000);
+    }
+}
+
+window.claim = async () => {
+    if (!userData) return;
+    const btn = document.getElementById('claimBtn');
+    btn.disabled = true;
+    btn.innerText = "PROCESSING...";
+
+    try {
+        const now = Date.now();
+        const lastClaim = userData.lastClaim || 0;
+        const timeSinceLast = now - lastClaim;
+        let newStreak = userData.streak || 0;
+
+        if (lastClaim === 0) {
+            newStreak = 1;
+        } else if (timeSinceLast >= 20 * 3600000 && timeSinceLast <= 48 * 3600000) {
+            newStreak = newStreak + 1;
+        } else if (timeSinceLast > 48 * 3600000) {
+            newStreak = 1;
+        }
+
+        const claimAmt = 0.05 * (userData.packageBoost || 1);
+        const newBalance = (userData.balance || 0) + claimAmt;
+
+        // Step 1: Create claim record in claims collection (audit trail)
+        await setDoc(doc(collection(db, "claims"), uid + "_" + now), {
+            userId: uid,
+            createdAt: serverTimestamp(),
+            clientTimestamp: now,
+            previousBalance: userData.balance || 0,
+            claimedBalance: newBalance,
+            claimedAmount: claimAmt,
+            previousStreak: userData.streak || 0,
+            claimedStreak: newStreak,
+            timeSinceLastClaim: timeSinceLast,
+            status: "completed"
+        });
+
+        // Step 2: Update user balance (delta-safe with increment)
+        await updateDoc(doc(db, "users", uid), {
+            balance: increment(claimAmt),
+            lastClaim: now,
+            streak: newStreak,
+            status: 'active'
+        });
+
+        // Step 3: manual local sync (works even if realtime channel is blocked)
+        userData.balance = newBalance;
+        userData.lastClaim = now;
+        userData.streak = newStreak;
+        updateUI();
+        checkMining();
+        showToast(claimAmt.toFixed(3) + " ONC MINED");
+    } catch (e) {
+        showToast("Error mining: " + (e?.message || "unknown"));
+        console.error("Claim Error:", e);
+        checkMining();
+    }
+};
+
+window.copyInvite = () => {
+    const code = document.getElementById('refCodeText').innerText;
+    const link = `${window.location.origin}/register.html?ref=${code}`;
+    navigator.clipboard.writeText(link).catch(() => {});
+    const b = document.getElementById('copyBtn');
+    b.innerText = "COPIED";
+    setTimeout(() => { b.innerText = "INVITE"; }, 2000);
+};
+
+function updateUI() {
+    const mon = document.getElementById('monitorBanner');
+    if (mon) mon.style.display = userData.leaderStatus === 'under_review' ? 'block' : 'none';
+
+    const bal = userData.balance || 0;
+    document.getElementById('balance').innerText = bal.toFixed(2);
+    document.getElementById('streakDays').innerText = userData.streak || 0;
+    const tag = document.getElementById('rankTag');
+    if (bal < 10)      { tag.innerText = "ONC ROOKIE"; tag.className = "tag-rookie"; }
+    else if (bal < 50) { tag.innerText = "ONC SHARK";  tag.className = "tag-shark"; }
+    else               { tag.innerText = "ONC WHALE";  tag.className = "tag-whale"; }
+    const sw = document.getElementById('streakWrap');
+    const fi = document.getElementById('flameIcon');
+    const s = userData.streak || 0;
+    if (s >= 7) {
+        sw.style.borderColor = "rgba(251,191,36,0.35)";
+        sw.style.boxShadow = "0 0 15px rgba(251,191,36,0.15)";
+        sw.style.animation = "fire-glow 2s infinite";
+        fi.style.animation = "fire-glow 1s infinite";
+    } else if (s >= 3) {
+        sw.style.borderColor = "rgba(251,191,36,0.25)";
+        sw.style.boxShadow = "0 0 10px rgba(251,191,36,0.1)";
+        fi.style.animation = "fire-glow 2s infinite";
+    } else if (s > 0) {
+        sw.style.borderColor = "rgba(251,191,36,0.15)";
+        sw.style.boxShadow = "0 0 5px rgba(251,191,36,0.05)";
+    } else {
+        fi.style.opacity = "0.3";
+    }
+    // Wallet balance
+    const wb = document.getElementById('walletBalance');
+    if (wb) wb.textContent = '$' + ((userData.walletBalance || 0).toFixed(2));
+    // Withdraw balance (commission balance)
+    const wrb = document.getElementById('withdrawBalance');
+    if (wrb) wrb.textContent = '$' + ((userData.commissionBalance || 0).toFixed(2));
+    // Daily claim
+    const baseClaim = 0.05;
+    const boost = userData.packageBoost || 1;
+    const dc = document.getElementById('dailyClaimAmount');
+    if (dc) dc.textContent = (baseClaim * boost).toFixed(3);
+    const dcb = document.getElementById('dailyClaimBoost');
+    if (dcb) dcb.textContent = boost;
+    // Mining boost
+    const mb = document.getElementById('miningBoost');
+    if (mb) mb.textContent = boost + 'x';
+    const mpb = document.getElementById('dashPkgBoost');
+    if (mpb) mpb.textContent = boost + 'x Boost';
+    // Rank
+    const rk = document.getElementById('userRank');
+    if (rk) rk.textContent = userData.rank || '-';
+    // Package
+    const dp = document.getElementById('dashPkg');
+    if (dp) dp.textContent = userData.activePackage ? (userData.activePackage.charAt(0).toUpperCase() + userData.activePackage.slice(1)) : 'None';
+    const dps = document.getElementById('dashPkgStatus');
+    if (dps) {
+        const st = userData.packageStatus || 'none';
+        dps.textContent = st === 'expired' ? 'Expired' : userData.activePackage ? 'Active' : 'None';
+        dps.style.color = st === 'expired' ? '#ef4444' : userData.activePackage ? '#22c55e' : 'rgba(255,255,255,0.3)';
+        dps.style.background = st === 'expired' ? 'rgba(239,68,68,0.1)' : userData.activePackage ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)';
+    }
+    // Tachometer
+    const used = userData.packageUsage || 0;
+    const maxCap = userData.packageCap || 0;
+    const pct = maxCap > 0 ? Math.min(100, (used / maxCap) * 100) : 0;
+    document.getElementById('tachoUsed').textContent = '$' + used.toFixed(2);
+    document.getElementById('tachoMax').textContent = '$' + maxCap.toFixed(2);
+    document.getElementById('tachoRemaining').textContent = '$' + Math.max(0, maxCap - used).toFixed(2);
+    document.getElementById('tachoPct').textContent = pct.toFixed(0) + '%';
+    // Needle rotation: -180° (left, 0%) to 0° (right, 100%)
+    const needle = document.getElementById('tachoNeedle');
+    if (needle) needle.style.transform = 'rotate(' + (-180 + (pct / 100 * 180)) + 'deg)';
+    // Arc fill
+    const arc = document.getElementById('tachoArc');
+    const arcLen = 267; // π * 85
+    if (arc) arc.setAttribute('stroke-dashoffset', arcLen - (arcLen * pct / 100));
+    // Arc color + red zone class
+    const tc = document.getElementById('tachocard');
+    const pctEl = document.getElementById('tachoPct');
+    if (pctEl) {
+        const tcol = pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e';
+        pctEl.style.color = tcol;
+    }
+    if (tc) tc.className = 'card full-width' + (pct > 85 ? ' tacho-red' : '');
+    // Package info
+    document.getElementById('tachoPkg').textContent = userData.activePackage || '-';
+    const ts = document.getElementById('tachoStatus');
+    const st = userData.packageStatus || 'none';
+    ts.textContent = st === 'expired' ? 'Expired' : userData.activePackage ? 'Active' : 'None';
+    ts.style.color = st === 'expired' ? '#ef4444' : userData.activePackage ? '#22c55e' : 'rgba(255,255,255,0.3)';
+    ts.style.background = st === 'expired' ? 'rgba(239,68,68,0.1)' : userData.activePackage ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)';
+}
+
+async function loadDirects(code) {
+    try {
+        const q1 = query(collection(db, "users"), where("referredBy", "==", code));
+        const snap1 = await getDocs(q1);
+        const total = snap1.size;
+        let active = 0;
+        const l1Codes = [];
+        snap1.forEach(d => {
+            const d2 = d.data();
+            if (d2.packageStatus === 'active' || d2.packageStatus === 'expired' || d2.activePackage) active++;
+            if (d2.referralCode) l1Codes.push(d2.referralCode);
+        });
+        document.getElementById('activeDirectsNum').textContent = active;
+        document.getElementById('totalDirectsNum').textContent = total;
+        document.getElementById('teamBizText').textContent = '$' + (userData?.teamBiz || 0).toFixed(2);
+
+        // ── Referral Hub: L1 ──
+        document.getElementById('refL1Team').textContent = total;
+
+        // ── L2 ──
+        let l2Count = 0;
+        const l2Codes = [];
+        for (let i = 0; i < l1Codes.length; i += 10) {
+            const batch = l1Codes.slice(i, i + 10);
+            const snap2 = await getDocs(query(collection(db, "users"), where("referredBy", "in", batch)));
+            snap2.forEach(d => {
+                l2Count++;
+                const rc = d.data().referralCode;
+                if (rc) l2Codes.push(rc);
+            });
+        }
+        document.getElementById('refL2Team').textContent = l2Count;
+
+        // ── L3 ──
+        let l3Count = 0;
+        for (let i = 0; i < l2Codes.length; i += 10) {
+            const batch = l2Codes.slice(i, i + 10);
+            const snap3 = await getDocs(query(collection(db, "users"), where("referredBy", "in", batch)));
+            l3Count += snap3.size;
+        }
+        document.getElementById('refL3Team').textContent = l3Count;
+
+        // ── Earned = team count × fixed rate (no extra reads) ──
+        document.getElementById('refL1Earned').textContent = (total * 0.25).toFixed(2) + ' ONC';
+        document.getElementById('refL2Earned').textContent = (l2Count * 0.10).toFixed(2) + ' ONC';
+        document.getElementById('refL3Earned').textContent = (l3Count * 0.05).toFixed(2) + ' ONC';
+    } catch (e) { console.error("loadDirects error:", e); }
+}
+
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.innerText = m;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2000);
+}
+
+window.toggleMenu = () => {
+    const m = document.getElementById('menu');
+    const o = document.getElementById('overlay');
+    const open = m.style.left === "0px";
+    m.style.left = open ? "-280px" : "0px";
+    o.style.display = open ? "none" : "block";
+};
+
+window.logout = () => {
+    signOut(auth).then(() => window.location = "login.html");
+};
+
+window.openTools = () => {
+    toggleMenu();
+    document.getElementById('toolsPopup').style.display = 'flex';
+};
+window.closeTools = () => {
+    document.getElementById('toolsPopup').style.display = 'none';
+};
+
+// ── NOTIFICATIONS ──
+function timeAgoNoti(t) {
+    if (!t) return "Just now";
+    try {
+        const d = t.toDate ? t.toDate() : new Date(t);
+        const s = Math.floor((new Date() - d) / 1000);
+        if (s < 60) return "Just now";
+        if (s < 3600) return Math.floor(s / 60) + "m ago";
+        if (s < 86400) return Math.floor(s / 3600) + "h ago";
+        return Math.floor(s / 86400) + "d ago";
+    } catch (e) { return "Recently"; }
+}
+
+function loadNotifications() {
+    const notiQ = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50));
+    onSnapshot(notiQ, (snap) => {
+        let unread = 0;
+        let html = '';
+        if (snap.empty) {
+            html = '<div class="noti-empty">No notifications</div>';
+        } else {
+            snap.forEach(d => {
+                const n = d.data();
+                const isUser = n.userId === uid || n.userId === "all";
+                if (!isUser) return;
+                if (!n.readBy || !n.readBy.includes(uid)) unread++;
+                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : n.type === 'trade_won' ? 'noti-type-trade_won' : n.type === 'trade_lost' ? 'noti-type-trade_lost' : 'noti-type-personal';
+                const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : 'PERSONAL';
+                html += `<div class="noti-item ${n.readBy && n.readBy.includes(uid) ? '' : 'unread'}" onclick="readNoti('${d.id}')">
+                    <div class="noti-type ${typeClass}">${typeLabel}</div>
+                    <div class="noti-title">${n.title || ''}</div>
+                    <div class="noti-msg">${n.message || ''}</div>
+                    <div class="noti-time">${timeAgoNoti(n.createdAt)}</div>
+                </div>`;
+            });
+            if (!html) html = '<div class="noti-empty">No notifications</div>';
+        }
+        document.getElementById('notiList').innerHTML = html;
+        const badge = document.getElementById('notiBadge');
+        if (unread > 0) {
+            badge.classList.add('show');
+            badge.innerText = unread > 9 ? '9+' : unread;
+        } else {
+            badge.classList.remove('show');
+        }
+    });
+}
+
+window.toggleNotiDropdown = (e) => {
+    e.stopPropagation();
+    document.getElementById('notiDropdown').classList.toggle('open');
+};
+
+window.markAllRead = async (e) => {
+    e.stopPropagation();
+    const q = query(collection(db, "notifications"));
+    const snap = await getDocs(q);
+    const batch = [];
+    snap.forEach(d => {
+        const n = d.data();
+        if (n.userId === uid || n.userId === "all") {
+            batch.push(updateDoc(doc(db, "notifications", d.id), { readBy: arrayUnion(uid) }));
+        }
+    });
+    await Promise.all(batch);
+};
+
+window.readNoti = async (id) => {
+    const d = await getDoc(doc(db, "notifications", id));
+    if (!d.exists()) return;
+    const link = d.data().link || '';
+    await updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid) });
+    if (link) window.location = link;
+};
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notiDropdown');
+    if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
+});
+
+// ── DASHBOARD P2P QUICK SEND ──
+const dashRecipient = document.getElementById('dashP2pRecipient');
+const dashAmount = document.getElementById('dashP2pAmount');
+const dashTotal = document.getElementById('dashTotal');
+const dashBurn = document.getElementById('dashBurn');
+const dashReceive = document.getElementById('dashReceive');
+const dashStatus = document.getElementById('dashP2pStatus');
+const dashBtn = document.getElementById('dashP2pBtn');
+
+let dashRecipientId = null;
+let dashRecipientName = '';
+let dashLookupTimer = null;
+
+function parseDashAmount(v) {
+    const c = v.replace(/[^0-9.]/g, '');
+    const n = parseFloat(c);
+    return isNaN(n) ? 0 : n;
+}
+
+function updateDashBreakdown() {
+    const a = parseDashAmount(dashAmount.value);
+    dashTotal.textContent = a.toFixed(2);
+    dashBurn.textContent = (a * 0.1).toFixed(2);
+    dashReceive.textContent = (a * 0.9).toFixed(2);
+    validateDash();
+}
+dashAmount.addEventListener('input', updateDashBreakdown);
+
+dashRecipient.addEventListener('input', () => {
+    clearTimeout(dashLookupTimer);
+    dashRecipientId = null;
+    const val = dashRecipient.value.trim().toUpperCase();
+    if (val.length < 3) {
+        dashStatus.innerHTML = '';
+        validateDash();
+        return;
+    }
+    dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12h-4V8"/></svg> Searching...';
+    dashLookupTimer = setTimeout(() => lookupDashRecipient(val), 500);
+});
+
+async function lookupDashRecipient(code) {
+    try {
+        const q = query(collection(db, "users"), where("referralCode", "==", code));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Not found';
+            return;
+        }
+        if (snap.docs[0].id === uid) {
+            dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Cannot send to yourself';
+            return;
+        }
+        dashRecipientId = snap.docs[0].id;
+        const dashName = snap.docs[0].data().name || code;
+        dashRecipientName = dashName;
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> ' + dashName;
+        validateDash();
+    } catch (e) {
+        dashStatus.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Error';
+    }
+}
+
+function validateDash() {
+    const a = parseDashAmount(dashAmount.value);
+    const bal = userData ? (userData.balance || 0) : 0;
+    dashBtn.disabled = !(uid && dashRecipientId && a >= 1 && a <= 500 && a <= bal);
+}
+
+async function dashCheckDaily() {
+    const cutoff = Date.now() - 86400000;
+    const q = query(collection(db, "transfers"), where("from", "==", uid), where("timestamp", ">=", cutoff));
+    const snap = await getDocs(q);
+    let count = 0;
+    snap.forEach(d => { count++; });
+    return count;
+}
+
+dashBtn.addEventListener('click', async () => {
+    const amt = parseDashAmount(dashAmount.value);
+    const burn = amt * 0.1;
+    const receive = amt - burn;
+    const code = dashRecipient.value.trim().toUpperCase();
+    const myName = userData?.name || userData?.referralCode || 'User';
+
+    if (!dashRecipientId) return;
+    if (amt < 1) { showToast('Min 1 ONC'); return; }
+    if (amt > 500) { showToast('Max 500 ONC per transfer'); return; }
+    if (amt > (userData?.balance || 0)) { showToast('Insufficient balance'); return; }
+
+    dashBtn.disabled = true;
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Checking...';
+
+    try {
+        const daily = await dashCheckDaily();
+        if (daily >= 3) {
+            showToast('Daily limit: 3 transfers per 24h');
+            dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+            dashBtn.disabled = false;
+            return;
+        }
+
+        dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending...';
+
+        await addDoc(collection(db, "transfers"), {
+            from: uid, to: dashRecipientId, toCode: code,
+            fromName: myName, toName: dashRecipientName,
+            amount: amt, burn: burn, receive: receive,
+            timestamp: serverTimestamp(), status: 'completed'
+        });
+        await updateDoc(doc(db, "users", uid), { balance: increment(-amt) });
+        await updateDoc(doc(db, "users", dashRecipientId), { balance: increment(receive) });
+
+        if (userData) userData.balance = (userData.balance || 0) - amt;
+        document.getElementById('balance').innerText = (userData?.balance || 0).toFixed(2);
+
+        showToast('Sent ' + receive.toFixed(2) + ' ONC to ' + dashRecipientName);
+        dashRecipient.value = '';
+        dashAmount.value = '';
+        dashRecipientId = null;
+        dashRecipientName = '';
+        dashStatus.innerHTML = '';
+        updateDashBreakdown();
+    } catch (e) {
+        showToast('Transfer failed');
+    }
+
+    dashBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send ONC';
+    validateDash();
+});
+
+dashRecipient.addEventListener('keydown', (e) => { if (e.key === 'Enter') dashAmount.focus(); });
+dashAmount.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !dashBtn.disabled) dashBtn.click(); });
+</script>
+</body>
+</html>

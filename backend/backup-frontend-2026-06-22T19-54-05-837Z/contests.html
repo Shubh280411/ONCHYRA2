@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONCHYRA — Referral Contest</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+:root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --red: #ef4444; --pol:#8247e5; }
+
+body { margin:0; font-family:'Inter'; background:var(--bg); color:white; -webkit-tap-highlight-color: transparent; }
+
+.header-nav {
+  display: flex; align-items: center; padding: 15px 20px;
+  position: fixed; top: 0; width: 100%; background: rgba(3, 4, 10, 0.6);
+  backdrop-filter: blur(10px); z-index: 1000; box-sizing: border-box;
+}
+
+.back-arrow { text-decoration: none; color: white; font-size: 24px; font-weight: 300; }
+
+.hero { padding: 100px 20px 30px; text-align: center; }
+.hero h1 { font-family: 'Space Grotesk'; font-size: 48px; font-weight: 800; margin: 0; letter-spacing: -2px; color: #ffffff; }
+.hero h1 span { color: var(--primary); }
+#dynamicContestName { font-family: 'Space Grotesk'; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--secondary); margin-top: 5px; font-weight: 700; }
+
+.container { max-width:500px; margin:auto; padding:0 15px 40px; }
+
+.disclaimer-box {
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(10px); padding: 12px; border-radius: 14px; margin-bottom: 20px;
+  font-size: 11px; text-align: center; color: #fca5a5; animation: blink 2s infinite ease-in-out;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:22px; padding:20px; margin-bottom:15px; }
+
+.title-text { font-family:'Space Grotesk'; font-size:16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+
+.rank-card-box { text-align: center; padding: 10px 0; }
+.rank-val { font-size: 32px; font-weight: 800; color: var(--primary); font-family: 'Space Grotesk'; }
+.rank-label { font-size: 12px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; display: block; }
+
+button {
+  width:100%; padding:18px; border:none; border-radius:16px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  font-weight:800; color:#000; font-size: 15px; cursor: pointer;
+}
+button:disabled { opacity:.4; cursor: not-allowed; }
+
+#inviteSection { display: none; margin-top: 15px; text-align: center; }
+.link-box {
+  display: flex; align-items: center; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border); padding: 10px; border-radius: 12px; margin-top: 10px;
+}
+.link-box input {
+  background: transparent; border: none; color: #fff; font-size: 12px;
+  width: 100%; outline: none; padding: 5px; pointer-events: none;
+}
+.copy-btn {
+  background: var(--primary); color: #000; padding: 8px 15px;
+  border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+
+.row { display:flex; justify-content:space-between; align-items: center; padding:14px 10px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
+.row:last-child { border-bottom: none; }
+#timer { font-size:14px; color:var(--secondary); font-weight: 800; }
+
+.wallet-warning {
+    background: rgba(239, 68, 68, 0.15); border: 1px dashed var(--red);
+    padding: 10px; border-radius: 10px; font-size: 11px; color: #ff9999;
+    margin-top: 10px; line-height: 1.4; text-align: left;
+}
+
+#walletModal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.92);
+  display:none; align-items:center; justify-content:center; z-index:3000; padding: 20px;
+}
+.modal-box { background:#0b0d18; padding:30px; border-radius:28px; border:1px solid var(--border); width:100%; max-width:400px; text-align: center; }
+.modal-box input { width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); background:#05060d; color:white; margin: 15px 0 5px; box-sizing: border-box; text-align: center; outline: none; }
+
+#toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:14px 28px; border-radius:50px; font-weight:800; display:none; z-index:4000; font-size:13px; }
+.empty-state { text-align: center; padding: 30px 10px; opacity: 0.4; font-size: 12px; }
+
+.pol-icon { width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; }
+</style>
+</head>
+
+<body>
+
+<nav class="header-nav">
+    <a href="dashboard.html" class="back-arrow">←</a>
+</nav>
+
+<div class="hero">
+    <h1>ONCHY<span>RA</span></h1>
+    <p id="dynamicContestName">Loading...</p>
+</div>
+
+<div class="container">
+
+  <div class="disclaimer-box">
+    <strong>FAIRNESS NOTICE:</strong> Only new referrals joined AFTER your registration will be counted. Purging fake accounts will lead to permanent ban.
+  </div>
+
+  <div class="card">
+    <div class="title-text">
+        <span>Contest Timer</span>
+        <div id="timer">...</div>
+    </div>
+    
+    <div class="rank-card-box">
+        <span class="rank-label">Your Current Rank</span>
+        <span class="rank-val" id="myRank">--</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <button id="joinBtn" disabled>Checking eligibility...</button>
+    
+    <div id="inviteSection">
+        <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 10px;">Your Invite Link</div>
+        <div class="link-box">
+            <input type="text" id="referralLink" value="Loading...">
+            <div class="copy-btn" onclick="copyLink()">Copy</div>
+        </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px; margin-bottom:12px; color: var(--primary); font-weight: 800; letter-spacing: 1px;">PRIZE POOL</div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:var(--primary);">Rank 1</span>
+      </div>
+      <b style="color:#ffd700;">15 POL</b>
+    </div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:#c0c0c0;">Rank 2</span>
+      </div>
+      <b style="color:#e0e0e0;">10 POL</b>
+    </div>
+    <div class="row">
+      <div>
+        <svg class="pol-icon" viewBox="0 0 32 32" fill="none"><path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/><path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/></svg>
+        <span style="font-weight:800;color:#cd7f32;">Rank 3</span>
+      </div>
+      <b style="color:#cd7f32;">5 POL</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title-text">Leaderboard (Top 10)</div>
+    <div style="font-size:10px; color:var(--red); margin: 5px 0 15px; font-weight: 600;">Minimum 1 direct referral AFTER joining is required to qualify</div>
+    <div id="leaderboard">
+        <div class="empty-state">Loading rankings...</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="walletModal">
+  <div class="modal-box">
+    <div style="font-family:'Space Grotesk'; font-size: 18px; font-weight: 800; text-align: center;">Payout Address</div>
+    <input id="walletInput" placeholder="0x...">
+    
+    <div class="wallet-warning" id="walletWarning">
+        <strong>IMPORTANT:</strong> Enter only your POL (Polygon) address. Each address can only be used ONCE. If you try to use an already registered address, you will be <strong>BANNED</strong> permanently.
+    </div>
+
+    <button id="submitWalletBtn" style="margin-top: 15px;">Confirm and Join</button>
+    <div style="margin-top: 15px; font-size: 12px; opacity: 0.4; text-align: center; cursor: pointer;" onclick="document.getElementById('walletModal').style.display='none'">Cancel</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+  authDomain: "onchyra.firebaseapp.com",
+  projectId: "onchyra"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let contestId = null, participantRef = null, currentUser = null, endTimeMs = 0;
+
+function startTimer(){
+  const timerLabel = document.getElementById("timer");
+  const interval = setInterval(()=>{
+    const diff = endTimeMs - Date.now();
+    if(diff <= 0){
+      timerLabel.innerText = "ENDED";
+      document.getElementById("joinBtn").disabled = true;
+      clearInterval(interval); return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    timerLabel.innerText = `${d}d ${h}h ${m}m`;
+  }, 1000);
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) { window.location = "login.html"; return; }
+  currentUser = user;
+
+  // 1. Set up referral link from user doc
+  const initSnap = await getDoc(doc(db, "users", user.uid));
+  if (initSnap.exists()) {
+    const refCode = initSnap.data().referralCode || user.uid;
+    document.getElementById("referralLink").value = `${window.location.origin}/register.html?ref=${refCode}`;
+  }
+
+  // 2. Fetch contest FIRST (so contestId is ready before onSnapshot)
+  const qC = query(collection(db,"contests"), where("active","==",true), limit(1));
+  const sC = await getDocs(qC);
+  if(sC.empty) return;
+
+  const cDoc = sC.docs[0];
+  contestId = cDoc.id;
+  document.getElementById("dynamicContestName").innerText = cDoc.data().name || "Referral Contest";
+  endTimeMs = cDoc.data().endTime.seconds * 1000 || cDoc.data().endTime;
+  startTimer();
+
+  participantRef = doc(db,"contestParticipants", contestId + "_" + user.uid);
+  const pSnap = await getDoc(participantRef);
+
+  if(pSnap.exists()){
+    setJoinedUI();
+  } else {
+    const jb = document.getElementById("joinBtn");
+    jb.innerText = "Join Referral War"; jb.disabled = false;
+    jb.onclick = () => document.getElementById("walletModal").style.display = "flex";
+  }
+
+  // 3. NOW listen for user doc changes — contestId is already set
+  onSnapshot(doc(db, "users", user.uid), async (uSnap) => {
+    if(!uSnap.exists()) return;
+    const userData = uSnap.data();
+    const refCode = userData.referralCode || user.uid;
+    document.getElementById("referralLink").value = `${window.location.origin}/register.html?ref=${refCode}`;
+
+    if(contestId) {
+        const pRef = doc(db, "contestParticipants", contestId + "_" + user.uid);
+        const pSnap = await getDoc(pRef);
+        if(pSnap.exists()){
+            const pData = pSnap.data();
+            const curTotal = Number(userData.refLevel1 || 0);
+            const baseJoin = Number(pData.joinReferrals || 0);
+            let score = curTotal - baseJoin;
+            if(score < 0) score = 0;
+            
+            if(score !== Number(pData.contestReferrals)) {
+                await updateDoc(pRef, { contestReferrals: score });
+            }
+        }
+    }
+  });
+
+  const qL = query(collection(db, "contestParticipants"), where("contestId", "==", contestId), where("contestReferrals", ">=", 1), orderBy("contestReferrals", "desc"), limit(100));
+  
+  onSnapshot(qL, async (snap) => {
+    if (snap.empty) {
+      document.getElementById("leaderboard").innerHTML = '<div class="empty-state">Waiting for qualifiers...</div>';
+      document.getElementById("myRank").innerText = "NR"; return;
+    }
+
+    let userRank = "NR";
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i++) {
+        if(docs[i].data().userId === user.uid) userRank = (i + 1);
+    }
+    document.getElementById("myRank").innerText = userRank !== "NR" ? "#" + userRank : "NR";
+
+    const results = [];
+    const topLimit = Math.min(docs.length, 10);
+    for(let i=0; i < topLimit; i++) {
+        const res = docs[i].data();
+        let name = "User_" + res.userId.slice(0,5);
+        const uS = await getDoc(doc(db, "users", res.userId));
+        if(uS.exists()) name = uS.data().name || uS.data().referralCode || name;
+        
+        const rankColors = ['#ffd700', '#c0c0c0', '#cd7f32'];
+        const rankColor = i < 3 ? rankColors[i] : 'var(--primary)';
+        
+        let html_row = `<div class="row">
+          <div>
+            <svg class="pol-icon" viewBox="0 0 32 32" fill="none" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+              <path d="M26.4 10.4L17.2 4.8c-.8-.4-1.6-.4-2.4 0L5.6 10.4c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6z" fill="#8247e5"/>
+              <path d="M14.8 13.6L5.6 19.2c-.8.4-.8 1.2 0 1.6l9.2 5.6c.8.4 1.6.4 2.4 0l9.2-5.6c.8-.4.8-1.2 0-1.6l-9.2-5.6c-.8-.4-1.6-.4-2.4 0z" fill="#8247e5" opacity="0.6"/>
+            </svg>
+            <span style="font-weight:800;color:${rankColor};margin-right:6px;">#${i + 1}</span> ${name}
+          </div>
+          <div style="font-weight:700;color:${rankColor};">${res.contestReferrals}</div>
+        </div>`;
+        results.push(html_row);
+    }
+    document.getElementById("leaderboard").innerHTML = results.join("");
+  });
+});
+
+function setJoinedUI() {
+    const jb = document.getElementById("joinBtn");
+    jb.innerText = "Joined Successfully"; jb.disabled = true;
+    jb.style.background = "rgba(255,255,255,0.05)";
+    jb.style.color = "rgba(255,255,255,0.3)";
+    document.getElementById("inviteSection").style.display = "block";
+}
+
+document.getElementById("submitWalletBtn").onclick = async () => {
+  const wallet = document.getElementById("walletInput").value.trim().toLowerCase();
+  if(wallet.length < 20) { showToast("Invalid wallet address"); return; }
+  
+  const walletCheck = await getDocs(query(collection(db, "contestParticipants"), where("walletAddress", "==", wallet)));
+  if(!walletCheck.empty) {
+    showToast("This address has already been used! Use a different address or you will be banned permanently.", true);
+    return;
+  }
+  
+  const uSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+  const currentRef = Number(uSnap.data().refLevel1 || 0);
+  const baseValue = currentRef;
+
+  await setDoc(participantRef, { 
+      contestId, 
+      userId: auth.currentUser.uid, 
+      walletAddress: wallet, 
+      joinTime: Date.now(), 
+      joinReferrals: baseValue, 
+      contestReferrals: 0 
+  });
+  
+  document.getElementById("walletModal").style.display = "none";
+  setJoinedUI(); showToast("Joined Successfully! Only referrals after joining will be counted.");
+};
+
+window.copyLink = () => {
+    const copyText = document.getElementById("referralLink");
+    copyText.select(); navigator.clipboard.writeText(copyText.value);
+    showToast("Link Copied!");
+};
+
+function showToast(msg, error = false){
+  const t = document.getElementById("toast");
+  t.innerText = msg; t.style.display = "block";
+  t.style.background = error ? "#ef4444" : "#fff";
+  t.style.color = error ? "#fff" : "#000";
+  setTimeout(()=> { t.style.display = "none"; }, 4000);
+}
+</script>
+
+</body>
+</html>

@@ -1,10 +1,9 @@
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
-const initializeFirebase = require('./config/db');
 
-// Initialize Firebase before importing controllers that use it
-initializeFirebase();
+// Firebase Auth init (non-blocking — pg.js handles data)
+try { require('./config/db'); } catch(e) { console.warn('Firebase init skipped:', e.message); }
 
 const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
@@ -30,14 +29,18 @@ app.get('/', (req, res) => {
     res.json({ status: 'ONCHYRA API running' });
 });
 
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', time: Date.now() });
 });
 
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err.message);
+    res.status(500).json({ error: err.message });
+});
+
+rewardScheduler.start();
+
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    // Start background blockchain monitor for auto-deposit detection + sweep
-    const monitor = require('./services/blockchainMonitor');
-    monitor.start();
-    rewardScheduler.start();
+    console.log(`ONCHYRA API on port ${PORT}`);
 });

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Leadership — ONCHYRA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#a78bfa;--secondary:#60a5fa;--bg:#03040a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--green:#22c55e;--amber:#f59e0b;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:white;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.06) 0%,transparent 60%)}
+.phone-frame{width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px}
+.header{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:14px 16px}
+.back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0}
+.logo{font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1}
+.page-title{font-family:'Space Grotesk';font-weight:800;font-size:22px;margin:4px 0 2px}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.4)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;backdrop-filter:blur(20px)}
+.rank-badge{font-size:10px;font-weight:900;padding:6px 16px;border-radius:8px;text-transform:uppercase;letter-spacing:1px;display:inline-block}
+.progress-bar{height:7px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;margin-top:5px}
+.progress-fill{height:100%;border-radius:10px;transition:0.8s ease}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-box{text-align:center;padding:14px 10px;background:rgba(255,255,255,0.02);border-radius:16px;border:1px solid rgba(255,255,255,0.03)}
+.stat-val{font-family:'Space Grotesk';font-weight:900;font-size:20px}
+.stat-lbl{font-size:9px;opacity:0.4;font-weight:700;letter-spacing:0.5px;margin-top:4px}
+.cond-box{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.04)}
+.cond-box .cond-icon{flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.cond-box .cond-label{font-size:10px;opacity:0.4;font-weight:600}
+.cond-box .cond-value{font-family:'Space Grotesk';font-weight:800;font-size:14px;margin-top:1px}
+.rank-tier{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,0.02);border-radius:14px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.03);font-size:11px}
+.rank-tier.locked{opacity:0.2}
+.rank-tier.current{border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08)}
+.rank-tier.unlocked{opacity:0.55}
+#pageContent{display:none}#pageContent.show{display:flex}
+#loading{text-align:center;padding:40px;color:rgba(255,255,255,0.3)}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.05);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <div class="header">
+    <a href="dashboard.html" class="back-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="logo">ONCHYRA</div>
+    <div style="width:36px;"></div>
+  </div>
+
+  <div class="page-title">Leadership</div>
+  <div class="page-sub">Rank system & rewards</div>
+
+  <div id="loading"><div class="spinner"></div>Loading your rank data...</div>
+
+  <div id="pageContent" style="flex-direction:column;gap:14px;">
+
+  <!-- Current rank + stats -->
+  <div class="card" style="text-align:center;">
+    <div id="currentRankBadge" class="rank-badge" style="background:rgba(167,139,250,0.1);color:var(--primary);border:1px solid var(--primary);margin-bottom:12px;">-</div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <div class="stat-val" id="statDirect" style="color:#60a5fa;">0</div><div class="stat-lbl">Direct Referrals</div>
+      </div>
+      <div class="stat-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <div class="stat-val" id="statTeam" style="color:#fbbf24;">$0</div><div class="stat-lbl">Total Team Business</div>
+      </div>
+      <div class="stat-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="stat-val" id="statLegA" style="color:#22c55e;">$0</div><div class="stat-lbl">Leg A (Strongest)</div>
+      </div>
+      <div class="stat-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+        <div class="stat-val" id="statLegB" style="color:#a78bfa;">$0</div><div class="stat-lbl">Leg B (All Others)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next rank progress + conditions -->
+  <div class="card" id="nextRankCard">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Next Rank</span>
+      <span id="nextRankName" style="margin-left:auto;font-family:'Space Grotesk';font-weight:800;font-size:16px;color:#fbbf24;">-</span>
+    </div>
+    <div class="cond-box">
+      <div class="cond-icon" style="background:rgba(96,165,250,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </div>
+      <div style="flex:1;">
+        <div class="cond-label">Condition 1 — Active Direct Referrals Required</div>
+        <div class="cond-value"><span id="nextDirectNow">0</span> / <span id="nextDirectReq">0</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="progress-bar" style="width:80px;height:6px;"><div id="nextDirectBar" class="progress-fill" style="width:0%;background:linear-gradient(90deg,#60a5fa,#3b82f6);"></div></div>
+      </div>
+    </div>
+    <div class="cond-box">
+      <div class="cond-icon" style="background:rgba(251,191,36,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div style="flex:1;">
+        <div class="cond-label">Condition 2 — Total Team Business Volume</div>
+        <div class="cond-value"><span id="nextTeamNow">$0</span> / <span id="nextTeamReq">$0</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="progress-bar" style="width:80px;height:6px;"><div id="nextTeamBar" class="progress-fill" style="width:0%;background:linear-gradient(90deg,#fbbf24,#f59e0b);"></div></div>
+      </div>
+    </div>
+    <div class="cond-box">
+      <div class="cond-icon" style="background:rgba(34,197,94,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div style="flex:1;">
+        <div class="cond-label">Condition 3 — Balanced Legs Rule (50:50)</div>
+        <div class="cond-value"><span id="nextLegNow">$0</span> / <span id="nextLegReq">$0</span></div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.25);margin-top:2px;">50% volume from Leg A (strongest) + 50% from Leg B (other legs combined)</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="progress-bar" style="width:80px;height:6px;"><div id="nextLegBar" class="progress-fill" style="width:0%;background:linear-gradient(90deg,#22c55e,#16a34a);"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <div style="flex:1;text-align:center;padding:10px;background:rgba(34,197,94,0.05);border-radius:10px;border:1px solid rgba(34,197,94,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div style="font-size:7px;opacity:0.4;font-weight:700;letter-spacing:0.5px;">Achievement</div>
+        <div style="font-family:'Space Grotesk';font-weight:900;font-size:15px;color:#22c55e;" id="nextAchieveBonus">+$0</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:10px;background:rgba(96,165,250,0.05);border-radius:10px;border:1px solid rgba(96,165,250,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+        <div style="font-size:7px;opacity:0.4;font-weight:700;letter-spacing:0.5px;">Daily Reward</div>
+        <div style="font-family:'Space Grotesk';font-weight:900;font-size:15px;color:#60a5fa;" id="nextDailyReward">$0/d</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:10px;background:rgba(251,191,36,0.05);border-radius:10px;border:1px solid rgba(251,191,36,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 2px;"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/></svg>
+        <div style="font-size:7px;opacity:0.4;font-weight:700;letter-spacing:0.5px;">Duration</div>
+        <div style="font-family:'Space Grotesk';font-weight:900;font-size:15px;color:#fbbf24;" id="nextRewardDays">0d</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bonus cards -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="card" style="text-align:center;padding:16px 12px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div style="font-size:8px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Achievement Bonus</div>
+      <div id="achBonusAmt" style="font-family:'Space Grotesk';font-weight:900;font-size:22px;color:#22c55e;">$0</div>
+      <div id="achBonusStatus" style="font-size:9px;margin-top:2px;color:rgba(255,255,255,0.2);">One-time bonus paid on rank-up</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px 12px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:4px;"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/></svg>
+      <div style="font-size:8px;opacity:0.35;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Matching Bonus</div>
+      <div id="matchBonusAmt" style="font-family:'Space Grotesk';font-weight:900;font-size:22px;color:#60a5fa;">$0</div>
+      <div style="font-size:9px;margin-top:2px;color:rgba(255,255,255,0.2);">10% of L1 leadership rewards</div>
+    </div>
+  </div>
+
+  <!-- Leadership reward -->
+  <div class="card" id="rewardCard" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+      <span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Your Leadership Reward</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div class="stat-box"><div class="stat-val" id="rewardDayAmt" style="font-size:17px;color:#22c55e;">$0</div><div class="stat-lbl">Daily Amount</div></div>
+      <div class="stat-box"><div class="stat-val" id="rewardPayouts" style="font-size:17px;color:#60a5fa;">0</div><div class="stat-lbl">Days Paid</div></div>
+      <div class="stat-box"><div class="stat-val" id="rewardTotalDays" style="font-size:17px;color:#fbbf24;">0</div><div class="stat-lbl">Total Days</div></div>
+    </div>
+    <div style="font-size:9px;color:rgba(255,255,255,0.25);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">
+      <strong>Note:</strong> Only your highest achieved rank's reward is paid (not cumulative).<br>
+      Total reward = Achievement Bonus (one-time) + Daily Reward × Days
+    </div>
+  </div>
+
+  <!-- All ranks -->
+  <div class="card" style="padding:16px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);">All Rank Tiers & Requirements</span>
+    </div>
+    <div id="rankList"></div>
+  </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, getDocs, updateDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const RANKS = [
+  { name: 'Ignition',   reqDirect: 3,  reqTeam: 1000,   reqLeg: 500,   bonus: 25,   rewardDay: 5,   rewardDays: 5  },
+  { name: 'Momentum',   reqDirect: 5,  reqTeam: 5000,   reqLeg: 2500,  bonus: 100,  rewardDay: 10,  rewardDays: 10 },
+  { name: 'Velocity',   reqDirect: 7,  reqTeam: 10000,  reqLeg: 5000,  bonus: 250,  rewardDay: 20,  rewardDays: 15 },
+  { name: 'Quantum',    reqDirect: 10, reqTeam: 25000,  reqLeg: 12500, bonus: 500,  rewardDay: 40,  rewardDays: 20 },
+  { name: 'Fusion',     reqDirect: 12, reqTeam: 50000,  reqLeg: 25000, bonus: 1000, rewardDay: 75,  rewardDays: 25 },
+  { name: 'Infinity',   reqDirect: 15, reqTeam: 100000, reqLeg: 50000, bonus: 2500, rewardDay: 150, rewardDays: 30 },
+  { name: 'Titan',      reqDirect: 20, reqTeam: 250000, reqLeg: 125000,bonus: 5000, rewardDay: 300, rewardDays: 30 },
+  { name: 'Apex',       reqDirect: 25, reqTeam: 500000, reqLeg: 250000,bonus: 10000,rewardDay: 600, rewardDays: 30 },
+  { name: 'Zenith',     reqDirect: 30, reqTeam: 1000000,reqLeg: 500000,bonus: 25000,rewardDay: 1250,rewardDays: 30 },
+  { name: 'Legacy',     reqDirect: 40, reqTeam: 2500000,reqLeg: 1250000,bonus: 50000,rewardDay: 3000,rewardDays: 30 },
+];
+
+let uid;
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+
+function show(el) { const e = document.getElementById(el); if (el === 'pageContent') e.classList.add('show'); else e.style.display = ''; }
+function hide(el) { document.getElementById(el).style.display = 'none'; }
+function txt(el, v) { document.getElementById(el).textContent = v; }
+
+async function getLegStats() {
+    try {
+        const res = await fetch(API + '/referrals/leg-stats/' + uid);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        return { dc: data.activeDirects || 0, tv: data.teamBiz || 0, tl: data.legABiz || 0, ol: data.legBBiz || 0 };
+    } catch (e) {
+        console.warn('Leg-stats API failed, fallback to local:', e.message);
+        return null;
+    }
+}
+
+async function loadData() {
+  try {
+    const userSnap = await getDoc(doc(db, 'users', uid));
+    if (!userSnap.exists) { hide('loading'); show('pageContent'); return; }
+    const u = userSnap.data();
+    const refCode = u.referralCode;
+
+    let dc = 0, tv = 0, tl = 0, ol = 0, wl = 0;
+    let rank = u.rank || 'Unranked';
+
+    // Use API for leg stats (consistent with referrals page)
+    const legStats = await getLegStats();
+    if (legStats) {
+        dc = legStats.dc; tv = legStats.tv; tl = legStats.tl; ol = legStats.ol;
+    } else {
+        // Fallback: read directly from user doc
+        const snap = await getDocs(query(collection(db, 'users'), where('referredBy', '==', refCode)));
+        dc = snap.docs.filter(d => { const x = d.data(); return x.activePackage && x.activePackage !== 'none' && x.packageStatus !== 'expired'; }).length;
+        const totalPackageSpends = snap.docs.map(d => d.data().totalPackageSpend || 0).sort((a, b) => b - a);
+        tl = totalPackageSpends[0] || 0;
+        ol = totalPackageSpends.length > 1 ? totalPackageSpends.slice(1).reduce((s, x) => s + x, 0) : 0;
+        tv = totalPackageSpends.reduce((s, x) => s + x, 0);
+    }
+    wl = Math.min(tl, ol);
+
+    // Client-side rank calculation to detect upgrades
+    let calcRank = 'Unranked';
+    for (let i = RANKS.length - 1; i >= 0; i--) {
+      const r = RANKS[i];
+      if (dc >= r.reqDirect && tv >= r.reqTeam && wl >= r.reqLeg) { calcRank = r.name; break; }
+    }
+    const curIdx = RANKS.findIndex(r => r.name === rank);
+    const calcIdx = RANKS.findIndex(r => r.name === calcRank);
+    if (calcIdx > curIdx) rank = calcRank;
+    const hasRank = rank !== 'Unranked';
+    const rd = RANKS.find(r => r.name === rank);
+
+    // Save rank to Firestore for reward scheduler
+    updateDoc(doc(db, 'users', uid), {
+      rank, rankCalculatedAt: Date.now(),
+      leadershipRewardRank: rank,
+      leadershipRewardDay: rd ? rd.rewardDay : 0,
+      leadershipRewardDays: rd ? rd.rewardDays : 0,
+    }).catch(e => console.error('Rank save failed:', e));
+
+    // Try backend API in background for one-time achievement bonus
+    fetch(API + '/leadership/calculate/' + uid).catch(() => {});
+
+    hide('loading');
+    show('pageContent');
+
+    // Current rank
+    const badge = document.getElementById('currentRankBadge');
+    badge.textContent = rank;
+    if (rank === 'Unranked') { badge.style.background = 'rgba(255,255,255,0.05)'; badge.style.color = 'rgba(255,255,255,0.3)'; badge.style.borderColor = 'rgba(255,255,255,0.1)'; }
+    else { badge.style.background = 'rgba(167,139,250,0.1)'; badge.style.color = 'var(--primary)'; badge.style.borderColor = 'var(--primary)'; }
+
+    txt('statDirect', dc);
+    txt('statTeam', '$' + tv.toFixed(0));
+    txt('statLegA', '$' + tl.toFixed(0));
+    txt('statLegB', '$' + ol.toFixed(0));
+
+    // Next rank
+    const idx = RANKS.findIndex(r => r.name === rank);
+    const nextCard = document.getElementById('nextRankCard');
+    if (rank === 'Unranked' || (idx >= 0 && idx < RANKS.length - 1)) {
+      const next = rank === 'Unranked' ? RANKS[0] : RANKS[idx + 1];
+      nextCard.style.display = 'block';
+      txt('nextRankName', rank === 'Unranked' ? next.name + ' (Next)' : next.name);
+      txt('nextDirectNow', dc); txt('nextDirectReq', next.reqDirect);
+      txt('nextTeamNow', '$' + tv.toFixed(0)); txt('nextTeamReq', '$' + next.reqTeam.toLocaleString());
+      txt('nextLegNow', '$' + wl.toFixed(0)); txt('nextLegReq', '$' + next.reqLeg.toLocaleString());
+      document.getElementById('nextDirectBar').style.width = Math.min(100, (dc / next.reqDirect) * 100) + '%';
+      document.getElementById('nextTeamBar').style.width = Math.min(100, (tv / next.reqTeam) * 100) + '%';
+      document.getElementById('nextLegBar').style.width = Math.min(100, (wl / next.reqLeg) * 100) + '%';
+      txt('nextAchieveBonus', '+$' + next.bonus);
+      txt('nextDailyReward', '$' + next.rewardDay + '/d');
+      txt('nextRewardDays', next.rewardDays + 'd');
+    } else { nextCard.style.display = 'none'; }
+
+    txt('achBonusAmt', '$' + (rd ? rd.bonus : 0));
+    txt('achBonusStatus', u.achievementBonusClaimed ? 'Claimed' : 'Ready');
+    document.getElementById('achBonusStatus').style.color = u.achievementBonusClaimed ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.2)';
+    txt('matchBonusAmt', '$' + (u.totalMatchingBonus || 0).toFixed(2));
+
+    // Leadership reward card - show for any user with active package
+    const rc = document.getElementById('rewardCard');
+    const activePack = u.activePackage && u.activePackage !== 'none' && u.packageStatus !== 'expired';
+    const rewardRank = rd || RANKS[0];
+    if (activePack) {
+      rc.style.display = 'block';
+      const paidDays = u.leadershipRewardPayouts || 0;
+      txt('rewardDayAmt', '$' + rewardRank.rewardDay);
+      txt('rewardPayouts', hasRank ? paidDays : '—');
+      txt('rewardTotalDays', hasRank ? rewardRank.rewardDays : '—');
+    } else { rc.style.display = 'none'; }
+
+    // All ranks
+    const rankList = document.getElementById('rankList');
+    const ri = RANKS.findIndex(r => r.name === rank);
+    rankList.innerHTML = RANKS.map((r, i) => `<div class="rank-tier ${i < ri ? 'unlocked' : i === ri ? 'current' : 'locked'}"><div><div style="font-weight:800;font-size:14px;margin-bottom:3px;">${i === ri ? '⭐ ' : ''}${r.name} ${i === ri ? '<span style="font-size:8px;background:rgba(167,139,250,0.2);color:var(--primary);padding:1px 6px;border-radius:4px;font-weight:700;">CURRENT</span>' : ''} ${i < ri ? '<span style="font-size:8px;opacity:0.3;">UNLOCKED</span>' : ''}</div><div style="font-size:9px;color:rgba(255,255,255,0.25);display:flex;flex-wrap:wrap;gap:3px;"><span style="background:rgba(96,165,250,0.08);padding:1px 5px;border-radius:3px;">${r.reqDirect} Directs</span><span style="background:rgba(251,191,36,0.08);padding:1px 5px;border-radius:3px;">$${(r.reqTeam/1000).toFixed(r.reqTeam>=1000000?0:1)}K Team</span><span style="background:rgba(34,197,94,0.08);padding:1px 5px;border-radius:3px;">Leg $${(r.reqLeg/1000).toFixed(r.reqLeg>=1000000?0:1)}K</span></div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:11px;font-weight:800;color:#22c55e;font-family:'Space Grotesk';">+$${r.bonus}</div><div style="font-size:8px;color:rgba(255,255,255,0.3);">$${r.rewardDay}/day ${r.rewardDays}d</div></div></div>`).join('');
+  } catch(e) { document.getElementById('loading').innerHTML = 'Error loading data. <br> <span style="font-size:11px;color:rgba(255,255,255,0.3);">' + e.message + '</span>'; console.error(e); }
+}
+
+// Safety fallback if auth never fires (e.g. file:// protocol issues)
+setTimeout(() => { if (!uid) document.getElementById('loading').innerHTML = 'Auth check stuck. Open via localhost or refresh page.'; }, 8000);
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location = 'register.html'; return; }
+  uid = user.uid;
+  await loadData();
+});
+</script>
+</body>
+</html>

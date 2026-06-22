@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Packages — ONCHYRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#a78bfa; --secondary:#60a5fa; --bg:#03040a; --card:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.1); --green:#22c55e; --red:#ef4444; --amber:#f59e0b; }
+        * { margin:0; padding:0; box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:20px 16px; background-image:radial-gradient(ellipse at 50% 0%,rgba(167,139,250,0.06) 0%,transparent 60%); }
+        .phone-frame { width:100%; max-width:480px; display:flex; flex-direction:column; gap:16px; }
+        .header { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 16px; }
+        .back-btn { width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:white;text-decoration:none;flex-shrink:0;}
+        .logo { font-family:'Space Grotesk';font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1;}
+        .wallet-pill { font-size:11px;font-weight:700;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15);padding:6px 14px;border-radius:100px;white-space:nowrap; }
+        .wallet-pill .num { font-family:'Space Grotesk';color:var(--primary); }
+        .section-title { font-family:'Space Grotesk';font-weight:800;font-size:22px;margin:4px 0 2px; }
+        .section-sub { font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px; }
+
+        /* Active Package Card */
+        .active-card { display:none;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px 20px;align-items:center;gap:16px; }
+        .active-card.show { display:flex; }
+        .active-card .ac-left { flex:1;display:flex;align-items:center;gap:14px; }
+        .active-card .ac-icon { width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .active-card .ac-name { font-family:'Space Grotesk';font-weight:800;font-size:15px; }
+        .active-card .ac-boost { font-size:11px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:4px;margin-top:2px; }
+
+        /* Gauge */
+        .gauge-wrap { flex-shrink:0;display:flex;flex-direction:column;align-items:center; }
+        .gauge-svg { width:76px;height:76px; }
+        .gauge-pct { font-family:'Space Grotesk';font-weight:900;font-size:18px;fill:white; }
+        .gauge-label { font-size:7px;fill:rgba(255,255,255,0.25); }
+        .gauge-usd { font-size:9px;color:rgba(255,255,255,0.4);margin-top:-2px;text-align:center; }
+
+        .plan-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        .plan-card { background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px 16px 16px;cursor:pointer;transition:0.25s;position:relative;overflow:hidden; }
+        .plan-card:active { transform:scale(0.97); }
+        .plan-card.selected { border-color:var(--primary);background:rgba(167,139,250,0.06); }
+        .plan-card .p-icon { width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px; }
+        .plan-card .p-name { font-family:'Space Grotesk';font-weight:800;font-size:15px; }
+        .plan-card .p-price { font-family:'Space Grotesk';font-weight:900;font-size:22px;background:linear-gradient(135deg,#fff 30%,rgba(167,139,250,0.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:4px 0; }
+        .plan-card .p-boost { font-size:10px;font-weight:700;color:var(--green);background:rgba(34,197,94,0.08);padding:3px 10px;border-radius:100px;display:inline-block;margin-top:4px; }
+        .plan-card .p-cap { font-size:9px;color:rgba(255,255,255,0.25);margin-top:6px; }
+        .plan-card .p-glow { position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:0.15;pointer-events:none;transition:0.4s; }
+        .plan-card.selected .p-glow { opacity:0.35; }
+        .plan-card .p-badge { position:absolute;top:10px;right:10px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary); }
+        .info-card { background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px; }
+        .info-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px; }
+        .info-row:last-child { border-bottom:none; }
+        .info-row .lbl { color:rgba(255,255,255,0.4); }
+        .info-row .val { font-weight:700; }
+        .info-row .val.green { color:var(--green); }
+        .buy-btn { width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#000;font-weight:900;font-size:15px;cursor:pointer;transition:0.3s;font-family:'Inter'; }
+        .buy-btn:disabled { background:#1a1a1a;color:#444;cursor:not-allowed; }
+        .toast { position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:14px 24px;border-radius:14px;font-weight:700;font-size:13px;display:none;z-index:3000;background:var(--green);color:#000;animation:slideUp 0.3s;white-space:nowrap; }
+        .toast.error { background:var(--red);color:white; }
+        @keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0;} }
+        @media (min-width:640px) { .plan-grid { grid-template-columns:1fr 1fr 1fr; } }
+    </style>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="header">
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="logo">ONCHYRA</div>
+        <div class="wallet-pill">Wallet <span class="num" id="walletBalance">0.00</span></div>
+    </div>
+
+    <div class="section-title">Mining Packages</div>
+    <div class="section-sub">Activate a package to boost your mining rate</div>
+
+    <!-- Active Package Card with Gauge -->
+    <div class="active-card" id="activeCard">
+        <div class="ac-left">
+            <div class="ac-icon" id="acIcon" style="background:rgba(167,139,250,0.15);"></div>
+            <div>
+                <div class="ac-name" id="acName">-</div>
+                <div class="ac-boost" id="acBoost"><svg width="12" height="12" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="18 2 22 6 18 10"/><path d="M22 6h-8a6 6 0 0 0-6 6v10"/></svg> <span id="acBoostText">1x</span></div>
+            </div>
+        </div>
+        <div class="gauge-wrap">
+            <svg class="gauge-svg" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+                <circle id="gaugeArc" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6" transform="rotate(-90 40 40)" style="transition:0.8s;color:var(--green);"/>
+                <text id="gaugePct" x="40" y="36" text-anchor="middle" font-size="16" font-weight="900" font-family="'Space Grotesk'" fill="white">0%</text>
+                <text x="40" y="50" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.25)">Used</text>
+            </svg>
+            <div class="gauge-usd" id="gaugeUsd">$0 / $0</div>
+        </div>
+    </div>
+
+    <div class="plan-grid" id="planGrid"></div>
+
+    <div class="info-card" id="infoCard">
+        <div class="info-row"><span class="lbl">Current Package</span><span class="val" id="currentPkg">None</span></div>
+        <div class="info-row"><span class="lbl">Mining Boost</span><span class="val green" id="currentBoost">1x</span></div>
+        <div class="info-row"><span class="lbl">Package Usage</span><span class="val" id="currentUsage">0 / 0</span></div>
+        <div class="info-row"><span class="lbl">Upgrade Credit</span><span class="val" id="upgradeCredit">$0</span></div>
+    </div>
+
+    <button class="buy-btn" id="buyBtn" onclick="purchase()" disabled>Select a package</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, increment, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
+
+const PACKAGES = [
+    { id:'starter',  name:'Starter',  price:5,   boost:4,   cap:50,   glow:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
+    { id:'builder',  name:'Builder',  price:10,  boost:8,   cap:100,  glow:'#60a5fa', bg:'rgba(96,165,250,0.15)' },
+    { id:'pioneer',  name:'Pioneer',  price:25,  boost:15,  cap:250,  glow:'#f59e0b', bg:'rgba(245,158,11,0.15)' },
+    { id:'elite',    name:'Elite',    price:50,  boost:30,  cap:500,  glow:'#ec4899', bg:'rgba(236,72,153,0.15)' },
+    { id:'titan',    name:'Titan',    price:100, boost:60,  cap:1000, glow:'#8b5cf6', bg:'rgba(139,92,246,0.15)' },
+    { id:'dominion', name:'Dominion', price:250, boost:120, cap:2500, glow:'#f43f5e', bg:'rgba(244,63,94,0.15)' },
+    { id:'legacy',   name:'Legacy',   price:500, boost:300, cap:5000, glow:'#fbbf24', bg:'rgba(251,191,36,0.15)' },
+];
+
+const ICONS = {
+    starter: '<svg width="22" height="22" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    builder: '<svg width="22" height="22" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    pioneer: '<svg width="22" height="22" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    elite: '<svg width="22" height="22" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    titan: '<svg width="22" height="22" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    dominion: '<svg width="22" height="22" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+    legacy: '<svg width="22" height="22" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>',
+};
+
+const CIRCUM = 2 * Math.PI * 34;
+
+let uid, userData, selectedPkg = null, walletBalance = 0;
+
+function showToast(msg, err) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast' + (err?' error':'');
+    t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function renderPlans() {
+    const grid = document.getElementById('planGrid');
+    grid.innerHTML = PACKAGES.map(p => {
+        const sel = selectedPkg?.id === p.id;
+        return `<div class="plan-card${sel?' selected':''}" onclick="window.selectPkg('${p.id}')">
+            <div class="p-glow" style="background:${p.glow};"></div>
+            <div class="p-badge">${p.name[0]}</div>
+            <div class="p-icon" style="background:${p.bg};">${ICONS[p.id]}</div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">$${p.price}</div>
+            <div class="p-boost">${p.boost}x Mining</div>
+            <div class="p-cap">$${p.cap} max</div>
+        </div>`;
+    }).join('');
+}
+
+function updateActiveCard() {
+    const card = document.getElementById('activeCard');
+    const pkgId = userData?.activePackage;
+    const p = PACKAGES.find(x => x.id === pkgId);
+
+    if (!p) { card.classList.remove('show'); return; }
+    card.classList.add('show');
+
+    document.getElementById('acIcon').innerHTML = ICONS[p.id];
+    document.getElementById('acIcon').style.background = p.bg;
+    document.getElementById('acName').textContent = p.name;
+    document.getElementById('acBoostText').textContent = p.boost + 'x';
+
+    const usage = userData?.packageUsage || 0;
+    const cap = userData?.packageCap || p.cap;
+    const pct = cap > 0 ? Math.min(100, (usage / cap) * 100) : 0;
+    const offset = CIRCUM - (pct / 100) * CIRCUM;
+
+    let color = '#22c55e';
+    if (pct > 80) color = '#ef4444';
+    else if (pct > 50) color = '#f59e0b';
+
+    const arc = document.getElementById('gaugeArc');
+    arc.style.stroke = color;
+    arc.style.strokeDashoffset = offset;
+
+    document.getElementById('gaugePct').textContent = Math.round(pct) + '%';
+    document.getElementById('gaugeUsd').textContent = '$' + usage.toFixed(2) + ' / $' + cap;
+}
+
+async function processCommissions(buyerUid) {
+    try {
+        const res = await fetch(API + '/commissions/process-package', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid: buyerUid })
+        });
+        const data = await res.json();
+        if (!data.success) console.error('Commission API error:', data.error);
+    } catch(e) { console.error('Commission API error:', e); }
+}
+
+function updateInfo() {
+    const pkg = userData?.activePackage;
+    const p = PACKAGES.find(x => x.id === pkg);
+    document.getElementById('currentPkg').textContent = p ? p.name : 'None';
+    document.getElementById('currentBoost').textContent = p ? p.boost + 'x' : '1x';
+    const usage = userData?.packageUsage || 0;
+    const cap = userData?.packageCap || 0;
+    document.getElementById('currentUsage').textContent = `${usage.toFixed(2)} / $${cap}`;
+
+    let credit = 0;
+    if (selectedPkg && p) {
+        const usagePct = usage / (p.cap || 1);
+        if (usagePct < 5) credit = p.price * 0.7;
+    }
+    document.getElementById('upgradeCredit').textContent = '$' + credit.toFixed(2);
+
+    const btn = document.getElementById('buyBtn');
+    if (!selectedPkg) { btn.textContent = 'Select a package'; btn.disabled = true; return; }
+    const finalPrice = selectedPkg.price - credit;
+    if (walletBalance < finalPrice) { btn.textContent = 'Insufficient wallet balance ($' + finalPrice.toFixed(2) + ' needed)'; btn.disabled = true; return; }
+    btn.textContent = credit > 0 ? `Activate $${selectedPkg.price} (Credit: $${credit.toFixed(2)})` : `Activate for $${selectedPkg.price}`;
+    btn.disabled = false;
+}
+
+window.selectPkg = (id) => {
+    selectedPkg = PACKAGES.find(p => p.id === id);
+    renderPlans();
+    updateInfo();
+};
+
+window.purchase = async () => {
+    if (!selectedPkg || !uid) return;
+    const btn = document.getElementById('buyBtn');
+    btn.disabled = true; btn.textContent = 'Processing...';
+    try {
+        const pkg = selectedPkg;
+        let credit = 0;
+        if (userData.activePackage) {
+            const curP = PACKAGES.find(x => x.id === userData.activePackage);
+            if (curP) {
+                const usagePct = (userData.packageUsage||0) / (curP.cap||1);
+                if (usagePct < 5) credit = curP.price * 0.7;
+            }
+        }
+        const finalPrice = Math.max(0, pkg.price - credit);
+        if (walletBalance < finalPrice) { showToast('Insufficient balance', true); updateInfo(); return; }
+
+        const batch = [];
+        const prevPkg = userData.activePackage ? PACKAGES.find(x => x.id === userData.activePackage) : null;
+        const prevCap = prevPkg ? prevPkg.cap : 0;
+        batch.push(updateDoc(doc(db, 'users', uid), {
+            walletBalance: increment(-finalPrice),
+            activePackage: pkg.id,
+            packageAmount: pkg.price,
+            packageBoost: pkg.boost,
+            packageCap: prevCap + pkg.cap,
+            packageUsage: increment(0),
+            packagePurchasedAt: Date.now(),
+            totalPackageSpend: increment(pkg.price),
+        }));
+        batch.push(addDoc(collection(db, 'packagePurchases'), {
+            uid, packageId: pkg.id, name: pkg.name, amount: pkg.price, paid: finalPrice, credit, boost: pkg.boost, createdAt: Date.now()
+        }));
+        await Promise.all(batch);
+
+        processCommissions(uid).catch(e => console.error('Commission error:', e));
+
+        userData.activePackage = pkg.id;
+        userData.packageBoost = pkg.boost;
+        userData.packageCap = pkg.cap;
+        userData.packageAmount = pkg.price;
+        walletBalance -= finalPrice;
+        document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+
+        showToast(`${pkg.name} activated! ${pkg.boost}x mining boost`);
+        selectedPkg = null;
+        renderPlans();
+        updateInfo();
+        updateActiveCard();
+    } catch(e) { showToast(e.message, true); console.error(e); }
+    btn.disabled = false;
+};
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { window.location = 'register.html'; return; }
+    uid = user.uid;
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) { window.location = 'register.html'; return; }
+    userData = snap.data();
+    walletBalance = userData.walletBalance || 0;
+    document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+    renderPlans();
+    updateActiveCard();
+    updateInfo();
+});
+</script>
+</body>
+</html>

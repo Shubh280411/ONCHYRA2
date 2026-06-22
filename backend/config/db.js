@@ -1,37 +1,32 @@
-const admin = require('firebase-admin');
-const path = require('path');
-const fs = require('fs');
+/**
+ * Firebase Admin initialization — used ONLY for Auth operations (password reset, etc.)
+ * All DATA operations use PostgreSQL via ./pg.js
+ */
+let admin = null;
+try {
+    admin = require('firebase-admin');
+    const path = require('path');
+    const fs = require('fs');
 
-const initializeFirebase = () => {
     let serviceAccount;
-
-    // Support both JSON env var (Render) and file path (local)
     if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    } else {
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH) {
         const keyPath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH);
-
-        if (!fs.existsSync(keyPath)) {
-            console.error('\n=== SERVICE ACCOUNT KEY MISSING ===');
-            console.error('File not found:', keyPath);
-            console.error('Step 1: Go to https://console.firebase.google.com');
-            console.error('Step 2: Project Settings > Service Accounts');
-            console.error('Step 3: Click "Generate new private key"');
-            console.error('Step 4: Save the file as "serviceAccountKey.json" in the backend/ folder');
-            console.error('================================\n');
-            process.exit(1);
+        if (fs.existsSync(keyPath)) {
+            serviceAccount = require(keyPath);
         }
-
-        serviceAccount = require(keyPath);
     }
 
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+    if (serviceAccount) {
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        console.log('Firebase Admin initialized (Auth only)');
+    } else {
+        console.warn('Firebase service account not found — Auth operations (password reset) will be unavailable');
+    }
+} catch (e) {
+    console.warn('Firebase Admin initialization skipped:', e.message);
+}
 
-    const db = admin.firestore();
-    console.log('Firebase Admin initialized');
-    return db;
-};
-
-module.exports = initializeFirebase;
+module.exports = function initializeFirebase() { return admin ? admin.firestore() : null; };
+module.exports.admin = admin;

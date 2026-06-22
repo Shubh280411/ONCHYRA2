@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Predictions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#05060f; --card:rgba(255,255,255,0.03); --border:rgba(255,255,255,0.08); --primary:#a78bfa; --secondary:#60a5fa; --success:#22c55e; --danger:#ef4444; --text:rgba(255,255,255,0.7); --text-dim:rgba(255,255,255,0.35); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-height:100vh; padding:20px; background-image:radial-gradient(ellipse at 20% 0%,rgba(167,139,250,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(96,165,250,0.04) 0%,transparent 50%); }
+        .container { max-width:1100px; margin:auto; }
+
+        .header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; margin-bottom:20px; background:var(--card); border:1px solid var(--border); border-radius:20px; }
+        .header-left { display:flex; align-items:center; gap:14px; }
+        .header-logo { width:42px; height:42px; background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-weight:900; font-size:18px; color:#000; }
+        .header-title { font-family:'Space Grotesk'; font-weight:800; font-size:18px; }
+        .header-title span { color:var(--primary); }
+        .header-nav { display:flex; gap:8px; flex-wrap:wrap; }
+        .header-nav a { padding:8px 14px; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; color:var(--text); transition:0.2s; background:rgba(255,255,255,0.03); border:1px solid transparent; }
+        .header-nav a:hover, .header-nav a.active { background:rgba(167,139,250,0.1); color:var(--primary); border-color:rgba(167,139,250,0.2); }
+
+        .page-title { font-family:'Space Grotesk'; font-size:24px; font-weight:800; margin:0 0 20px; }
+
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
+        .stat-card .sl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); }
+        .stat-card .sv { font-family:'Space Grotesk'; font-size:22px; font-weight:800; margin-top:2px; }
+
+        .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px; }
+        .card-title { font-family:'Space Grotesk'; font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+
+        .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+        .filters select, .filters input { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:white; font-size:12px; font-family:'Inter'; outline:none; }
+        .filters select:focus, .filters input:focus { border-color:var(--primary); }
+
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        th { text-align:left; padding:10px 8px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); border-bottom:1px solid var(--border); }
+        td { padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+
+        .badge { padding:2px 8px; border-radius:100px; font-size:9px; font-weight:700; }
+        .badge-green { background:rgba(34,197,94,0.12); color:var(--success); }
+        .badge-red { background:rgba(239,68,68,0.12); color:var(--danger); }
+        .badge-blue { background:rgba(96,165,250,0.12); color:var(--secondary); }
+        .badge-gray { background:rgba(255,255,255,0.05); color:var(--text-dim); }
+
+        .btn { padding:6px 12px; border:none; border-radius:8px; font-size:10px; font-weight:700; cursor:pointer; transition:0.2s; }
+        .btn-primary { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#000; }
+        .btn-primary:hover { opacity:0.9; }
+
+        .empty-state { text-align:center; padding:30px; color:var(--text-dim); font-size:13px; }
+
+        @media (max-width:768px) { .header { flex-direction:column; gap:12px; } td,th { padding:6px 4px; font-size:10px; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <div class="header-logo">O</div>
+            <div class="header-title">ONCHYRA <span>Admin</span></div>
+        </div>
+        <div class="header-nav">
+            <a href="admin.html">Dashboard</a>
+            <a href="#" class="active">Predictions</a>
+        </div>
+    </div>
+
+    <div class="page-title">Prediction Rounds</div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="sl">Total Rounds</div><div class="sv" id="statTotal" style="color:var(--primary);">0</div></div>
+        <div class="stat-card"><div class="sl">Active</div><div class="sv" id="statActive" style="color:var(--success);">0</div></div>
+        <div class="stat-card"><div class="sl">Resolved</div><div class="sv" id="statResolved" style="color:var(--secondary);">0</div></div>
+        <div class="stat-card"><div class="sl">Total Bets</div><div class="sv" id="statBets" style="color:#f472b6;">0</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            All Rounds
+        </div>
+        <div class="filters">
+            <select id="filterSeg" onchange="renderAdminTable()">
+                <option value="">All Segments</option>
+                <option value="15min">15 Min</option>
+                <option value="1hr">1 Hr</option>
+                <option value="1day">1 Day</option>
+            </select>
+            <select id="filterStatus" onchange="renderAdminTable()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="resolved">Resolved</option>
+            </select>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>Round</th><th>Asset</th><th>Segment</th><th>Start Price</th><th>End Price</th><th>Outcome</th><th>Bets</th><th>Pool</th></tr></thead>
+                <tbody id="tableBody"><tr><td colspan="8" class="empty-state">Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('tableBody').innerHTML='<tr><td colspan=8 class=empty-state>Refreshing...</td></tr>';loadAdminData()" style="margin-top:12px;">Refresh</button>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, getDocs, collection, query, orderBy, limit } from "./supabase-adapter.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+    authDomain: "onchyra.firebaseapp.com",
+    projectId: "onchyra",
+    storageBucket: "onchyra.firebasestorage.app",
+    messagingSenderId: "441822770982",
+    appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+let allRounds = [];
+let totalBets = 0;
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.replace('login.html'); return; }
+    try {
+        const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+        if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+            document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;"><div style="font-size:40px;margin-bottom:16px;">&#x1f512;</div><h2 style="font-family:Space Grotesk;">Access Denied</h2><p style="opacity:0.4;font-size:14px;">Admin privileges required.</p></div>';
+            return;
+        }
+        document.body.style.display = 'block';
+        loadAdminData();
+    } catch(e) {
+        document.body.innerHTML = '<div style="text-align:center;padding:60px;color:#ef4444;">Error</div>';
+    }
+});
+
+async function loadAdminData() {
+    try {
+        const snap = await getDocs(query(collection(db, "predictions"), orderBy("startTime", "desc"), limit(200)));
+        allRounds = [];
+        totalBets = 0;
+        snap.forEach(d => {
+            const r = { id: d.id, ...d.data() };
+            allRounds.push(r);
+            totalBets += r.totalBets || 0;
+        });
+
+        document.getElementById('statTotal').textContent = allRounds.length;
+        document.getElementById('statActive').textContent = allRounds.filter(r => r.status === 'active').length;
+        document.getElementById('statResolved').textContent = allRounds.filter(r => r.status === 'resolved').length;
+        document.getElementById('statBets').textContent = totalBets;
+
+        renderAdminTable();
+    } catch (e) {
+        console.error(e);
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" class="empty-state">Error loading data</td></tr>';
+    }
+}
+
+window.renderAdminTable = () => {
+    const seg = document.getElementById('filterSeg').value;
+    const status = document.getElementById('filterStatus').value;
+    const tbody = document.getElementById('tableBody');
+
+    let items = allRounds;
+    if (seg) items = items.filter(r => r.segment === seg);
+    if (status) items = items.filter(r => r.status === status);
+
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No rounds found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = items.map(r => {
+        const outcomeBadge = r.outcome === 'up' ? '<span class="badge badge-green">UP</span>'
+            : r.outcome === 'down' ? '<span class="badge badge-red">DOWN</span>'
+            : r.status === 'active' ? '<span class="badge badge-blue">LIVE</span>'
+            : '<span class="badge badge-gray">--</span>';
+
+        return `<tr>
+            <td style="font-size:10px;font-family:monospace;">${r.id.slice(0, 16)}...</td>
+            <td><b>${r.symbol || '?'}</b></td>
+            <td>${r.segment || '?'}</td>
+            <td>$${Number(r.startPrice || 0).toFixed(2)}</td>
+            <td>${r.endPrice ? '$' + Number(r.endPrice).toFixed(2) : '--'}</td>
+            <td>${outcomeBadge}</td>
+            <td>${r.totalBets || 0}</td>
+            <td style="font-weight:700;">${(r.totalPool || 0).toFixed(2)}</td>
+        </tr>`;
+    }).join('');
+};
+</script>
+
+</body>
+</html>

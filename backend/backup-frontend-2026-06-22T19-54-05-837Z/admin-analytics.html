@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONCHYRA Admin — Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #05060f;
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --primary: #a78bfa;
+            --secondary: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: rgba(255,255,255,0.7);
+            --text-dim: rgba(255,255,255,0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            display: none;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .header .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-family: 'Space Grotesk'; font-weight: 900; font-size: 18px;
+        }
+        .header .logo svg { width: 36px; height: 36px; }
+        .header .logo span { background: linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .actions { display: flex; align-items: center; gap: 12px; }
+        .header .badge { font-size: 11px; color: var(--text-dim); background: var(--card); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+        .title-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+        }
+        .title-row h2 { font-family: 'Space Grotesk'; font-weight: 800; font-size: 20px; }
+        .title-row .actions { display: flex; gap: 8px; }
+        .btn {
+            padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 12px;
+            cursor: pointer; border: none; font-family: 'Inter'; transition: all .2s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-sm { padding: 6px 12px; font-size: 11px; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { opacity: .85; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { opacity: .85; }
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 16px; text-align: center;
+        }
+        .stat-card .stat-icon { margin-bottom: 8px; }
+        .stat-card .stat-icon svg { width: 24px; height: 24px; }
+        .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); margin-bottom: 4px; }
+        .stat-card .value { font-family: 'Space Grotesk'; font-weight: 800; font-size: 22px; }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .panel {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+        }
+        .panel h3 {
+            font-family: 'Space Grotesk'; font-weight: 700; font-size: 13px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .panel h3 svg { width: 18px; height: 18px; color: var(--primary); }
+        .panel table { width: 100%; border-collapse: collapse; }
+        .panel th, .panel td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 12px; }
+        .panel th { color: var(--primary); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+        .panel td { color: var(--text); }
+        .chart-panel { height: 340px; display: flex; flex-direction: column; }
+        .chart-panel canvas { flex: 1; max-height: 260px; }
+        .feed-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; font-size: 12px; }
+        .feed-item:last-child { border-bottom: none; }
+        .feed-item .name { color: var(--text); font-weight: 600; }
+        .feed-item .time { color: var(--text-dim); font-size: 11px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .rank-num { font-family: 'Space Grotesk'; font-weight: 700; color: var(--text-dim); font-size: 11px; }
+        .highlight-row { background: rgba(167,139,250,0.08) !important; }
+        .highlight-row td { color: var(--primary) !important; }
+        .empty-state { padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+        @media (max-width: 768px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="mainContainer" style="display:none">
+    <div class="header">
+        <div class="logo">
+            <svg viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><text x="18" y="24" text-anchor="middle" fill="#000" font-family="'Space Grotesk'" font-weight="900" font-size="18">A</text></svg>
+            <span>Analytics</span>
+        </div>
+        <div class="actions">
+            <span class="badge" id="adminBadge">Admin</span>
+            <a href="admin.html" class="btn btn-outline btn-sm">Panel</a>
+            <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="title-row">
+        <h2>Platform Overview</h2>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="loadAnalytics()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Sync Live Data
+            </button>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="label">Total Users</div>
+            <div class="value" id="users">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div class="label">Active (24h)</div>
+            <div class="value" id="active" style="color:var(--success)">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="label">Circulating Supply</div>
+            <div class="value" id="totalMined">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M6 20V4"/><path d="M18 20V8"/></svg></div>
+            <div class="label">Dormant</div>
+            <div class="value" id="dormant" style="color:var(--danger)">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="label">Avg Holding</div>
+            <div class="value" id="avgBal">0</div>
+        </div>
+    </div>
+
+    <div class="grid-2col">
+        <div class="panel">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Global Rich List</h3>
+            <table><thead><tr><th>Rank</th><th>User</th><th>Balance</th></tr></thead><tbody id="richBody"></tbody></table>
+            <div class="empty-state" id="richEmpty" style="display:none">No data</div>
+        </div>
+        <div class="panel">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Referral Kings</h3>
+            <table><thead><tr><th>Rank</th><th>User</th><th>Referrals</th></tr></thead><tbody id="refsBody"></tbody></table>
+            <div class="empty-state" id="refsEmpty" style="display:none">No data</div>
+        </div>
+    </div>
+
+    <div class="grid-2col">
+        <div class="panel chart-panel">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> User Retention</h3>
+            <canvas id="retentionChart"></canvas>
+        </div>
+        <div class="panel">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Recent Activity</h3>
+            <div id="feedBody"></div>
+            <div class="empty-state" id="feedEmpty" style="display:none">No recent activity</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+        authDomain: "onchyra.firebaseapp.com",
+        projectId: "onchyra",
+        storageBucket: "onchyra.firebasestorage.app",
+        messagingSenderId: "441822770982",
+        appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    let rChart;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.replace("admin-login.html");
+            return;
+        }
+        try {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+                document.body.style.display = 'block';
+                return;
+            }
+            document.getElementById('adminBadge').textContent = user.email || 'Admin';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.body.style.display = 'block';
+            loadAnalytics();
+        } catch (e) {
+            console.error(e);
+        }
+    });
+
+    window.handleLogout = function() {
+        signOut(auth);
+        window.location.replace("admin-login.html");
+    };
+
+    window.loadAnalytics = async function() {
+        const usersSnap = await getDocs(collection(db, "users"));
+        const now = Date.now();
+        let totalBal = 0, active24 = 0, dormant = 0, ghost = 0;
+        const allUsers = [];
+
+        usersSnap.forEach(d => {
+            const u = d.data();
+            const bal = u.balance || (u.commissionBalance || 0);
+            totalBal += bal;
+            const diff = now - (u.lastClaim || u.lastActivity || 0);
+            if (diff < 86400000) active24++;
+            else if (diff < 172800000) dormant++;
+            else ghost++;
+            allUsers.push({
+                id: d.id,
+                name: u.name || u.referralCode || u.email || d.id.slice(0,8),
+                balance: bal,
+                referrals: u.referrals || 0,
+                referralCode: u.referralCode || '',
+                referredBy: u.referredBy || '',
+                lastClaim: u.lastClaim || u.lastActivity || 0,
+                active: diff < 86400000
+            });
+        });
+
+        document.getElementById("users").textContent = usersSnap.size;
+        document.getElementById("active").textContent = active24;
+        document.getElementById("dormant").textContent = dormant;
+        document.getElementById("totalMined").textContent = totalBal.toFixed(2);
+        document.getElementById("avgBal").textContent = (totalBal / (usersSnap.size || 1)).toFixed(2);
+
+        const richList = [...allUsers].sort((a,b) => b.balance - a.balance).slice(0, 15);
+        document.getElementById("richBody").innerHTML = richList.map((u, i) =>
+            `<tr class="${i === 0 ? 'highlight-row' : ''}">
+                <td class="rank-num">#${i + 1}</td>
+                <td><span class="status-dot" style="background:${u.active ? 'var(--success)' : 'var(--text-dim)'}"></span>${u.name}</td>
+                <td style="font-family:'Space Grotesk';font-weight:700">${u.balance.toFixed(2)}</td>
+            </tr>`
+        ).join('');
+
+        // Count referral codes dynamically (ignores deleted users)
+        const refCodeCount = {};
+        allUsers.forEach(u => {
+            const rc = u.referralCode;
+            if (rc) refCodeCount[rc] = 0;
+        });
+        allUsers.forEach(u => {
+            const rb = u.referredBy;
+            if (rb && refCodeCount[rb] !== undefined) refCodeCount[rb]++;
+        });
+        const refList = [...allUsers].filter(u => u.referralCode && refCodeCount[u.referralCode] > 0)
+            .sort((a,b) => refCodeCount[b.referralCode] - refCodeCount[a.referralCode])
+            .slice(0, 15);
+        document.getElementById("refsBody").innerHTML = refList.map((u, i) =>
+            `<tr>
+                <td class="rank-num">#${i + 1}</td>
+                <td>${u.name}</td>
+                <td style="color:var(--primary);font-weight:700;font-family:'Space Grotesk'">${refCodeCount[u.referralCode]}</td>
+            </tr>`
+        ).join('');
+
+        const feedList = allUsers.filter(u => u.lastClaim > 0).sort((a,b) => b.lastClaim - a.lastClaim).slice(0, 20);
+        document.getElementById("feedBody").innerHTML = feedList.map(u => `
+            <div class="feed-item">
+                <span><span class="status-dot" style="background:${u.active ? 'var(--success)' : 'var(--text-dim)'}"></span><span class="name">${u.name}</span> claimed</span>
+                <span class="time">${new Date(u.lastClaim).toLocaleDateString()} ${new Date(u.lastClaim).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+        `).join('');
+
+        renderRetentionChart(active24, dormant, ghost);
+    };
+
+    function renderRetentionChart(active, dormant, inactive) {
+        const ctx = document.getElementById('retentionChart');
+        if (rChart) rChart.destroy();
+        if (active + dormant + inactive === 0) return;
+        rChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Active (24h)', 'Dormant', 'Inactive'],
+                datasets: [{
+                    data: [active, dormant, inactive],
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11, family: 'Inter' }, padding: 16, usePointStyle: true, pointStyle: 'circle' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
