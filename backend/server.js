@@ -62,34 +62,42 @@ app.post('/api/admin/cleanup', async (req, res) => {
 });
 
 // POL price endpoint (server-side fetch avoids CORS)
+const AGENT = 'Mozilla/5.0 Onchyra/1.0';
 let polPriceCache = { price: 0.5, time: 0 };
+async function fetchPolPrice() {
+    // Try CoinGecko with User-Agent
+    const https = require('https');
+    try {
+        const data = await new Promise((resolve, reject) => {
+            const req = https.get('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd', { headers: { 'User-Agent': AGENT } }, (r) => {
+                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+            });
+            req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
+        });
+        const p = JSON.parse(data)['matic-network']?.usd;
+        if (p) return p;
+    } catch {}
+    // Fallback: Binance MATICUSDT
+    try {
+        const data = await new Promise((resolve, reject) => {
+            const req = https.get('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT', { headers: { 'User-Agent': AGENT } }, (r) => {
+                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+            });
+            req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
+        });
+        const p = parseFloat(JSON.parse(data).price);
+        if (p) return p;
+    } catch {}
+    return null;
+}
 app.get('/api/pol-price', async (req, res) => {
     try {
         if (Date.now() - polPriceCache.time < 60000) return res.json({ price: polPriceCache.price });
-        const https = require('https');
-        const data = await new Promise((resolve, reject) => {
-            https.get('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd', (r) => {
-                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
-            }).on('error', reject);
-        });
-        const price = JSON.parse(data)['matic-network']?.usd || 0.5;
-        polPriceCache = { price, time: Date.now() };
-        res.json({ price });
+        const price = await fetchPolPrice();
+        if (price) polPriceCache = { price, time: Date.now() };
+        res.json({ price: price || polPriceCache.price || 0.5 });
     } catch {
-        // Binance fallback
-        try {
-            const https = require('https');
-            const data = await new Promise((resolve, reject) => {
-                https.get('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', (r) => {
-                    let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
-                }).on('error', reject);
-            });
-            const price = parseFloat(JSON.parse(data).price) || 0.5;
-            polPriceCache = { price, time: Date.now() };
-            res.json({ price });
-        } catch {
-            res.json({ price: polPriceCache.price });
-        }
+        res.json({ price: polPriceCache.price || 0.5 });
     }
 });
 
