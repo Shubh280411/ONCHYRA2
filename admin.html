@@ -70,6 +70,24 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-he
 
 <div class="card">
   <div class="card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/></svg>
+    Database Storage
+  </div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-label">DB Size</div><div class="stat-value" id="dbSize">—</div></div>
+    <div class="stat-item"><div class="stat-label">Total Rows</div><div class="stat-value" id="dbRows">—</div></div>
+    <div class="stat-item"><div class="stat-label">Tables</div><div class="stat-value" id="dbTables">—</div></div>
+    <div class="stat-item"><div class="stat-label">Largest Table</div><div class="stat-value" id="dbLargest" style="font-size:18px;">—</div></div>
+  </div>
+  <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.25);display:flex;gap:12px;align-items:center;">
+    <span id="storageLastCheck">Auto-cleanup every 6hrs</span>
+    <button onclick="runCleanup()" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15);color:var(--primary);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">Cleanup Now</button>
+    <span id="cleanupResult" style="color:var(--success);display:none;">✓ Done</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M6 20v-4"/><path d="M18 20v-8"/></svg>
     User Management
   </div>
@@ -226,6 +244,7 @@ const firebaseConfig = {
   appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 };
 
+const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = {};
@@ -255,7 +274,33 @@ async function loadStats() {
     document.getElementById('packages').textContent = pkgCnt.data().count || 0;
     document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
   } catch(e) { console.warn('Stats load failed:', e.message); }
+  loadStorageStats();
 }
+
+async function loadStorageStats() {
+  try {
+    const resp = await fetch(API + '/admin/storage');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    document.getElementById('dbSize').textContent = data.totalMB + ' MB';
+    document.getElementById('dbRows').textContent = data.tableSizes.reduce((a,t) => a + (t.rows || 0), 0).toLocaleString();
+    document.getElementById('dbTables').textContent = data.tableSizes.length;
+    const largest = data.tableSizes.sort((a,b) => b.totalMB - a.totalMB)[0];
+    if (largest) document.getElementById('dbLargest').textContent = largest.table + ' (' + largest.totalMB + ' MB)';
+  } catch(e) { console.warn('Storage stats failed:', e.message); }
+}
+
+window.runCleanup = async () => {
+  const el = document.getElementById('cleanupResult');
+  el.style.display = 'none';
+  try {
+    const resp = await fetch(API + '/admin/cleanup', { method: 'POST' });
+    if (!resp.ok) return;
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 3000);
+    loadStorageStats();
+  } catch(e) {}
+};
 
 window.logout = () => { signOut(auth); window.location = 'admin-login.html'; };
 </script>
