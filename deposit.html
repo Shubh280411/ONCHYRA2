@@ -227,27 +227,27 @@ window.copyModalAddr = async () => {
 };
 
 function listenForDeposit(address, network) {
+    let detected = false;
     const q = query(collection(db, 'deposits'), where('uid', '==', uid), where('address', '==', address.toLowerCase()), limit(1));
     onSnapshot(q, (snap) => {
-        snap.docChanges().forEach(change => {
-            if (change.type === 'added') {
-                const d = change.doc.data();
-                const symbol = d.network === 'Polygon' ? 'POL' : 'USDT';
-                let msg, icon;
-                if (symbol === 'POL') {
-                    msg = (d.polAmount || 0) + ' POL received';
-                    icon = 'https://cryptologos.cc/logos/polygon-matic-logo.svg';
-                } else {
-                    msg = '$' + d.amount.toFixed(2) + ' USDT received';
-                    icon = 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
-                }
-                document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
-                document.getElementById('successOverlay').classList.add('show');
-                const wl = document.getElementById('waitLabel');
-                if (wl) wl.textContent = '✅ Received';
-                loadDepHistory();
-            }
-        });
+        if (detected || snap.empty) return;
+        const d = snap.docs[0].data();
+        if (!d || !d.amount) return;
+        detected = true;
+        const symbol = d.network === 'Polygon' ? 'POL' : 'USDT';
+        let msg, icon;
+        if (symbol === 'POL') {
+            msg = (d.polAmount || 0) + ' POL received';
+            icon = 'https://cryptologos.cc/logos/polygon-matic-logo.svg';
+        } else {
+            msg = '$' + d.amount.toFixed(2) + ' USDT received';
+            icon = 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
+        }
+        document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
+        document.getElementById('successOverlay').classList.add('show');
+        const wl = document.getElementById('waitLabel');
+        if (wl) wl.textContent = '✅ Received';
+        loadDepHistory();
     });
 }
 

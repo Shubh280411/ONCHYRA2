@@ -6,7 +6,7 @@ const MNEMONIC = process.env.HD_WALLET_SEED;
 const BSC_RPC = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
 const POLYGON_RPC = process.env.POLYGON_RPC || 'https://polygon-bor.publicnode.com';
 const GAS_AMOUNT = parseFloat(process.env.SWEEP_GAS_AMOUNT || '0.0005');
-const CHECK_INTERVAL = parseInt(process.env.MONITOR_INTERVAL || '900000');
+const CHECK_INTERVAL = parseInt(process.env.MONITOR_INTERVAL || '60000');
 const MAX_PER_CYCLE = 20;
 const WALLET_TTL_MS = 48 * 60 * 60 * 1000;
 
@@ -18,7 +18,7 @@ const ERC20_ABI = [
 ];
 
 let polPriceCache = { price: 0, time: 0 };
-const MIN_SCAN_INTERVAL = parseInt(process.env.MONITOR_SCAN_INTERVAL || '3600000');
+const MIN_SCAN_INTERVAL = parseInt(process.env.MONITOR_SCAN_INTERVAL || '60000');
 
 function httpGet(url) {
     return new Promise((resolve, reject) => {
