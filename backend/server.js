@@ -8,6 +8,8 @@ try { require('./config/db'); } catch(e) { console.warn('Firebase init skipped:'
 const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 const rewardScheduler = require('./services/rewardScheduler');
+const storageManager = require('./services/storageManager');
+const blockchainMonitor = require('./services/blockchainMonitor');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,7 +41,29 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message });
 });
 
+// Storage stats endpoint
+app.get('/api/admin/storage', async (req, res) => {
+    try {
+        const stats = await storageManager.getStorageStats();
+        res.json(stats);
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Manual cleanup trigger
+app.post('/api/admin/cleanup', async (req, res) => {
+    try {
+        const result = await storageManager.runCleanup();
+        res.json(result);
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 rewardScheduler.start();
+blockchainMonitor.start();
+storageManager.start();
 
 app.listen(PORT, () => {
     console.log(`ONCHYRA API on port ${PORT}`);
