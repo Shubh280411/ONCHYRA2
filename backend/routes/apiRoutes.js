@@ -152,6 +152,17 @@ router.get('/income/:uid', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Admin — Check if user is admin
+router.get('/admin/check', async (req, res) => {
+    try {
+        const uid = req.headers['x-auth-uid'];
+        if (!uid) return res.status(401).json({ error: 'No uid' });
+        const admin = await pg.get('admins', uid);
+        if (!admin) return res.status(403).json({ error: 'Not admin' });
+        res.json({ admin: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Admin — Users
 router.get('/admin/users', async (req, res) => {
     try {
