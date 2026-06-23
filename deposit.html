@@ -262,11 +262,12 @@ async function loadDepHistory() {
         items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         container.innerHTML = items.map(p => {
             const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-';
-            const symbol = p.network === 'Polygon' ? 'POL' : 'USDT';
-            const logo = p.network === 'Polygon' ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
+            const isPol = (p.token || '').toUpperCase() === 'POL';
+            const symbol = isPol ? 'POL' : 'USDT';
+            const logo = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
             let label;
-            if (symbol === 'POL') {
-                label = p.polAmount + ' POL';
+            if (isPol) {
+                label = (p.polAmount || 0) + ' POL';
             } else {
                 label = '$' + (p.amount || 0).toFixed(2) + ' USDT';
             }
