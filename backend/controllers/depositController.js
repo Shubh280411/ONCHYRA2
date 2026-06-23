@@ -90,14 +90,6 @@ exports.createWallet = async (req, res) => {
         const { uid, network } = req.body;
         if (!['BEP20', 'Polygon'].includes(network)) return res.status(400).json({ error: 'Invalid network' });
 
-        const existing = await pg.query(
-            `SELECT id, address FROM deposit_wallets WHERE uid = $1 AND network = $2 AND used = false AND created_at > $3`,
-            [uid, network, Date.now() - 3600000]
-        );
-        if (existing.rows.length > 0) {
-            return res.json({ address: existing.rows[0].address, network, index: 0, reused: true });
-        }
-
         const index = await getNextIndex();
         const path = `m/44/60/0/0/${index}`;
         const child = getMasterNode().derivePath(path);
