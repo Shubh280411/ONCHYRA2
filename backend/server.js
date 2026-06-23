@@ -75,11 +75,13 @@ async function fetchPolPrice() {
                 const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r) => {
                     let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
                 });
-                req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
+                req.on('error', (e) => { console.error('[PRICE] Request error:', e.message); reject(e); });
+                req.setTimeout(5000, () => { req.destroy(); console.error('[PRICE] Timeout for', url); reject(new Error('timeout')); });
             });
             const p = parseFloat(JSON.parse(data).price);
+            console.log('[PRICE] Got from', url, '->', p);
             if (p && p > 0.01) return p;
-        } catch {}
+        } catch(e) { console.error('[PRICE] Failed', url, e.message); }
     }
     return polPriceCache.price || 0.5;
 }
