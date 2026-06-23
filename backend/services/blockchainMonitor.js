@@ -32,17 +32,12 @@ function httpGet(url) {
 
 async function fetchPolPrice() {
     try {
-        const body = await httpGet('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd');
-        const parsed = JSON.parse(body);
-        if (parsed && parsed['matic-network'] && parsed['matic-network'].usd) return parsed['matic-network'].usd;
-    } catch(e) { }
-    try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
+        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
     } catch(e) { }
     try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
+        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
     } catch(e) { }

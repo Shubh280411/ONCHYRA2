@@ -62,40 +62,34 @@ app.post('/api/admin/cleanup', async (req, res) => {
 });
 
 // POL price endpoint (server-side fetch avoids CORS)
-const AGENT = 'Mozilla/5.0 Onchyra/1.0';
-let polPriceCache = { price: 0.5, time: 0 };
+let polPriceCache = { price: 0, time: 0 };
+const POL_PRICE_SOURCES = [
+    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
+    'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
+];
 async function fetchPolPrice() {
-    // Try CoinGecko with User-Agent
     const https = require('https');
-    try {
-        const data = await new Promise((resolve, reject) => {
-            const req = https.get('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd', { headers: { 'User-Agent': AGENT } }, (r) => {
-                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+    for (const url of POL_PRICE_SOURCES) {
+        try {
+            const data = await new Promise((resolve, reject) => {
+                const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r) => {
+                    let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+                });
+                req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
             });
-            req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
-        });
-        const p = JSON.parse(data)['matic-network']?.usd;
-        if (p) return p;
-    } catch {}
-    // Fallback: Binance MATICUSDT
-    try {
-        const data = await new Promise((resolve, reject) => {
-            const req = https.get('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT', { headers: { 'User-Agent': AGENT } }, (r) => {
-                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
-            });
-            req.on('error', reject); req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
-        });
-        const p = parseFloat(JSON.parse(data).price);
-        if (p) return p;
-    } catch {}
-    return null;
+            const p = parseFloat(JSON.parse(data).price);
+            if (p && p > 0.01) return p;
+        } catch {}
+    }
+    return polPriceCache.price || 0.5;
 }
 app.get('/api/pol-price', async (req, res) => {
     try {
-        if (Date.now() - polPriceCache.time < 60000) return res.json({ price: polPriceCache.price });
-        const price = await fetchPolPrice();
-        if (price) polPriceCache = { price, time: Date.now() };
-        res.json({ price: price || polPriceCache.price || 0.5 });
+        if (Date.now() - polPriceCache.time > 60000) {
+            polPriceCache.price = await fetchPolPrice();
+            polPriceCache.time = Date.now();
+        }
+        res.json({ price: polPriceCache.price || 0.5 });
     } catch {
         res.json({ price: polPriceCache.price || 0.5 });
     }
