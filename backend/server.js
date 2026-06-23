@@ -64,8 +64,8 @@ app.post('/api/admin/cleanup', async (req, res) => {
 // POL price endpoint (server-side fetch avoids CORS)
 let polPriceCache = { price: 0, time: 0 };
 const POL_PRICE_SOURCES = [
-    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
     'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
+    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
 ];
 async function fetchPolPrice() {
     const https = require('https');

@@ -32,12 +32,12 @@ function httpGet(url) {
 
 async function fetchPolPrice() {
     try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
+        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
     } catch(e) { }
     try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
+        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
         const parsed = JSON.parse(body);
         if (parsed && parsed.price) return parseFloat(parsed.price);
     } catch(e) { }
