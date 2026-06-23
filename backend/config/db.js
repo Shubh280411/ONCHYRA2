@@ -28,5 +28,4 @@ try {
     console.warn('Firebase Admin initialization skipped:', e.message);
 }
 
-module.exports = function initializeFirebase() { return admin ? admin.firestore() : null; };
 module.exports.admin = admin;

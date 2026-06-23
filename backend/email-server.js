@@ -1,9 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const initializeFirebase = require('./config/db');
-
-initializeFirebase();
 
 const emailRoutes = require('./routes/emailRoutes');
 
