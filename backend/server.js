@@ -61,6 +61,38 @@ app.post('/api/admin/cleanup', async (req, res) => {
     }
 });
 
+// POL price endpoint (server-side fetch avoids CORS)
+let polPriceCache = { price: 0.5, time: 0 };
+app.get('/api/pol-price', async (req, res) => {
+    try {
+        if (Date.now() - polPriceCache.time < 60000) return res.json({ price: polPriceCache.price });
+        const https = require('https');
+        const data = await new Promise((resolve, reject) => {
+            https.get('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd', (r) => {
+                let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+            }).on('error', reject);
+        });
+        const price = JSON.parse(data)['matic-network']?.usd || 0.5;
+        polPriceCache = { price, time: Date.now() };
+        res.json({ price });
+    } catch {
+        // Binance fallback
+        try {
+            const https = require('https');
+            const data = await new Promise((resolve, reject) => {
+                https.get('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', (r) => {
+                    let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
+                }).on('error', reject);
+            });
+            const price = parseFloat(JSON.parse(data).price) || 0.5;
+            polPriceCache = { price, time: Date.now() };
+            res.json({ price });
+        } catch {
+            res.json({ price: polPriceCache.price });
+        }
+    }
+});
+
 rewardScheduler.start();
 blockchainMonitor.start();
 storageManager.start();

@@ -169,20 +169,11 @@ const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 
 
 async function loadPolPrice() {
     try {
-        const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd');
-        if (!resp.ok) throw new Error('Failed');
+        const resp = await fetch(API_BASE + '/api/pol-price');
+        if (!resp.ok) return;
         const data = await resp.json();
-        const price = data['matic-network']?.usd;
-        if (price) document.getElementById('polPriceDisplay').textContent = '$' + price.toFixed(4);
-    } catch {
-        try {
-            const resp = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data.price) document.getElementById('polPriceDisplay').textContent = '$' + parseFloat(data.price).toFixed(4);
-            }
-        } catch {}
-    }
+        if (data.price) document.getElementById('polPriceDisplay').textContent = '$' + parseFloat(data.price).toFixed(4);
+    } catch {}
 }
 loadPolPrice();
 setInterval(loadPolPrice, 60000);
