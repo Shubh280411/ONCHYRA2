@@ -67,7 +67,7 @@ async function getNextIndex() {
     if (!counterInitialized) {
         try {
             const row = await pg.get('settings', 'hdWalletCounter', 'key');
-            memCounter = row ? parseInt(row.value?.nextIndex || row.next_index || 1) : 1;
+            memCounter = row ? parseInt(row.value?.nextIndex || 1) : 1;
         } catch(e) {
             console.warn('[HD] PG counter unavailable, starting from index 1');
             memCounter = 1;
@@ -103,15 +103,6 @@ exports.createWallet = async (req, res) => {
 
         console.log(`[HD] Generated address ${address} for uid=${uid} network=${network} index=${index}`);
         res.json({ address, network, index });
-    } catch(e) { res.status(500).json({ error: e.message }); }
-};
-
-exports.getWalletPrivateKey = async (req, res) => {
-    try {
-        const { index } = req.params;
-        const path = `m/44/60/0/0/${index}`;
-        const child = getMasterNode().derivePath(path);
-        res.json({ index: parseInt(index), address: child.address, privateKey: child.privateKey });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
 

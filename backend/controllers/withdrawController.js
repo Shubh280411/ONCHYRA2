@@ -26,27 +26,33 @@ exports.request = async (req, res) => {
         const deductField = user.commission_balance !== undefined && user.commission_balance !== null ? 'commission_balance' : 'balance';
         await pg.increment('users', uid, deductField, -amount);
 
-        const wRes = await pg.query(
-            `INSERT INTO withdrawals (uid, amount, fee, net_amount, wallet, network, status, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-            [uid, amount, fee, net, wallet, network || 'BEP20', status, Date.now()]
-        );
-        const wId = wRes.rows[0].id;
-
+        const wId = 'w_' + uid + '_' + Date.now();
         await pg.query(
-            `INSERT INTO audit_logs (type, uid, amount, fee, net, wallet, status, created_at)
-             VALUES ('withdrawal', $1, $2, $3, $4, $5, $6, $7)`,
-            [uid, amount, fee, net, wallet, status, Date.now()]
+            `INSERT INTO withdrawals (id, uid, amount, fee, net_amount, wallet, network, status, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [wId, uid, amount, fee, net, wallet, network || 'BEP20', status, Date.now()]
+        );
+
+        const aId = 'audit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        await pg.query(
+            `INSERT INTO audit_logs (id, type, uid, amount, fee, net, wallet, status, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [aId, 'withdrawal', uid, amount, fee, net, wallet, status, Date.now()]
         );
 
         if (isAuto) {
             withdrawalWallet.sendUSDT(wallet, net).then(txResult => {
-                pg.query(
-                    `UPDATE withdrawals SET status = $1, tx_hash = $2, completed_at = $3${txResult.error ? `, error = $4` : ''} WHERE id = $4`,
-                    txResult.success
-                        ? ['completed', txResult.txHash || null, Date.now(), wId]
-                        : ['failed', null, null, txResult.error, wId]
-                ).catch(e => console.error('Auto-withdraw update error:', e));
+                if (txResult.success) {
+                    pg.query(
+                        `UPDATE withdrawals SET status = $1, tx_hash = $2, completed_at = $3 WHERE id = $4`,
+                        ['completed', txResult.txHash || null, Date.now(), wId]
+                    ).catch(e => console.error('Auto-withdraw update error:', e));
+                } else {
+                    pg.query(
+                        `UPDATE withdrawals SET status = $1, error = $2 WHERE id = $3`,
+                        ['failed', txResult.error, wId]
+                    ).catch(e => console.error('Auto-withdraw update error:', e));
+                }
             }).catch(e => {
                 console.error('Auto-withdraw send error:', e);
                 pg.query(`UPDATE withdrawals SET status = 'failed', error = $1 WHERE id = $2`, [e.message, wId]).catch(() => {});
@@ -83,12 +89,17 @@ exports.approve = async (req, res) => {
         if (txResult.success) updates.completed_at = Date.now();
         if (txResult.error) updates.error = txResult.error;
 
-        await pg.query(
-            `UPDATE withdrawals SET status = $1, approved_at = $2, tx_hash = $3${txResult.success ? ', completed_at = $4' : ''}${txResult.error ? ', error = $5' : ''} WHERE id = $6`,
-            txResult.success
-                ? [updates.status, updates.approved_at, updates.tx_hash, updates.completed_at, id]
-                : [updates.status, updates.approved_at, updates.tx_hash, txResult.error, id]
-        );
+        if (txResult.success) {
+            await pg.query(
+                `UPDATE withdrawals SET status = $1, approved_at = $2, tx_hash = $3, completed_at = $4 WHERE id = $5`,
+                ['completed', updates.approved_at, updates.tx_hash, updates.completed_at, id]
+            );
+        } else {
+            await pg.query(
+                `UPDATE withdrawals SET status = $1, approved_at = $2, tx_hash = $3, error = $4 WHERE id = $5`,
+                ['failed', updates.approved_at, updates.tx_hash, txResult.error, id]
+            );
+        }
 
         if (txResult.success) {
             res.json({ success: true, txHash: txResult.txHash, message: 'USDT sent' });
