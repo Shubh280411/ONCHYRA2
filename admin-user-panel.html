@@ -609,7 +609,7 @@ const db = {};
             list.innerHTML = '';
             snap.forEach(d => {
                 const t = d.data();
-                const ts = t.createdAt ? formatTime(t.createdAt.toDate()) : 'Recently';
+                const ts = t.createdAt ? formatTime(typeof t.createdAt.toDate === 'function' ? t.createdAt.toDate() : new Date(Number(t.createdAt))) : 'Recently';
                 const isAdd = t.type === 'add';
                 list.innerHTML += `
                     <div class="tx-item">
