@@ -61,44 +61,12 @@ app.post('/api/admin/cleanup', async (req, res) => {
     }
 });
 
-// POL price endpoint (server-side fetch avoids CORS)
-let polPriceCache = { price: 0, time: 0 };
-const POL_PRICE_SOURCES = [
-    'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
-    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
-    'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
-];
-async function fetchPolPrice() {
-    for (const url of POL_PRICE_SOURCES) {
-        try {
-            const resp = await fetch(url, {
-                headers: { 'User-Agent': 'Mozilla/5.0' },
-                signal: AbortSignal.timeout(8000),
-            });
-            if (!resp.ok) { console.error('[PRICE] HTTP', resp.status, url); continue; }
-            const data = await resp.json();
-            let p;
-            if (url.includes('coingecko')) {
-                p = data['matic-network']?.usd;
-            } else {
-                p = parseFloat(data.price);
-            }
-            console.log('[PRICE] Got', p, 'from', url);
-            if (p && p > 0.001) return p;
-        } catch(e) { console.error('[PRICE] Failed', url, e.message); }
-    }
-    return polPriceCache.price || 0.3;
-}
+const priceFetcher = require('./config/priceFetcher');
+
+// POL price endpoint
 app.get('/api/pol-price', async (req, res) => {
-    try {
-        if (Date.now() - polPriceCache.time > 60000) {
-            polPriceCache.price = await fetchPolPrice();
-            polPriceCache.time = Date.now();
-        }
-        res.json({ price: polPriceCache.price || 0.3 });
-    } catch {
-        res.json({ price: polPriceCache.price || 0.3 });
-    }
+    try { res.json(await priceFetcher.getPriceCached()); }
+    catch { res.json({ price: 0 }); }
 });
 
 rewardScheduler.start();

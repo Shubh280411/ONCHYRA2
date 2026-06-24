@@ -1,46 +1,15 @@
 const pg = require('../config/pg');
+const priceFetcher = require('../config/priceFetcher');
 const { Mnemonic, HDNodeWallet } = require('ethers');
 
 const MNEMONIC = process.env.HD_WALLET_SEED;
 if (!MNEMONIC) console.error('HD_WALLET_SEED not set in .env');
 
-let polPriceCache = { price: 0, time: 0 };
-
-const POL_PRICE_SRC = [
-    'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
-    'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
-    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
-];
-
-async function fetchPolPrice() {
-    for (const url of POL_PRICE_SRC) {
-        try {
-            const resp = await fetch(url, {
-                headers: { 'User-Agent': 'Mozilla/5.0' },
-                signal: AbortSignal.timeout(8000),
-            });
-            if (!resp.ok) continue;
-            const data = await resp.json();
-            let p;
-            if (url.includes('coingecko')) p = data['matic-network']?.usd;
-            else p = parseFloat(data.price);
-            if (p && p > 0.001) return p;
-        } catch(e) {}
-    }
-    throw new Error('All price sources failed');
-}
-
 async function getPolUsdPrice() {
-    if (Date.now() - polPriceCache.time < 300000) return polPriceCache.price;
-    try {
-        const price = await fetchPolPrice();
-        polPriceCache = { price, time: Date.now() };
-        return price;
-    } catch(e) {
-        if (polPriceCache.price > 0) return polPriceCache.price;
-        console.warn('[PRICE] All POL price sources failed, using 0');
-        return 0;
-    }
+    const p = await priceFetcher.getPrice();
+    if (p > 0) return p;
+    console.warn('[PRICE] All POL price sources failed, using 0');
+    return 0;
 }
 
 let masterNode = null;
