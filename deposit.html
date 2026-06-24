@@ -160,8 +160,18 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
 const db = getFirestore(app);
-let uid, currentNetwork = 'BEP20', currentAddress = null, depositPollTimer = null;
+let uid, currentNetwork = 'BEP20', currentAddress = null;
 const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
+
+function fmtDate(ts) {
+    if (!ts && ts !== 0) return '-';
+    try {
+        const d = new Date(Number(ts));
+        if (isNaN(d.getTime())) return '-';
+        const pad = n => String(n).padStart(2,'0');
+        return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    } catch(e) { return '-'; }
+}
 
 function showToast(msg, isErr) {
     const t = document.getElementById('toast');
@@ -275,7 +285,7 @@ async function loadDepHistory() {
         items = items.filter(p => (p.amount || 0) > 0);
         if (items.length === 0) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
         container.innerHTML = items.map((p, i) => {
-            const date = p.created_at ? new Date(p.created_at).toLocaleDateString() : '-';
+            const date = fmtDate(p.created_at);
             const isPol = p.network === 'Polygon';
             const symbol = isPol ? 'POL' : 'USDT';
             const logo = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/tether-usdt-logo.svg';
@@ -305,7 +315,7 @@ window.showDepDetail = (i) => {
     const usdAmt = Number(p.amount) || 0;
     const polPrice = Number(p.pol_price) || 0;
     const txHash = p.tx_hash || '-';
-    const date = p.created_at ? new Date(p.created_at).toLocaleString() : '-';
+    const date = fmtDate(p.created_at);
     const networkName = p.network === 'Polygon' ? '<span style="color:#8247e5;">Polygon</span>' : '<span style="color:#f0b90b;">BEP20</span>';
 
     document.getElementById('detailContent').innerHTML = `
