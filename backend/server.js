@@ -66,24 +66,28 @@ let polPriceCache = { price: 0, time: 0 };
 const POL_PRICE_SOURCES = [
     'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
     'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
+    'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
 ];
 async function fetchPolPrice() {
-    const https = require('https');
     for (const url of POL_PRICE_SOURCES) {
         try {
-            const data = await new Promise((resolve, reject) => {
-                const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (r) => {
-                    let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
-                });
-                req.on('error', (e) => { console.error('[PRICE] Request error:', e.message); reject(e); });
-                req.setTimeout(5000, () => { req.destroy(); console.error('[PRICE] Timeout for', url); reject(new Error('timeout')); });
+            const resp = await fetch(url, {
+                headers: { 'User-Agent': 'Mozilla/5.0' },
+                signal: AbortSignal.timeout(8000),
             });
-            const p = parseFloat(JSON.parse(data).price);
-            console.log('[PRICE] Got from', url, '->', p);
-            if (p && p > 0.01) return p;
+            if (!resp.ok) { console.error('[PRICE] HTTP', resp.status, url); continue; }
+            const data = await resp.json();
+            let p;
+            if (url.includes('coingecko')) {
+                p = data['matic-network']?.usd;
+            } else {
+                p = parseFloat(data.price);
+            }
+            console.log('[PRICE] Got', p, 'from', url);
+            if (p && p > 0.001) return p;
         } catch(e) { console.error('[PRICE] Failed', url, e.message); }
     }
-    return polPriceCache.price || 0.5;
+    return polPriceCache.price || 0.3;
 }
 app.get('/api/pol-price', async (req, res) => {
     try {
@@ -91,9 +95,9 @@ app.get('/api/pol-price', async (req, res) => {
             polPriceCache.price = await fetchPolPrice();
             polPriceCache.time = Date.now();
         }
-        res.json({ price: polPriceCache.price || 0.5 });
+        res.json({ price: polPriceCache.price || 0.3 });
     } catch {
-        res.json({ price: polPriceCache.price || 0.5 });
+        res.json({ price: polPriceCache.price || 0.3 });
     }
 });
 

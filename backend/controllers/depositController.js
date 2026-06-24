@@ -1,38 +1,32 @@
 const pg = require('../config/pg');
 const { Mnemonic, HDNodeWallet } = require('ethers');
-const https = require('https');
 
 const MNEMONIC = process.env.HD_WALLET_SEED;
 if (!MNEMONIC) console.error('HD_WALLET_SEED not set in .env');
 
 let polPriceCache = { price: 0, time: 0 };
 
-function httpGet(url) {
-    return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
-            let data = '';
-            res.on('data', c => data += c);
-            res.on('end', () => resolve(data));
-        }).on('error', reject);
-    });
-}
+const POL_PRICE_SRC = [
+    'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
+    'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
+    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
+];
 
 async function fetchPolPrice() {
-    try {
-        const body = await httpGet('https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd');
-        const parsed = JSON.parse(body);
-        if (parsed && parsed['matic-network'] && parsed['matic-network'].usd) return parsed['matic-network'].usd;
-    } catch(e) { }
-    try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT');
-        const parsed = JSON.parse(body);
-        if (parsed && parsed.price) return parseFloat(parsed.price);
-    } catch(e) { }
-    try {
-        const body = await httpGet('https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT');
-        const parsed = JSON.parse(body);
-        if (parsed && parsed.price) return parseFloat(parsed.price);
-    } catch(e) { }
+    for (const url of POL_PRICE_SRC) {
+        try {
+            const resp = await fetch(url, {
+                headers: { 'User-Agent': 'Mozilla/5.0' },
+                signal: AbortSignal.timeout(8000),
+            });
+            if (!resp.ok) continue;
+            const data = await resp.json();
+            let p;
+            if (url.includes('coingecko')) p = data['matic-network']?.usd;
+            else p = parseFloat(data.price);
+            if (p && p > 0.001) return p;
+        } catch(e) {}
+    }
     throw new Error('All price sources failed');
 }
 
