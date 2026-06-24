@@ -151,6 +151,7 @@
         <div id="commLoading" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">Loading commissions...</div>
         <div id="commError" style="display:none;text-align:center;padding:12px;color:#ef4444;font-size:11px;background:rgba(239,68,68,0.1);border-radius:10px;margin-bottom:8px;"></div>
         <div class="list-card" id="commList"></div>
+        <div id="commPagination" style="margin-top:6px;"></div>
     </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -170,7 +171,7 @@ let uid, refCode, userData;
 let teamData = { 1: [], 2: [], 3: [] };
 let allCommissions = [];
 let l1BizCache = {};
-let teamPage = 1, teamTotal = 0;
+let teamPage = 1, teamTotal = 0, commPage = 1;
 
 function fmtDate(ts) {
     if (!ts) return '-';
@@ -198,6 +199,8 @@ window.switchTab = (tab) => {
     document.getElementById('tabComm').className = tab === 'comm' ? 'tab active' : 'tab';
     document.getElementById('teamView').style.display = tab === 'team' ? 'block' : 'none';
     document.getElementById('commView').style.display = tab === 'comm' ? 'block' : 'none';
+    if (tab === 'comm') history.replaceState(null, '', updateURLParam('commPage', commPage));
+    else history.replaceState(null, '', updateURLParam('teamPage', teamPage));
 };
 
 // ── Stats (1 read from /api/user/:uid, cached 5min) ──
@@ -310,7 +313,7 @@ async function loadTeam(page) {
     l1BizCache = {};
     for (const u of teamData[1]) l1BizCache[u.referralCode] = u.totalPackageSpend || 0;
     renderTeam();
-    history.replaceState(null, '', '?teamPage=' + teamPage);
+    history.replaceState(null, '', updateURLParam('teamPage', teamPage));
 }
 
 async function loadLevel(lvl, page) {
@@ -347,7 +350,7 @@ async function loadLevel(lvl, page) {
         l1BizCache[u.referralCode] = biz;
     }
     renderTeam();
-    history.replaceState(null, '', '?teamPage=' + teamPage);
+    history.replaceState(null, '', updateURLParam('teamPage', teamPage));
 }
 
 function renderTeam() {
@@ -408,7 +411,7 @@ window.goToPage = (page) => {
     } else {
         teamPage = page;
         renderTeam();
-        history.replaceState(null, '', '?teamPage=' + page);
+        history.replaceState(null, '', updateURLParam('teamPage', page));
         document.getElementById('teamList').scrollIntoView({ behavior: 'smooth' });
     }
 };
@@ -417,7 +420,7 @@ document.getElementById('lvlFilter').addEventListener('change', async () => {
     await loadLevel(document.getElementById('lvlFilter').value);
 });
 
-// ── Commissions (limit 30, sorted by backend) ──
+// ── Commissions (paginated 10 per page, URL-based) ──
 async function loadCommissions() {
     if (!uid) return;
     document.getElementById('commLoading').style.display = 'block';
@@ -432,27 +435,71 @@ async function loadCommissions() {
         allCommissions = [];
     }
     document.getElementById('commLoading').style.display = 'none';
+    commPage = parseInt(new URLSearchParams(location.search).get('commPage')) || 1;
+    renderCommissions();
+}
+
+function renderCommissions() {
     const container = document.getElementById('commList');
-    if (allCommissions.length === 0) {
+    const all = allCommissions;
+    if (all.length === 0) {
         container.innerHTML = '<div class="empty-state">No commissions yet</div>';
         document.getElementById('todayOnc').textContent = '0 ONC';
         document.getElementById('todayComm').textContent = '$0.00';
+        document.getElementById('commPagination').innerHTML = '';
         return;
     }
+    // Today's earnings (from all commissions)
     let todayOnc = 0, todayUsdt = 0;
     const todayStr = new Date().toDateString();
-    container.innerHTML = allCommissions.map(c => {
+    for (const c of all) {
         if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) {
-            if (c.type === 'registration_bonus') todayOnc += c.amount || 0;
-            else todayUsdt += c.amount || 0;
+            if (c.type === 'registration_bonus') todayOnc += Number(c.amount) || 0;
+            else todayUsdt += Number(c.amount) || 0;
         }
+    }
+    document.getElementById('todayOnc').textContent = todayOnc.toFixed(2) + ' ONC';
+    document.getElementById('todayComm').textContent = '$' + todayUsdt.toFixed(2);
+
+    // Paginated items
+    const start = (commPage - 1) * 10;
+    const items = all.slice(start, start + 10);
+    if (items.length === 0) { commPage = 1; return renderCommissions(); }
+
+    container.innerHTML = items.map(c => {
         const typeLabel = c.type === 'registration_bonus' ? 'Registration' : c.type === 'matching_bonus' ? 'Matching' : 'Package';
         const typeColor = c.type === 'registration_bonus' ? 'var(--amber)' : c.type === 'matching_bonus' ? 'var(--secondary)' : 'var(--green)';
         const cur = c.type === 'registration_bonus' ? ' ONC' : '$';
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+${cur}${c.amount.toFixed(2)}</span></div>`;
+        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${c.fromName || 'User'}</div><div class="li-meta"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.04);color:${typeColor};">${typeLabel}</span><span>Level ${c.level}</span><span>${fmtDate(c.createdAt)}</span></div></div></div><span class="li-amount">+${cur}${(Number(c.amount)||0).toFixed(2)}</span></div>`;
     }).join('');
-    document.getElementById('todayOnc').textContent = todayOnc.toFixed(2) + ' ONC';
-    document.getElementById('todayComm').textContent = '$' + todayUsdt.toFixed(2);
+
+    const totalPages = Math.ceil(all.length / 10) || 1;
+    renderCommPagination(totalPages, commPage);
+}
+
+function renderCommPagination(totalPages, current) {
+    let html = '<div style="display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap;">';
+    if (current > 1) html += `<button onclick="goToCommPage(${current-1})" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:white;font-weight:700;font-size:11px;cursor:pointer;">‹ Prev</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+        const a = i === current ? 'background:var(--primary);color:#000;border-color:var(--primary);' : 'background:var(--card);border-color:var(--border);color:white;';
+        html += `<button onclick="goToCommPage(${i})" style="padding:8px 12px;border-radius:8px;border:1px solid;${a}font-weight:700;font-size:11px;cursor:pointer;">${i}</button>`;
+    }
+    if (current < totalPages) html += `<button onclick="goToCommPage(${current+1})" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:white;font-weight:700;font-size:11px;cursor:pointer;">Next ›</button>`;
+    html += '</div>';
+    document.getElementById('commPagination').innerHTML = html;
+}
+
+window.goToCommPage = (page) => {
+    commPage = page;
+    renderCommissions();
+    history.replaceState(null, '', updateURLParam('commPage', page));
+    document.getElementById('commList').scrollIntoView({ behavior: 'smooth' });
+};
+
+function updateURLParam(key, val) {
+    const url = new URL(location.href);
+    url.searchParams.set(key, val);
+    return url.pathname + url.search;
 }
 
 onAuthStateChanged(auth, async (user) => {
