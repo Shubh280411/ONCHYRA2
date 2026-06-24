@@ -103,21 +103,6 @@
         <svg class="n-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
     </div>
 
-    <!-- POL Price Card -->
-    <div class="card" style="margin-top:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <img src="https://cryptologos.cc/logos/polygon-matic-logo.svg" alt="POL" style="width:24px;height:24px;">
-            <div>
-                <div style="font-size:13px;font-weight:700;">POL / USD</div>
-                <div style="font-size:10px;color:rgba(255,255,255,0.3);">Live Price</div>
-            </div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-family:'Space Grotesk';font-weight:900;font-size:18px;" id="polPriceDisplay">—</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.2);">1 POL</div>
-        </div>
-    </div>
-
     <!-- Deposit Modal -->
     <div class="overlay" id="depositOverlay">
         <div class="modal">
@@ -143,6 +128,17 @@
         </div>
     </div>
 
+    <!-- Deposit Detail Modal -->
+    <div class="overlay" id="detailOverlay">
+        <div class="modal" style="text-align:left;">
+            <div style="font-size:16px;font-weight:900;font-family:'Space Grotesk';margin-bottom:16px;">Deposit Details</div>
+            <div id="detailContent">
+                <div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">Loading...</div>
+            </div>
+            <button class="m-close" onclick="closeDetail()">Close</button>
+        </div>
+    </div>
+
     <!-- Recent Deposits -->
     <div class="card">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.3);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
@@ -159,24 +155,13 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, collection, query, where, limit, onSnapshot   } from "./supabase-adapter.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
-const db = {};
-let uid, currentNetwork = 'BEP20', currentAddress = null;
+const db = getFirestore(app);
+let uid, currentNetwork = 'BEP20', currentAddress = null, depositPollTimer = null;
 const API_BASE = localStorage.getItem('onc_api_base') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000' : 'https://onchyra-backend.onrender.com');
-
-async function loadPolPrice() {
-    try {
-        const resp = await fetch(API_BASE + '/api/pol-price');
-        if (!resp.ok) return;
-        const data = await resp.json();
-        if (data.price) document.getElementById('polPriceDisplay').textContent = '$' + parseFloat(data.price).toFixed(4);
-    } catch {}
-}
-loadPolPrice();
-setInterval(loadPolPrice, 60000);
 
 function showToast(msg, isErr) {
     const t = document.getElementById('toast');
@@ -253,66 +238,118 @@ window.copyModalAddr = async () => {
 };
 
 function listenForDeposit(address, network) {
-    let detected = false;
-    const q = query(collection(db, 'deposits'), where('uid', '==', uid), where('address', '==', address.toLowerCase()), limit(1));
-    onSnapshot(q, (snap) => {
-        if (detected || snap.empty) return;
-        const d = snap.docs[0].data();
-        if (!d || !d.amount) return;
-        detected = true;
-        const symbol = d.network === 'Polygon' ? 'POL' : 'USDT';
-        let msg, icon;
-        if (symbol === 'POL') {
-            msg = (d.polAmount || 0) + ' POL received';
-            icon = 'https://cryptologos.cc/logos/polygon-matic-logo.svg';
-        } else {
-            msg = '$' + d.amount.toFixed(2) + ' USDT received';
-            icon = 'https://cryptologos.cc/logos/tether-usdt-logo.svg';
-        }
-        document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
-        document.getElementById('successOverlay').classList.add('show');
-        const wl = document.getElementById('waitLabel');
-        if (wl) wl.textContent = '✅ Received';
-        loadDepHistory();
-    });
+    let detected = false, pollCount = 0;
+    const maxPolls = 120;
+
+    async function poll() {
+        if (detected) return;
+        try {
+            const r = await fetch(API_BASE + '/api/deposits/' + uid);
+            if (!r.ok) return;
+            const deps = await r.json();
+            const match = deps.find(d => d.address === address.toLowerCase() && d.status === 'completed');
+            if (!match) return;
+            detected = true;
+            const isPol = match.network === 'Polygon';
+            const rawAmount = isPol ? (match.pol_amount || 0) : (match.amount || 0);
+            const symbol = isPol ? 'POL' : 'USDT';
+            const icon = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/tether-usdt-logo.svg';
+            const msg = isPol ? rawAmount + ' POL ($' + (match.amount || 0).toFixed(2) + ')' : '$' + (match.amount || 0).toFixed(2) + ' USDT';
+            document.getElementById('successMsg').innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"> ${msg}`;
+            document.getElementById('successOverlay').classList.add('show');
+            const wl = document.getElementById('waitLabel');
+            if (wl) wl.textContent = '✅ Received';
+            loadDepHistory();
+        } catch(e) {}
+        if (!detected && pollCount < maxPolls) { pollCount++; setTimeout(poll, 3000); }
+    }
+    poll();
 }
 
 async function loadDepHistory() {
     const container = document.getElementById('depHistory');
     try {
-        const snap = await getDocs(query(collection(db, 'deposits'), where('uid', '==', uid), limit(20)));
-        if (snap.empty) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
-        let items = snap.docs.map(d => { return { id: d.id, ...d.data() }; });
+        const r = await fetch(API_BASE + '/api/deposits/' + uid);
+        if (!r.ok) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
+        let items = await r.json();
         items = items.filter(p => (p.amount || 0) > 0);
         if (items.length === 0) { container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>'; return; }
-        items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        container.innerHTML = items.map(p => {
-            const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-';
-            const isPol = (p.token || '').toUpperCase() === 'POL';
+        container.innerHTML = items.map((p, i) => {
+            const date = p.created_at ? new Date(p.created_at).toLocaleDateString() : '-';
+            const isPol = p.network === 'Polygon';
             const symbol = isPol ? 'POL' : 'USDT';
-            const logo = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/bnb-bnb-logo.svg';
+            const logo = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/tether-usdt-logo.svg';
             let label;
             if (isPol) {
-                label = (p.polAmount || 0) + ' POL';
+                const raw = Number(p.pol_amount) || 0;
+                label = raw + ' POL <span style="opacity:0.4">→ $' + (Number(p.amount) || 0).toFixed(2) + '</span>';
             } else {
-                label = '$' + (p.amount || 0).toFixed(2) + ' USDT';
+                label = '$' + (Number(p.amount) || 0).toFixed(2) + ' USDT';
             }
             const statusColor = p.status === 'completed' ? '#22c55e' : '#fbbf24';
-            return `<div class="dep-item"><span><img src="${logo}" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;">${label} <span style="opacity:0.3">${date}</span></span><span style="color:${statusColor};font-weight:700;">${p.status || 'pending'}</span></div>`;
-        }).join('');
+            return `<div class="dep-item" onclick="showDepDetail(${i})" style="cursor:pointer;"><span><img src="${logo}" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;">${label} <span style="opacity:0.3">${date}</span></span><span style="color:${statusColor};font-weight:700;">${p.status || 'pending'}</span></div>`;
+        });
+        window._depItems = items;
     } catch(e) {
-        console.error('[Deposit] History error:', e);
         container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>';
     }
 }
 
+window.showDepDetail = (i) => {
+    const p = window._depItems[i];
+    if (!p) return;
+    const isPol = p.network === 'Polygon';
+    const symbol = isPol ? 'POL' : 'USDT';
+    const logo = isPol ? 'https://cryptologos.cc/logos/polygon-matic-logo.svg' : 'https://cryptologos.cc/logos/tether-usdt-logo.svg';
+    const rawAmt = isPol ? (Number(p.pol_amount) || 0) : (Number(p.amount) || 0);
+    const usdAmt = Number(p.amount) || 0;
+    const polPrice = Number(p.pol_price) || 0;
+    const txHash = p.tx_hash || '-';
+    const date = p.created_at ? new Date(p.created_at).toLocaleString() : '-';
+    const networkName = p.network === 'Polygon' ? '<span style="color:#8247e5;">Polygon</span>' : '<span style="color:#f0b90b;">BEP20</span>';
+
+    document.getElementById('detailContent').innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;">
+            <img src="${logo}" style="width:32px;height:32px;">
+            <div><div style="font-weight:800;font-size:15px;">${rawAmt} ${symbol}</div><div style="font-size:11px;color:rgba(255,255,255,0.3);">${networkName}</div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--green);">$${usdAmt.toFixed(2)}</div><div style="font-size:10px;color:rgba(255,255,255,0.2);">USD Value</div></div>
+        </div>
+        <div style="font-size:11px;line-height:2;color:rgba(255,255,255,0.5);">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:rgba(255,255,255,0.3);">Date</span><span style="color:white;">${date}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:rgba(255,255,255,0.3);">Amount</span><span style="color:white;">${rawAmt} ${symbol}</span></div>
+            ${isPol ? `<div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:rgba(255,255,255,0.3);">POL Price</span><span style="color:white;">$${polPrice.toFixed(4)}</span></div>` : ''}
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:rgba(255,255,255,0.3);">USD Value</span><span style="color:var(--green);font-weight:700;">$${usdAmt.toFixed(2)}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;word-break:break-all;"><span style="color:rgba(255,255,255,0.3);white-space:nowrap;margin-right:8px;">TX Hash</span><span style="color:rgba(255,255,255,0.6);font-family:monospace;font-size:10px;text-align:right;">${txHash}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:rgba(255,255,255,0.3);">Status</span><span style="color:${p.status === 'completed' ? '#22c55e' : '#fbbf24'};font-weight:700;">${p.status || 'pending'}</span></div>
+        </div>
+    `;
+    document.getElementById('detailOverlay').classList.add('show');
+};
+
+window.closeDetail = () => {
+    document.getElementById('detailOverlay').classList.remove('show');
+};
+
 onAuthStateChanged(auth, async user => {
     if (!user) { window.location = 'register.html'; return; }
     uid = user.uid;
-    const snap = await getDoc(doc(db, 'users', uid));
-    if (!snap.exists()) { window.location = 'register.html'; return; }
-    const data = snap.data();
-    document.getElementById('walletBalance').textContent = '$' + (data.walletBalance || 0).toFixed(2);
+    // Load balance from backend
+    try {
+        const r = await fetch(API_BASE + '/api/user/' + uid);
+        if (r.ok) {
+            const d = await r.json();
+            document.getElementById('walletBalance').textContent = '$' + (Number(d.walletBalance) || 0).toFixed(2);
+        } else {
+            // Fallback to Firestore
+            const snap = await getDoc(doc(db, 'users', uid));
+            if (snap.exists()) document.getElementById('walletBalance').textContent = '$' + (snap.data().walletBalance || 0).toFixed(2);
+        }
+    } catch(e) {
+        try {
+            const snap = await getDoc(doc(db, 'users', uid));
+            if (snap.exists()) document.getElementById('walletBalance').textContent = '$' + (snap.data().walletBalance || 0).toFixed(2);
+        } catch(e2) {}
+    }
     loadDepHistory();
 });
 </script>

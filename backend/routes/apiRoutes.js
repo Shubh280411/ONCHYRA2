@@ -504,6 +504,7 @@ router.get('/user/:uid', async (req, res) => {
             referralCode: refCode,
             refLevel1, refLevel2, refLevel3,
             totalCommissions,
+            walletBalance: Number(u.wallet_balance) || 0,
             totalDirects: Number(u.total_directs) || 0,
             activeDirects: Number(u.active_directs) || 0,
             teamBiz: Number(u.team_biz) || 0,
