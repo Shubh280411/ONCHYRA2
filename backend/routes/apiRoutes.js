@@ -71,17 +71,29 @@ router.get('/otp/list', otp.list);
 router.get('/check-referral/:code', async (req, res) => {
     try {
         const code = req.params.code.toUpperCase();
-        const entry = refCache.lookup(code);
+        let entry = refCache.lookup(code);
         if (!entry) {
             try {
                 const rows = await pg.findWhere('users', { referral_code: code });
-                if (!rows.length) return res.json({ valid: false });
-                const d = rows[0];
-                refCache.add(code, d.uid, d.name, d.referred_by);
-                return res.json({ valid: true, uid: d.uid, name: d.name, referredBy: d.referred_by || null });
-            } catch(e) {
-                return res.json({ valid: false });
-            }
+                if (rows.length) {
+                    const d = rows[0];
+                    refCache.add(code, d.uid, d.name, d.referred_by);
+                    return res.json({ valid: true, uid: d.uid, name: d.name, referredBy: d.referred_by || null });
+                }
+            } catch(e) { /* fall through */ }
+            // Fallback: check Firestore for old users not yet in PostgreSQL
+            try {
+                const { admin } = require('../config/db');
+                if (admin) {
+                    const fsSnap = await admin.firestore().collection('users').where('referralCode', '==', code).limit(1).get();
+                    if (!fsSnap.empty) {
+                        const d = fsSnap.docs[0].data();
+                        refCache.add(code, d.uid, d.name, d.referredBy);
+                        return res.json({ valid: true, uid: d.uid, name: d.name, referredBy: d.referredBy || null });
+                    }
+                }
+            } catch(e) { /* Firestore fallback failed */ }
+            return res.json({ valid: false });
         }
         res.json({ valid: true, uid: entry.uid, name: entry.name, referredBy: entry.referredBy });
     } catch(e) { res.status(500).json({ error: e.message }); }
