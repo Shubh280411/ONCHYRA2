@@ -129,9 +129,9 @@ router.get('/referrals/team/:uid', async (req, res) => {
         const clean = (list) => list.map(u => ({
             uid: u.uid, name: u.name, referralCode: u.referral_code,
             activePackage: u.active_package, packageStatus: u.package_status,
-            totalPackageSpend: u.total_package_spend || 0,
+            totalPackageSpend: Number(u.total_package_spend) || 0,
             createdAt: u.created_at,
-            refLevel1: u.ref_level1 || 0, refLevel2: u.ref_level2 || 0, refLevel3: u.ref_level3 || 0,
+            refLevel1: Number(u.ref_level1) || 0, refLevel2: Number(u.ref_level2) || 0, refLevel3: Number(u.ref_level3) || 0,
         }));
 
         res.json({ levels: { 1: clean(l1), 2: clean(l2), 3: clean(l3) }, total, total2: l2.length, total3: l3.length });
@@ -143,7 +143,7 @@ router.get('/referrals/commissions/:uid', async (req, res) => {
         const { uid } = req.params;
         const rows = await pg.findWhere('commissions', { uid }, 'created_at', 30);
         const commissions = rows.map(r => ({
-            id: r.id, amount: r.amount, level: r.level,
+            id: r.id, amount: Number(r.amount) || 0, level: Number(r.level) || 0,
             type: r.type, packageName: r.package_name,
             fromName: r.from_name, createdAt: r.created_at,
         }));

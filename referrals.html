@@ -330,10 +330,10 @@ async function loadLevel(lvl) {
     document.getElementById('teamLoading').style.display = 'none';
     l1BizCache = {};
     for (const u of teamData[1]) {
-        let biz = u.totalPackageSpend || 0;
+        let biz = Number(u.totalPackageSpend) || 0;
         for (const v of teamData[2]) {
-            if (v.referredBy === u.referralCode) { biz += v.totalPackageSpend || 0;
-                for (const w of teamData[3]) { if (w.referredBy === v.referralCode) biz += w.totalPackageSpend || 0; } }
+            if (v.referredBy === u.referralCode) { biz += Number(v.totalPackageSpend) || 0;
+                for (const w of teamData[3]) { if (w.referredBy === v.referralCode) biz += Number(w.totalPackageSpend) || 0; } }
         }
         l1BizCache[u.referralCode] = biz;
     }
@@ -351,8 +351,8 @@ function renderTeam() {
     }
     container.innerHTML = list.map(u => {
         const date = fmtDate(u.createdAt);
-        const tc = (u.refLevel1||0)+(u.refLevel2||0)+(u.refLevel3||0);
-        const biz = l1BizCache[u.referralCode] ?? (u.totalPackageSpend || 0);
+        const tc = (Number(u.refLevel1)||0) + (Number(u.refLevel2)||0) + (Number(u.refLevel3)||0);
+        const biz = typeof l1BizCache[u.referralCode] !== 'undefined' ? l1BizCache[u.referralCode] : (Number(u.totalPackageSpend) || 0);
         const badge = u.activePackage ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
         return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name || 'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
     }).join('');
