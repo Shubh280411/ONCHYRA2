@@ -158,9 +158,11 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 const API = localStorage.getItem('onc_api') || 'https://onchyra-backend.onrender.com/api';
 
@@ -208,8 +210,33 @@ async function loadStats() {
     }
     try {
         const resp = await fetch(API + '/user/' + uid);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        userData = await resp.json();
+        if (resp.status === 404) {
+            // User not in PostgreSQL — sync from Firestore
+            const fsSnap = await getDoc(doc(db, 'users', uid));
+            if (fsSnap.exists()) {
+                const fsData = fsSnap.data();
+                await fetch(API + '/user/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid,
+                        name: fsData.name,
+                        email: fsData.email,
+                        referralCode: fsData.referralCode,
+                        referredBy: fsData.referredBy || ''
+                    })
+                });
+                // Retry fetch after sync
+                const retry = await fetch(API + '/user/' + uid);
+                if (!retry.ok) throw new Error('HTTP ' + retry.status);
+                userData = await retry.json();
+            } else {
+                throw new Error('User not found in database');
+            }
+        } else {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            userData = await resp.json();
+        }
         localStorage.setItem(cacheKey, JSON.stringify({ d: userData, ts: Date.now() }));
         renderStats();
     } catch (e) {

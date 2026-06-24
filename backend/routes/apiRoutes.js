@@ -95,7 +95,7 @@ router.get('/referrals/team/:uid', async (req, res) => {
         const limitVal = Math.min(parseInt(req.query.limit) || 10, 50);
         const offset = parseInt(req.query.offset) || 0;
         const user = await pg.get('users', uid);
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user) return res.json({ levels: { 1: [], 2: [], 3: [] }, total: 0 });
         const refCode = user.referral_code;
         if (!refCode) return res.json({ levels: { 1: [], 2: [], 3: [] } });
 
@@ -425,6 +425,35 @@ router.get('/referrals/leg-stats/:uid', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Sync/create user in PostgreSQL (called from frontend when user exists in Firestore but not in PG)
+router.post('/user/sync', async (req, res) => {
+    try {
+        const { uid, name, email, referralCode, referredBy } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const existing = await pg.get('users', uid);
+        if (existing) return res.json({ synced: false, reason: 'already_exists' });
+        await pg.set('users', uid, {
+            name: name || 'User',
+            email: email || '',
+            referral_code: (referralCode || '').toUpperCase(),
+            referred_by: (referredBy || '').toUpperCase(),
+            balance: 0,
+            status: 'inactive',
+            referrals: 0,
+            ref_level1: 0,
+            ref_level2: 0,
+            ref_level3: 0,
+            total_package_spend: 0,
+            team_biz: 0,
+            total_directs: 0,
+            active_directs: 0,
+            commission_balance: 0,
+            created_at: Date.now()
+        });
+        res.json({ synced: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Get user stats for referrals page
 router.get('/user/:uid', async (req, res) => {
     try {
@@ -451,11 +480,32 @@ router.post('/register-commission', async (req, res) => {
         const { uid, referredBy } = req.body;
         if (!uid || !referredBy) return res.status(400).json({ error: 'Missing uid or referredBy' });
 
+        // Create user in PostgreSQL
+        const { name, email, referralCode } = req.body;
+        await pg.set('users', uid, {
+            name: name || 'User',
+            email: email || '',
+            referral_code: (referralCode || '').toUpperCase(),
+            referred_by: referredBy.toUpperCase(),
+            balance: 0,
+            status: 'inactive',
+            referrals: 0,
+            ref_level1: 0,
+            ref_level2: 0,
+            ref_level3: 0,
+            total_package_spend: 0,
+            team_biz: 0,
+            total_directs: 0,
+            active_directs: 0,
+            commission_balance: 0,
+            created_at: Date.now()
+        });
+
         const refRows = await pg.findWhere('users', { referral_code: referredBy.toUpperCase() });
         if (!refRows.length) return res.status(400).json({ error: 'Invalid referral code' });
 
         const newUserRow = await pg.get('users', uid);
-        const newUserName = newUserRow ? newUserRow.name : 'New User';
+        const newUserName = newUserRow ? newUserRow.name : 'User';
 
         const l1Data = refRows[0];
         const l1Uid = l1Data.uid;
