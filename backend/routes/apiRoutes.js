@@ -44,7 +44,6 @@ router.post('/deposit/manual', async (req, res) => {
         const tok = token || (network === 'Polygon' ? 'POL' : 'USDT');
         
         if (fixDepositId) {
-            // Fix existing deposit: update amount & adjust balance
             const old = await pg.query("SELECT amount FROM deposits WHERE id=$1", [fixDepositId]);
             if (!old.rows.length) return res.status(404).json({ error: 'Deposit not found' });
             const oldAmt = parseFloat(old.rows[0].amount) || 0;
@@ -66,6 +65,22 @@ router.post('/deposit/manual', async (req, res) => {
             [usdAmt.toFixed(2), uid]);
         console.log(`[MANUAL DEPOSIT] ${polAmt||usdAmt} ${tok} for ${uid}`);
         res.json({ success: true, depositId: depId });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Delete a deposit (admin/manual cleanup)
+router.post('/deposit/delete', async (req, res) => {
+    try {
+        const { depositId, uid } = req.body;
+        if (!depositId || !uid) return res.status(400).json({ error: 'Missing depositId or uid' });
+        const dep = await pg.query("SELECT amount FROM deposits WHERE id=$1 AND uid=$2", [depositId, uid]);
+        if (!dep.rows.length) return res.status(404).json({ error: 'Deposit not found' });
+        const amt = parseFloat(dep.rows[0].amount) || 0;
+        // Reverse the balance effect
+        if (amt !== 0) await pg.query("UPDATE users SET wallet_balance = COALESCE(wallet_balance, 0) - $1 WHERE uid = $2", [amt.toFixed(2), uid]);
+        await pg.query("DELETE FROM deposits WHERE id=$1", [depositId]);
+        console.log(`[MANUAL DELETE] ${depositId}: reversed $${amt} from ${uid}`);
+        res.json({ success: true, deleted: depositId, reversedAmount: amt });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
