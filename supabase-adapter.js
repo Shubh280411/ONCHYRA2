@@ -93,7 +93,10 @@ class DocSnapshot {
   data() { return this._data; }
 }
 class QuerySnapshot {
-  constructor(docs) { this.docs = docs.map(d => new DocSnapshot(d.id, d)); this.size = docs.length; this.empty = docs.length === 0; }
+  constructor(docs, pk) { 
+    this.docs = docs.map(d => new DocSnapshot(d[pk] || d.id, d));
+    this.size = docs.length; this.empty = docs.length === 0;
+  }
   forEach(fn) { this.docs.forEach(fn); }
 }
 
@@ -158,9 +161,10 @@ async function getDocs(queryRef) {
     if (orders.length) params.order = orders.map(o => camelToSnake(o.field) + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
     if (limitVal) params.limit = limitVal;
 
+    const pk = getPK(table);
     const data = await rest(table, { params });
-    return new QuerySnapshot(Array.isArray(data) ? data : []);
-  } catch (e) { console.error('getDocs error:', e); return new QuerySnapshot([]); }
+    return new QuerySnapshot(Array.isArray(data) ? data : [], pk);
+  } catch (e) { console.error('getDocs error:', e); return new QuerySnapshot([], 'id'); }
 }
 
 async function setDoc(ref, data) {

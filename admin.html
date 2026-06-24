@@ -283,7 +283,7 @@ async function loadStorageStats() {
     if (!resp.ok) return;
     const data = await resp.json();
     document.getElementById('dbSize').textContent = data.totalMB + ' MB';
-    document.getElementById('dbRows').textContent = data.tableSizes.reduce((a,t) => a + (t.rows || 0), 0).toLocaleString();
+    document.getElementById('dbRows').textContent = data.tableSizes.reduce((a,t) => a + Number(t.rows || 0), 0).toLocaleString();
     document.getElementById('dbTables').textContent = data.tableSizes.length;
     const largest = data.tableSizes.sort((a,b) => b.totalMB - a.totalMB)[0];
     if (largest) document.getElementById('dbLargest').textContent = largest.table + ' (' + largest.totalMB + ' MB)';
