@@ -33,6 +33,28 @@ router.post('/deposit/verify', deposit.verifyDeposit);
 router.get('/deposits', deposit.getDeposits);
 router.get('/deposits/:uid', deposit.userDeposits);
 router.get('/deposit/wallets/:uid', deposit.userWallets);
+router.post('/deposit/manual', async (req, res) => {
+    try {
+        const { uid, address, amount, network, token, polAmount, polPrice, usdAmount } = req.body;
+        if (!uid || !address || !network) return res.status(400).json({ error: 'Missing fields' });
+        const ts = Date.now();
+        const depId = 'dep_manual_' + uid.slice(0, 8) + '_' + ts;
+        const tx = 'manual_' + ts;
+        const polAmt = Number(polAmount) || 0;
+        const usdAmt = Number(usdAmount) || Number(amount) || 0;
+        const pPrice = Number(polPrice) || 0;
+        const tok = token || (network === 'Polygon' ? 'POL' : 'USDT');
+        await pg.query(
+            `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, pol_amount, pol_price, detected_at, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9, $10, $10)`,
+            [depId, uid, address, network, usdAmt.toFixed(2), tx, tok, polAmt, pPrice, ts]
+        );
+        await pg.query(`UPDATE users SET wallet_balance = COALESCE(wallet_balance, 0) + $1 WHERE uid = $2`,
+            [usdAmt.toFixed(2), uid]);
+        console.log(`[MANUAL DEPOSIT] ${polAmt||usdAmt} ${tok} for ${uid}`);
+        res.json({ success: true, depositId: depId });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // Packages
 router.get('/packages', packages.list);
