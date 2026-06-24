@@ -8,23 +8,26 @@ const SOURCES = [
 
 let cache = { price: 0, time: 0 };
 
-async function fetchJson(url) {
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 10000);
-    try {
-        const r = await fetch(url, { signal: ac.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return await r.json();
-    } finally { clearTimeout(t); }
+function httpsGet(url, timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+        const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, rejectUnauthorized: false }, res => {
+            let d = '';
+            res.on('data', c => d += c);
+            res.on('end', () => resolve(d));
+        });
+        req.on('error', reject);
+        req.setTimeout(timeoutMs, () => { req.destroy(); reject(new Error('timeout')); });
+    });
 }
 
 async function fetchPolPrice() {
     for (const src of SOURCES) {
         try {
-            const data = await fetchJson(src.url);
+            const body = await httpsGet(src.url);
+            const data = JSON.parse(body);
             const p = src.parse(data);
             if (p && p > 0.001) return p;
-        } catch (e) { console.error('[PRICE] Fail', src.url.split('?')[0], e.message); }
+        } catch (e) { console.error('[PRICE] Fail', src.url.split('?')[0], e.message.slice(0, 50)); }
     }
     return null;
 }

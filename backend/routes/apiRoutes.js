@@ -35,15 +35,28 @@ router.get('/deposits/:uid', deposit.userDeposits);
 router.get('/deposit/wallets/:uid', deposit.userWallets);
 router.post('/deposit/manual', async (req, res) => {
     try {
-        const { uid, address, amount, network, token, polAmount, polPrice, usdAmount } = req.body;
+        const { uid, address, amount, network, token, polAmount, polPrice, usdAmount, fixDepositId } = req.body;
         if (!uid || !address || !network) return res.status(400).json({ error: 'Missing fields' });
         const ts = Date.now();
-        const depId = 'dep_manual_' + uid.slice(0, 8) + '_' + ts;
-        const tx = 'manual_' + ts;
         const polAmt = Number(polAmount) || 0;
         const usdAmt = Number(usdAmount) || Number(amount) || 0;
         const pPrice = Number(polPrice) || 0;
         const tok = token || (network === 'Polygon' ? 'POL' : 'USDT');
+        
+        if (fixDepositId) {
+            // Fix existing deposit: update amount & adjust balance
+            const old = await pg.query("SELECT amount FROM deposits WHERE id=$1", [fixDepositId]);
+            if (!old.rows.length) return res.status(404).json({ error: 'Deposit not found' });
+            const oldAmt = parseFloat(old.rows[0].amount) || 0;
+            await pg.query("UPDATE deposits SET amount=$1, pol_price=$2 WHERE id=$3", [usdAmt.toFixed(2), pPrice, fixDepositId]);
+            const diff = usdAmt - oldAmt;
+            if (diff !== 0) await pg.query("UPDATE users SET wallet_balance = COALESCE(wallet_balance, 0) + $1 WHERE uid = $2", [diff.toFixed(2), uid]);
+            console.log(`[MANUAL FIX] ${fixDepositId}: $${oldAmt} → $${usdAmt}, balance adj: ${diff.toFixed(2)}`);
+            return res.json({ success: true, fixed: fixDepositId, oldAmount: oldAmt, newAmount: usdAmt, balanceAdjustment: diff });
+        }
+        
+        const depId = 'dep_manual_' + uid.slice(0, 8) + '_' + ts;
+        const tx = 'manual_' + ts;
         await pg.query(
             `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, pol_amount, pol_price, detected_at, created_at)
              VALUES ($1, $2, $3, $4, $5, $6, 'completed', $7, $8, $9, $10, $10)`,
