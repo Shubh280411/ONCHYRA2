@@ -4,6 +4,7 @@
  */
 
 const { Pool } = require('pg');
+const dns = require('dns');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
@@ -24,9 +25,11 @@ function getPool() {
       user: decodeURIComponent(url.username),
       password: decodeURIComponent(url.password),
       ssl: { rejectUnauthorized: false },
-      family: 4,
       max: 10,
       idleTimeoutMillis: 30000,
+      lookup: (host, opts, cb) => {
+        dns.lookup(host, { ...opts, family: 4 }, cb);
+      },
     });
     pool.on('error', (e) => console.error('PG pool error:', e.message));
   }
