@@ -1,46 +1,30 @@
-const dns = require('dns');
 const https = require('https');
 
 const SOURCES = [
-    'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT',
-    'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT',
-    'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd',
+    { url: 'https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', parse: d => parseFloat(d.price) },
+    { url: 'https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT', parse: d => parseFloat(d.price) },
+    { url: 'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd', parse: d => d['matic-network']?.usd },
 ];
 
 let cache = { price: 0, time: 0 };
 
-function httpsGet(url, timeoutMs = 10000) {
-    return new Promise((resolve, reject) => {
-        const u = new URL(url);
-        dns.lookup(u.hostname, { family: 4 }, (err, addr) => {
-            if (err) return reject(err);
-            const opts = {
-                hostname: addr, path: u.pathname + u.search,
-                headers: { 'User-Agent': 'Mozilla/5.0' },
-                servername: u.hostname,
-                rejectUnauthorized: false,
-            };
-            const req = https.get(opts, (res) => {
-                let d = '';
-                res.on('data', c => d += c);
-                res.on('end', () => resolve(d));
-            });
-            req.on('error', reject);
-            req.setTimeout(timeoutMs, () => { req.destroy(); reject(new Error('timeout')); });
-        });
-    });
+async function fetchJson(url) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 10000);
+    try {
+        const r = await fetch(url, { signal: ac.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return await r.json();
+    } finally { clearTimeout(t); }
 }
 
 async function fetchPolPrice() {
-    for (const url of SOURCES) {
+    for (const src of SOURCES) {
         try {
-            const body = await httpsGet(url);
-            const data = JSON.parse(body);
-            let p;
-            if (url.includes('coingecko')) p = data['matic-network']?.usd;
-            else p = parseFloat(data.price);
+            const data = await fetchJson(src.url);
+            const p = src.parse(data);
             if (p && p > 0.001) return p;
-        } catch (e) { console.error('[PRICE] Fail', url.split('?')[0], e.message); }
+        } catch (e) { console.error('[PRICE] Fail', src.url.split('?')[0], e.message); }
     }
     return null;
 }
