@@ -298,8 +298,14 @@ async function loadDepHistory() {
             }
             const statusColor = p.status === 'completed' ? '#22c55e' : '#fbbf24';
             return `<div class="dep-item" onclick="showDepDetail(${i})" style="cursor:pointer;"><span><img src="${logo}" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;">${label} <span style="opacity:0.3">${date}</span></span><span style="color:${statusColor};font-weight:700;">${p.status || 'pending'}</span></div>`;
-        });
+        }).join('');
         window._depItems = items;
+        // Update balance from deposits if API returned 0
+        const balEl = document.getElementById('walletBalance');
+        if (balEl && balEl.textContent === '$0.00') {
+            const total = items.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            if (total > 0) balEl.textContent = '$' + total.toFixed(2);
+        }
     } catch(e) {
         container.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">No deposits yet</div>';
     }
