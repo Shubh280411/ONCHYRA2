@@ -473,15 +473,15 @@ router.get('/user/:uid', async (req, res) => {
         if (!u) return res.status(404).json({ error: 'User not found' });
         res.json({
             referralCode: u.referral_code,
-            refLevel1: u.ref_level1 || 0,
-            refLevel2: u.ref_level2 || 0,
-            refLevel3: u.ref_level3 || 0,
-            totalCommissions: u.total_commissions || 0,
-            totalDirects: u.total_directs || 0,
-            activeDirects: u.active_directs || 0,
-            teamBiz: u.team_biz || 0,
-            legABiz: u.leg_a_biz || 0,
-            legBBiz: u.leg_b_biz || 0,
+            refLevel1: Number(u.ref_level1) || 0,
+            refLevel2: Number(u.ref_level2) || 0,
+            refLevel3: Number(u.ref_level3) || 0,
+            totalCommissions: Number(u.total_commissions) || 0,
+            totalDirects: Number(u.total_directs) || 0,
+            activeDirects: Number(u.active_directs) || 0,
+            teamBiz: Number(u.team_biz) || 0,
+            legABiz: Number(u.leg_a_biz) || 0,
+            legBBiz: Number(u.leg_b_biz) || 0,
         });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });

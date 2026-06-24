@@ -251,16 +251,20 @@ function renderStats() {
     refCode = userData.referralCode;
     document.getElementById('refCode').textContent = refCode;
 
-    const l1 = userData.refLevel1 || 0, l2 = userData.refLevel2 || 0, l3 = userData.refLevel3 || 0;
+    const l1 = Number(userData.refLevel1) || 0, l2 = Number(userData.refLevel2) || 0, l3 = Number(userData.refLevel3) || 0;
     document.getElementById('totalNetwork').textContent = l1 + l2 + l3;
+    const tc = Number(userData.totalCommissions) || 0;
+    const tb = Number(userData.teamBiz) || 0;
+    const lab = Number(userData.legABiz) || 0;
+    const lbb = Number(userData.legBBiz) || 0;
     const l1Onc = (l1 * 0.25), l2Onc = (l2 * 0.10), l3Onc = (l3 * 0.05);
     const totalOnc = l1Onc + l2Onc + l3Onc;
     document.getElementById('totalOncDisplay').textContent = totalOnc.toFixed(2) + ' ONC';
-    document.getElementById('totalCommDisplay').textContent = '$' + (userData.totalCommissions || 0).toFixed(2);
-    document.getElementById('totalBiz').textContent = '$' + (userData.teamBiz || 0).toFixed(2);
-    document.getElementById('totalDirectDisplay').textContent = (userData.activeDirects || 0) + '/' + (userData.totalDirects || 0);
-    document.getElementById('legABiz').textContent = '$' + (userData.legABiz || 0).toFixed(2);
-    document.getElementById('legBBiz').textContent = '$' + (userData.legBBiz || 0).toFixed(2);
+    document.getElementById('totalCommDisplay').textContent = '$' + tc.toFixed(2);
+    document.getElementById('totalBiz').textContent = '$' + tb.toFixed(2);
+    document.getElementById('totalDirectDisplay').textContent = (Number(userData.activeDirects) || 0) + '/' + (Number(userData.totalDirects) || 0);
+    document.getElementById('legABiz').textContent = '$' + lab.toFixed(2);
+    document.getElementById('legBBiz').textContent = '$' + lbb.toFixed(2);
     // Level breakdown card
     document.getElementById('lvl1Stats').textContent = l1 + ' users · ' + l1Onc.toFixed(2) + ' ONC';
     document.getElementById('lvl2Stats').textContent = l2 + ' users · ' + l2Onc.toFixed(2) + ' ONC';
