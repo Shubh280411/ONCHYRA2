@@ -19,6 +19,7 @@ function getPool() {
     pool = new Pool({
       connectionString: DATABASE_URL,
       ssl: { rejectUnauthorized: false },
+      family: 4,
       max: 10,
       idleTimeoutMillis: 30000,
     });
