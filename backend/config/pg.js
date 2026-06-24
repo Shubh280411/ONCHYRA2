@@ -49,7 +49,7 @@ async function get(table, id, idColumn = 'uid') {
 
 async function set(table, id, data, idColumn = 'uid') {
   data[idColumn] = id;
-  const columns = Object.keys(data).filter(k => data[k] !== undefined);
+  const columns = Object.keys(data).filter(k => k !== idColumn && data[k] !== undefined);
   const values = columns.map(c => data[c]);
   const placeholders = values.map((_, i) => `$${i + 2}`);
   const setClauses = columns.map((c, i) => `"${c}" = $${i + 2}`);
