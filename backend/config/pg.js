@@ -4,9 +4,7 @@
  */
 
 const { Pool } = require('pg');
-const dns = require('dns');
 const path = require('path');
-dns.setDefaultResultOrder('ipv4first');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -18,8 +16,13 @@ function getPool() {
       console.warn('WARN: DATABASE_URL not set, PostgreSQL not available');
       return null;
     }
+    const url = new URL(DATABASE_URL);
     pool = new Pool({
-      connectionString: DATABASE_URL,
+      host: url.hostname,
+      port: parseInt(url.port) || 5432,
+      database: url.pathname.replace(/^\//, ''),
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
       ssl: { rejectUnauthorized: false },
       family: 4,
       max: 10,
