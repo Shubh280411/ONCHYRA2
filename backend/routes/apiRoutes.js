@@ -428,12 +428,12 @@ router.get('/referrals/leg-stats/:uid', async (req, res) => {
         const totalDirects = l1Rows.length;
         const activeDirects = l1Rows.filter(u => u.active_package).length;
 
-        const legBiz = l1Rows.map(u => u.total_package_spend || 0).sort((a, b) => b - a);
+        const legBiz = l1Rows.map(u => Number(u.total_package_spend) || 0).sort((a, b) => b - a);
         const legABiz = legBiz.length > 0 ? legBiz[0] : 0;
-        const legBBiz = legBiz.slice(1).reduce((s, x) => s + x, 0);
-        const teamBiz = legBiz.reduce((s, x) => s + x, 0);
+        const legBBiz = legBiz.slice(1).reduce((s, x) => s + Number(x), 0);
+        const teamBiz = legBiz.reduce((s, x) => s + Number(x), 0);
 
-        res.json({ totalDirects, activeDirects, legABiz, legBBiz, teamBiz });
+        res.json({ totalDirects, activeDirects, legABiz: Number(legABiz), legBBiz: Number(legBBiz), teamBiz: Number(teamBiz) });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
