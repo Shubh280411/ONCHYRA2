@@ -290,7 +290,7 @@ async function loadLegStats(includeBiz) {
     } catch(e) {}
 }
 
-// ── Team (paginated, 10 per page, URL-based) ──
+// ── Team (10 per page, URL-based) ──
 async function loadTeam(page) {
     if (!uid) return;
     teamPage = page || 1;
@@ -300,8 +300,7 @@ async function loadTeam(page) {
         const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=1&limit=10&offset=' + offset);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
-        teamData[1] = data.levels[1] || [];
-        teamData[2] = []; teamData[3] = [];
+        teamData[1] = data.levels[1] || []; teamData[2] = []; teamData[3] = [];
         teamTotal = data.total || 0;
     } catch (e) {
         document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
@@ -314,12 +313,12 @@ async function loadTeam(page) {
     history.replaceState(null, '', '?teamPage=' + teamPage);
 }
 
-async function loadLevel(lvl) {
+async function loadLevel(lvl, page) {
     if (!uid) return;
+    teamPage = page || parseInt(new URLSearchParams(location.search).get('teamPage')) || 1;
     document.getElementById('teamLoading').style.display = 'block';
     try {
         if (lvl === '1') {
-            teamPage = parseInt(new URLSearchParams(location.search).get('teamPage')) || 1;
             const offset = (teamPage - 1) * 10;
             const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=1&limit=10&offset=' + offset);
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -327,12 +326,11 @@ async function loadLevel(lvl) {
             teamData[1] = data.levels[1] || []; teamData[2] = []; teamData[3] = [];
             teamTotal = data.total || 0;
         } else {
-            const limit = 100;
-            const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=' + lvl + '&limit=' + limit + '&offset=0');
+            const resp = await fetch(API + '/referrals/team/' + uid + '?maxLevel=' + lvl + '&limit=100&offset=0');
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
             const data = await resp.json();
             teamData[1] = data.levels[1] || []; teamData[2] = data.levels[2] || []; teamData[3] = data.levels[3] || [];
-            teamTotal = 0;
+            teamTotal = (teamData[lvl] || []).length;
         }
     } catch (e) {
         document.getElementById('teamError').textContent = 'Team load failed: ' + e.message;
@@ -349,40 +347,52 @@ async function loadLevel(lvl) {
         l1BizCache[u.referralCode] = biz;
     }
     renderTeam();
-    if (lvl === '1') history.replaceState(null, '', '?teamPage=' + teamPage);
+    history.replaceState(null, '', '?teamPage=' + teamPage);
 }
 
 function renderTeam() {
     const lvl = document.getElementById('lvlFilter').value;
-    const list = teamData[lvl] || [];
     const container = document.getElementById('teamList');
-    if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state">No members in this level</div>';
-        document.getElementById('pagination').innerHTML = '';
-        return;
-    }
-    container.innerHTML = list.map(u => {
-        const date = fmtDate(u.createdAt);
-        const tc = (Number(u.refLevel1)||0) + (Number(u.refLevel2)||0) + (Number(u.refLevel3)||0);
-        const biz = typeof l1BizCache[u.referralCode] !== 'undefined' ? l1BizCache[u.referralCode] : (Number(u.totalPackageSpend) || 0);
-        const badge = u.activePackage ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
-        return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name || 'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
-    }).join('');
-    // Pagination controls (L1 only)
+
     if (lvl === '1') {
-        const totalPages = Math.ceil(teamTotal / 10) || 1;
-        renderPagination(totalPages, teamPage);
+        const list = teamData[1] || [];
+        if (list.length === 0) {
+            container.innerHTML = '<div class="empty-state">No members in this level</div>';
+            document.getElementById('pagination').innerHTML = ''; return;
+        }
+        container.innerHTML = list.map(u => tmplMember(u, lvl)).join('');
     } else {
-        document.getElementById('pagination').innerHTML = '';
+        const all = teamData[lvl] || [];
+        if (all.length === 0) {
+            container.innerHTML = '<div class="empty-state">No members in this level</div>';
+            document.getElementById('pagination').innerHTML = ''; return;
+        }
+        const start = (teamPage - 1) * 10;
+        const items = all.slice(start, start + 10);
+        if (items.length === 0) { teamPage = 1; return renderTeam(); }
+        container.innerHTML = items.map(u => tmplMember(u, lvl)).join('');
     }
+
+    const totalPages = lvl === '1'
+        ? Math.ceil(teamTotal / 10) || 1
+        : Math.ceil((teamData[lvl] || []).length / 10) || 1;
+    renderPagination(totalPages, teamPage);
+}
+
+function tmplMember(u, lvl) {
+    const date = fmtDate(u.createdAt);
+    const tc = (Number(u.refLevel1)||0)+(Number(u.refLevel2)||0)+(Number(u.refLevel3)||0);
+    const biz = typeof l1BizCache[u.referralCode] !== 'undefined' ? l1BizCache[u.referralCode] : (Number(u.totalPackageSpend)||0);
+    const badge = u.activePackage ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
+    return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name||'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
 }
 
 function renderPagination(totalPages, current) {
     let html = '<div style="display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap;">';
     if (current > 1) html += `<button onclick="goToPage(${current-1})" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:white;font-weight:700;font-size:11px;cursor:pointer;">‹ Prev</button>`;
     for (let i = 1; i <= totalPages; i++) {
-        const active = i === current ? 'background:var(--primary);color:#000;border-color:var(--primary);' : 'background:var(--card);border-color:var(--border);color:white;';
-        html += `<button onclick="goToPage(${i})" style="padding:8px 12px;border-radius:8px;border:1px solid;${active}font-weight:700;font-size:11px;cursor:pointer;">${i}</button>`;
+        const a = i === current ? 'background:var(--primary);color:#000;border-color:var(--primary);' : 'background:var(--card);border-color:var(--border);color:white;';
+        html += `<button onclick="goToPage(${i})" style="padding:8px 12px;border-radius:8px;border:1px solid;${a}font-weight:700;font-size:11px;cursor:pointer;">${i}</button>`;
     }
     if (current < totalPages) html += `<button onclick="goToPage(${current+1})" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:white;font-weight:700;font-size:11px;cursor:pointer;">Next ›</button>`;
     html += '</div>';
@@ -390,9 +400,17 @@ function renderPagination(totalPages, current) {
 }
 
 window.goToPage = (page) => {
-    loadTeam(page).then(() => {
+    const lvl = document.getElementById('lvlFilter').value;
+    if (lvl === '1') {
+        loadLevel('1', page).then(() => {
+            document.getElementById('teamList').scrollIntoView({ behavior: 'smooth' });
+        });
+    } else {
+        teamPage = page;
+        renderTeam();
+        history.replaceState(null, '', '?teamPage=' + page);
         document.getElementById('teamList').scrollIntoView({ behavior: 'smooth' });
-    });
+    }
 };
 
 document.getElementById('lvlFilter').addEventListener('change', async () => {

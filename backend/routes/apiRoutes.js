@@ -471,12 +471,39 @@ router.get('/user/:uid', async (req, res) => {
     try {
         const u = await pg.get('users', req.params.uid);
         if (!u) return res.status(404).json({ error: 'User not found' });
+
+        // Dynamically compute team counts & commissions
+        const refCode = u.referral_code;
+        let refLevel1 = 0, refLevel2 = 0, refLevel3 = 0;
+        let totalCommissions = 0;
+
+        if (refCode) {
+            // L1 direct referrals
+            const l1Rows = await pg.findWhere('users', { referred_by: refCode });
+            refLevel1 = l1Rows.length;
+
+            // L2
+            const l1Codes = l1Rows.map(r => r.referral_code).filter(Boolean);
+            if (l1Codes.length) {
+                const l2Rows = await pg.findWhereIn('users', 'referred_by', l1Codes);
+                refLevel2 = l2Rows.length;
+                // L3
+                const l2Codes = l2Rows.map(r => r.referral_code).filter(Boolean);
+                if (l2Codes.length) {
+                    const l3Rows = await pg.findWhereIn('users', 'referred_by', l2Codes);
+                    refLevel3 = l3Rows.length;
+                }
+            }
+
+            // Total commissions
+            const commRes = await pg.query('SELECT COALESCE(SUM(amount),0) AS total FROM "commissions" WHERE "uid"=$1', [req.params.uid]);
+            totalCommissions = parseFloat(commRes.rows?.[0]?.total) || 0;
+        }
+
         res.json({
-            referralCode: u.referral_code,
-            refLevel1: Number(u.ref_level1) || 0,
-            refLevel2: Number(u.ref_level2) || 0,
-            refLevel3: Number(u.ref_level3) || 0,
-            totalCommissions: Number(u.total_commissions) || 0,
+            referralCode: refCode,
+            refLevel1, refLevel2, refLevel3,
+            totalCommissions,
             totalDirects: Number(u.total_directs) || 0,
             activeDirects: Number(u.active_directs) || 0,
             teamBiz: Number(u.team_biz) || 0,
