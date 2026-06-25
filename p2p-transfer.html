@@ -115,6 +115,7 @@
         .tx-item .tx-info .tx-title { font-size:12px; font-weight:700; }
         .tx-item .tx-info .tx-meta { font-size:10px; color:rgba(255,255,255,0.35); margin-top:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
         .tx-item .tx-info .tx-meta .code-tag { font-family:monospace; background:rgba(255,255,255,0.04); padding:0 6px; border-radius:4px; }
+        .tx-item .tx-info .tx-note { font-size:11px; color:rgba(255,255,255,0.45); margin-top:3px; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
         .tx-item .tx-amount { font-family:'Space Grotesk'; font-size:13px; font-weight:800; text-align:right; }
         .tx-item .tx-amount.negative { color:#f472b6; }
         .tx-item .tx-amount.positive { color:#22c55e; }
@@ -194,6 +195,12 @@
         <div class="input-group">
             <div class="input-label"><span class="bar"></span> Amount</div>
             <input class="input-field" id="amountInput" type="text" inputmode="decimal" placeholder="Minimum 1 ONC" autocomplete="off">
+        </div>
+
+        <!-- Note -->
+        <div class="input-group">
+            <div class="input-label"><span class="bar"></span> Note <span style="color:rgba(255,255,255,0.2);font-weight:400;letter-spacing:0;">(optional)</span></div>
+            <input class="input-field" id="noteInput" type="text" placeholder="What's this for?" maxlength="100" autocomplete="off" spellcheck="true">
         </div>
 
         <!-- Breakdown -->
@@ -289,7 +296,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-    doc, getDoc, updateDoc, collection, addDoc,
+    doc, getDoc, updateDoc, collection, addDoc, setDoc,
     query, where, getDocs, limit,
     increment, serverTimestamp,
 
@@ -310,6 +317,7 @@ const db = {};
 // ── DOM refs ──
 const recipientInput = document.getElementById('recipientInput');
 const amountInput = document.getElementById('amountInput');
+const noteInput = document.getElementById('noteInput');
 const balanceDisplay = document.getElementById('balanceDisplay');
 const totalDisplay = document.getElementById('totalDisplay');
 const burnDisplay = document.getElementById('burnDisplay');
@@ -471,11 +479,14 @@ sendBtn.addEventListener('click', async () => {
 
         sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Processing';
 
+        const note = noteInput.value.trim();
+
         // 1. Create audit record with names
-        await addDoc(collection(db, "transfers"), {
+        const transferRef = await addDoc(collection(db, "transfers"), {
             from: uid, to: recipientId, toCode: recipientCode,
             fromName: userName, toName: recipientDisplayName,
             amount: amt, burn: burn, receive: receive,
+            note: note || '',
             timestamp: serverTimestamp(), status: 'completed'
         });
 
@@ -484,6 +495,20 @@ sendBtn.addEventListener('click', async () => {
 
         // 3. Add to recipient
         await updateDoc(doc(db, "users", recipientId), { balance: increment(receive) });
+
+        // 4. Notify recipient
+        const notiMsg = note
+            ? `You received ${receive.toFixed(2)} ONC from ${userName} — "${note}"`
+            : `You received ${receive.toFixed(2)} ONC from ${userName}`;
+        await setDoc(doc(collection(db, "notifications")), {
+            userId: recipientId,
+            type: 'personal',
+            title: 'Transfer Received',
+            message: notiMsg,
+            link: 'p2p-transfer.html',
+            read: false,
+            createdAt: serverTimestamp()
+        });
 
         userBalance -= amt;
         balanceDisplay.textContent = userBalance.toFixed(2);
@@ -495,6 +520,7 @@ sendBtn.addEventListener('click', async () => {
 
         recipientInput.value = '';
         amountInput.value = '';
+        noteInput.value = '';
         recipientId = null;
         recipientDisplayName = '';
         recipientUidEl.textContent = '';
@@ -596,6 +622,8 @@ async function loadHistorySide(uid) {
     }
 }
 
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 function timeAgo(t) {
     if (!t) return '';
     const d = t.toDate ? t.toDate() : new Date(t);
@@ -625,7 +653,8 @@ function renderHistory(items) {
         const cls = isSent ? 'negative' : 'positive';
         const counterparty = isSent ? (tx.toName || tx.toCode || tx.to.slice(0,6).toUpperCase()) : (tx.fromName || tx.fromCode || tx.from.slice(0,6).toUpperCase());
         const displayAmt = isSent ? tx.amount : tx.receive;
-        return `<div class="tx-item"><div class="tx-icon ${iconBg}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${isSent ? '#f472b6' : '#22c55e'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isSent ? '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>' : '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z" transform="rotate(180,12,12)"/>'}</svg></div><div class="tx-info"><div class="tx-title">${isSent ? 'Sent' : 'Received'}</div><div class="tx-meta">${isSent ? 'To' : 'From'} ${counterparty} &middot; ${timeAgo(tx.timestamp)}</div></div><div class="tx-amount ${cls}">${sign}${Number(displayAmt).toFixed(2)} ONC</div></div>`;
+        const noteHtml = tx.note ? `<div class="tx-note">"${escHtml(tx.note)}"</div>` : '';
+        return `<div class="tx-item"><div class="tx-icon ${iconBg}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${isSent ? '#f472b6' : '#22c55e'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isSent ? '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>' : '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z" transform="rotate(180,12,12)"/>'}</svg></div><div class="tx-info"><div class="tx-title">${isSent ? 'Sent' : 'Received'}</div><div class="tx-meta">${isSent ? 'To' : 'From'} ${counterparty} &middot; ${timeAgo(tx.timestamp)}</div>${noteHtml}</div><div class="tx-amount ${cls}">${sign}${Number(displayAmt).toFixed(2)} ONC</div></div>`;
     }).join('');
 
     if (lastRenderedHistory === html) return;
