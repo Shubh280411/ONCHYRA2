@@ -453,9 +453,9 @@ router.post('/commissions/process-package', async (req, res) => {
                     await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
                 }
                 await pg.query(
-                    `INSERT INTO commissions (from_uid, uid, amount, level, type, package_name, from_name, created_at)
-                     VALUES ($1, $2, $3, $4, 'package_commission', $5, $6, $7)`,
-                    [uid, refUid, capped, lv.level, user.active_package || 'Package', user.name || 'User', Date.now()]
+                    `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                     VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
+                    ['cpp_' + refUid + '_' + uid + '_' + Date.now(), uid, refUid, capped, lv.level, user.active_package || 'Package', user.name || 'User', Date.now()]
                 );
                 results.push({ level: lv.level, uid: refUid, amount: capped });
             }
@@ -739,9 +739,9 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                                 await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
                             }
                             await pg.query(
-                                `INSERT INTO commissions (from_uid, uid, amount, level, type, package_name, from_name, created_at)
-                                 VALUES ($1, $2, $3, $4, 'package_commission', $5, $6, $7)`,
-                                [buyer.uid, refUid, capped, lv.level, buyer.active_package || 'Package', buyer.name || 'User', Date.now()]
+                                `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                                 VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
+                                ['adm_' + refUid + '_' + buyer.uid + '_' + Date.now(), buyer.uid, refUid, capped, lv.level, buyer.active_package || 'Package', buyer.name || 'User', Date.now()]
                             );
                             levelResults.push(`${lv.level}: $${capped.toFixed(2)} to ${refData.name || refUid}`);
                         }
