@@ -233,12 +233,13 @@
                         <th>Amount</th>
                         <th>Burn 10%</th>
                         <th>Received</th>
+                        <th>Note</th>
                         <th>Time</th>
                         <th></th>
                     </tr>
                 </thead>
-                <tbody id="transfersTable">
-                    <tr><td colspan="7" class="empty-state">Loading transfers...</td></tr>
+                    <tbody id="transfersTable">
+                    <tr><td colspan="8" class="empty-state">Loading transfers...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -295,6 +296,8 @@ function showToast(msg, isError = false) {
     setTimeout(() => t.style.display = 'none', 3000);
 }
 
+function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 function timeAgo(t) {
     if (!t) return '';
     const d = t.toDate ? t.toDate() : new Date(t);
@@ -348,7 +351,7 @@ async function loadAllTransfers(isReset = true) {
             hasMore = false;
             document.getElementById('loadMoreWrap').style.display = 'none';
             if (allTransfers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No transfers found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No transfers found</td></tr>';
             }
             computeStats();
             return;
@@ -357,7 +360,17 @@ async function loadAllTransfers(isReset = true) {
         lastDoc = snap.docs[snap.docs.length - 1];
         if (snap.docs.length < PAGE_SIZE) hasMore = false;
 
-        const newItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const newItems = snap.docs.map(d => {
+            const data = d.data();
+            return {
+                id: d.id, from: data.fromUid, to: data.toUid,
+                fromCode: data.fromCode, toCode: data.toCode,
+                fromName: data.fromName, toName: data.toName,
+                amount: data.grossAmount, burn: data.burn,
+                receive: data.netAmount, note: data.note || '',
+                timestamp: data.createdAt, status: data.status
+            };
+        });
         allTransfers = isReset ? [...newItems] : [...allTransfers, ...newItems];
 
         // Batch-fetch user names
@@ -379,8 +392,8 @@ async function loadAllTransfers(isReset = true) {
 
         // Attach names
         newItems.forEach(tx => {
-            tx._fromName = nameMap[tx.from] || tx.from.slice(0, 6).toUpperCase();
-            tx._toName = nameMap[tx.to] || tx.to.slice(0, 6).toUpperCase();
+            if (!tx._fromName) tx._fromName = nameMap[tx.from] || (tx.fromName || tx.from?.slice(0, 6).toUpperCase());
+            if (!tx._toName) tx._toName = nameMap[tx.to] || (tx.toName || tx.to?.slice(0, 6).toUpperCase());
         });
 
         if (isReset) {
@@ -394,7 +407,7 @@ async function loadAllTransfers(isReset = true) {
         document.getElementById('loadMoreWrap').style.display = hasMore ? 'block' : 'none';
     } catch (e) {
         console.error('Load error:', e);
-        document.getElementById('transfersTable').innerHTML = '<tr><td colspan="7" class="empty-state">Error loading transfers</td></tr>';
+        document.getElementById('transfersTable').innerHTML = '<tr><td colspan="8" class="empty-state">Error loading transfers</td></tr>';
         showToast('Error loading transfers', true);
     }
 }
@@ -416,17 +429,18 @@ function renderTable() {
 
     if (!items.length) {
         const msg = search ? 'No transfers match your search' : 'No transfers found';
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${msg}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${msg}</td></tr>`;
         return;
     }
 
     tbody.innerHTML = items.map(tx => `
         <tr onclick="openDetail('${tx.id}')" style="cursor:pointer;">
-            <td style="font-weight:600;">${tx._fromName || tx.from.slice(0,6).toUpperCase()}</td>
-            <td style="font-weight:600;">${tx._toName || (tx.toCode || tx.to.slice(0,6).toUpperCase())}</td>
+            <td style="font-weight:600;">${tx._fromName || (tx.fromName || tx.from?.slice(0,6).toUpperCase())}</td>
+            <td style="font-weight:600;">${tx._toName || (tx.toName || tx.toCode || tx.to?.slice(0,6).toUpperCase())}</td>
             <td class="mono negative">${Number(tx.amount || 0).toFixed(2)}</td>
             <td class="mono pink" style="color:#f472b6;">${Number(tx.burn || 0).toFixed(2)}</td>
             <td class="mono positive">${Number(tx.receive || 0).toFixed(2)}</td>
+            <td class="dim" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(tx.note)}">${tx.note ? '&ldquo;' + escHtml(tx.note) + '&rdquo;' : '-'}</td>
             <td class="dim" style="white-space:nowrap;" title="${formatTime(tx.timestamp)}">${timeAgo(tx.timestamp)}</td>
             <td style="text-align:right;">
                 <span class="badge badge-green">completed</span>
@@ -485,16 +499,16 @@ window.openDetail = async (id) => {
 
     document.getElementById('detailContent').innerHTML = `
         <div class="tx-detail-row">
-            <div class="field"><div class="flabel">Transfer ID</div><div class="fvalue mono" style="font-size:11px;">${tx.id}</div></div>
+            <div class="field"><div class="flabel">Transfer ID</div><div class="fvalue mono" style="font-size:11px;">${escHtml(tx.id)}</div></div>
             <div class="field"><div class="flabel">Status</div><div class="fvalue"><span class="badge badge-green">completed</span></div></div>
         </div>
         <div class="tx-detail-row">
-            <div class="field"><div class="flabel">From</div><div class="fvalue">${fromName}</div></div>
-            <div class="field"><div class="flabel">From UID</div><div class="fvalue dim" style="font-size:11px;font-family:monospace;">${tx.from}</div></div>
+            <div class="field"><div class="flabel">From</div><div class="fvalue">${escHtml(fromName)}</div></div>
+            <div class="field"><div class="flabel">From UID</div><div class="fvalue dim" style="font-size:11px;font-family:monospace;">${escHtml(tx.from)}</div></div>
         </div>
         <div class="tx-detail-row">
-            <div class="field"><div class="flabel">To</div><div class="fvalue">${toName}</div></div>
-            <div class="field"><div class="flabel">To UID</div><div class="fvalue dim" style="font-size:11px;font-family:monospace;">${tx.to}</div></div>
+            <div class="field"><div class="flabel">To</div><div class="fvalue">${escHtml(toName)}</div></div>
+            <div class="field"><div class="flabel">To UID</div><div class="fvalue dim" style="font-size:11px;font-family:monospace;">${escHtml(tx.to)}</div></div>
         </div>
         <div class="tx-detail-row">
             <div class="field"><div class="flabel">Gross Amount</div><div class="fvalue mono negative">${Number(tx.amount || 0).toFixed(2)} ONC</div></div>
@@ -504,6 +518,10 @@ window.openDetail = async (id) => {
             <div class="field"><div class="flabel">Received by Recipient</div><div class="fvalue mono positive">${Number(tx.receive || 0).toFixed(2)} ONC</div></div>
             <div class="field"><div class="flabel">Timestamp</div><div class="fvalue" style="font-size:12px;">${formatTime(tx.timestamp)}</div></div>
         </div>
+        ${tx.note ? `
+        <div class="tx-detail-row" style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div class="field" style="flex:2;"><div class="flabel">Note</div><div class="fvalue" style="font-style:italic;color:rgba(255,255,255,0.6);">&ldquo;${escHtml(tx.note)}&rdquo;</div></div>
+        </div>` : ''}
     `;
     document.getElementById('detailModal').classList.add('active');
 };
