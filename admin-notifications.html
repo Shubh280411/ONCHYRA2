@@ -169,7 +169,7 @@ textarea { resize: vertical; min-height: 100px; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, deleteDoc, collection, query, orderBy, onSnapshot, getDocs, limit, serverTimestamp   } from "./supabase-adapter.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, query, orderBy, onSnapshot, getDocs, limit, serverTimestamp, addDoc   } from "./supabase-adapter.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -280,7 +280,7 @@ window.sendNotification = async () => {
   if (!title || !msg) { showToast('Title and Message required!', true); return; }
 
   try {
-    await setDoc(doc(collection(db, 'notifications')), {
+    await addDoc(collection(db, 'notifications'), {
       userId: target,
       type,
       title,

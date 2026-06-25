@@ -500,7 +500,7 @@ sendBtn.addEventListener('click', async () => {
         const notiMsg = note
             ? `You received ${receive.toFixed(2)} ONC from ${userName} — "${note}"`
             : `You received ${receive.toFixed(2)} ONC from ${userName}`;
-        await setDoc(doc(collection(db, "notifications")), {
+        await addDoc(collection(db, "notifications"), {
             userId: recipientId,
             type: 'personal',
             title: 'Transfer Received',
