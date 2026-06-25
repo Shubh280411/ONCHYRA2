@@ -278,6 +278,19 @@ onAuthStateChanged(auth, async user => {
   loadRecentJoins();
 });
 
+async function getDirectCount(table) {
+  try {
+    const res = await fetch('https://kxndpctzygcitgxundnj.supabase.co/rest/v1/' + table + '?select=id&limit=0', {
+      headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bmRwY3R6eWdjaXRneHVuZG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDMzMDIsImV4cCI6MjA5NzcxOTMwMn0.NUXX9_HNpELPYwpqOqOauzuTBJK_C5sBhINtMGvU8f8', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bmRwY3R6eWdjaXRneHVuZG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDMzMDIsImV4cCI6MjA5NzcxOTMwMn0.NUXX9_HNpELPYwpqOqOauzuTBJK_C5sBhINtMGvU8f8', Prefer: 'count=exact' },
+    });
+    const cr = res.headers.get('content-range') || '';
+    const count = parseInt(cr.split('/')[1], 10);
+    if (!isNaN(count)) return count;
+    const body = await res.json();
+    return Array.isArray(body) ? body.length : 0;
+  } catch(e) { console.warn('Direct count failed for', table, e.message); return -1; }
+}
+
 async function loadStats() {
   try {
     const [uCnt, claimCnt, pkgCnt, wdSnap] = await Promise.all([
@@ -287,7 +300,12 @@ async function loadStats() {
       getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
     ]);
     document.getElementById('users').textContent = uCnt.data().count || 0;
-    document.getElementById('claims').textContent = claimCnt.data().count || 0;
+    let claimsCount = claimCnt.data().count || 0;
+    if (claimsCount === 0) {
+      const direct = await getDirectCount('claims');
+      if (direct > 0) claimsCount = direct;
+    }
+    document.getElementById('claims').textContent = claimsCount;
     document.getElementById('packages').textContent = pkgCnt.data().count || 0;
     document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
   } catch(e) { console.warn('Stats load failed:', e.message); }

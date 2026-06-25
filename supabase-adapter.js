@@ -159,7 +159,7 @@ async function getDocs(queryRef) {
       else if (f.op === 'array-contains') params[sfield] = 'cs.{"' + f.val + '"}';
     }
     if (orders.length) params.order = orders.map(o => camelToSnake(o.field) + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
-    params.limit = limitVal || 100000;
+    if (limitVal) params.limit = limitVal;
 
     const pk = getPK(table);
     const data = await rest(table, { params });
