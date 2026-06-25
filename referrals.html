@@ -141,6 +141,7 @@
             <option value="2">Guardians (L2)</option>
             <option value="3">Seekers (L3)</option>
         </select>
+        <input id="teamSearch" type="text" placeholder="Search member by name..." oninput="window.filterTeam()" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:white;font-size:12px;font-weight:600;outline:none;margin-bottom:8px;box-sizing:border-box;">
         <div id="teamError" style="display:none;text-align:center;padding:12px;color:#ef4444;font-size:11px;background:rgba(239,68,68,0.1);border-radius:10px;margin-bottom:8px;"></div>
         <div class="list-card" id="teamList"></div>
         <div id="teamLoading" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">Loading team...</div>
@@ -199,8 +200,10 @@ window.switchTab = (tab) => {
     document.getElementById('tabComm').className = tab === 'comm' ? 'tab active' : 'tab';
     document.getElementById('teamView').style.display = tab === 'team' ? 'block' : 'none';
     document.getElementById('commView').style.display = tab === 'comm' ? 'block' : 'none';
+    const se = document.getElementById('teamSearch');
+    if (se) se.value = '';
     if (tab === 'comm') history.replaceState(null, '', updateURLParam('commPage', commPage));
-    else history.replaceState(null, '', updateURLParam('teamPage', teamPage));
+    else { history.replaceState(null, '', updateURLParam('teamPage', teamPage)); renderTeam(); }
 };
 
 // ── Stats (1 read from /api/user/:uid, cached 5min) ──
@@ -353,21 +356,31 @@ async function loadLevel(lvl, page) {
     history.replaceState(null, '', updateURLParam('teamPage', teamPage));
 }
 
+function filterTeam() {
+    const el = document.getElementById('teamSearch');
+    if (!el) return;
+    teamPage = 1;
+    renderTeam();
+}
+
 function renderTeam() {
     const lvl = document.getElementById('lvlFilter').value;
     const container = document.getElementById('teamList');
+    const q = (document.getElementById('teamSearch')?.value || '').toLowerCase().trim();
 
     if (lvl === '1') {
-        const list = teamData[1] || [];
+        let list = teamData[1] || [];
+        if (q) list = list.filter(u => (u.name||'').toLowerCase().includes(q));
         if (list.length === 0) {
-            container.innerHTML = '<div class="empty-state">No members in this level</div>';
+            container.innerHTML = '<div class="empty-state">' + (q ? 'No members match your search' : 'No members in this level') + '</div>';
             document.getElementById('pagination').innerHTML = ''; return;
         }
         container.innerHTML = list.map(u => tmplMember(u, lvl)).join('');
     } else {
-        const all = teamData[lvl] || [];
+        let all = teamData[lvl] || [];
+        if (q) all = all.filter(u => (u.name||'').toLowerCase().includes(q));
         if (all.length === 0) {
-            container.innerHTML = '<div class="empty-state">No members in this level</div>';
+            container.innerHTML = '<div class="empty-state">' + (q ? 'No members match your search' : 'No members in this level') + '</div>';
             document.getElementById('pagination').innerHTML = ''; return;
         }
         const start = (teamPage - 1) * 10;
@@ -376,11 +389,18 @@ function renderTeam() {
         container.innerHTML = items.map(u => tmplMember(u, lvl)).join('');
     }
 
-    const totalPages = lvl === '1'
-        ? Math.ceil(teamTotal / 10) || 1
-        : Math.ceil((teamData[lvl] || []).length / 10) || 1;
+    let totalPages;
+    if (lvl === '1' && !q) {
+        totalPages = Math.ceil(teamTotal / 10) || 1;
+    } else {
+        const filteredLength = (lvl === '1' ? (teamData[1]||[]) : (teamData[lvl]||[]))
+            .filter(u => !q || (u.name||'').toLowerCase().includes(q)).length;
+        totalPages = Math.ceil(filteredLength / 10) || 1;
+    }
     renderPagination(totalPages, teamPage);
 }
+
+window.filterTeam = filterTeam;
 
 function tmplMember(u, lvl) {
     const date = fmtDate(u.createdAt);
@@ -417,6 +437,9 @@ window.goToPage = (page) => {
 };
 
 document.getElementById('lvlFilter').addEventListener('change', async () => {
+    const se = document.getElementById('teamSearch');
+    if (se) se.value = '';
+    teamPage = 1;
     await loadLevel(document.getElementById('lvlFilter').value);
 });
 
