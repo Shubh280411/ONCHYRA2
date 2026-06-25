@@ -39,6 +39,12 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-he
 
 .logout-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:12px; background:rgba(239,68,68,0.08); color:var(--danger); font-family:'Inter'; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; border:1px solid transparent; margin-top:4px; }
 .logout-btn:hover { background:rgba(239,68,68,0.15); border-color:rgba(239,68,68,0.2); }
+.joins-list { display:flex; flex-direction:column; gap:8px; }
+.join-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border); }
+.join-item .avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-weight:800; font-size:13px; color:#000; flex-shrink:0; }
+.join-item .info { flex:1; min-width:0; }
+.join-item .name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.join-item .time { font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px; }
 </style>
 </head>
 <body>
@@ -65,6 +71,16 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:white; min-he
     <div class="stat-item"><div class="stat-label">Total Claims</div><div class="stat-value" id="claims">—</div></div>
     <div class="stat-item"><div class="stat-label">Packages</div><div class="stat-value" id="packages">—</div></div>
     <div class="stat-item"><div class="stat-label">Pending W/D</div><div class="stat-value" id="pendingW">—</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="18 8 20 10 23 7"/></svg>
+    Recent Joins
+  </div>
+  <div class="joins-list" id="recentJoins">
+    <div style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-size:12px;">Loading...</div>
   </div>
 </div>
 
@@ -232,7 +248,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, query, where, doc, getDoc, getCountFromServer
+import { collection, query, where, orderBy, limit, doc, getDoc, getDocs, getCountFromServer
   } from "./supabase-adapter.js";
 
 const firebaseConfig = {
@@ -259,6 +275,7 @@ onAuthStateChanged(auth, async user => {
   } catch(e) { console.warn('Admin check skipped (quota?):', e.message); }
   document.getElementById('adminBadge').textContent = user.email || 'Admin';
   loadStats();
+  loadRecentJoins();
 });
 
 async function loadStats() {
@@ -275,6 +292,22 @@ async function loadStats() {
     document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
   } catch(e) { console.warn('Stats load failed:', e.message); }
   loadStorageStats();
+}
+
+async function loadRecentJoins() {
+  try {
+    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(5));
+    const snap = await getDocs(q);
+    const el = document.getElementById('recentJoins');
+    if (!snap.docs.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-size:12px;">No users yet</div>'; return; }
+    el.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      const initial = (u.name || u.email || '?')[0].toUpperCase();
+      const ts = Number(u.createdAt) || Number(u.created_at) || 0;
+      const rel = ts ? (() => { const s = Math.floor((Date.now() - ts) / 1000); if (s < 60) return 'Just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; return Math.floor(s / 86400) + 'd ago'; })() : '';
+      return '<div class="join-item"><div class="avatar">' + initial + '</div><div class="info"><div class="name">' + (u.name || u.email || 'Unknown') + '</div><div class="time">' + rel + (u.email ? ' &middot; ' + u.email : '') + '</div></div></div>';
+    }).join('');
+  } catch(e) { console.warn('Recent joins failed:', e.message); }
 }
 
 async function loadStorageStats() {
