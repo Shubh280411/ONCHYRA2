@@ -286,7 +286,7 @@ window.sendNotification = async () => {
       title,
       message: msg,
       link: link || '',
-      read: false,
+      readBy: [],
       createdAt: serverTimestamp()
     });
     showToast('Notification sent successfully! ✅');
