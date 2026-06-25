@@ -407,7 +407,8 @@ function tmplMember(u, lvl) {
     const tc = (Number(u.refLevel1)||0)+(Number(u.refLevel2)||0)+(Number(u.refLevel3)||0);
     const biz = typeof l1BizCache[u.referralCode] !== 'undefined' ? l1BizCache[u.referralCode] : (Number(u.totalPackageSpend)||0);
     const badge = u.activePackage ? '<span class="badge-pkg">Package</span>' : '<span class="badge-nopkg">No Pkg</span>';
-    return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name||'User'}</div><div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
+    const email = u.email ? `<div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:1px;">${u.email}</div>` : '';
+    return `<div class="list-item"><div class="li-left"><div><div class="li-name">${u.name||'User'}</div>${email}<div class="li-meta"><span>${date}</span><span>Team: ${tc}</span><span>Biz: $${biz.toFixed(2)}</span>${badge}</div></div></div><span style="font-size:9px;padding:4px 10px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary);font-weight:800;">L${lvl}</span></div>`;
 }
 
 function renderPagination(totalPages, current) {

@@ -178,7 +178,7 @@ router.get('/referrals/team/:uid', async (req, res) => {
         }
 
         const clean = (list) => list.map(u => ({
-            uid: u.uid, name: u.name, referralCode: u.referral_code,
+            uid: u.uid, name: u.name, email: u.email, referralCode: u.referral_code,
             activePackage: u.active_package, packageStatus: u.package_status,
             totalPackageSpend: Number(u.total_package_spend) || 0,
             createdAt: u.created_at,
