@@ -276,6 +276,10 @@ onAuthStateChanged(auth, async user => {
   document.getElementById('adminBadge').textContent = user.email || 'Admin';
   loadStats();
   loadRecentJoins();
+  setInterval(async () => {
+    const c = await getDirectCount('claims');
+    if (c > 0) document.getElementById('claims').textContent = c;
+  }, 15000);
 });
 
 async function getDirectCount(table) {
