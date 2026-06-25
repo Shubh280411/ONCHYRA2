@@ -280,17 +280,32 @@ onAuthStateChanged(auth, async user => {
 
 async function loadStats() {
   try {
-    const [uCnt, claimCnt, pkgCnt, wdSnap] = await Promise.all([
-      getCountFromServer(collection(db, 'users')),
-      getCountFromServer(collection(db, 'claims')),
-      getCountFromServer(collection(db, 'packagePurchases')),
-      getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
-    ]);
-    document.getElementById('users').textContent = uCnt.data().count || 0;
-    document.getElementById('claims').textContent = claimCnt.data().count || 0;
-    document.getElementById('packages').textContent = pkgCnt.data().count || 0;
-    document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
-  } catch(e) { console.warn('Stats load failed:', e.message); }
+    // Use backend API for accurate counts (direct SQL, no 1000 row limit)
+    const resp = await fetch(API + '/admin/stats');
+    if (resp.ok) {
+      const data = await resp.json();
+      document.getElementById('users').textContent = data.totalUsers || 0;
+      document.getElementById('claims').textContent = data.totalClaims || 0;
+      document.getElementById('packages').textContent = data.packageCount || 0;
+      document.getElementById('pendingW').textContent = data.pendingWithdrawals || 0;
+    } else {
+      throw new Error('API status ' + resp.status);
+    }
+  } catch(e) {
+    console.warn('Backend stats failed, using direct count:', e.message);
+    try {
+      const [uCnt, claimCnt, pkgCnt, wdSnap] = await Promise.all([
+        getCountFromServer(collection(db, 'users')),
+        getCountFromServer(collection(db, 'claims')),
+        getCountFromServer(collection(db, 'packagePurchases')),
+        getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
+      ]);
+      document.getElementById('users').textContent = uCnt.data().count || 0;
+      document.getElementById('claims').textContent = claimCnt.data().count || 0;
+      document.getElementById('packages').textContent = pkgCnt.data().count || 0;
+      document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
+    } catch(e2) { console.warn('Direct count also failed:', e2.message); }
+  }
   loadStorageStats();
 }
 
