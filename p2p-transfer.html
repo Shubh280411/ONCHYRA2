@@ -502,7 +502,7 @@ sendBtn.addEventListener('click', async () => {
             : `You received ${receive.toFixed(2)} ONC from ${userName}`;
         await addDoc(collection(db, "notifications"), {
             userId: recipientId,
-            type: 'personal',
+            type: 'transaction',
             title: 'Transfer Received',
             message: notiMsg,
             link: 'p2p-transfer.html',

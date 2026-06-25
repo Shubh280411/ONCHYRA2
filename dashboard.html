@@ -133,6 +133,7 @@
         .noti-type-personal { color: #fbbf24; }
         .noti-type-trade_won { color: var(--success); }
         .noti-type-trade_lost { color: var(--danger); }
+        .noti-type-transaction { color: var(--secondary); }
         .noti-item .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
         .noti-item .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
         .noti-item .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
@@ -696,7 +697,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-    doc, onSnapshot, updateDoc, collection, addDoc,
+    doc, onSnapshot, updateDoc, collection, addDoc, deleteDoc,
     query, limit, orderBy, getDoc, getDocs, setDoc, getCountFromServer, serverTimestamp,
     increment, where, arrayUnion,
 
@@ -1189,8 +1190,8 @@ function loadNotifications() {
                 const isUser = n.userId === uid || n.userId === "all";
                 if (!isUser) return;
                 if (!n.readBy || !n.readBy.includes(uid)) unread++;
-                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : n.type === 'trade_won' ? 'noti-type-trade_won' : n.type === 'trade_lost' ? 'noti-type-trade_lost' : 'noti-type-personal';
-                const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : 'PERSONAL';
+                const typeClass = n.type === 'update' ? 'noti-type-update' : n.type === 'poll' ? 'noti-type-poll' : n.type === 'trade_won' ? 'noti-type-trade_won' : n.type === 'trade_lost' ? 'noti-type-trade_lost' : n.type === 'transaction' ? 'noti-type-transaction' : 'noti-type-personal';
+                const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : n.type === 'transaction' ? 'TRANSACTION' : 'PERSONAL';
                 html += `<div class="noti-item ${n.readBy && n.readBy.includes(uid) ? '' : 'unread'}" onclick="readNoti('${d.id}')">
                     <div class="noti-type ${typeClass}">${typeLabel}</div>
                     <div class="noti-title">${n.title || ''}</div>
@@ -1208,6 +1209,14 @@ function loadNotifications() {
         } else {
             badge.classList.remove('show');
         }
+
+        // Auto-delete expired notifications (read >1min ago)
+        snap.forEach(d => {
+            const n = d.data();
+            if (n.deleteAt && n.deleteAt < Date.now()) {
+                deleteDoc(doc(db, "notifications", d.id));
+            }
+        });
     });
 }
 
@@ -1221,10 +1230,11 @@ window.markAllRead = async (e) => {
     const q = query(collection(db, "notifications"));
     const snap = await getDocs(q);
     const batch = [];
+    const expiry = Date.now() + 60000;
     snap.forEach(d => {
         const n = d.data();
         if (n.userId === uid || n.userId === "all") {
-            batch.push(updateDoc(doc(db, "notifications", d.id), { readBy: arrayUnion(uid) }));
+            batch.push(updateDoc(doc(db, "notifications", d.id), { readBy: arrayUnion(uid), deleteAt: expiry }));
         }
     });
     await Promise.all(batch);
@@ -1234,7 +1244,7 @@ window.readNoti = async (id) => {
     const d = await getDoc(doc(db, "notifications", id));
     if (!d.exists()) return;
     const link = d.data().link || '';
-    await updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid) });
+    await updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid), deleteAt: Date.now() + 60000 });
     if (link) window.location = link;
 };
 
