@@ -518,6 +518,50 @@ router.post('/user/sync', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Leaderboard — top 100 users by balance
+router.get('/leaderboard', async (req, res) => {
+    try {
+        const limitVal = Math.min(parseInt(req.query.limit) || 100, 200);
+        const myUid = req.query.myUid || null;
+
+        const rows = await pg.query(
+            `SELECT uid, name, referral_code, balance, ref_level1, ref_level2, ref_level3
+             FROM "users" WHERE balance > 0 ORDER BY balance DESC LIMIT $1`, [limitVal]
+        );
+
+        const total = await pg.query('SELECT COUNT(*) FROM "users"');
+        const totalUsers = parseInt(total.rows[0].count);
+
+        let myRank = null;
+        let myUserData = null;
+        if (myUid) {
+            const myRow = await pg.get('users', myUid);
+            if (myRow) {
+                const ahead = await pg.query(
+                    'SELECT COUNT(*) FROM "users" WHERE balance > $1', [myRow.balance || 0]
+                );
+                myRank = parseInt(ahead.rows[0].count) + 1;
+                myUserData = {
+                    uid: myUid, name: myRow.name, balance: Number(myRow.balance) || 0,
+                    refLevel1: Number(myRow.ref_level1) || 0,
+                    refLevel2: Number(myRow.ref_level2) || 0,
+                    refLevel3: Number(myRow.ref_level3) || 0,
+                };
+            }
+        }
+
+        const leaders = rows.rows.map((r, i) => ({
+            uid: r.uid, name: r.name || 'Anonymous', rank: i + 1,
+            balance: Number(r.balance) || 0,
+            refLevel1: Number(r.ref_level1) || 0,
+            refLevel2: Number(r.ref_level2) || 0,
+            refLevel3: Number(r.ref_level3) || 0,
+        }));
+
+        res.json({ leaders, totalUsers, myRank, myUserData });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Get user stats for referrals page
 router.get('/user/:uid', async (req, res) => {
     try {
