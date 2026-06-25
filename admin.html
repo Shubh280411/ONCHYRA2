@@ -297,22 +297,17 @@ async function getDirectCount(table) {
 
 async function loadStats() {
   try {
-    const [uCnt, claimCnt, pkgCnt, wdSnap] = await Promise.all([
+    const [uCnt, pkgCnt, wdSnap] = await Promise.all([
       getCountFromServer(collection(db, 'users')),
-      getCountFromServer(collection(db, 'claims')),
       getCountFromServer(collection(db, 'packagePurchases')),
       getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
     ]);
     document.getElementById('users').textContent = uCnt.data().count || 0;
-    let claimsCount = claimCnt.data().count || 0;
-    if (claimsCount === 0) {
-      const direct = await getDirectCount('claims');
-      if (direct > 0) claimsCount = direct;
-    }
-    document.getElementById('claims').textContent = claimsCount;
     document.getElementById('packages').textContent = pkgCnt.data().count || 0;
     document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
   } catch(e) { console.warn('Stats load failed:', e.message); }
+  const claimsCount = await getDirectCount('claims');
+  if (claimsCount >= 0) document.getElementById('claims').textContent = claimsCount;
   loadStorageStats();
 }
 
