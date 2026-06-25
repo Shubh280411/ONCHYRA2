@@ -159,7 +159,7 @@ async function getDocs(queryRef) {
       else if (f.op === 'array-contains') params[sfield] = 'cs.{"' + f.val + '"}';
     }
     if (orders.length) params.order = orders.map(o => camelToSnake(o.field) + (o.dir === 'desc' ? '.desc' : '.asc')).join(',');
-    if (limitVal) params.limit = limitVal;
+    params.limit = limitVal || 100000;
 
     const pk = getPK(table);
     const data = await rest(table, { params });
@@ -265,7 +265,7 @@ function increment(n = 1) { return { _isIncrement: true, value: Number(n) }; }
 
 async function getCountFromServer(q) {
   const table = q._isCollection ? getTableName(q._collection) : getTableName(q._collection);
-  const params = { select: 'id', limit: 0 };
+  const params = { select: 'id', limit: 1 };
   if (q._filters) {
     for (const f of q._filters) {
       const sfield = camelToSnake(f.field);
@@ -283,11 +283,16 @@ async function getCountFromServer(q) {
         Prefer: 'count=exact',
       },
     });
+    if (!res.ok) {
+      console.warn('getCountFromServer status', res.status, 'fallback to getDocs');
+      const snap = await getDocs(q);
+      return { data: () => ({ count: snap.docs.length }) };
+    }
     const cr = res.headers.get('content-range') || '';
     const count = parseInt(cr.split('/')[1], 10);
     return { data: () => ({ count: isNaN(count) ? 0 : count }) };
   } catch (e) {
-    console.error('getCountFromServer error:', e, 'falling back to getDocs');
+    console.error('getCountFromServer error:', e, 'fallback to getDocs');
     const snap = await getDocs(q);
     return { data: () => ({ count: snap.docs.length }) };
   }
