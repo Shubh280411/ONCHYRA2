@@ -114,45 +114,49 @@ exports.send = async (req, res) => {
 exports.list = async (_req, res) => {
   try {
     const now = Date.now();
-    const list = [];
+    const map = new Map();
 
+    // 1. Active OTPs from otp_store (have actual codes)
     try {
-      const rows = await pg.query(
-        `SELECT * FROM otp_logs ORDER BY created_at DESC LIMIT 100`
-      );
+      const rows = await pg.query(`SELECT * FROM otp_store ORDER BY created_at DESC LIMIT 100`);
       for (const r of rows.rows) {
-        list.push({
-          email: r.email || '',
-          otp: '',
-          createdAt: r.created_at || 0,
-          expiresAt: r.created_at ? r.created_at + OTP_EXPIRY_MS : 0,
-          verified: false,
-          attempts: 0,
-          usedAt: null,
-          event: r.event || '',
-          error: r.error || ''
-        });
+        const key = (r.email || '').toLowerCase();
+        if (!map.has(key) || r.created_at > map.get(key).createdAt) {
+          map.set(key, {
+            email: r.email || '',
+            otp: r.otp || '',
+            createdAt: Number(r.created_at) || 0,
+            expiresAt: Number(r.expires_at) || 0,
+            verified: !!r.verified,
+            attempts: Number(r.attempts) || 0,
+            usedAt: null,
+            event: r.verified ? 'verified' : (now > Number(r.expires_at) ? 'expired' : 'sent'),
+            error: ''
+          });
+        }
       }
     } catch (e) {
-      console.warn('[OTP] PG list unavailable, using in-memory only');
+      console.warn('[OTP] PG otp_store unavailable:', e.message);
     }
 
-    const memKeys = new Set(list.map(i => i.email));
+    // 2. Also add in-memory entries not in PG
     for (const [key, entry] of otpStore) {
-      if (memKeys.has(key)) continue;
-      if (now > entry.expiresAt) continue;
-      list.push({
-        email: key,
-        otp: entry.otp,
-        createdAt: entry.createdAt,
-        expiresAt: entry.expiresAt,
-        verified: entry.verified,
-        attempts: entry.attempts,
-        usedAt: null
-      });
+      if (!map.has(key)) {
+        map.set(key, {
+          email: key,
+          otp: entry.otp,
+          createdAt: entry.createdAt,
+          expiresAt: entry.expiresAt,
+          verified: entry.verified,
+          attempts: entry.attempts,
+          usedAt: null,
+          event: entry.verified ? 'verified' : (now > entry.expiresAt ? 'expired' : 'sent'),
+          error: ''
+        });
+      }
     }
 
-    list.sort((a, b) => b.createdAt - a.createdAt);
+    const list = [...map.values()].sort((a, b) => b.createdAt - a.createdAt);
     res.json(list.slice(0, 200));
   } catch (e) {
     res.status(500).json({ error: e.message });
