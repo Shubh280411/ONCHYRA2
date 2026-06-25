@@ -111,26 +111,33 @@ exports.send = async (req, res) => {
   }
 };
 
+function toNum(v) {
+  if (v == null) return 0;
+  const n = Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
 exports.list = async (_req, res) => {
   try {
     const now = Date.now();
     const map = new Map();
 
-    // 1. Active OTPs from otp_store (have actual codes)
     try {
       const rows = await pg.query(`SELECT * FROM otp_store ORDER BY created_at DESC LIMIT 100`);
       for (const r of rows.rows) {
         const key = (r.email || '').toLowerCase();
-        if (!map.has(key) || r.created_at > map.get(key).createdAt) {
+        const created = toNum(r.created_at);
+        const expires = toNum(r.expires_at);
+        if (!map.has(key) || created > map.get(key).createdAt) {
           map.set(key, {
             email: r.email || '',
             otp: r.otp || '',
-            createdAt: Number(r.created_at) || 0,
-            expiresAt: Number(r.expires_at) || 0,
+            createdAt: created,
+            expiresAt: expires,
             verified: !!r.verified,
-            attempts: Number(r.attempts) || 0,
+            attempts: toNum(r.attempts),
             usedAt: null,
-            event: r.verified ? 'verified' : (now > Number(r.expires_at) ? 'expired' : 'sent'),
+            event: r.verified ? 'verified' : (now > expires ? 'expired' : 'sent'),
             error: ''
           });
         }
@@ -139,7 +146,6 @@ exports.list = async (_req, res) => {
       console.warn('[OTP] PG otp_store unavailable:', e.message);
     }
 
-    // 2. Also add in-memory entries not in PG
     for (const [key, entry] of otpStore) {
       if (!map.has(key)) {
         map.set(key, {

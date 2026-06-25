@@ -222,15 +222,24 @@ const db = {};
     let allOtps = [];
     let countdownTimer = null;
 
+    function toNum(v) {
+        if (v == null) return 0;
+        const n = Number(v);
+        return isNaN(n) ? 0 : n;
+    }
+
     function formatDate(ts) {
-        if (!ts) return '-';
-        const d = new Date(ts);
+        const n = toNum(ts);
+        if (!n) return '-';
+        const d = new Date(n);
+        if (isNaN(d.getTime())) return '-';
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function countdownStr(expiresAt) {
-        if (!expiresAt) return '-';
-        const diff = expiresAt - Date.now();
+        const n = toNum(expiresAt);
+        if (!n) return '-';
+        const diff = n - Date.now();
         if (diff <= 0) return '<span style="color:var(--danger)">Expired</span>';
         const m = Math.floor(diff / 60000);
         const s = Math.floor((diff % 60000) / 1000);
@@ -240,7 +249,7 @@ const db = {};
     function getOtpStatus(otp) {
         if (otp.verified || otp.event === 'verified') return 'verified';
         if (otp.usedAt) return 'used';
-        if (Date.now() > otp.expiresAt || otp.event === 'expired') return 'expired';
+        if (Date.now() > toNum(otp.expiresAt) || otp.event === 'expired') return 'expired';
         return 'pending';
     }
 
@@ -276,7 +285,7 @@ const db = {};
 
         body.innerHTML = filtered.map(o => {
             const st = getOtpStatus(o);
-            const expiresHtml = o.expiresAt
+            const expiresHtml = toNum(o.expiresAt)
                 ? (st === 'pending' ? countdownStr(o.expiresAt) : '<span style="color:var(--danger)">Expired</span>')
                 : '-';
             return `<tr>
@@ -307,9 +316,10 @@ const db = {};
     function startCountdown() {
         if (countdownTimer) clearInterval(countdownTimer);
         countdownTimer = setInterval(() => {
-            const hasPending = allOtps.some(o =>
-                !o.verified && o.expiresAt > Date.now() && o.expiresAt - Date.now() < 120000
-            );
+            const hasPending = allOtps.some(o => {
+                const exp = toNum(o.expiresAt);
+                return !o.verified && exp > Date.now() && exp - Date.now() < 120000;
+            });
             if (hasPending) {
                 updateStats();
                 renderTable();
