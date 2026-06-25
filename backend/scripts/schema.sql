@@ -106,10 +106,11 @@ CREATE TABLE IF NOT EXISTS p2p_transfers (
   id TEXT PRIMARY KEY, from_uid TEXT, to_uid TEXT, from_code TEXT, to_code TEXT,
   from_name TEXT, to_name TEXT, gross_amount NUMERIC DEFAULT 0,
   burn NUMERIC DEFAULT 0, net_amount NUMERIC DEFAULT 0,
-  status TEXT DEFAULT 'completed', created_at BIGINT
+  note TEXT DEFAULT '', status TEXT DEFAULT 'completed', created_at BIGINT
 );
 CREATE INDEX IF NOT EXISTS idx_p2p_transfers_from ON p2p_transfers(from_uid);
 CREATE INDEX IF NOT EXISTS idx_p2p_transfers_to ON p2p_transfers(to_uid);
+ALTER TABLE IF EXISTS p2p_transfers ADD COLUMN IF NOT EXISTS note TEXT DEFAULT '';
 
 -- Claims (Daily Mining)
 CREATE TABLE IF NOT EXISTS claims (

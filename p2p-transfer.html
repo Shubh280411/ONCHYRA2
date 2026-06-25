@@ -448,7 +448,7 @@ document.getElementById('clearLink').addEventListener('click', (e) => {
 // ── Daily limit check (client-side filter, no composite index needed) ──
 async function getDailyTxCount() {
     const cutoff = Date.now() - 86400000;
-    const q = query(collection(db, "transfers"), where("from", "==", uid), where("timestamp", ">=", cutoff), limit(50));
+    const q = query(collection(db, "transfers"), where("fromUid", "==", uid), where("createdAt", ">=", cutoff), limit(50));
     const snap = await getDocs(q);
     return snap.size;
 }
@@ -483,11 +483,11 @@ sendBtn.addEventListener('click', async () => {
 
         // 1. Create audit record with names
         const transferRef = await addDoc(collection(db, "transfers"), {
-            from: uid, to: recipientId, toCode: recipientCode,
+            fromUid: uid, toUid: recipientId, toCode: recipientCode,
             fromName: userName, toName: recipientDisplayName,
-            amount: amt, burn: burn, receive: receive,
+            grossAmount: amt, burn: burn, netAmount: receive,
             note: note || '',
-            timestamp: serverTimestamp(), status: 'completed'
+            createdAt: serverTimestamp(), status: 'completed'
         });
 
         // 2. Deduct from sender
@@ -565,12 +565,12 @@ async function loadHistorySide(uid) {
     try {
         const q1 = query(
             collection(db, "transfers"),
-            where("from", "==", uid),
+            where("fromUid", "==", uid),
             limit(30)
         );
         const q2 = query(
             collection(db, "transfers"),
-            where("to", "==", uid),
+            where("toUid", "==", uid),
             limit(30)
         );
 
@@ -579,12 +579,14 @@ async function loadHistorySide(uid) {
         const all = [];
         const nameFetchUids = new Set();
         snap1.forEach(d => {
-            const tx = { id: d.id, ...d.data(), dir: 'sent' };
+            const data = d.data();
+            const tx = { id: d.id, from: data.fromUid, to: data.toUid, fromName: data.fromName, toName: data.toName, fromCode: data.fromCode, toCode: data.toCode, amount: data.grossAmount, burn: data.burn, receive: data.netAmount, note: data.note || '', status: data.status, timestamp: data.createdAt, dir: 'sent' };
             all.push(tx);
             if (!tx.toName && tx.to) nameFetchUids.add(tx.to);
         });
         snap2.forEach(d => {
-            const tx = { id: d.id, ...d.data(), dir: 'received' };
+            const data = d.data();
+            const tx = { id: d.id, from: data.fromUid, to: data.toUid, fromName: data.fromName, toName: data.toName, fromCode: data.fromCode, toCode: data.toCode, amount: data.grossAmount, burn: data.burn, receive: data.netAmount, note: data.note || '', status: data.status, timestamp: data.createdAt, dir: 'received' };
             all.push(tx);
             if (!tx.fromName && tx.from) nameFetchUids.add(tx.from);
         });
@@ -611,8 +613,8 @@ async function loadHistorySide(uid) {
         });
 
         all.sort((a, b) => {
-            const ta = a.timestamp?.toMillis?.() || 0;
-            const tb = b.timestamp?.toMillis?.() || 0;
+            const ta = a.timestamp || 0;
+            const tb = b.timestamp || 0;
             return tb - ta;
         });
 

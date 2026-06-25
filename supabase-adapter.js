@@ -79,7 +79,7 @@ const db = { _adapter: 'supabase' };
 const PK_MAP = { users: 'uid', admins: 'uid', settings: 'key', otpStore: 'email' };
 
 function getTableName(c) {
-  const m = { otpStore: 'otp_store', otpLogs: 'otp_logs', depositWallets: 'deposit_wallets', packagePurchases: 'package_purchases', achievementBonuses: 'achievement_bonuses', leadershipRewards: 'leadership_rewards', user_votes: 'poll_votes', pollLog: 'poll_logs', prediction_bets: 'prediction_bets', contestParticipants: 'contest_participants', allTransfers: 'all_transfers', admin_transactions: 'admin_transactions', auditLogs: 'audit_logs' };
+  const m = { transfers: 'p2p_transfers', otpStore: 'otp_store', otpLogs: 'otp_logs', depositWallets: 'deposit_wallets', packagePurchases: 'package_purchases', achievementBonuses: 'achievement_bonuses', leadershipRewards: 'leadership_rewards', user_votes: 'poll_votes', pollLog: 'poll_logs', prediction_bets: 'prediction_bets', contestParticipants: 'contest_participants', allTransfers: 'all_transfers', admin_transactions: 'admin_transactions', auditLogs: 'audit_logs' };
   return m[c] || c;
 }
 function getPK(c) { return PK_MAP[c] || 'id'; }
