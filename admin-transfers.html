@@ -326,9 +326,9 @@ async function loadAllTransfers(isReset = true) {
 
         const sortVal = document.getElementById('sortSelect').value;
         let orderDir = 'desc';
-        let orderField = 'timestamp';
+        let orderField = 'createdAt';
         if (sortVal === 'oldest') orderDir = 'asc';
-        if (sortVal === 'largest') { orderField = 'amount'; orderDir = 'desc'; }
+        if (sortVal === 'largest') { orderField = 'grossAmount'; orderDir = 'desc'; }
 
         let q;
         if (lastDoc) {
