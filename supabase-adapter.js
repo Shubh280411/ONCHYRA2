@@ -264,37 +264,12 @@ function serverTimestamp() { return Date.now(); }
 function increment(n = 1) { return { _isIncrement: true, value: Number(n) }; }
 
 async function getCountFromServer(q) {
-  const table = q._isCollection ? getTableName(q._collection) : getTableName(q._collection);
-  const params = { select: 'id', limit: 1 };
-  if (q._filters) {
-    for (const f of q._filters) {
-      const sfield = camelToSnake(f.field);
-      if (f.op === '==') params[sfield] = 'eq.' + f.val;
-    }
-  }
   try {
-    const url = new URL(table, REST_URL);
-    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
-        Accept: 'application/json',
-        Prefer: 'count=exact',
-      },
-    });
-    if (!res.ok) {
-      console.warn('getCountFromServer status', res.status, 'fallback to getDocs');
-      const snap = await getDocs(q);
-      return { data: () => ({ count: snap.docs.length }) };
-    }
-    const cr = res.headers.get('content-range') || '';
-    const count = parseInt(cr.split('/')[1], 10);
-    return { data: () => ({ count: isNaN(count) ? 0 : count }) };
-  } catch (e) {
-    console.error('getCountFromServer error:', e, 'fallback to getDocs');
     const snap = await getDocs(q);
     return { data: () => ({ count: snap.docs.length }) };
+  } catch (e) {
+    console.error('getCountFromServer error:', e);
+    return { data: () => ({ count: 0 }) };
   }
 }
 
