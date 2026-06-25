@@ -367,10 +367,11 @@ function renderTeam() {
     const lvl = document.getElementById('lvlFilter').value;
     const container = document.getElementById('teamList');
     const q = (document.getElementById('teamSearch')?.value || '').toLowerCase().trim();
+    const matchUser = u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
 
     if (lvl === '1') {
         let list = teamData[1] || [];
-        if (q) list = list.filter(u => (u.name||'').toLowerCase().includes(q));
+        if (q) list = list.filter(matchUser);
         if (list.length === 0) {
             container.innerHTML = '<div class="empty-state">' + (q ? 'No members match your search' : 'No members in this level') + '</div>';
             document.getElementById('pagination').innerHTML = ''; return;
@@ -378,7 +379,7 @@ function renderTeam() {
         container.innerHTML = list.map(u => tmplMember(u, lvl)).join('');
     } else {
         let all = teamData[lvl] || [];
-        if (q) all = all.filter(u => (u.name||'').toLowerCase().includes(q));
+        if (q) all = all.filter(matchUser);
         if (all.length === 0) {
             container.innerHTML = '<div class="empty-state">' + (q ? 'No members match your search' : 'No members in this level') + '</div>';
             document.getElementById('pagination').innerHTML = ''; return;
@@ -394,7 +395,7 @@ function renderTeam() {
         totalPages = Math.ceil(teamTotal / 10) || 1;
     } else {
         const filteredLength = (lvl === '1' ? (teamData[1]||[]) : (teamData[lvl]||[]))
-            .filter(u => !q || (u.name||'').toLowerCase().includes(q)).length;
+            .filter(u => !q || matchUser(u)).length;
         totalPages = Math.ceil(filteredLength / 10) || 1;
     }
     renderPagination(totalPages, teamPage);
