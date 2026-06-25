@@ -367,10 +367,11 @@ window.registerUser = async function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid, name: data.name, email: data.email, referralCode: myRefCode, referredBy: data.refCode })
     });
-    if (!commRes.ok) {
-      const commErr = await commRes.json();
-      console.error('Commission error:', commErr);
-    }
+                if (!commRes.ok) {
+                    const commErr = await commRes.json();
+                    console.error('Commission error:', commErr);
+                    showToast('Registration done but bonus processing failed. Contact support.', true);
+                }
 
     showToast('Registration Successful!');
     setTimeout(() => window.location.href = 'dashboard.html', 800);
