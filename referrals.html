@@ -177,7 +177,7 @@ let teamPage = 1, teamTotal = 0, commPage = 1;
 function fmtDate(ts) {
     if (!ts) return '-';
     try {
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        const d = ts.toDate ? ts.toDate() : new Date(Number(ts));
         if (isNaN(d.getTime())) return '-';
         return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
     } catch(e) { return '-'; }
@@ -453,7 +453,7 @@ async function loadCommissions() {
         const resp = await fetch(API + '/referrals/commissions/' + uid);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         allCommissions = (await resp.json()).commissions || [];
-        allCommissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        allCommissions.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
     } catch (e) {
         document.getElementById('commError').textContent = 'Commissions load failed: ' + e.message;
         document.getElementById('commError').style.display = 'block';
@@ -478,7 +478,7 @@ function renderCommissions() {
     let todayOnc = 0, todayUsdt = 0;
     const todayStr = new Date().toDateString();
     for (const c of all) {
-        if (c.createdAt && new Date(c.createdAt).toDateString() === todayStr) {
+        if (c.createdAt && new Date(Number(c.createdAt)).toDateString() === todayStr) {
             if (c.type === 'registration_bonus') todayOnc += Number(c.amount) || 0;
             else todayUsdt += Number(c.amount) || 0;
         }
