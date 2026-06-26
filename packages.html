@@ -268,6 +268,25 @@ window.purchase = async () => {
         }));
         await Promise.all(batch);
 
+        const newCap = prevCap + pkg.cap;
+        await fetch(API + '/user/sync-package', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                uid,
+                name: userData.name,
+                email: userData.email,
+                activePackage: pkg.id,
+                packageAmount: pkg.price,
+                packageBoost: pkg.boost,
+                packageCap: newCap,
+                totalPackageSpend: (userData.totalPackageSpend || 0) + pkg.price,
+                walletBalance: walletBalance - finalPrice,
+                packagePurchasedAt: Date.now(),
+                packageStatus: 'active'
+            })
+        });
+
         processCommissions(uid).catch(e => console.error('Commission error:', e));
 
         userData.activePackage = pkg.id;

@@ -386,13 +386,65 @@ router.get('/admin/stats', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Admin — Notifications
+// Notifications — fetch a user's notifications (user_id = uid OR 'all')
+router.get('/notifications/:uid', async (req, res) => {
+    try {
+        const { uid } = req.params;
+        // Auto-delete any expired notifications (read >1min ago, delete_at < now)
+        await pg.query(`DELETE FROM notifications WHERE delete_at IS NOT NULL AND delete_at < $1`, [Date.now()]);
+        const result = await pg.query(
+            `SELECT * FROM notifications WHERE user_id = $1 OR user_id = 'all' ORDER BY created_at DESC LIMIT 50`,
+            [uid]
+        );
+        res.json({ notifications: result.rows.map(cc) });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Notifications — mark one as read (append uid to read_by + schedule auto-delete)
+router.post('/notifications/read/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { uid } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const expiry = Date.now() + 60000;
+        await pg.query(
+            `UPDATE notifications SET read_by = read_by || $1::jsonb, delete_at = $2 WHERE id = $3`,
+            [JSON.stringify(uid), expiry, id]
+        );
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Notifications — mark all of the user's unread notifications as read
+router.post('/notifications/read-all', async (req, res) => {
+    try {
+        const { uid } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const expiry = Date.now() + 60000;
+        await pg.query(
+            `UPDATE notifications SET read_by = read_by || $1::jsonb, delete_at = $2
+             WHERE (user_id = $3 OR user_id = 'all') AND NOT read_by @> $1::jsonb`,
+            [JSON.stringify(uid), expiry, uid]
+        );
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Notifications — delete a single notification
+router.post('/notifications/delete/:id', async (req, res) => {
+    try {
+        await pg.query(`DELETE FROM notifications WHERE id = $1`, [req.params.id]);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Admin — Notifications (send)
 router.post('/admin/notifications/send', async (req, res) => {
     try {
         const { userId, title, message, type, link } = req.body;
         await pg.query(
-            `INSERT INTO notifications (user_id, title, message, type, link, read, created_at)
-             VALUES ($1, $2, $3, $4, $5, false, $6)`,
+            `INSERT INTO notifications (user_id, title, message, type, link, read_by, created_at)
+             VALUES ($1, $2, $3, $4, $5, '[]'::jsonb, $6)`,
             [userId || 'all', title, message, type || 'update', link || '', Date.now()]
         );
         res.json({ success: true });
@@ -514,6 +566,28 @@ router.post('/user/sync', async (req, res) => {
             commission_balance: 0,
             created_at: Date.now()
         });
+        res.json({ synced: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Sync package purchase data from Firestore to PostgreSQL (before commission processing)
+router.post('/user/sync-package', async (req, res) => {
+    try {
+        const { uid, name, email, activePackage, packageAmount, packageBoost, packageCap, packageUsage, packageStatus, totalPackageSpend, walletBalance } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (email !== undefined) updates.email = email;
+        if (activePackage !== undefined) updates.active_package = activePackage;
+        if (packageAmount !== undefined) updates.package_amount = packageAmount;
+        if (packageBoost !== undefined) updates.package_boost = packageBoost;
+        if (packageCap !== undefined) updates.package_cap = packageCap;
+        if (packageUsage !== undefined) updates.package_usage = packageUsage;
+        if (packageStatus !== undefined) updates.package_status = packageStatus;
+        if (totalPackageSpend !== undefined) updates.total_package_spend = totalPackageSpend;
+        if (walletBalance !== undefined) updates.wallet_balance = walletBalance;
+        updates.updated_at = Date.now();
+        await pg.update('users', uid, updates);
         res.json({ synced: true });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -766,6 +840,68 @@ router.post('/admin/reset-teambiz', async (req, res) => {
     try {
         await pg.query(`UPDATE users SET team_biz = 0`);
         res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Admin — Global Recalculate Referrals (recalculates ref_level1/2/3, team_biz, leg_a_biz, leg_b_biz, total_directs, active_directs)
+router.post('/admin/recalculate-referrals', async (req, res) => {
+    try {
+        const allUsersRes = await pg.query(`SELECT * FROM users`);
+        const allUsers = allUsersRes.rows;
+        const byRefCode = {};
+        for (const u of allUsers) {
+            if (u.referral_code) byRefCode[u.referral_code.toUpperCase()] = u;
+        }
+
+        let updated = 0;
+        for (const u of allUsers) {
+            const code = u.referral_code ? u.referral_code.toUpperCase() : null;
+            if (!code) continue;
+
+            const l1Rows = allUsers.filter(x => (x.referred_by || '').toUpperCase() === code);
+            const refLevel1 = l1Rows.length;
+
+            const l1Codes = l1Rows.map(x => (x.referral_code || '').toUpperCase()).filter(Boolean);
+            const l2Rows = l1Codes.length ? allUsers.filter(x => l1Codes.includes((x.referred_by || '').toUpperCase())) : [];
+            const refLevel2 = l2Rows.length;
+
+            const l2Codes = l2Rows.map(x => (x.referral_code || '').toUpperCase()).filter(Boolean);
+            const l3Rows = l2Codes.length ? allUsers.filter(x => l2Codes.includes((x.referred_by || '').toUpperCase())) : [];
+            const refLevel3 = l3Rows.length;
+
+            const totalDirects = refLevel1;
+            const activeDirects = l1Rows.filter(x => x.active_package && x.active_package !== 'none').length;
+
+            const l1Biz = l1Rows.map(x => Number(x.total_package_spend) || 0);
+            const teamBiz = l1Biz.reduce((a, b) => a + b, 0);
+
+            let legABiz = 0, legBBiz = 0;
+            if (l1Biz.length > 0) {
+                const sorted = [...l1Biz].sort((a, b) => b - a);
+                legABiz = sorted[0];
+                legBBiz = sorted.slice(1).reduce((a, b) => a + b, 0);
+            }
+
+            const needsUpdate = refLevel1 !== Number(u.ref_level1) || refLevel2 !== Number(u.ref_level2) || refLevel3 !== Number(u.ref_level3) ||
+                teamBiz !== Number(u.team_biz) || legABiz !== Number(u.leg_a_biz) || legBBiz !== Number(u.leg_b_biz) ||
+                totalDirects !== Number(u.total_directs) || activeDirects !== Number(u.active_directs);
+            if (needsUpdate) {
+                await pg.query(
+                    `UPDATE users SET ref_level1=$1, ref_level2=$2, ref_level3=$3, team_biz=$4, leg_a_biz=$5, leg_b_biz=$6, total_directs=$7, active_directs=$8 WHERE uid=$9`,
+                    [refLevel1, refLevel2, refLevel3, teamBiz, legABiz, legBBiz, totalDirects, activeDirects, u.uid]
+                );
+                updated++;
+            }
+        }
+
+        const commSumRes = await pg.query(`SELECT uid, COALESCE(SUM(amount),0) AS total FROM commissions GROUP BY uid`);
+        let commUpdated = 0;
+        for (const row of commSumRes.rows) {
+            await pg.query(`UPDATE users SET total_commissions = $1 WHERE uid = $2`, [row.total, row.uid]);
+            commUpdated++;
+        }
+
+        res.json({ success: true, totalUsers: allUsers.length, updated, commSynced: commUpdated });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
