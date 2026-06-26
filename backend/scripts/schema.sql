@@ -125,11 +125,13 @@ CREATE INDEX IF NOT EXISTS idx_claims_user_id ON claims(user_id);
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id TEXT PRIMARY KEY, user_id TEXT, title TEXT, message TEXT,
-  type TEXT DEFAULT 'update', link TEXT, read_by JSONB DEFAULT '[]', created_at BIGINT,
+  type TEXT DEFAULT 'update', link TEXT, link_title TEXT DEFAULT '',
+  read_by JSONB DEFAULT '[]', created_at BIGINT,
   delete_at BIGINT
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS delete_at BIGINT;
+ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS link_title TEXT DEFAULT '';
 
 -- Polls
 CREATE TABLE IF NOT EXISTS polls (

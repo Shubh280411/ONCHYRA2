@@ -39,8 +39,9 @@ tr:last-child td { border-bottom: none; }
 .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
 .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
 .badge-blue { background: rgba(96,165,250,0.15); color: var(--secondary); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--primary); }
 
-input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; outline: none; }
+input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; outline: none; font-family: 'Inter'; }
 input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 textarea { resize: vertical; min-height: 100px; }
 .form-label { font-size: 12px; color: rgba(255,255,255,0.5); display: block; margin-bottom: 6px; margin-top: 12px; }
@@ -64,6 +65,36 @@ textarea { resize: vertical; min-height: 100px; }
 .noti-preview .pv-label { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
 .noti-preview .pv-title { font-weight: 700; margin-bottom: 4px; }
 .noti-preview .pv-msg { font-size: 12px; opacity: 0.5; }
+.noti-preview .pv-link { font-size: 11px; color: var(--secondary); text-decoration: underline; margin-top: 6px; display: block; }
+
+/* User search */
+.user-search-wrap { position: relative; }
+.user-search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: white; outline: none; font-family: 'Inter'; font-size: 14px; }
+.user-search-input:focus { border-color: var(--primary); }
+.user-search-input::placeholder { color: rgba(255,255,255,0.25); }
+.user-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #0b0d18; border: 1px solid var(--border); border-radius: 10px; max-height: 200px; overflow-y: auto; display: none; z-index: 100; margin-top: 4px; }
+.user-dropdown.show { display: block; }
+.user-dropdown-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; gap: 10px; }
+.user-dropdown-item:hover { background: rgba(167,139,250,0.08); }
+.user-dropdown-item .ud-name { font-weight: 600; }
+.user-dropdown-item .ud-email { font-size: 11px; color: rgba(255,255,255,0.35); }
+.user-selected { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); border-radius: 10px; margin-top: 6px; }
+.user-selected .us-name { font-weight: 600; font-size: 13px; }
+.user-selected .us-id { font-size: 10px; color: rgba(255,255,255,0.3); font-family: monospace; }
+.user-selected .us-clear { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 16px; }
+.user-selected .us-clear:hover { color: var(--red); }
+
+/* Link toggle */
+.toggle-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.toggle-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 22px; cursor: pointer; transition: 0.3s; }
+.toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); background: #000; }
+.toggle-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+.link-fields { display: none; margin-top: 10px; }
+.link-fields.show { display: block; }
 
 @media (max-width: 768px) {
   .sidebar { width: 60px; }
@@ -109,7 +140,12 @@ textarea { resize: vertical; min-height: 100px; }
       </div>
 
       <label class="form-label">TARGET</label>
-      <select id="notiTarget"><option value="all">🌐 All Users</option></select>
+      <div class="user-search-wrap">
+        <input class="user-search-input" id="userSearchInput" type="text" placeholder="Search user by name or email..." autocomplete="off" oninput="filterUsers()" onfocus="filterUsers()">
+        <div class="user-dropdown" id="userDropdown"></div>
+      </div>
+      <div id="selectedUserBox" style="display:none;"></div>
+      <div id="targetLabel" style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px;">All Users</div>
 
       <label class="form-label">TYPE</label>
       <select id="notiType">
@@ -124,13 +160,25 @@ textarea { resize: vertical; min-height: 100px; }
       <label class="form-label">MESSAGE</label>
       <textarea id="notiMsg" placeholder="Write your message..." oninput="updatePreview()"></textarea>
 
-      <label class="form-label">REDIRECT LINK (optional)</label>
-      <input id="notiLink" placeholder="e.g. updates.html">
+      <div class="toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="linkToggle" onchange="toggleLinkField()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Include Link</span>
+      </div>
+      <div class="link-fields" id="linkFields">
+        <label class="form-label">LINK TITLE</label>
+        <input id="notiLinkTitle" placeholder="e.g. View Update" oninput="updatePreview()">
+        <label class="form-label">LINK URL</label>
+        <input id="notiLink" placeholder="e.g. updates.html" oninput="updatePreview()">
+      </div>
 
       <div class="noti-preview" id="notiPreview">
         <div class="pv-label">PREVIEW</div>
         <div class="pv-title" id="pvTitle"></div>
         <div class="pv-msg" id="pvMsg"></div>
+        <a class="pv-link" id="pvLink" href="#" onclick="return false" style="display:none;"></a>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:20px;">
@@ -145,8 +193,8 @@ textarea { resize: vertical; min-height: 100px; }
     <h1 class="page-title">History</h1>
     <div class="card" style="padding:0; overflow:hidden;">
       <table>
-        <thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Time</th><th>Actions</th></tr></thead>
-        <tbody id="historyTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+        <thead><tr><th>Type</th><th>Title</th><th>Target</th><th>Link</th><th>Time</th><th>Actions</th></tr></thead>
+        <tbody id="historyTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -169,7 +217,7 @@ textarea { resize: vertical; min-height: 100px; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, deleteDoc, collection, query, orderBy, onSnapshot, getDocs, limit, serverTimestamp, addDoc   } from "./supabase-adapter.js";
+import { doc, getDoc, deleteDoc, collection, query, orderBy, onSnapshot, getDocs, limit, serverTimestamp, addDoc } from "./supabase-adapter.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -181,6 +229,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = {};
 let allUsersData = [];
+let selectedUserId = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location = "login.html"; return; }
@@ -223,17 +272,71 @@ async function loadStats() {
   const uSnap = await getDocs(collection(db, 'users'));
   document.getElementById('statTotal').innerText = nSnap.size;
   document.getElementById('statUsers').innerText = uSnap.size;
-
-  const targetSelect = document.getElementById('notiTarget');
-  targetSelect.innerHTML = '<option value="all">🌐 All Users</option>';
   allUsersData = [];
   uSnap.forEach(d => {
     const data = d.data();
     allUsersData.push({ id: d.id, name: data.name || 'Unknown', email: data.email || '-', balance: (data.balance || 0).toFixed(2) });
-    targetSelect.innerHTML += `<option value="${d.id}">👤 ${data.name || data.email || d.id.slice(0,8)}</option>`;
   });
 }
 
+// ── User Search ──
+window.filterUsers = () => {
+  const val = document.getElementById('userSearchInput').value.toLowerCase().trim();
+  const dd = document.getElementById('userDropdown');
+  if (!val) { dd.classList.remove('show'); return; }
+  const matches = allUsersData.filter(u => u.name.toLowerCase().includes(val) || u.email.toLowerCase().includes(val)).slice(0, 20);
+  if (!matches.length) { dd.innerHTML = '<div class="user-dropdown-item" style="opacity:0.4;">No users found</div>'; dd.classList.add('show'); return; }
+  dd.innerHTML = matches.map(u => `
+    <div class="user-dropdown-item" onclick="selectUser('${u.id}')">
+      <div>
+        <div class="ud-name">${u.name}</div>
+        <div class="ud-email">${u.email}</div>
+      </div>
+    </div>
+  `).join('');
+  dd.classList.add('show');
+};
+
+window.selectUser = (id) => {
+  const user = allUsersData.find(u => u.id === id);
+  if (!user) return;
+  selectedUserId = id;
+  document.getElementById('userSearchInput').value = '';
+  document.getElementById('userDropdown').classList.remove('show');
+  const box = document.getElementById('selectedUserBox');
+  box.style.display = 'flex';
+  box.innerHTML = `<div class="user-selected">
+    <div><div class="us-name">${user.name}</div><div class="us-id">${user.email}</div></div>
+    <button class="us-clear" onclick="clearUserSelect()">&times;</button>
+  </div>`;
+  document.getElementById('targetLabel').textContent = 'Selected: ' + user.name;
+};
+
+window.clearUserSelect = () => {
+  selectedUserId = null;
+  document.getElementById('selectedUserBox').style.display = 'none';
+  document.getElementById('selectedUserBox').innerHTML = '';
+  document.getElementById('targetLabel').textContent = 'All Users';
+};
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.user-search-wrap')) {
+    document.getElementById('userDropdown').classList.remove('show');
+  }
+});
+
+// ── Link Toggle ──
+window.toggleLinkField = () => {
+  const on = document.getElementById('linkToggle').checked;
+  document.getElementById('linkFields').classList.toggle('show', on);
+  if (!on) {
+    document.getElementById('notiLinkTitle').value = '';
+    document.getElementById('notiLink').value = '';
+  }
+  updatePreview();
+};
+
+// ── Templates ──
 window.useTemplate = (type) => {
   const templates = {
     update: { type: 'update', title: 'Protocol Update', msg: 'A new update has been posted. Check the Updates section.', link: 'updates.html' },
@@ -245,51 +348,78 @@ window.useTemplate = (type) => {
   document.getElementById('notiType').value = t.type;
   document.getElementById('notiTitle').value = t.title;
   document.getElementById('notiMsg').value = t.msg;
-  document.getElementById('notiLink').value = t.link;
+  if (t.link) {
+    document.getElementById('linkToggle').checked = true;
+    document.getElementById('linkFields').classList.add('show');
+    document.getElementById('notiLink').value = t.link;
+    document.getElementById('notiLinkTitle').value = t.title;
+  }
   updatePreview();
 };
 
+// ── Preview ──
 window.updatePreview = () => {
   const title = document.getElementById('notiTitle').value;
   const msg = document.getElementById('notiMsg').value;
+  const linkOn = document.getElementById('linkToggle').checked;
+  const linkTitle = document.getElementById('notiLinkTitle').value.trim();
+  const linkUrl = document.getElementById('notiLink').value.trim();
   const pv = document.getElementById('notiPreview');
+  const pvLink = document.getElementById('pvLink');
   if (title || msg) {
     pv.style.display = 'block';
     document.getElementById('pvTitle').innerText = title || '(no title)';
     document.getElementById('pvMsg').innerText = msg || '(no message)';
+    if (linkOn && linkUrl) {
+      pvLink.style.display = 'block';
+      pvLink.innerText = linkTitle || linkUrl;
+      pvLink.href = linkUrl;
+    } else {
+      pvLink.style.display = 'none';
+    }
   } else {
     pv.style.display = 'none';
   }
 };
 
+// ── Clear ──
 window.clearForm = () => {
   document.getElementById('notiTitle').value = '';
   document.getElementById('notiMsg').value = '';
   document.getElementById('notiLink').value = '';
-  document.getElementById('notiTarget').value = 'all';
+  document.getElementById('notiLinkTitle').value = '';
+  document.getElementById('linkToggle').checked = false;
+  document.getElementById('linkFields').classList.remove('show');
+  clearUserSelect();
   document.getElementById('notiPreview').style.display = 'none';
 };
 
+// ── Send ──
 window.sendNotification = async () => {
-  const target = document.getElementById('notiTarget').value;
+  const target = selectedUserId || 'all';
   const type = document.getElementById('notiType').value;
   const title = document.getElementById('notiTitle').value.trim();
   const msg = document.getElementById('notiMsg').value.trim();
-  const link = document.getElementById('notiLink').value.trim();
+  const linkOn = document.getElementById('linkToggle').checked;
+  const linkTitle = document.getElementById('notiLinkTitle').value.trim();
+  const linkUrl = document.getElementById('notiLink').value.trim();
 
   if (!title || !msg) { showToast('Title and Message required!', true); return; }
 
+  const notiData = {
+    userId: target,
+    type,
+    title,
+    message: msg,
+    link: linkOn ? linkUrl : '',
+    linkTitle: linkOn ? linkTitle : '',
+    readBy: [],
+    createdAt: serverTimestamp()
+  };
+
   try {
-    await addDoc(collection(db, 'notifications'), {
-      userId: target,
-      type,
-      title,
-      message: msg,
-      link: link || '',
-      readBy: [],
-      createdAt: serverTimestamp()
-    });
-    showToast('Notification sent successfully! ✅');
+    await addDoc(collection(db, 'notifications'), notiData);
+    showToast('Notification sent successfully!');
     clearForm();
     loadStats();
   } catch(e) {
@@ -297,20 +427,23 @@ window.sendNotification = async () => {
   }
 };
 
+// ── History ──
 function loadHistory() {
   onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
     const tbody = document.getElementById('historyTable');
-    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No notifications yet</td></tr>'; return; }
+    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No notifications yet</td></tr>'; return; }
     let html = '';
     snap.forEach(d => {
       const n = d.data();
       const typeBadge = n.type === 'update' ? '<span class="badge badge-blue">Update</span>' : n.type === 'poll' ? '<span class="badge badge-green">Poll</span>' : '<span class="badge badge-yellow">Personal</span>';
-      const target = n.userId === 'all' ? '<span class="badge badge-green">All</span>' : '<span class="badge badge-blue">Single</span>';
+      const target = n.userId === 'all' ? '<span class="badge badge-green">All</span>' : '<span class="badge badge-purple">User</span>';
       const time = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString() : '-';
+      const linkCell = n.linkTitle ? `<span style="color:var(--secondary);font-size:12px;">${n.linkTitle}</span>` : n.link ? `<span style="color:var(--secondary);font-size:12px;">${n.link}</span>` : '<span style="opacity:0.2;">-</span>';
       html += `<tr>
         <td>${typeBadge}</td>
         <td style="font-weight:700">${n.title || '-'}</td>
         <td>${target}</td>
+        <td>${linkCell}</td>
         <td style="font-size:11px;opacity:0.4;white-space:nowrap">${time}</td>
         <td><button class="btn-danger" onclick="deleteNoti('${d.id}')">Delete</button></td>
       </tr>`;
@@ -329,6 +462,7 @@ window.deleteNoti = async (id) => {
   }
 };
 
+// ── Users ──
 async function loadUsers() {
   const uSnap = await getDocs(collection(db, 'users'));
   let html = '';
