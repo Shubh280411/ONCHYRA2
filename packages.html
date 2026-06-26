@@ -287,7 +287,13 @@ window.purchase = async () => {
             })
         });
 
-        processCommissions(uid).catch(e => console.error('Commission error:', e));
+        const commResp = await fetch(API + '/commissions/process-package', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid })
+        }).catch(e => ({ ok: false, json: () => Promise.resolve({ error: e.message }) }));
+        const commData = commResp.ok ? await commResp.json() : await commResp.json();
+        if (commData.error) console.error('Commission error:', commData.error);
 
         userData.activePackage = pkg.id;
         userData.packageBoost = pkg.boost;

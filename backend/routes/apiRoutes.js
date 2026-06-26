@@ -481,7 +481,7 @@ router.post('/commissions/process-package', async (req, res) => {
             // Update teamBiz
             await pg.increment('users', refUid, 'team_biz', user.total_package_spend || 0);
 
-            if (!refData.active_package || refData.active_package === 'none' || refData.package_status === 'expired') {
+            if (!refData.active_package || refData.active_package === 'none') {
                 currentRefCode = refData.referred_by;
                 continue;
             }
@@ -494,22 +494,26 @@ router.post('/commissions/process-package', async (req, res) => {
             const capped = Math.min(commission, available);
 
             if (capped > 0) {
-                const newUsed = used + capped;
-                const updates = {
-                    commission_balance: capped,
-                    package_usage: capped,
-                    total_commissions: capped,
-                };
-                await pg.incrementMulti('users', refUid, updates);
-                if (newUsed >= cap) {
-                    await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
+                const commId = 'cpp_' + refUid + '_' + uid + '_' + lv.level;
+                const existing = await pg.findWhere('commissions', { id: commId });
+                if (!existing.length) {
+                    const newUsed = used + capped;
+                    const updates = {
+                        commission_balance: capped,
+                        package_usage: capped,
+                        total_commissions: capped,
+                    };
+                    await pg.incrementMulti('users', refUid, updates);
+                    if (newUsed >= cap) {
+                        await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
+                    }
+                    await pg.query(
+                        `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
+                         VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
+                        [commId, uid, refUid, capped, lv.level, user.active_package || 'Package', user.name || 'User', Date.now()]
+                    );
+                    results.push({ level: lv.level, uid: refUid, amount: capped });
                 }
-                await pg.query(
-                    `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
-                     VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
-                    ['cpp_' + refUid + '_' + uid + '_' + Date.now(), uid, refUid, capped, lv.level, user.active_package || 'Package', user.name || 'User', Date.now()]
-                );
-                results.push({ level: lv.level, uid: refUid, amount: capped });
             }
 
             currentRefCode = refData.referred_by;
@@ -724,9 +728,9 @@ router.post('/register-commission', async (req, res) => {
         // L1 bonus
         await pg.incrementMulti('users', l1Uid, { balance: 0.25, referrals: 1, ref_level1: 1, total_directs: 1 });
         await pg.query(
-            `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
-             VALUES ($1, $2, $3, $4, 1, 'registration_bonus', 'Registration Bonus', $5)`,
-            [l1Uid, uid, newUserName, 0.25, Date.now()]
+            `INSERT INTO commissions (id, uid, from_uid, from_name, amount, level, type, package_name, created_at)
+             VALUES ($1, $2, $3, $4, $5, 1, 'registration_bonus', 'Registration Bonus', $6)`,
+            ['reg_' + l1Uid + '_' + uid + '_' + Date.now(), l1Uid, uid, newUserName, 0.25, Date.now()]
         );
 
         // L2 bonus
@@ -737,9 +741,9 @@ router.post('/register-commission', async (req, res) => {
                 const l2Uid = l2Data.uid;
                 await pg.incrementMulti('users', l2Uid, { balance: 0.10, ref_level2: 1 });
                 await pg.query(
-                    `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
-                     VALUES ($1, $2, $3, $4, 2, 'registration_bonus', 'Registration Bonus', $5)`,
-                    [l2Uid, uid, newUserName, 0.10, Date.now()]
+                    `INSERT INTO commissions (id, uid, from_uid, from_name, amount, level, type, package_name, created_at)
+                     VALUES ($1, $2, $3, $4, $5, 2, 'registration_bonus', 'Registration Bonus', $6)`,
+                    ['reg_' + l2Uid + '_' + uid + '_' + Date.now(), l2Uid, uid, newUserName, 0.10, Date.now()]
                 );
 
                 // L3 bonus
@@ -749,9 +753,9 @@ router.post('/register-commission', async (req, res) => {
                         const l3Uid = l3Rows[0].uid;
                         await pg.incrementMulti('users', l3Uid, { balance: 0.05, ref_level3: 1 });
                         await pg.query(
-                            `INSERT INTO commissions (uid, from_uid, from_name, amount, level, type, package_name, created_at)
-                             VALUES ($1, $2, $3, $4, 3, 'registration_bonus', 'Registration Bonus', $5)`,
-                            [l3Uid, uid, newUserName, 0.05, Date.now()]
+                            `INSERT INTO commissions (id, uid, from_uid, from_name, amount, level, type, package_name, created_at)
+                             VALUES ($1, $2, $3, $4, $5, 3, 'registration_bonus', 'Registration Bonus', $6)`,
+                            ['reg_' + l3Uid + '_' + uid + '_' + Date.now(), l3Uid, uid, newUserName, 0.05, Date.now()]
                         );
                     }
                 }
@@ -800,7 +804,7 @@ router.post('/admin/migrate-commissions', async (req, res) => {
 
                     await pg.increment('users', refUid, 'team_biz', pkgAmount);
 
-                    if (!fixBizOnly && refData.active_package && refData.active_package !== 'none' && refData.package_status !== 'expired') {
+                    if (!fixBizOnly && refData.active_package && refData.active_package !== 'none') {
                         const commission = pkgAmount * lv.pct;
                         const used = refData.package_usage || 0;
                         const cap = refData.package_cap || 999999;
