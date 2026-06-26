@@ -124,19 +124,22 @@
         .bell-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--border); }
         .bell-header span { font-family: 'Space Grotesk'; font-weight: 700; font-size: 14px; }
         .bell-clear { font-size: 10px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 700; }
-        .noti-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.15s; }
+        .noti-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.15s; display:flex; align-items:flex-start; gap:10px; }
         .noti-item:hover { background: rgba(255,255,255,0.02); }
         .noti-item.unread { border-left: 3px solid var(--primary); }
-        .noti-item .noti-type { font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .noti-item .noti-type { font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; flex-shrink:0; }
         .noti-type-update { color: var(--secondary); }
         .noti-type-poll { color: #22c55e; }
         .noti-type-personal { color: #fbbf24; }
         .noti-type-trade_won { color: var(--success); }
         .noti-type-trade_lost { color: var(--danger); }
         .noti-type-transaction { color: var(--secondary); }
-        .noti-item .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-        .noti-item .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
-        .noti-item .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
+        .noti-item .noti-info { flex:1; min-width:0; }
+        .noti-item .noti-info .noti-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .noti-item .noti-info .noti-msg { font-size: 11px; opacity: 0.45; line-height: 1.4; }
+        .noti-item .noti-info .noti-time { font-size: 9px; opacity: 0.3; margin-top: 4px; }
+        .noti-del { background:none; border:none; color:rgba(255,255,255,0.2); font-size:18px; cursor:pointer; padding:0 2px; line-height:1; flex-shrink:0; transition:0.15s; }
+        .noti-del:hover { color:#ef4444; }
         .noti-empty { padding: 40px 20px; text-align: center; font-size: 12px; opacity: 0.3; }
         @media (max-width: 600px) { .bell-dropdown { width: calc(100vw - 40px); right: -60px; } }
     </style>
@@ -1194,9 +1197,12 @@ function loadNotifications() {
                 const typeLabel = n.type === 'update' ? 'UPDATE' : n.type === 'poll' ? 'POLL' : n.type === 'trade_won' ? 'TRADE WON' : n.type === 'trade_lost' ? 'TRADE LOST' : n.type === 'transaction' ? 'TRANSACTION' : 'PERSONAL';
                 html += `<div class="noti-item ${n.readBy && n.readBy.includes(uid) ? '' : 'unread'}" onclick="readNoti('${d.id}')">
                     <div class="noti-type ${typeClass}">${typeLabel}</div>
-                    <div class="noti-title">${n.title || ''}</div>
-                    <div class="noti-msg">${n.message || ''}</div>
-                    <div class="noti-time">${timeAgoNoti(n.createdAt)}</div>
+                    <div class="noti-info">
+                        <div class="noti-title">${n.title || ''}</div>
+                        <div class="noti-msg">${n.message || ''}</div>
+                        <div class="noti-time">${timeAgoNoti(n.createdAt)}</div>
+                    </div>
+                    <button class="noti-del" onclick="event.stopPropagation();deleteNoti('${d.id}')" title="Delete">&times;</button>
                 </div>`;
             });
             if (!html) html = '<div class="noti-empty">No notifications</div>';
@@ -1238,6 +1244,10 @@ window.markAllRead = async (e) => {
         }
     });
     await Promise.all(batch);
+};
+
+window.deleteNoti = async (id) => {
+    await deleteDoc(doc(db, "notifications", id));
 };
 
 window.readNoti = async (id) => {
