@@ -10,6 +10,52 @@ const PACKAGES = {
     legacy:   { price: 500, boost: 300, cap: 5000, name: 'Legacy' },
 };
 
+const ORIGINAL_STARTER_PRICE = 5;
+const STARTER_PROMO_PRICE = 2.50;
+const STARTER_PROMO_DURATION_DAYS = 7;
+
+let promoColumnReady = false;
+async function ensurePromoColumn() {
+    if (promoColumnReady) return;
+    try {
+        await pg.query("ALTER TABLE package_purchases ADD COLUMN IF NOT EXISTS promo_applied BOOLEAN DEFAULT FALSE");
+        promoColumnReady = true;
+    } catch(e) { console.error('Failed to add promo_applied column:', e.message); }
+}
+
+async function getStarterPromoConfig() {
+    try {
+        const res = await pg.query("SELECT value FROM settings WHERE key = 'starterPromo'");
+        let val = res.rows[0]?.value || null;
+        if (typeof val === 'string') val = JSON.parse(val);
+        return val;
+    } catch(e) { return null; }
+}
+
+function isStarterPromoActive(promoConfig) {
+    if (!promoConfig || !promoConfig.active) return false;
+    const elapsed = Date.now() - promoConfig.startDate;
+    const maxDuration = STARTER_PROMO_DURATION_DAYS * 24 * 60 * 60 * 1000;
+    return elapsed <= maxDuration;
+}
+
+async function hasUserPurchasedStarter(uid) {
+    try {
+        const res = await pg.query(
+            "SELECT COUNT(*) FROM package_purchases WHERE uid = $1 AND package_id = $2",
+            [uid, 'starter']
+        );
+        return parseInt(res.rows[0].count) > 0;
+    } catch(e) { return false; }
+}
+
+function getEffectiveStarterPrice(promoConfig, hasPurchased) {
+    if (isStarterPromoActive(promoConfig) && !hasPurchased) {
+        return STARTER_PROMO_PRICE;
+    }
+    return ORIGINAL_STARTER_PRICE;
+}
+
 exports.list = (req, res) => res.json(PACKAGES);
 
 exports.purchase = async (req, res) => {
@@ -25,6 +71,21 @@ exports.purchase = async (req, res) => {
             return res.status(400).json({ error: 'Already has an active package. Upgrade instead.' });
         }
 
+        let pkgPrice = pkg.price;
+        let promoApplied = false;
+
+        if (packageId === 'starter') {
+            const promoConfig = await getStarterPromoConfig();
+            if (isStarterPromoActive(promoConfig)) {
+                const alreadyPurchased = await hasUserPurchasedStarter(uid);
+                if (alreadyPurchased) {
+                    return res.status(400).json({ error: 'Starter package promo limited to one per account. You can purchase another package instead.' });
+                }
+                pkgPrice = STARTER_PROMO_PRICE;
+                promoApplied = true;
+            }
+        }
+
         let credit = 0;
         if (user.active_package && user.active_package !== 'none') {
             const currentPkg = PACKAGES[user.active_package];
@@ -34,33 +95,34 @@ exports.purchase = async (req, res) => {
             }
         }
 
-        const finalPrice = Math.max(0, pkg.price - credit);
+        const finalPrice = Math.max(0, pkgPrice - credit);
         if ((user.wallet_balance || 0) < finalPrice) return res.status(400).json({ error: 'Insufficient wallet balance' });
 
         const prevCap = user.active_package && user.active_package !== 'none' && PACKAGES[user.active_package]
             ? PACKAGES[user.active_package].cap : 0;
 
+        await ensurePromoColumn();
         await pg.increment('users', uid, 'wallet_balance', -finalPrice);
         await pg.update('users', uid, {
             active_package: packageId,
-            package_amount: pkg.price,
+            package_amount: pkgPrice,
             package_boost: pkg.boost,
             package_cap: prevCap + pkg.cap,
             package_usage: 0,
             package_status: 'active',
             package_purchased_at: Date.now(),
         });
-        await pg.increment('users', uid, 'total_package_spend', pkg.price);
+        await pg.increment('users', uid, 'total_package_spend', pkgPrice);
 
         await pg.query(
-            `INSERT INTO package_purchases (id, uid, package_id, name, amount, paid, credit, boost, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            ['pp_' + uid + '_' + Date.now(), uid, packageId, pkg.name, pkg.price, finalPrice, credit, pkg.boost, Date.now()]
+            `INSERT INTO package_purchases (id, uid, package_id, name, amount, paid, credit, boost, promo_applied, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            ['pp_' + uid + '_' + Date.now(), uid, packageId, pkg.name, pkgPrice, finalPrice, credit, pkg.boost, promoApplied, Date.now()]
         );
 
-        await processReferralCommission(uid, pkg.price, pkg.name);
+        await processReferralCommission(uid, pkgPrice, pkg.name);
 
-        res.json({ success: true, package: pkg.name, boost: pkg.boost, credit, paid: finalPrice });
+        res.json({ success: true, package: pkg.name, boost: pkg.boost, credit, paid: finalPrice, promoApplied });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
 
@@ -212,3 +274,41 @@ async function processReferralCommission(uid, amount, pkgName) {
 }
 
 exports.processReferralCommission = processReferralCommission;
+
+exports.starterPromoStatus = async (req, res) => {
+    try {
+        const { uid } = req.params;
+        const promoConfig = await getStarterPromoConfig();
+        const isActive = isStarterPromoActive(promoConfig);
+        const hasPurchased = await hasUserPurchasedStarter(uid);
+
+        res.json({
+            active: isActive,
+            hasPurchased,
+            originalPrice: ORIGINAL_STARTER_PRICE,
+            promoPrice: STARTER_PROMO_PRICE,
+            discountPct: 50,
+            endDate: isActive ? promoConfig.startDate + (STARTER_PROMO_DURATION_DAYS * 24 * 60 * 60 * 1000) : null,
+        });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+};
+
+exports.adminToggleStarterPromo = async (req, res) => {
+    try {
+        const { active } = req.body;
+        const config = {
+            active: !!active,
+            startDate: Date.now(),
+            durationDays: STARTER_PROMO_DURATION_DAYS,
+            originalPrice: ORIGINAL_STARTER_PRICE,
+            promoPrice: STARTER_PROMO_PRICE,
+            discountPct: 50,
+        };
+        await pg.query(
+            `INSERT INTO settings (key, value) VALUES ('starterPromo', $1::jsonb)
+             ON CONFLICT (key) DO UPDATE SET value = $1::jsonb`,
+            [JSON.stringify(config)]
+        );
+        res.json({ success: true, config });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+};

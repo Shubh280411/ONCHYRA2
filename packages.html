@@ -45,6 +45,9 @@
         .plan-card .p-glow { position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:0.15;pointer-events:none;transition:0.4s; }
         .plan-card.selected .p-glow { opacity:0.35; }
         .plan-card .p-badge { position:absolute;top:10px;right:10px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;border-radius:6px;background:rgba(167,139,250,0.1);color:var(--primary); }
+        .plan-card .p-promo-badge { position:absolute;top:10px;left:10px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;z-index:2;animation:pulseGlow 2s infinite; }
+        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.2);} 50%{box-shadow:0 0 12px rgba(34,197,94,0.4);} }
+        .plan-card .p-price-original { font-size:13px;color:rgba(255,255,255,0.3);text-decoration:line-through;display:inline;margin-right:4px;font-weight:600; }
         .info-card { background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px; }
         .info-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px; }
         .info-row:last-child { border-bottom:none; }
@@ -138,6 +141,7 @@ const ICONS = {
 const CIRCUM = 2 * Math.PI * 34;
 
 let uid, userData, selectedPkg = null, walletBalance = 0;
+let starterPromo = { active: false, hasPurchased: false, originalPrice: 5, promoPrice: 2.50 };
 
 function showToast(msg, err) {
     const t = document.getElementById('toast');
@@ -149,12 +153,19 @@ function renderPlans() {
     const grid = document.getElementById('planGrid');
     grid.innerHTML = PACKAGES.map(p => {
         const sel = selectedPkg?.id === p.id;
+        const isStarterPromo = p.id === 'starter' && starterPromo.active && !starterPromo.hasPurchased;
+        const displayPrice = isStarterPromo ? starterPromo.promoPrice : p.price;
+        const priceHTML = isStarterPromo
+            ? `<span class="p-price-original">$${p.price}</span><span class="p-price" style="background:linear-gradient(135deg,#22c55e 30%,rgba(34,197,94,0.7));-webkit-background-clip:text;">$${displayPrice}</span>`
+            : `<div class="p-price">$${p.price}</div>`;
+        const promoBadge = isStarterPromo ? `<div class="p-promo-badge">50% OFF</div>` : '';
         return `<div class="plan-card${sel?' selected':''}" onclick="window.selectPkg('${p.id}')">
             <div class="p-glow" style="background:${p.glow};"></div>
+            ${promoBadge}
             <div class="p-badge">${p.name[0]}</div>
             <div class="p-icon" style="background:${p.bg};">${ICONS[p.id]}</div>
             <div class="p-name">${p.name}</div>
-            <div class="p-price">$${p.price}</div>
+            ${priceHTML}
             <div class="p-boost">${p.boost}x Mining</div>
             <div class="p-cap">$${p.cap} max</div>
         </div>`;
@@ -221,9 +232,21 @@ function updateInfo() {
 
     const btn = document.getElementById('buyBtn');
     if (!selectedPkg) { btn.textContent = 'Select a package'; btn.disabled = true; return; }
-    const finalPrice = selectedPkg.price - credit;
+
+    let selectedPrice = selectedPkg.price;
+    if (selectedPkg.id === 'starter' && starterPromo.active && !starterPromo.hasPurchased) {
+        selectedPrice = starterPromo.promoPrice;
+    }
+
+    const finalPrice = selectedPrice - credit;
     if (walletBalance < finalPrice) { btn.textContent = 'Insufficient wallet balance ($' + finalPrice.toFixed(2) + ' needed)'; btn.disabled = true; return; }
-    btn.textContent = credit > 0 ? `Activate $${selectedPkg.price} (Credit: $${credit.toFixed(2)})` : `Activate for $${selectedPkg.price}`;
+    if (selectedPkg.id === 'starter' && starterPromo.active && starterPromo.hasPurchased) {
+        btn.textContent = `Activate for $${selectedPkg.price}`;
+    } else if (selectedPkg.id === 'starter' && starterPromo.active) {
+        btn.textContent = credit > 0 ? `Activate $${selectedPrice} (Credit: $${credit.toFixed(2)}) — 50% OFF` : `Activate for $${selectedPrice} — 50% OFF`;
+    } else {
+        btn.textContent = credit > 0 ? `Activate $${selectedPkg.price} (Credit: $${credit.toFixed(2)})` : `Activate for $${selectedPkg.price}`;
+    }
     btn.disabled = false;
 }
 
@@ -239,6 +262,10 @@ window.purchase = async () => {
     btn.disabled = true; btn.textContent = 'Processing...';
     try {
         const pkg = selectedPkg;
+        let pkgPrice = pkg.price;
+        if (pkg.id === 'starter' && starterPromo.active && !starterPromo.hasPurchased) {
+            pkgPrice = starterPromo.promoPrice;
+        }
         let credit = 0;
         if (userData.activePackage) {
             const curP = PACKAGES.find(x => x.id === userData.activePackage);
@@ -247,7 +274,7 @@ window.purchase = async () => {
                 if (usagePct < 5) credit = curP.price * 0.7;
             }
         }
-        const finalPrice = Math.max(0, pkg.price - credit);
+        const finalPrice = Math.max(0, pkgPrice - credit);
         if (walletBalance < finalPrice) { showToast('Insufficient balance', true); updateInfo(); return; }
 
         const batch = [];
@@ -256,15 +283,15 @@ window.purchase = async () => {
         batch.push(updateDoc(doc(db, 'users', uid), {
             walletBalance: increment(-finalPrice),
             activePackage: pkg.id,
-            packageAmount: pkg.price,
+            packageAmount: pkgPrice,
             packageBoost: pkg.boost,
             packageCap: prevCap + pkg.cap,
             packageUsage: increment(0),
             packagePurchasedAt: Date.now(),
-            totalPackageSpend: increment(pkg.price),
+            totalPackageSpend: increment(pkgPrice),
         }));
         batch.push(addDoc(collection(db, 'packagePurchases'), {
-            uid, packageId: pkg.id, name: pkg.name, amount: pkg.price, paid: finalPrice, credit, boost: pkg.boost, createdAt: Date.now()
+            uid, packageId: pkg.id, name: pkg.name, amount: pkgPrice, paid: finalPrice, credit, boost: pkg.boost, promoApplied: pkg.id === 'starter' && starterPromo.active && !starterPromo.hasPurchased, createdAt: Date.now()
         }));
         await Promise.all(batch);
 
@@ -277,10 +304,10 @@ window.purchase = async () => {
                 name: userData.name,
                 email: userData.email,
                 activePackage: pkg.id,
-                packageAmount: pkg.price,
+                packageAmount: pkgPrice,
                 packageBoost: pkg.boost,
                 packageCap: newCap,
-                totalPackageSpend: (userData.totalPackageSpend || 0) + pkg.price,
+                totalPackageSpend: (userData.totalPackageSpend || 0) + pkgPrice,
                 walletBalance: walletBalance - finalPrice,
                 packagePurchasedAt: Date.now(),
                 packageStatus: 'active'
@@ -298,11 +325,15 @@ window.purchase = async () => {
         userData.activePackage = pkg.id;
         userData.packageBoost = pkg.boost;
         userData.packageCap = pkg.cap;
-        userData.packageAmount = pkg.price;
+        userData.packageAmount = pkgPrice;
         walletBalance -= finalPrice;
         document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
 
-        showToast(`${pkg.name} activated! ${pkg.boost}x mining boost`);
+        if (pkg.id === 'starter' && starterPromo.active) {
+            starterPromo.hasPurchased = true;
+        }
+
+        showToast(`${pkg.name} activated! ${pkg.boost}x mining boost` + (pkg.id === 'starter' && starterPromo.active ? ' — 50% OFF' : ''));
         selectedPkg = null;
         renderPlans();
         updateInfo();
@@ -319,6 +350,13 @@ onAuthStateChanged(auth, async user => {
     userData = snap.data();
     walletBalance = userData.walletBalance || 0;
     document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+
+    try {
+        const promoRes = await fetch(API + '/packages/starter-promo/' + uid);
+        const promoData = await promoRes.json();
+        starterPromo = promoData;
+    } catch(e) { console.error('Failed to load promo status:', e); }
+
     renderPlans();
     updateActiveCard();
     updateInfo();

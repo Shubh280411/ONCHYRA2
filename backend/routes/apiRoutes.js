@@ -90,9 +90,11 @@ router.get('/packages', packages.list);
 router.post('/packages/purchase', packages.purchase);
 router.get('/packages/user/:uid', packages.userPackage);
 router.get('/packages/cap/:uid', packages.checkCap);
+router.get('/packages/starter-promo/:uid', packages.starterPromoStatus);
 router.post('/admin/package/activate', packages.adminActivate);
 router.post('/admin/package/expire', packages.adminExpire);
 router.post('/admin/package/upgrade', packages.adminUpgrade);
+router.post('/admin/starter-promo/toggle', packages.adminToggleStarterPromo);
 
 // Transfers
 router.post('/transfer/send', transfer.send);
@@ -497,16 +499,11 @@ router.post('/commissions/process-package', async (req, res) => {
                 const commId = 'cpp_' + refUid + '_' + uid + '_' + lv.level;
                 const existing = await pg.findWhere('commissions', { id: commId });
                 if (!existing.length) {
-                    const newUsed = used + capped;
-                    const updates = {
+                    await pg.incrementMulti('users', refUid, {
                         commission_balance: capped,
                         package_usage: capped,
                         total_commissions: capped,
-                    };
-                    await pg.incrementMulti('users', refUid, updates);
-                    if (newUsed >= cap) {
-                        await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
-                    }
+                    });
                     await pg.query(
                         `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
                          VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
@@ -811,11 +808,7 @@ router.post('/admin/migrate-commissions', async (req, res) => {
                         const available = Math.max(0, cap - used);
                         const capped = Math.min(commission, available);
                         if (capped > 0) {
-                            const newUsed = used + capped;
                             await pg.incrementMulti('users', refUid, { commission_balance: capped, package_usage: capped, total_commissions: capped });
-                            if (newUsed >= cap) {
-                                await pg.query(`UPDATE users SET package_status = 'expired' WHERE uid = $1`, [refUid]);
-                            }
                             await pg.query(
                                 `INSERT INTO commissions (id, from_uid, uid, amount, level, type, package_name, from_name, created_at)
                                  VALUES ($1, $2, $3, $4, $5, 'package_commission', $6, $7, $8)`,
