@@ -75,6 +75,17 @@
     <div class="section-title">Mining Packages</div>
     <div class="section-sub">Activate a package to boost your mining rate</div>
 
+    <div id="pkgPromoTimer" style="display:none;text-align:center;padding:16px;border:1px solid rgba(34,197,94,0.25);background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(16,185,129,0.04));border-radius:20px;margin-bottom:4px;">
+        <div style="font-size:9px;font-weight:900;color:#22c55e;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);padding:3px 10px;border-radius:20px;letter-spacing:2px;display:inline-block;margin-bottom:8px;">LIMITED TIME OFFER</div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:10px;">Starter Package 50% OFF ends in:</div>
+        <div style="display:flex;justify-content:center;gap:6px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div id="pkgDays" style="font-family:'Space Grotesk';font-size:20px;font-weight:900;color:white;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:46px;height:42px;display:flex;align-items:center;justify-content:center;">00</div><div style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;">Days</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div id="pkgHours" style="font-family:'Space Grotesk';font-size:20px;font-weight:900;color:white;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:46px;height:42px;display:flex;align-items:center;justify-content:center;">00</div><div style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;">Hrs</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div id="pkgMins" style="font-family:'Space Grotesk';font-size:20px;font-weight:900;color:white;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:46px;height:42px;display:flex;align-items:center;justify-content:center;">00</div><div style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;">Min</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div id="pkgSecs" style="font-family:'Space Grotesk';font-size:20px;font-weight:900;color:#22c55e;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;width:46px;height:42px;display:flex;align-items:center;justify-content:center;">00</div><div style="font-size:7px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;">Sec</div></div>
+        </div>
+    </div>
+
     <!-- Active Package Card with Gauge -->
     <div class="active-card" id="activeCard">
         <div class="ac-left">
@@ -355,6 +366,23 @@ onAuthStateChanged(auth, async user => {
         const promoRes = await fetch(API + '/packages/starter-promo/' + uid);
         const promoData = await promoRes.json();
         starterPromo = promoData;
+        if (promoData.active && !promoData.hasPurchased && promoData.endDate) {
+            document.getElementById('pkgPromoTimer').style.display = 'block';
+            function updatePkgCountdown() {
+                const diff = promoData.endDate - Date.now();
+                if (diff <= 0) { document.getElementById('pkgPromoTimer').style.display = 'none'; return; }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                document.getElementById('pkgDays').textContent = String(d).padStart(2, '0');
+                document.getElementById('pkgHours').textContent = String(h).padStart(2, '0');
+                document.getElementById('pkgMins').textContent = String(m).padStart(2, '0');
+                document.getElementById('pkgSecs').textContent = String(s).padStart(2, '0');
+            }
+            updatePkgCountdown();
+            setInterval(updatePkgCountdown, 1000);
+        }
     } catch(e) { console.error('Failed to load promo status:', e); }
 
     renderPlans();
