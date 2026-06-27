@@ -231,7 +231,7 @@
             </div>
         </div>
 
-        <div id="promoTimer" class="card">
+        <div id="promoBanner" class="card">
             <div class="promo-label">LIMITED TIME OFFER</div>
             <div class="promo-title">Starter Package — 50% OFF</div>
             <div class="promo-price">
@@ -881,24 +881,46 @@ async function loadPromoTimer() {
         if (!data.active || data.hasPurchased) return;
         const endDate = data.endDate;
         if (!endDate) return;
-        if (sessionStorage.getItem('promoPopupSeen')) return;
-        setTimeout(() => {
-            document.getElementById('promoPopup').classList.add('show');
-        }, 1500);
-        function updatePopupCountdown() {
+
+        // Show in-page banner
+        const banner = document.getElementById('promoBanner');
+        banner.classList.add('show');
+
+        // Show popup once per session
+        if (!sessionStorage.getItem('promoPopupSeen')) {
+            setTimeout(() => {
+                document.getElementById('promoPopup').classList.add('show');
+            }, 1500);
+        }
+
+        function updateTimers() {
             const diff = endDate - Date.now();
-            if (diff <= 0) { document.getElementById('promoPopup').classList.remove('show'); return; }
+            if (diff <= 0) {
+                banner.classList.remove('show');
+                document.getElementById('promoPopup').classList.remove('show');
+                return;
+            }
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
-            document.getElementById('ppDays').textContent = String(d).padStart(2, '0');
-            document.getElementById('ppHours').textContent = String(h).padStart(2, '0');
-            document.getElementById('ppMins').textContent = String(m).padStart(2, '0');
-            document.getElementById('ppSecs').textContent = String(s).padStart(2, '0');
+            const dd = String(d).padStart(2, '0');
+            const hh = String(h).padStart(2, '0');
+            const mm = String(m).padStart(2, '0');
+            const ss = String(s).padStart(2, '0');
+            // Banner timer
+            document.getElementById('promoDays').textContent = dd;
+            document.getElementById('promoHours').textContent = hh;
+            document.getElementById('promoMins').textContent = mm;
+            document.getElementById('promoSecs').textContent = ss;
+            // Popup timer
+            document.getElementById('ppDays').textContent = dd;
+            document.getElementById('ppHours').textContent = hh;
+            document.getElementById('ppMins').textContent = mm;
+            document.getElementById('ppSecs').textContent = ss;
         }
-        updatePopupCountdown();
-        setInterval(updatePopupCountdown, 1000);
+        updateTimers();
+        setInterval(updateTimers, 1000);
     } catch(e) {}
 }
 
