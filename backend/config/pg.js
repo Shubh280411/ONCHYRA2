@@ -161,8 +161,14 @@ async function closePool() {
   if (pool) await pool.end();
 }
 
+async function getClient() {
+  const p = getPool();
+  if (!p) return null;
+  return p.connect();
+}
+
 module.exports = {
   query, get, set, update, remove, all, findWhere,
   findWhereIn, increment, incrementMulti, arrayAppend,
-  countWhere, findPaginated, closePool, getPool
+  countWhere, findPaginated, closePool, getPool, getClient
 };

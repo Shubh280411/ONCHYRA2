@@ -3,6 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const pg = require('./config/pg');
 
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled rejection:', err.message || err);
+});
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err.message || err);
+});
+
 // Firebase Auth init (non-blocking — pg.js handles data)
 try { require('./config/db'); } catch(e) { console.warn('Firebase init skipped:', e.message); }
 
