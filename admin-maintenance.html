@@ -88,9 +88,11 @@ const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", a
 const auth = getAuth(app);
 const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:' ? 'http://localhost:5000/api' : 'https://onchyra-backend.onrender.com/api');
 let currentData = {};
+let adminUid = null;
 
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
+  adminUid = user.uid;
   try {
     const r = await fetch(API + '/admin/check', { headers: { 'x-auth-uid': user.uid } });
     if (!r.ok) { window.location = 'dashboard.html'; return; }
@@ -182,7 +184,7 @@ window.toggleMaintenance = async () => {
     try {
       const r = await fetch(API + '/maintenance/toggle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid },
         body: JSON.stringify({ enabled: true, endAt: endMs, message: document.getElementById('maintMsg').value.trim() })
       });
       if (!r.ok) throw new Error((await r.json()).error || 'Failed');
@@ -192,7 +194,7 @@ window.toggleMaintenance = async () => {
     try {
       const r = await fetch(API + '/maintenance/toggle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid },
         body: JSON.stringify({ enabled: false })
       });
       if (!r.ok) throw new Error((await r.json()).error || 'Failed');
@@ -212,7 +214,7 @@ window.saveSettings = async () => {
   try {
     const r = await fetch(API + '/maintenance/toggle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid },
       body: JSON.stringify({ enabled: currentData.enabled, ...updates })
     });
     if (!r.ok) throw new Error((await r.json()).error || 'Failed');

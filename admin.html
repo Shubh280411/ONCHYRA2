@@ -264,8 +264,10 @@ const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = {};
+let adminUid = null;
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
+  adminUid = user.uid;
   try {
     const adminSnap = await getDoc(doc(db, 'admins', user.uid));
     if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
@@ -329,7 +331,7 @@ async function loadRecentJoins() {
 
 async function loadStorageStats() {
   try {
-    const resp = await fetch(API + '/admin/storage');
+    const resp = await fetch(API + '/admin/storage', { headers: { 'x-auth-uid': adminUid } });
     if (!resp.ok) return;
     const data = await resp.json();
     document.getElementById('dbSize').textContent = data.totalMB + ' MB';
@@ -344,7 +346,7 @@ window.runCleanup = async () => {
   const el = document.getElementById('cleanupResult');
   el.style.display = 'none';
   try {
-    const resp = await fetch(API + '/admin/cleanup', { method: 'POST' });
+    const resp = await fetch(API + '/admin/cleanup', { method: 'POST', headers: { 'x-auth-uid': adminUid } });
     if (!resp.ok) return;
     el.style.display = 'inline';
     setTimeout(() => el.style.display = 'none', 3000);

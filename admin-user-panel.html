@@ -1103,7 +1103,7 @@ const db = {};
             // Trigger commission + teamBiz via backend
             fetch(API + '/admin/process-commission', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUID },
                 body: JSON.stringify({ uid: currentUID, packageId: pkgId })
             }).catch(e => console.error('Commission trigger failed:', e));
             const idx = allUsers.findIndex(u => u.id === currentUID);

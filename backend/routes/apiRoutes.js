@@ -13,6 +13,16 @@ const otp = require('../controllers/otpController');
 const refCache = require('../services/referralCache');
 const transporter = require('../config/mailer');
 
+async function requireAdmin(req, res, next) {
+    try {
+        const uid = req.headers['x-auth-uid'];
+        if (!uid) return res.status(401).json({ error: 'No uid' });
+        const admin = await pg.get('admins', uid);
+        if (!admin) return res.status(403).json({ error: 'Not admin' });
+        next();
+    } catch(e) { res.status(500).json({ error: e.message }); }
+}
+
 // Convert snake_case object keys to camelCase
 function cc(obj) {
   if (!obj || typeof obj !== 'object') return obj;
@@ -26,7 +36,7 @@ function cc(obj) {
 
 // Maintenance
 router.get('/maintenance', maintenance.getStatus);
-router.post('/maintenance/toggle', maintenance.toggle);
+router.post('/maintenance/toggle', requireAdmin, maintenance.toggle);
 
 // Deposits
 router.post('/deposit/create-wallet', deposit.createWallet);
@@ -91,20 +101,20 @@ router.post('/packages/purchase', packages.purchase);
 router.get('/packages/user/:uid', packages.userPackage);
 router.get('/packages/cap/:uid', packages.checkCap);
 router.get('/packages/starter-promo/:uid', packages.starterPromoStatus);
-router.post('/admin/package/activate', packages.adminActivate);
-router.post('/admin/package/expire', packages.adminExpire);
-router.post('/admin/package/upgrade', packages.adminUpgrade);
-router.post('/admin/starter-promo/toggle', packages.adminToggleStarterPromo);
+router.post('/admin/package/activate', requireAdmin, packages.adminActivate);
+router.post('/admin/package/expire', requireAdmin, packages.adminExpire);
+router.post('/admin/package/upgrade', requireAdmin, packages.adminUpgrade);
+router.post('/admin/starter-promo/toggle', requireAdmin, packages.adminToggleStarterPromo);
 
 // Transfers
 router.post('/transfer/send', transfer.send);
-router.get('/admin/transfers', transfer.adminGetAll);
+router.get('/admin/transfers', requireAdmin, transfer.adminGetAll);
 
 // Withdrawals
 router.post('/withdraw/request', withdraw.request);
 router.post('/withdraw/approve', withdraw.approve);
 router.post('/withdraw/reject', withdraw.reject);
-router.get('/admin/withdrawals', withdraw.adminGetAll);
+router.get('/admin/withdrawals', requireAdmin, withdraw.adminGetAll);
 router.get('/withdrawals/:uid', withdraw.userHistory);
 
 // Leadership
@@ -113,7 +123,7 @@ router.get('/leadership/calculate/:uid', leadership.calculateRank);
 router.get('/leadership/progress/:uid', leadership.userRankProgress);
 router.get('/leadership/matching-bonus/:uid', leadership.getMatchingBonus);
 router.post('/leadership/distribute-rewards', leadership.distributeDailyRewards);
-router.post('/admin/leadership/recalc-all', leadership.adminRecalcAllRanks);
+router.post('/admin/leadership/recalc-all', requireAdmin, leadership.adminRecalcAllRanks);
 
 // OTP
 router.post('/otp/send', otp.send);
@@ -229,7 +239,7 @@ router.get('/admin/check', async (req, res) => {
 });
 
 // Admin — Users
-router.get('/admin/users', async (req, res) => {
+router.get('/admin/users', requireAdmin, async (req, res) => {
     try {
         const maxLimit = Math.min(parseInt(req.query.limit) || 500, 500);
         const rows = await pg.query(`SELECT * FROM users LIMIT $1`, [maxLimit]);
@@ -237,7 +247,7 @@ router.get('/admin/users', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/admin/leaders', async (req, res) => {
+router.get('/admin/leaders', requireAdmin, async (req, res) => {
     try {
         const rankNames = ['Ignition','Momentum','Velocity','Quantum','Fusion','Infinity','Titan','Apex','Zenith','Legacy'];
         const rows = await pg.query(`SELECT * FROM users LIMIT 500`);
@@ -248,7 +258,7 @@ router.get('/admin/leaders', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/admin/user/:uid', async (req, res) => {
+router.get('/admin/user/:uid', requireAdmin, async (req, res) => {
     try {
         const user = await pg.get('users', req.params.uid);
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -256,7 +266,7 @@ router.get('/admin/user/:uid', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/user/update', async (req, res) => {
+router.post('/admin/user/update', requireAdmin, async (req, res) => {
     try {
         const { uid, updates } = req.body;
         if (!uid || !updates) return res.status(400).json({ error: 'Missing uid or updates' });
@@ -271,7 +281,7 @@ router.post('/admin/user/update', async (req, res) => {
 });
 
 // Admin — Sync user status (active/inactive based on 7-day lastClaim)
-router.post('/admin/sync-status', async (req, res) => {
+router.post('/admin/sync-status', requireAdmin, async (req, res) => {
     try {
         const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -290,7 +300,7 @@ router.post('/admin/sync-status', async (req, res) => {
 });
 
 // Admin — Stats
-router.get('/admin/stats', async (req, res) => {
+router.get('/admin/stats', requireAdmin, async (req, res) => {
     try {
         const [uRes, depRes, wdRes, rewRes, achRes, pkgRes, claimRes] = await Promise.all([
             pg.query(`SELECT * FROM users`),
@@ -441,7 +451,7 @@ router.post('/notifications/delete/:id', async (req, res) => {
 });
 
 // Admin — Notifications (send)
-router.post('/admin/notifications/send', async (req, res) => {
+router.post('/admin/notifications/send', requireAdmin, async (req, res) => {
     try {
         const { userId, title, message, type, link } = req.body;
         await pg.query(
@@ -764,7 +774,7 @@ router.post('/register-commission', async (req, res) => {
 });
 
 // Admin — Retroactive Commission Migration
-router.post('/admin/migrate-commissions', async (req, res) => {
+router.post('/admin/migrate-commissions', requireAdmin, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 0;
         const fixBizOnly = req.query.fixBizOnly === 'true';
@@ -833,7 +843,7 @@ router.post('/admin/migrate-commissions', async (req, res) => {
 });
 
 // Admin — Reset all users' teamBiz
-router.post('/admin/reset-teambiz', async (req, res) => {
+router.post('/admin/reset-teambiz', requireAdmin, async (req, res) => {
     try {
         await pg.query(`UPDATE users SET team_biz = 0`);
         res.json({ success: true });
@@ -841,7 +851,7 @@ router.post('/admin/reset-teambiz', async (req, res) => {
 });
 
 // Admin — Global Recalculate Referrals (recalculates ref_level1/2/3, team_biz, leg_a_biz, leg_b_biz, total_directs, active_directs)
-router.post('/admin/recalculate-referrals', async (req, res) => {
+router.post('/admin/recalculate-referrals', requireAdmin, async (req, res) => {
     try {
         const allUsersRes = await pg.query(`SELECT * FROM users`);
         const allUsers = allUsersRes.rows;
@@ -903,7 +913,7 @@ router.post('/admin/recalculate-referrals', async (req, res) => {
 });
 
 // Admin — Undo Commission Migration
-router.post('/admin/undo-commissions', async (req, res) => {
+router.post('/admin/undo-commissions', requireAdmin, async (req, res) => {
     try {
         const oneHourAgo = Date.now() - 60 * 60 * 1000;
         const commRes = await pg.query(
@@ -939,7 +949,7 @@ router.post('/admin/undo-commissions', async (req, res) => {
 });
 
 // Admin — Process Commission (triggered by admin panel)
-router.post('/admin/process-commission', async (req, res) => {
+router.post('/admin/process-commission', requireAdmin, async (req, res) => {
     try {
         const { uid, packageId } = req.body;
         if (!uid || !packageId) return res.status(400).json({ error: 'Missing uid or packageId' });
@@ -961,7 +971,7 @@ router.post('/admin/process-commission', async (req, res) => {
 });
 
 // Admin — Leader Management
-router.post('/admin/leader/delete', async (req, res) => {
+router.post('/admin/leader/delete', requireAdmin, async (req, res) => {
     try {
         const { uid } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
@@ -970,7 +980,7 @@ router.post('/admin/leader/delete', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/leader/status', async (req, res) => {
+router.post('/admin/leader/status', requireAdmin, async (req, res) => {
     try {
         const { uid, status } = req.body;
         if (!uid || !status) return res.status(400).json({ error: 'Missing uid or status' });
@@ -981,7 +991,7 @@ router.post('/admin/leader/status', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/leader/reset-password', async (req, res) => {
+router.post('/admin/leader/reset-password', requireAdmin, async (req, res) => {
     try {
         const { uid, newPassword } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
@@ -993,7 +1003,7 @@ router.post('/admin/leader/reset-password', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/leader/notes', async (req, res) => {
+router.post('/admin/leader/notes', requireAdmin, async (req, res) => {
     try {
         const { uid, note } = req.body;
         if (!uid || !note) return res.status(400).json({ error: 'Missing uid or note' });
@@ -1003,7 +1013,7 @@ router.post('/admin/leader/notes', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/assign-promo', async (req, res) => {
+router.post('/admin/assign-promo', requireAdmin, async (req, res) => {
     try {
         const { uid, promoPackage, promoAccount, promoCommExcluded } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
@@ -1016,7 +1026,7 @@ router.post('/admin/assign-promo', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/admin/leader/verify-toggle', async (req, res) => {
+router.post('/admin/leader/verify-toggle', requireAdmin, async (req, res) => {
     try {
         const { uid, verified } = req.body;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
@@ -1033,7 +1043,7 @@ router.post('/sweep/fund-gas', sweep.fundGas);
 router.get('/sweep/status', sweep.status);
 
 // Email inactive users (3+ days no claim + never claimed)
-router.post('/admin/email-inactive', async (req, res) => {
+router.post('/admin/email-inactive', requireAdmin, async (req, res) => {
     try {
         const { subject: customSubject, html: customHtml } = req.body;
         const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;

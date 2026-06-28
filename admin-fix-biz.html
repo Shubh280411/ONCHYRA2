@@ -36,10 +36,22 @@ p{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px}
     <div id="log" class="log" style="display:none"></div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const app = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(app);
 const API = 'https://onchyra-backend.onrender.com/api';
+let adminUid = null;
+
+onAuthStateChanged(auth, user => {
+    if (!user) { window.location = 'admin-login.html'; return; }
+    adminUid = user.uid;
+});
 
 async function resetBiz() {
+    if (!adminUid) return;
     const btn = document.getElementById('resetBtn');
     const status = document.getElementById('resetStatus');
     const log = document.getElementById('log');
@@ -48,7 +60,7 @@ async function resetBiz() {
     log.style.display = 'block';
     log.innerHTML = '';
     try {
-        const r = await fetch(API + '/admin/reset-teambiz', { method: 'POST' });
+        const r = await fetch(API + '/admin/reset-teambiz', { method: 'POST', headers: { 'x-auth-uid': adminUid } });
         const d = await r.json();
         if (d.success) {
             status.innerHTML = '✅ Reset done — ' + d.resetCount + ' users updated';
@@ -74,7 +86,7 @@ async function fixBiz() {
     status.textContent = 'Processing all buyers...';
     log.innerHTML += '\n<span style="color:#f59e0b">⟳ Running fixBizOnly migration...</span>\n';
     try {
-        const r = await fetch(API + '/admin/migrate-commissions?fixBizOnly=true', { method: 'POST' });
+        const r = await fetch(API + '/admin/migrate-commissions?fixBizOnly=true', { method: 'POST', headers: { 'x-auth-uid': adminUid } });
         const d = await r.json();
         if (d.success) {
             status.innerHTML = '✅ Done — ' + d.processed + ' buyers processed, ' + d.noReferrer + ' had no referrer';

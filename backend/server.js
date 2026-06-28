@@ -1,9 +1,20 @@
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
+const pg = require('./config/pg');
 
 // Firebase Auth init (non-blocking — pg.js handles data)
 try { require('./config/db'); } catch(e) { console.warn('Firebase init skipped:', e.message); }
+
+async function requireAdmin(req, res, next) {
+    try {
+        const uid = req.headers['x-auth-uid'];
+        if (!uid) return res.status(401).json({ error: 'No uid' });
+        const admin = await pg.get('admins', uid);
+        if (!admin) return res.status(403).json({ error: 'Not admin' });
+        next();
+    } catch(e) { res.status(500).json({ error: e.message }); }
+}
 
 const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
@@ -42,7 +53,7 @@ app.use((err, req, res, next) => {
 });
 
 // Storage stats endpoint
-app.get('/api/admin/storage', async (req, res) => {
+app.get('/api/admin/storage', requireAdmin, async (req, res) => {
     try {
         const stats = await storageManager.getStorageStats();
         res.json(stats);
@@ -52,7 +63,7 @@ app.get('/api/admin/storage', async (req, res) => {
 });
 
 // Manual cleanup trigger
-app.post('/api/admin/cleanup', async (req, res) => {
+app.post('/api/admin/cleanup', requireAdmin, async (req, res) => {
     try {
         const result = await storageManager.runCleanup();
         res.json(result);

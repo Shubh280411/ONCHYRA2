@@ -258,7 +258,8 @@ const auth = getAuth(app);
 const db = {};
 const API = localStorage.getItem('onc_api') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'http://localhost:5001/api' : 'https://onchyra-backend.onrender.com/api');
 
-onAuthStateChanged(auth, user => { if (!user) { window.location = 'admin-login.html'; return; } loadLeaders(); });
+let adminUid = null;
+onAuthStateChanged(auth, user => { if (!user) { window.location = 'admin-login.html'; return; } adminUid = user.uid; loadLeaders(); });
 
 // ── State ──
 let allLeaders = [];
@@ -268,7 +269,7 @@ let confirmCallback = null;
 // ── Load Leaders ──
 async function loadLeaders() {
   try {
-    const res = await fetch(API + '/admin/leaders');
+    const res = await fetch(API + '/admin/leaders', { headers: { 'x-auth-uid': adminUid } });
     const data = await res.json();
     if (!Array.isArray(data)) { showToast('Failed to load leaders: invalid response', false); return; }
     allLeaders = data;
@@ -677,7 +678,7 @@ window.confirmAddLeader = async () => {
           return;
         }
         // Get full user data
-        const userRes = await fetch(API + '/admin/user/' + data.uid);
+        const userRes = await fetch(API + '/admin/user/' + data.uid, { headers: { 'x-auth-uid': adminUid } });
         if (!userRes.ok) throw new Error('User fetch failed');
         const user = await userRes.json();
         if (!user) { showToast('User not found', false); return; }

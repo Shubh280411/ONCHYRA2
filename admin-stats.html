@@ -188,15 +188,17 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 const db = {};
+let adminUid = null;
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
+  adminUid = user.uid;
   try {
     const adminSnap = await getDoc(doc(db, 'admins', user.uid));
     if (!adminSnap.exists || adminSnap.data().role !== 'admin') {
       window.location = 'dashboard.html';
       return;
     }
-    const r = await fetch(API + '/admin/stats');
+    const r = await fetch(API + '/admin/stats', { headers: { 'x-auth-uid': adminUid } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     cached = await r.json();
   } catch(e) {
