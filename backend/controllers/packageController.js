@@ -112,7 +112,6 @@ exports.purchase = async (req, res) => {
             const freshBalance = Number(lockRes.rows[0]?.wallet_balance || 0);
             if (freshBalance < finalPrice) {
                 await client.query('ROLLBACK');
-                client.release();
                 return res.status(400).json({ error: 'Insufficient wallet balance' });
             }
 
@@ -142,7 +141,7 @@ exports.purchase = async (req, res) => {
             await client.query('ROLLBACK').catch(() => {});
             throw txErr;
         } finally {
-            client.release();
+            try { client.release(); } catch(_) {}
         }
 
         await processReferralCommission(uid, pkgPrice, pkg.name);
