@@ -46,7 +46,7 @@ async function cleanupOldOtps() {
     const cutoff = Date.now() - OTP_RETENTION_MS;
     await pg.query(`DELETE FROM otps WHERE created_at < $1`, [cutoff]);
     await pg.query(`DELETE FROM otp_logs WHERE created_at < $1`, [cutoff]);
-    await pg.query(`DELETE FROM otp_store WHERE updated_at < $1`, [cutoff]);
+    await pg.query(`DELETE FROM otp_store WHERE created_at < $1`, [cutoff]);
 }
 
 async function cleanupOldNotifications() {
