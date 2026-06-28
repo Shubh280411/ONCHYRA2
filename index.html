@@ -162,9 +162,15 @@
             animation: fadeUp .7s .3s forwards;
         }
         .hero h1 .gradient {
-            background: linear-gradient(135deg, var(--primary), var(--secondary), #818cf8);
+            background: linear-gradient(135deg, var(--primary), var(--secondary), #818cf8, var(--primary));
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
         .hero p {
             font-size: clamp(15px, 2vw, 18px);
@@ -228,6 +234,12 @@
             padding: 20px 16px;
             text-align: center;
             backdrop-filter: blur(10px);
+            transition: all .3s;
+        }
+        .hero-stat:hover {
+            border-color: rgba(167,139,250,0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(167,139,250,0.1);
         }
         .hero-stat .num {
             font-family: 'Space Grotesk';
@@ -596,7 +608,7 @@
 
     <nav class="nav" id="nav">
         <a href="#" class="nav-logo">
-            <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs><text x="16" y="21" text-anchor="middle" fill="#000" font-family="'Space Grotesk'" font-weight="900" font-size="16">O</text></svg>
+            <img src="logo.png" alt="ONCHYRA" style="width:32px;height:32px;border-radius:8px;object-fit:contain;">
             <span>ONCHYRA</span>
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="Menu">
@@ -612,7 +624,7 @@
     </nav>
 
     <section class="hero">
-        <div class="hero-badge"><span class="dot"></span> Live on Polygon</div>
+        <div class="hero-badge"><span class="dot"></span> Decentralized Referral Protocol</div>
         <h1>Referrals,<br><span class="gradient">refracted into value.</span></h1>
         <p>A transparent, on-chain referral protocol. Every commission is verifiable, every level is trackable, and the community earns together.</p>
         <div class="hero-actions">
@@ -621,16 +633,16 @@
         </div>
         <div class="hero-grid">
             <div class="hero-stat">
-                <div class="num" id="statUsers">1.2K+</div>
+                <div class="num" id="statUsers">...</div>
                 <div class="label">Users</div>
             </div>
             <div class="hero-stat">
-                <div class="num" id="statVolume">$48K+</div>
-                <div class="label">Commissions Paid</div>
+                <div class="num">3</div>
+                <div class="label">Referral Levels</div>
             </div>
             <div class="hero-stat">
-                <div class="num" id="statLevels">3</div>
-                <div class="label">Referral Levels</div>
+                <div class="num" style="font-size:20px;">100%</div>
+                <div class="label">On-Chain</div>
             </div>
         </div>
         <div class="scroll-indicator">
@@ -671,7 +683,7 @@
             <div class="feature-card reveal">
                 <div class="icon">L1</div>
                 <h3>Multi-Level Referrals</h3>
-                <p>Earn commissions across three referral levels — L1 (10%), L2 (4%), L3 (2%) — automatically distributed on-chain.</p>
+                <p>Earn commissions across three referral levels — L1 (10%), L2 (5%), L3 (3%) — automatically distributed on-chain.</p>
             </div>
             <div class="feature-card reveal">
                 <div class="icon">V</div>
@@ -696,7 +708,7 @@
             <div class="feature-card reveal">
                 <div class="icon">N</div>
                 <h3>Polygon Native</h3>
-                <p>Deployed on Polygon for fast, low-cost transactions. Full ERC-20 compatibility with AURA token integration.</p>
+                <p>Built on Polygon for fast, low-cost transactions. Full ERC-20 compatibility with ONC token integration.</p>
             </div>
         </div>
     </section>
@@ -727,12 +739,12 @@
     <section id="tokenomics" class="section section-center">
         <div class="section-label reveal">Tokenomics</div>
         <h2 class="section-title reveal">One token, clear job.</h2>
-        <p class="section-desc reveal">AURA powers the ONCHYRA protocol — value, utility, and rewards, all in one.</p>
+        <p class="section-desc reveal">ONC powers the ONCHYRA protocol — value, utility, and rewards, all in one.</p>
         <div class="stats-bar reveal">
-            <div class="item"><div class="num" style="color:var(--primary)">AURA</div><div class="lbl">Core Token</div></div>
-            <div class="item"><div class="num">1B</div><div class="lbl">Total Supply</div></div>
-            <div class="item"><div class="num">Polygon</div><div class="lbl">Network</div></div>
+            <div class="item"><div class="num" style="color:var(--primary)">ONC</div><div class="lbl">Core Token</div></div>
             <div class="item"><div class="num">ERC-20</div><div class="lbl">Standard</div></div>
+            <div class="item"><div class="num">Polygon</div><div class="lbl">Network</div></div>
+            <div class="item"><div class="num" style="color:var(--accent)">Deflationary</div><div class="lbl">Model</div></div>
         </div>
     </section>
 
@@ -747,11 +759,11 @@
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="#">Docs</a>
-            <a href="#">Telegram</a>
-            <a href="#">X (Twitter)</a>
+            <a href="https://t.me/onchyra" target="_blank">Telegram</a>
+            <a href="https://x.com/onchyra" target="_blank">X (Twitter)</a>
+            <a href="https://youtube.com/@onchyra" target="_blank">YouTube</a>
         </div>
-        <div class="footer-copy">ONCHYRA Protocol</div>
+        <div class="footer-copy">&copy; 2026 ONCHYRA Protocol</div>
     </footer>
 
     <script>
@@ -842,18 +854,17 @@
         }, { threshold: 0.1 });
         for (const el of revealEls) observer.observe(el);
 
-        function animateNum(el, target, suffix) {
-            let current = 0;
-            const step = Math.ceil(target / 40);
-            const interval = setInterval(() => {
-                current += step;
-                if (current >= target) { current = target; clearInterval(interval); }
-                el.textContent = current.toLocaleString() + suffix;
-            }, 40);
-        }
         setTimeout(() => {
-            animateNum(document.getElementById('statUsers'), 1247, '+');
-            animateNum(document.getElementById('statVolume'), 48, 'K+');
+            const API = 'https://onchyra-backend.onrender.com/api';
+            fetch(API + '/leaderboard?limit=1').then(r => r.json()).then(data => {
+                const count = data.totalUsers || 0;
+                const el = document.getElementById('statUsers');
+                if (count >= 1000) {
+                    el.textContent = (count / 1000).toFixed(1) + 'K+';
+                } else {
+                    el.textContent = count + '+';
+                }
+            }).catch(() => {});
         }, 800);
 
         document.querySelectorAll('a[href^="#"]').forEach(a => {
