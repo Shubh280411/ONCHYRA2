@@ -518,7 +518,7 @@ window.toggleDetail = (uid) => {
 // ── API Operations ──
 async function apiPost(endpoint, body) {
   try {
-    const res = await fetch(API + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const res = await fetch(API + endpoint, { method:'POST', headers:{'Content-Type':'application/json', 'x-auth-uid': adminUid}, body:JSON.stringify(body) });
     const data = await res.json();
     if (!data.success && data.error) throw new Error(data.error);
     return data;

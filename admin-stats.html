@@ -194,7 +194,7 @@ onAuthStateChanged(auth, async user => {
   adminUid = user.uid;
   try {
     const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-    if (!adminSnap.exists || adminSnap.data().role !== 'admin') {
+    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
       window.location = 'dashboard.html';
       return;
     }
