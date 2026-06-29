@@ -278,10 +278,7 @@ onAuthStateChanged(auth, async user => {
   document.getElementById('adminBadge').textContent = user.email || 'Admin';
   loadStats();
   loadRecentJoins();
-  setInterval(async () => {
-    const c = await getDirectCount('claims');
-    if (c > 0) document.getElementById('claims').textContent = c;
-  }, 15000);
+  setInterval(loadClaimsCount, 15000);
 });
 
 async function getDirectCount(table) {
@@ -308,9 +305,17 @@ async function loadStats() {
     document.getElementById('packages').textContent = pkgCnt.data().count || 0;
     document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
   } catch(e) { console.warn('Stats load failed:', e.message); }
-  const claimsCount = await getDirectCount('claims');
-  if (claimsCount >= 0) document.getElementById('claims').textContent = claimsCount;
+  loadClaimsCount();
   loadStorageStats();
+}
+
+async function loadClaimsCount() {
+  try {
+    const r = await fetch(API + '/admin/stats', { headers: { 'x-auth-uid': adminUid } });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.totalClaims != null) document.getElementById('claims').textContent = data.totalClaims;
+  } catch(e) {}
 }
 
 async function loadRecentJoins() {
