@@ -25,6 +25,7 @@ async function requireAdmin(req, res, next) {
 
 const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
+const emailRoutes = require('./routes/emailRoutes');
 const rewardScheduler = require('./services/rewardScheduler');
 const storageManager = require('./services/storageManager');
 const blockchainMonitor = require('./services/blockchainMonitor');
@@ -43,6 +44,7 @@ app.use((req, _res, next) => {
 });
 
 app.use('/api/admin', adminRoutes);
+app.use('/api/email', emailRoutes);
 app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
