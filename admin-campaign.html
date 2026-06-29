@@ -450,7 +450,6 @@ async function fireBulk() {
       body: JSON.stringify({ userType: document.getElementById('userType').value, subject, customHtml, skipCooldown: document.getElementById('skipCooldownBulk').checked })
     });
     const data = await res.json();
-    const data = await res.json();
     if (!data.success) { showNotif(data.message || data.error || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
   } catch(e) { showNotif('Error: ' + e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
 }
@@ -500,7 +499,7 @@ async function fireCsv() {
     const res = await fetch(API + '/email/send-csv', { method:'POST', headers: { 'x-auth-uid': adminUid }, body: fd });
     const data = await res.json();
     if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
-  } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+  } catch(e) { showNotif('Error: ' + e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
 }
 
 async function previewEmail(src) {
@@ -511,7 +510,7 @@ async function previewEmail(src) {
     const data = await res.json();
     if (data.success) { document.getElementById('previewContent').innerHTML = data.html; document.getElementById('previewModal').classList.add('show'); }
     else showNotif('Preview failed: '+data.message, 'error');
-  } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); }
+  } catch(e) { showNotif('Error: ' + e.message, 'error'); }
 }
 
 function closePreview() { document.getElementById('previewModal').classList.remove('show'); }
