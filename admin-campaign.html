@@ -322,18 +322,35 @@ textarea::placeholder { color:rgba(255,255,255,0.2); }
   </button>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseApp = initializeApp({ apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI", authDomain: "onchyra.firebaseapp.com", projectId: "onchyra" });
+const auth = getAuth(firebaseApp);
+let adminUid = null;
 let eventSource = null;
 let csvFileData = null;
 
 const API = localStorage.getItem('onc_api') ||
     (location.hostname === 'localhost' || location.protocol === 'file:'
-        ? 'http://localhost:5001/api'
+        ? 'http://localhost:5000/api'
         : 'https://onchyra-backend.onrender.com/api');
+
+function authHeaders() {
+    return { 'Content-Type': 'application/json', 'x-auth-uid': adminUid };
+}
+
+onAuthStateChanged(auth, user => {
+    if (!user) { window.location = 'admin-login.html'; return; }
+    adminUid = user.uid;
+    fetchDailyStats();
+    connectSSE();
+});
 
 async function fetchDailyStats() {
   try {
-    const res = await fetch(API + '/email/daily-stats');
+    const res = await fetch(API + '/email/daily-stats', { headers: { 'x-auth-uid': adminUid } });
     if (!res.ok) return;
     const data = await res.json();
     updateDailyUI(data);
@@ -363,7 +380,7 @@ function switchTab(name) {
 
 function connectSSE() {
   if (eventSource) eventSource.close();
-  eventSource = new EventSource(API + '/email/campaign-stream');
+  eventSource = new EventSource(API + '/email/campaign-stream?uid=' + encodeURIComponent(adminUid));
   eventSource.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.type === 'init') { updateStats(data); data.logs.forEach(addFeedItem); if (data.running) showLiveFeed(); }
@@ -425,7 +442,7 @@ async function fireBulk() {
   document.getElementById('notif').classList.remove('show');
   try {
     const res = await fetch(API + '/email/send-custom-bulk', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: authHeaders(),
       body: JSON.stringify({ userType: document.getElementById('userType').value, subject, customHtml, skipCooldown: document.getElementById('skipCooldownBulk').checked })
     });
     const data = await res.json();
@@ -447,7 +464,7 @@ async function fireManual() {
   document.getElementById('notif').classList.remove('show');
   try {
     const res = await fetch(API + '/email/send-manual', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: authHeaders(),
       body: JSON.stringify({ emails, subject, customHtml })
     });
     const data = await res.json();
@@ -475,7 +492,7 @@ async function fireCsv() {
   const fd = new FormData();
   fd.append('csv', csvFileData); fd.append('subject', subject); fd.append('customHtml', customHtml);
   try {
-    const res = await fetch(API + '/email/send-csv', { method:'POST', body: fd });
+    const res = await fetch(API + '/email/send-csv', { method:'POST', headers: { 'x-auth-uid': adminUid }, body: fd });
     const data = await res.json();
     if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
   } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
@@ -485,7 +502,7 @@ async function previewEmail(src) {
   const html = src==='bulk' ? document.getElementById('htmlBulk').value.trim() : src==='manual' ? document.getElementById('htmlManual').value.trim() : document.getElementById('htmlCsv').value.trim();
   if (!html) { showNotif('Paste some HTML first.', 'error'); return; }
   try {
-    const res = await fetch(API + '/email/preview-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customHtml: html }) });
+    const res = await fetch(API + '/email/preview-email', { method:'POST', headers: authHeaders(), body: JSON.stringify({ customHtml: html }) });
     const data = await res.json();
     if (data.success) { document.getElementById('previewContent').innerHTML = data.html; document.getElementById('previewModal').classList.add('show'); }
     else showNotif('Preview failed: '+data.message, 'error');
@@ -503,8 +520,6 @@ fd.addEventListener('drop', e => {
   const file = e.dataTransfer.files[0];
   if (file) { csvFileData = file; document.getElementById('csvFile').files = e.dataTransfer.files; fd.classList.add('has-file'); document.getElementById('fileNameText').textContent = file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)'; }
 });
-
-connectSSE();
 </script>
 </body>
 </html>
