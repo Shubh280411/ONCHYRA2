@@ -341,8 +341,12 @@ function authHeaders() {
     return { 'Content-Type': 'application/json', 'x-auth-uid': adminUid };
 }
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
     if (!user) { window.location = 'admin-login.html'; return; }
+    try {
+        const r = await fetch(API + '/admin/check', { headers: { 'x-auth-uid': user.uid } });
+        if (!r.ok) { window.location = 'dashboard.html'; return; }
+    } catch(e) { window.location = 'dashboard.html'; return; }
     adminUid = user.uid;
     fetchDailyStats();
     connectSSE();
@@ -446,8 +450,9 @@ async function fireBulk() {
       body: JSON.stringify({ userType: document.getElementById('userType').value, subject, customHtml, skipCooldown: document.getElementById('skipCooldownBulk').checked })
     });
     const data = await res.json();
-    if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
-  } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+    const data = await res.json();
+    if (!data.success) { showNotif(data.message || data.error || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+  } catch(e) { showNotif('Error: ' + e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
 }
 
 async function fireManual() {
@@ -468,8 +473,8 @@ async function fireManual() {
       body: JSON.stringify({ emails, subject, customHtml })
     });
     const data = await res.json();
-    if (!data.success) { showNotif(data.message||'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
-  } catch(e) { showNotif('Network error - backend on port 5000?', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+    if (!data.success) { showNotif(data.message || data.error || 'Request failed', 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+  } catch(e) { showNotif('Error: ' + e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
 }
 
 function handleCsvFile(e) {
