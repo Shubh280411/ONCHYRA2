@@ -290,8 +290,8 @@ async function loadHistory() {
       const statusClass = w.status === 'pending' ? 'pending' : w.status === 'processing' ? 'processing' : w.status === 'completed' ? 'completed' : 'rejected';
       const txLink = w.txHash ? `<a href="https://bscscan.com/tx/${w.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:10px;">TX: ${w.txHash.slice(0,8)}...</a>` : '';
       return `<div class="h-item">
-        <div class="h-amount">$${w.amount.toFixed(2)}</div>
-        <div class="h-meta">Fee: $${(w.fee||0).toFixed(2)} • Net: $${(w.netAmount||0).toFixed(2)}<br>${date}${txLink ? '<br>' + txLink : ''}</div>
+        <div class="h-amount">$${Number(w.amount||0).toFixed(2)}</div>
+        <div class="h-meta">Fee: $${Number(w.fee||0).toFixed(2)} • Net: $${Number(w.netAmount||0).toFixed(2)}<br>${date}${txLink ? '<br>' + txLink : ''}</div>
         <div class="h-status ${statusClass}">${w.status}</div>
       </div>`;
     }).join('');
@@ -314,8 +314,9 @@ async function loadSummary() {
     const list = await res.json();
     let totalWithdrawn = 0, pendingTotal = 0;
     list.forEach(w => {
-      if (w.status === 'completed' || w.status === 'approved') totalWithdrawn += w.amount;
-      if (w.status === 'pending' || w.status === 'processing') pendingTotal += w.amount;
+      const amt = Number(w.amount) || 0;
+      if (w.status === 'completed' || w.status === 'approved') totalWithdrawn += amt;
+      if (w.status === 'pending' || w.status === 'processing') pendingTotal += amt;
     });
     document.getElementById('totalWithdrawn').textContent = '$' + totalWithdrawn.toFixed(2);
     document.getElementById('pendingWithdrawals').textContent = '$' + pendingTotal.toFixed(2);
