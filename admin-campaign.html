@@ -408,8 +408,6 @@ function connectSSE() {
   eventSource.onerror = () => {};
 }
 
-window.addEventListener('DOMContentLoaded', fetchDailyStats);
-
 function updateStats(data) {
   ['statSent','statFailed','statSkipped','statTotal','liveSent','liveFailed','liveSkipped'].forEach(id => {
     const key = id.replace('stat','').replace('live','').toLowerCase();
