@@ -1117,4 +1117,15 @@ router.post('/admin/popup/update', requireAdmin, popup.updatePopup);
 router.post('/admin/popup/toggle', requireAdmin, popup.togglePopup);
 router.post('/admin/popup/delete', requireAdmin, popup.deletePopup);
 
+router.get('/admin/commissions', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pg.query(`SELECT * FROM commissions ORDER BY created_at DESC LIMIT 200`);
+        res.json(rows.rows.map(r => ({
+            id: r.id, fromUid: r.from_uid, uid: r.uid, amount: Number(r.amount || 0),
+            level: r.level, type: r.type, packageName: r.package_name, fromName: r.from_name,
+            createdAt: r.created_at
+        })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

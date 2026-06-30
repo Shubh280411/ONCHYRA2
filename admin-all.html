@@ -297,18 +297,10 @@ const db = {};
     // ---- COMMISSIONS ----
     async function loadCommissions() {
         try {
-            const q = query(collection(db,'commissions'), orderBy('createdAt','desc'), limit(100));
-            const snap = await getDocs(q);
-            const users = {};
-            commData = [];
-            for (const d of snap.docs) {
-                const w = d.data();
-                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
-                if (w.fromUid && !users[w.fromUid]) { try { const u = await getDoc(doc(db,'users',w.fromUid)); users[w.fromUid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.fromUid]='?'; } }
-                commData.push({ ...w, userName: users[w.uid], fromName2: users[w.fromUid] || w.fromName || '?' });
-            }
+            const res = await fetch(API + '/admin/commissions', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            commData = Array.isArray(data) ? data : [];
             filterCommissions();
-            // Stats
             let total=0, pkgTotal=0, matchTotal=0;
             commData.forEach(c => { total+=c.amount||0; if (c.type==='package_commission') pkgTotal+=c.amount||0; if (c.type==='matching_bonus') matchTotal+=c.amount||0; });
             document.getElementById('commTotal').textContent = total.toFixed(2);
