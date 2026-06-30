@@ -97,11 +97,6 @@ exports.createWallet = async (req, res) => {
         );
 
         console.log(`[HD] Generated address ${address} for uid=${uid} network=${network} index=${index}`);
-
-        if (network === 'BEP20') {
-            autoFundGas(address, network).catch(e => console.warn(`[HD] Auto-fund error: ${e.message}`));
-        }
-
         res.json({ address, network, index });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
@@ -139,6 +134,10 @@ exports.verifyDeposit = async (req, res) => {
         await pg.update('deposit_wallets', wallet.id, {
             used: true, used_at: Date.now(), tx_hash: txHash
         }, 'id');
+
+        if (network === 'BEP20') {
+            autoFundGas(address, network).catch(e => console.warn(`[HD] Gas fund failed: ${e.message}`));
+        }
 
         try {
             const sweep = require('./sweepController');
