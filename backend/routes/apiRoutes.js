@@ -10,6 +10,7 @@ const withdraw = require('../controllers/withdrawController');
 const leadership = require('../controllers/leadershipController');
 const sweep = require('../controllers/sweepController');
 const otp = require('../controllers/otpController');
+const popup = require('../controllers/popupController');
 const refCache = require('../services/referralCache');
 const transporter = require('../config/mailer');
 
@@ -1107,5 +1108,13 @@ router.post('/admin/email-inactive', requireAdmin, async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
+// ──────────────── POPUPS ────────────────
+router.get('/popups/active', popup.getActivePopup);
+router.get('/admin/popup/status', requireAdmin, popup.getStatus);
+router.post('/admin/popup/create', requireAdmin, popup.createPopup);
+router.post('/admin/popup/update', requireAdmin, popup.updatePopup);
+router.post('/admin/popup/toggle', requireAdmin, popup.togglePopup);
+router.post('/admin/popup/delete', requireAdmin, popup.deletePopup);
 
 module.exports = router;
