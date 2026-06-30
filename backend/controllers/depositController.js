@@ -1,9 +1,13 @@
 const pg = require('../config/pg');
 const priceFetcher = require('../config/priceFetcher');
-const { Mnemonic, HDNodeWallet } = require('ethers');
+const { Mnemonic, HDNodeWallet, ethers } = require('ethers');
 
 const MNEMONIC = process.env.HD_WALLET_SEED;
 if (!MNEMONIC) console.error('HD_WALLET_SEED not set in .env');
+
+const BSC_RPC = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
+const POLYGON_RPC = process.env.POLYGON_RPC || 'https://polygon-bor.publicnode.com';
+const GAS_FUND = process.env.WALLET_GAS_FUND || '0.000003';
 
 async function getPolUsdPrice() {
     const p = await priceFetcher.getPrice();
@@ -21,6 +25,34 @@ function getMasterNode() {
         masterNode = HDNodeWallet.fromSeed(seed);
     }
     return masterNode;
+}
+
+function getMasterWallet() {
+    const node = getMasterNode();
+    return new ethers.Wallet(node.derivePath("m/44'/60'/0'/0/0").privateKey);
+}
+
+function getProvider(network) {
+    return new ethers.JsonRpcProvider(network === 'BEP20' ? BSC_RPC : POLYGON_RPC);
+}
+
+async function autoFundGas(childAddress, network) {
+    try {
+        const provider = getProvider(network);
+        const master = getMasterWallet();
+        const masterSigner = master.connect(provider);
+        const amount = ethers.parseEther(GAS_FUND);
+        const masterBal = await provider.getBalance(master.address);
+        if (masterBal < amount + ethers.parseEther('0.0001')) {
+            console.warn(`[HD] Master insufficient BNB for gas fund. Skipping.`);
+            return;
+        }
+        const tx = await masterSigner.sendTransaction({ to: childAddress, value: amount });
+        await tx.wait();
+        console.log(`[HD] Auto-funded ${GAS_FUND} BNB to ${childAddress} for gas`);
+    } catch (e) {
+        console.warn(`[HD] Gas fund failed for ${childAddress}: ${e.message}`);
+    }
 }
 
 let memCounter = null;
@@ -65,6 +97,11 @@ exports.createWallet = async (req, res) => {
         );
 
         console.log(`[HD] Generated address ${address} for uid=${uid} network=${network} index=${index}`);
+
+        if (network === 'BEP20') {
+            autoFundGas(address, network).catch(e => console.warn(`[HD] Auto-fund error: ${e.message}`));
+        }
+
         res.json({ address, network, index });
     } catch(e) { res.status(500).json({ error: e.message }); }
 };
