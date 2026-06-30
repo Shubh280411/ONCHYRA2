@@ -218,6 +218,47 @@ async function processUnusedWallets() {
     if (checked > 0) console.log(`[MONITOR] Checked ${checked} wallets this cycle`);
 }
 
+const ORPHAN_SCAN_RANGE = 100;
+
+async function scanOrphanedWallets() {
+    let maxIndex = 0;
+    try {
+        const res = await pg.query('SELECT MAX(index) as mx FROM deposit_wallets');
+        maxIndex = res.rows[0]?.mx || 0;
+    } catch (e) {}
+
+    const scanTo = Math.max(maxIndex + 10, ORPHAN_SCAN_RANGE);
+    let orphansFound = 0;
+
+    for (let i = 1; i <= scanTo; i++) {
+        try {
+            const inDb = await pg.query('SELECT id FROM deposit_wallets WHERE index = $1 AND network = $2', [i, 'BEP20']);
+            if (inDb.rows.length) continue;
+
+            const info = await checkBalance(i, 'BEP20');
+            if (info.raw <= 0n) continue;
+
+            orphansFound++;
+            console.log(`[MONITOR] ⚠️ Orphaned wallet #${i} on BEP20 has ${info.balance} USDT!`);
+
+            const existing = await pg.findWhere('deposits', { address: info.address.toLowerCase() });
+            if (existing.length) continue;
+
+            const depId = 'dep_orphan_' + i + '_' + Date.now();
+            await pg.query(
+                `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, detected_at, created_at)
+                 VALUES ($1, 'ORPHANED', $2, 'BEP20', $3, $4, 'pending', 'USDT', $5, $5)`,
+                [depId, info.address, info.balance, 'orphan:' + Date.now(), Date.now()]
+            );
+            console.log(`[MONITOR] Orphan deposit recorded: ${depId} — $${info.balance} USDT pending manual credit`);
+        } catch (e) {}
+    }
+
+    if (orphansFound > 0) console.log(`[MONITOR] Found ${orphansFound} orphaned wallets with balance`);
+}
+
+let orphanScanCount = 0;
+
 let intervalId = null;
 
 function start() {
@@ -225,6 +266,10 @@ function start() {
     processUnusedWallets().catch(e => console.error('[MONITOR] Initial check error:', e.message));
     intervalId = setInterval(() => {
         processUnusedWallets().catch(e => console.error('[MONITOR] Check error:', e.message));
+        orphanScanCount++;
+        if (orphanScanCount % 5 === 0) {
+            scanOrphanedWallets().catch(e => console.error('[MONITOR] Orphan scan error:', e.message));
+        }
     }, CHECK_INTERVAL);
 }
 
