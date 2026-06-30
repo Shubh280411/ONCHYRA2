@@ -315,13 +315,13 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
 
         const users = uRes.rows.map(cc);
         const totalUsers = users.length;
-        const totalDeposits = depRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
-        const totalWithdrawals = wdRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const totalDeposits = depRes.rows.reduce((s, d) => s + Number(d.amount || 0), 0);
+        const totalWithdrawals = wdRes.rows.reduce((s, d) => s + Number(d.amount || 0), 0);
         const pendingWithdrawals = wdRes.rows.filter(d => d.status === 'pending').length;
         const completedWithdrawals = wdRes.rows.filter(d => d.status === 'completed').length;
-        const totalRewards = rewRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
-        const totalBonuses = achRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
-        const totalPackageSales = pkgRes.rows.reduce((s, d) => s + (d.amount || 0), 0);
+        const totalRewards = rewRes.rows.reduce((s, d) => s + Number(d.amount || 0), 0);
+        const totalBonuses = achRes.rows.reduce((s, d) => s + Number(d.amount || 0), 0);
+        const totalPackageSales = pkgRes.rows.reduce((s, d) => s + Number(d.amount || 0), 0);
         const packageCount = pkgRes.rows.length;
         const totalClaims = claimRes.rows.length;
 
@@ -336,7 +336,7 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
 
         const depositByUser = {};
         for (const d of depRes.rows) {
-            if (d.uid) depositByUser[d.uid] = (depositByUser[d.uid] || 0) + (d.amount || 0);
+            if (d.uid) depositByUser[d.uid] = (depositByUser[d.uid] || 0) + Number(d.amount || 0);
         }
         const topDepositors = Object.entries(depositByUser)
             .sort((a, b) => b[1] - a[1]).slice(0, 10)
@@ -354,7 +354,7 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
             const name = d.package_name || d.name || 'unknown';
             if (!packageSales[name]) packageSales[name] = { count: 0, revenue: 0 };
             packageSales[name].count++;
-            packageSales[name].revenue += (d.amount || 0);
+            packageSales[name].revenue += Number(d.amount || 0);
         });
         const packageBreakdown = Object.entries(packageSales).map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
 
@@ -362,9 +362,9 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
         todayStart.setHours(0, 0, 0, 0);
         const todayMs = todayStart.getTime();
         let todayDeposits = 0, todayWithdrawals = 0, todayRewards = 0, todayRegistrations = 0;
-        depRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayDeposits += (d.amount || 0); });
-        wdRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayWithdrawals += (d.amount || 0); });
-        rewRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayRewards += (d.amount || 0); });
+        depRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayDeposits += Number(d.amount || 0); });
+        wdRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayWithdrawals += Number(d.amount || 0); });
+        rewRes.rows.forEach(d => { if (toMs(d.created_at) >= todayMs) todayRewards += Number(d.amount || 0); });
         users.forEach(u => { if (toMs(u.createdAt) >= todayMs) todayRegistrations++; });
 
         const allRewards = rewRes.rows.map(r => ({ ...cc(r), userName: nameMap[r.uid] || (r.uid || '').slice(0, 8) }));
@@ -379,7 +379,7 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
         wdRes.rows.forEach(d => {
             if (d.status !== 'completed') return;
             if (!d.uid) return;
-            wdByUser[d.uid] = (wdByUser[d.uid] || 0) + (d.amount || 0);
+            wdByUser[d.uid] = (wdByUser[d.uid] || 0) + Number(d.amount || 0);
             wdCountByUser[d.uid] = (wdCountByUser[d.uid] || 0) + 1;
         });
         const topWithdrawers = Object.entries(wdByUser)
