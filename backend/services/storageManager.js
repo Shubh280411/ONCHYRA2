@@ -32,14 +32,20 @@ async function archiveOldDeposits() {
     await pg.query(`
         DELETE FROM deposits WHERE created_at < $1 AND status = 'completed'
     `, [cutoff]);
+    // NEVER delete pending/orphan deposits — these are owed to users
     const { rowCount } = await pg.query(`SELECT 1`);
     return rowCount;
 }
 
 async function cleanupExpiredWallets() {
+    const FIFTEEN_DAYS = 15 * 86400000;
     await pg.query(`
-        DELETE FROM deposit_wallets WHERE expired = true AND expired_at < $1
-    `, [Date.now() - 86400000]); // delete expired wallets after 1 day
+        DELETE FROM deposit_wallets 
+        WHERE expired = true 
+        AND expired_at < $1
+        AND used = false
+        AND (SELECT COUNT(*) FROM deposits WHERE address = LOWER(deposit_wallets.address)) = 0
+    `, [Date.now() - FIFTEEN_DAYS]);
 }
 
 async function cleanupOldOtps() {

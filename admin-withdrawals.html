@@ -285,6 +285,7 @@ const db = {};
 
     let allWithdrawals = [];
     let currentAction = null;
+    let adminUid = null;
 
     window.switchTab = function(tab) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -395,7 +396,7 @@ const db = {};
             const endpoint = currentAction.type === 'approve' ? '/api/withdraw/approve' : '/api/withdraw/reject';
             const res = await fetch(API + endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid || '' },
                 body: JSON.stringify({ id: currentAction.id })
             });
             const data = await res.json();
@@ -570,6 +571,7 @@ const db = {};
             document.getElementById('adminBadge').textContent = user.email || 'Admin';
             document.getElementById('mainContainer').style.display = 'block';
             document.body.style.display = 'block';
+            adminUid = user.uid;
             loadWithdrawals();
         } catch (e) {
             console.error(e);

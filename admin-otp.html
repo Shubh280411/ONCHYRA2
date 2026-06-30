@@ -221,6 +221,7 @@ const db = {};
 
     let allOtps = [];
     let countdownTimer = null;
+    let adminUid = null;
 
     function toNum(v) {
         if (v == null) return 0;
@@ -331,7 +332,7 @@ const db = {};
         const errorMsg = document.getElementById('errorMsg');
         errorMsg.style.display = 'none';
         try {
-            const res = await fetch(API + '/otp/list');
+            const res = await fetch(API + '/otp/list', { headers: { 'x-auth-uid': adminUid || '' } });
             if (!res.ok) throw new Error('Status ' + res.status);
             allOtps = await res.json();
             updateStats();
@@ -359,7 +360,7 @@ const db = {};
         try {
             const res = await fetch(API + '/otp/send', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid || '' },
                 body: JSON.stringify({ email, purpose })
             });
             const data = await res.json();
@@ -403,6 +404,7 @@ const db = {};
         document.getElementById('adminBadge').textContent = user.email || 'Admin';
         document.getElementById('mainContainer').style.display = 'block';
         document.body.style.display = 'block';
+        adminUid = user.uid;
         loadOtps();
     });
 </script>

@@ -56,7 +56,7 @@ h1{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { collection, getDocs, updateDoc, doc   } from "./supabase-adapter.js";
+import { collection, getDocs, updateDoc, doc, getDoc } from "./supabase-adapter.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Firebase config
@@ -74,9 +74,21 @@ const db = {};
 emailjs.init("DRnSZ-UTRgrq7ol8b");
 
 // Admin protection
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "admin-login.html";
+    return;
+  }
+  try {
+    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+      document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+      document.body.style.display = 'block';
+      return;
+    }
+  } catch (e) {
+    window.location.href = "admin-login.html";
+    return;
   }
 });
 

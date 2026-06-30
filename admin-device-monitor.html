@@ -141,7 +141,7 @@ const db = {};
     // ── Admin Auth Check ──
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            document.getElementById("userTable").innerHTML = '<tr><td colspan="4" class="empty-state"><a href="login.html" style="color:var(--primary);font-weight:700;">Sign in required</a></td></tr>';
+            document.getElementById("userTable").innerHTML = '<tr><td colspan="4" class="empty-state"><a href="admin-login.html" style="color:var(--primary);font-weight:700;">Sign in required</a></td></tr>';
             return;
         }
         try {

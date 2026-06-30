@@ -444,9 +444,11 @@ const db = {};
     };
 
     // ---- CONFIG ----
+    let adminUid = null;
+
     window.loadConfig = async function() {
         try {
-            const r = await fetch(API+'/maintenance');
+            const r = await fetch(API+'/maintenance', { headers: { 'x-auth-uid': adminUid || '' } });
             if (r.ok) {
                 const d = await r.json();
                 const on = d.enabled === true;
@@ -465,7 +467,7 @@ const db = {};
         try {
             const res = await fetch(API+'/api/maintenance/toggle', {
                 method:'POST',
-                headers:{'Content-Type':'application/json'},
+                headers:{'Content-Type':'application/json', 'x-auth-uid': adminUid || ''},
                 body: JSON.stringify({ enabled: newState })
             });
             const data = await res.json();
@@ -492,6 +494,7 @@ const db = {};
             document.getElementById('adminBadge').textContent = user.email || 'Admin';
             document.getElementById('mainContainer').style.display = 'block';
             document.body.style.display = 'block';
+            adminUid = user.uid;
             loadCommissions();
             loadPackages();
             loadAudit();

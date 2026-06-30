@@ -230,28 +230,46 @@ async function scanOrphanedWallets() {
     const scanTo = Math.max(maxIndex + 10, ORPHAN_SCAN_RANGE);
     let orphansFound = 0;
 
-    for (let i = 1; i <= scanTo; i++) {
+    for (const network of ['BEP20', 'Polygon']) {
+      for (let i = 1; i <= scanTo; i++) {
         try {
-            const inDb = await pg.query('SELECT id FROM deposit_wallets WHERE index = $1 AND network = $2', [i, 'BEP20']);
+            const inDb = await pg.query('SELECT id FROM deposit_wallets WHERE index = $1 AND network = $2', [i, network]);
             if (inDb.rows.length) continue;
 
-            const info = await checkBalance(i, 'BEP20');
+            const info = await checkBalance(i, network);
             if (info.raw <= 0n) continue;
 
             orphansFound++;
-            console.log(`[MONITOR] ⚠️ Orphaned wallet #${i} on BEP20 has ${info.balance} USDT!`);
+            const symbol = network === 'BEP20' ? 'USDT' : 'POL';
+            console.log(`[MONITOR] ⚠️ Orphaned wallet #${i} on ${network} has ${info.balance} ${symbol}!`);
+
+            const walletId = 'dw_orphan_' + network + '_' + i + '_' + Date.now();
+            await pg.query(
+                `INSERT INTO deposit_wallets (id, uid, index, network, address, used, checked_at, created_at)
+                 VALUES ($1, 'ORPHANED', $2, $3, $4, false, $5, $5)
+                 ON CONFLICT (id) DO NOTHING`,
+                [walletId, i, network, info.address.toLowerCase(), Date.now()]
+            ).catch(() => {});
 
             const existing = await pg.findWhere('deposits', { address: info.address.toLowerCase() });
             if (existing.length) continue;
 
-            const depId = 'dep_orphan_' + i + '_' + Date.now();
+            let usdAmount = info.balance;
+            let polPrice = 0;
+            if (network === 'Polygon') {
+                polPrice = await getPolUsdPrice();
+                usdAmount = info.balance * (polPrice || 0);
+            }
+
+            const depId = 'dep_orphan_' + network + '_' + i + '_' + Date.now();
             await pg.query(
-                `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, detected_at, created_at)
-                 VALUES ($1, 'ORPHANED', $2, 'BEP20', $3, $4, 'pending', 'USDT', $5, $5)`,
-                [depId, info.address, info.balance, 'orphan:' + Date.now(), Date.now()]
+                `INSERT INTO deposits (id, uid, address, network, amount, tx_hash, status, token, pol_amount, pol_price, detected_at, created_at)
+                 VALUES ($1, 'ORPHANED', $2, $3, $4, $5, 'pending', $6, $7, $8, $9, $9)`,
+                [depId, info.address, network, usdAmount, 'orphan:' + Date.now(), symbol, network === 'Polygon' ? info.balance : 0, polPrice || 0, Date.now()]
             );
-            console.log(`[MONITOR] Orphan deposit recorded: ${depId} — $${info.balance} USDT pending manual credit`);
+            console.log(`[MONITOR] Orphan deposit recorded: ${depId} — $${usdAmount.toFixed(2)} pending manual credit`);
         } catch (e) {}
+      }
     }
 
     if (orphansFound > 0) console.log(`[MONITOR] Found ${orphansFound} orphaned wallets with balance`);

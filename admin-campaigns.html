@@ -134,6 +134,40 @@
     </style>
 </head>
 <body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { doc, getDoc } from "./supabase-adapter.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
+            authDomain: "onchyra.firebaseapp.com",
+            projectId: "onchyra",
+            storageBucket: "onchyra.firebasestorage.app",
+            messagingSenderId: "441822770982",
+            appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = {};
+        document.querySelector('.wrap').style.display = 'none';
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.replace('admin-login.html'); return; }
+            try {
+                const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+                if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
+                    document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
+                    document.body.style.display = 'block';
+                    return;
+                }
+            } catch (e) {
+                window.location.replace('admin-login.html');
+                return;
+            }
+            window._adminUid = user.uid;
+            document.querySelector('.wrap').style.display = '';
+        });
+    </script>
     <div class="wrap">
         <div class="logo">ONCHYRA</div>
         <div class="sub">Email Campaign Dashboard</div>
@@ -478,7 +512,7 @@
             try {
                 const res = await fetch(API + '/email/send-custom-bulk', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'x-auth-uid': window._adminUid || '' },
                     body: JSON.stringify({ userType, subject, customHtml, skipCooldown })
                 });
                 const data = await res.json();
@@ -515,7 +549,7 @@
             try {
                 const res = await fetch(API + '/email/send-manual', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'x-auth-uid': window._adminUid || '' },
                     body: JSON.stringify({ emails, subject, customHtml })
                 });
                 const data = await res.json();
@@ -554,6 +588,7 @@
             try {
                 const res = await fetch(API + '/email/send-csv', {
                     method: 'POST',
+                    headers: { 'x-auth-uid': window._adminUid || '' },
                     body: formData
                 });
                 const data = await res.json();
@@ -574,7 +609,7 @@
             try {
                 const res = await fetch(API + '/email/preview-email', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'x-auth-uid': window._adminUid || '' },
                     body: JSON.stringify({ customHtml: html })
                 });
                 const data = await res.json();
