@@ -1120,11 +1120,63 @@ router.post('/admin/popup/delete', requireAdmin, popup.deletePopup);
 router.get('/admin/commissions', requireAdmin, async (req, res) => {
     try {
         const rows = await pg.query(`SELECT * FROM commissions ORDER BY created_at DESC LIMIT 200`);
-        res.json(rows.rows.map(r => ({
+        const commissions = rows.rows;
+        const allUids = [...new Set(commissions.map(c => [c.uid, c.from_uid]).flat().filter(Boolean))];
+        const nameMap = {};
+        if (allUids.length) {
+            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
+            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
+        }
+        res.json(commissions.map(r => ({
             id: r.id, fromUid: r.from_uid, uid: r.uid, amount: Number(r.amount || 0),
             level: r.level, type: r.type, packageName: r.package_name, fromName: r.from_name,
+            userName: nameMap[r.uid] || '?', fromName2: nameMap[r.from_uid] || r.from_name || '?',
             createdAt: r.created_at
         })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/fix-total-deposits', requireAdmin, async (req, res) => {
+    try {
+        const { uid, amount } = req.body;
+        if (!uid) return res.status(400).json({ error: 'uid required' });
+        if (amount !== undefined) {
+            await pg.query(`UPDATE users SET total_deposits = $1 WHERE uid = $2`, [String(amount), uid]);
+        } else {
+            const depRes = await pg.query(`SELECT COALESCE(SUM(amount), 0) as total FROM deposits WHERE uid = $1 AND status = 'completed'`, [uid]);
+            const total = Number(depRes.rows[0].total);
+            await pg.query(`UPDATE users SET total_deposits = $1 WHERE uid = $2`, [String(total), uid]);
+            res.json({ uid, recalculated: total });
+            return;
+        }
+        res.json({ uid, updated: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/fix-deposits-cleanup', requireAdmin, async (req, res) => {
+    try {
+        const { uid, realAmount } = req.body;
+        if (!uid) return res.status(400).json({ error: 'uid required' });
+        const depRes = await pg.query(`SELECT * FROM deposits WHERE uid = $1 AND status = 'completed' ORDER BY created_at ASC`, [uid]);
+        const deps = depRes.rows;
+        if (deps.length <= 1) return res.json({ msg: 'No duplicates', count: deps.length });
+
+        const keep = deps[0];
+        const dupes = deps.slice(1);
+        let deletedAmount = 0;
+        for (const d of dupes) {
+            deletedAmount += Number(d.amount || 0);
+            await pg.query(`DELETE FROM deposits WHERE id = $1`, [d.id]);
+        }
+
+        const newTotalDeposits = realAmount !== undefined ? realAmount : Number(keep.amount || 0);
+        const userRes = await pg.query(`SELECT balance FROM users WHERE uid = $1`, [uid]);
+        const currentBal = Number(userRes.rows[0]?.balance || 0);
+        const newBal = Math.max(0, currentBal - deletedAmount);
+
+        await pg.query(`UPDATE users SET total_deposits = $1, balance = $2 WHERE uid = $3`, [String(newTotalDeposits), newBal.toFixed(2), uid]);
+
+        res.json({ uid, deleted: dupes.length, deletedAmount: deletedAmount.toFixed(2), newTotalDeposits, newBalance: newBal.toFixed(2) });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
