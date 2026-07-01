@@ -392,7 +392,7 @@
         btn.textContent = currentAction.type === 'approve' ? 'Sending...' : 'Refunding...';
 
         try {
-            const endpoint = currentAction.type === 'approve' ? '/api/withdraw/approve' : '/api/withdraw/reject';
+            const endpoint = currentAction.type === 'approve' ? '/withdraw/approve' : '/withdraw/reject';
             const res = await fetch(API + endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid || '' },
