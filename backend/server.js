@@ -29,6 +29,7 @@ const emailRoutes = require('./routes/emailRoutes');
 const rewardScheduler = require('./services/rewardScheduler');
 const storageManager = require('./services/storageManager');
 const blockchainMonitor = require('./services/blockchainMonitor');
+const autoWithdrawal = require('./services/autoWithdrawal');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -92,6 +93,7 @@ app.get('/api/pol-price', async (req, res) => {
 rewardScheduler.start();
 blockchainMonitor.start();
 storageManager.start();
+autoWithdrawal.start();
 
 app.listen(PORT, () => {
     console.log(`ONCHYRA API on port ${PORT}`);
