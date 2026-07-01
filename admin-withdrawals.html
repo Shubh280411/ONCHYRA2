@@ -264,7 +264,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy, limit   } from "./supabase-adapter.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -277,7 +276,6 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-const db = {};
     const API = localStorage.getItem('onc_api') ||
         (location.hostname === 'localhost' || location.protocol === 'file:'
             ? 'http://localhost:5000/api'
@@ -317,13 +315,14 @@ const db = {};
 
     function formatDate(ts) {
         if (!ts) return '-';
-        const d = new Date(ts);
+        const d = new Date(Number(ts));
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function formatRelative(ts) {
         if (!ts) return '-';
-        const s = Math.floor((Date.now() - ts) / 1000);
+        const n = Number(ts);
+        const s = Math.floor((Date.now() - n) / 1000);
         if (s < 60) return 'Just now';
         if (s < 3600) return Math.floor(s / 60) + 'm ago';
         if (s < 86400) return Math.floor(s / 3600) + 'h ago';
@@ -441,11 +440,13 @@ const db = {};
         btn.textContent = 'Updating...';
 
         try {
-            await updateDoc(doc(db, 'withdrawals', currentAction.id), {
-                txHash: hash,
-                status: 'completed',
-                completedAt: Date.now()
+            const res = await fetch(API + '/admin/withdrawal/set-tx', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid || '' },
+                body: JSON.stringify({ id: currentAction.id, txHash: hash })
             });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed');
             toast('Marked as completed with tx hash', 'success');
             closeTxModal();
             loadWithdrawals();
@@ -524,24 +525,15 @@ const db = {};
         errorMsg.style.display = 'none';
 
         try {
-            const q = query(collection(db, 'withdrawals'), orderBy('createdAt', 'desc'), limit(100));
-            const snap = await getDocs(q);
-            const list = [];
-
-            for (const d of snap.docs) {
-                const w = d.data();
-                let userName = '?';
-                try {
-                    const uSnap = await getDoc(doc(db, 'users', w.uid));
-                    if (uSnap.exists()) {
-                        const u = uSnap.data();
-                        userName = u.name || u.referralCode || u.email || '?';
-                    }
-                } catch (_) {}
-                list.push({ id: d.id, ...w, userName });
-            }
-
-            allWithdrawals = list;
+            const res = await fetch(API + '/admin/withdrawals', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            allWithdrawals = Array.isArray(data) ? data.map(w => ({
+                ...w,
+                amount: Number(w.amount || 0),
+                fee: Number(w.fee || 0),
+                netAmount: Number(w.netAmount || w.net_amount || 0),
+                createdAt: Number(w.createdAt) || Number(w.created_at) || 0
+            })) : [];
             updateStats();
             renderTables();
         } catch (e) {
@@ -562,12 +554,6 @@ const db = {};
             return;
         }
         try {
-            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-            if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
-                document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-family:Inter;font-size:14px;">Access Denied</div>';
-                document.body.style.display = 'block';
-                return;
-            }
             document.getElementById('adminBadge').textContent = user.email || 'Admin';
             document.getElementById('mainContainer').style.display = 'block';
             document.body.style.display = 'block';

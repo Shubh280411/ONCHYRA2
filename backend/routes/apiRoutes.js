@@ -1158,26 +1158,6 @@ router.get('/admin/packages', requireAdmin, async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/admin/withdrawals', requireAdmin, async (req, res) => {
-    try {
-        const rows = await pg.query(`SELECT * FROM withdrawals ORDER BY created_at DESC LIMIT 200`);
-        const withdrawals = rows.rows;
-        const allUids = [...new Set(withdrawals.map(w => w.uid).filter(Boolean))];
-        const nameMap = {};
-        if (allUids.length) {
-            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
-            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
-        }
-        res.json(withdrawals.map(r => ({
-            id: r.id, uid: r.uid, amount: Number(r.amount || 0), fee: Number(r.fee || 0),
-            netAmount: Number(r.net_amount || 0), status: r.status, wallet: r.wallet,
-            txHash: r.tx_hash, network: r.network || 'BEP20',
-            userName: nameMap[r.uid] || '?',
-            createdAt: r.created_at, updatedAt: r.updated_at
-        })));
-    } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
 router.get('/admin/deposits', requireAdmin, async (req, res) => {
     try {
         const rows = await pg.query(`SELECT * FROM deposits ORDER BY created_at DESC LIMIT 200`);
@@ -1213,6 +1193,15 @@ router.get('/admin/audit', requireAdmin, async (req, res) => {
             userName: nameMap[r.uid] || '?',
             createdAt: r.created_at
         })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/withdrawal/set-tx', requireAdmin, async (req, res) => {
+    try {
+        const { id, txHash } = req.body;
+        if (!id || !txHash) return res.status(400).json({ error: 'id and txHash required' });
+        await pg.query(`UPDATE withdrawals SET tx_hash = $1, status = 'completed', updated_at = $2 WHERE id = $3`, [txHash, Date.now(), id]);
+        res.json({ success: true, message: 'Marked as completed with tx hash' });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
