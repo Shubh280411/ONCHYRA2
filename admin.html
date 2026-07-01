@@ -301,14 +301,13 @@ async function getDirectCount(table) {
 
 async function loadStats() {
   try {
-    const [uCnt, pkgCnt, wdSnap] = await Promise.all([
-      getCountFromServer(collection(db, 'users')),
-      getCountFromServer(collection(db, 'packagePurchases')),
-      getCountFromServer(query(collection(db, 'withdrawals'), where('status', '==', 'pending')))
-    ]);
-    document.getElementById('users').textContent = uCnt.data().count || 0;
-    document.getElementById('packages').textContent = pkgCnt.data().count || 0;
-    document.getElementById('pendingW').textContent = wdSnap.data().count || 0;
+    const res = await fetch(API + '/admin/stats', { headers: { 'x-auth-uid': adminUid } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.totalUsers != null) document.getElementById('users').textContent = data.totalUsers;
+      if (data.totalPackageSales != null) document.getElementById('packages').textContent = data.packageCount || 0;
+      if (data.pendingWithdrawals != null) document.getElementById('pendingW').textContent = data.pendingWithdrawals;
+    }
   } catch(e) { console.warn('Stats load failed:', e.message); }
   loadClaimsCount();
   loadStorageStats();
@@ -325,12 +324,13 @@ async function loadClaimsCount() {
 
 async function loadRecentJoins() {
   try {
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(5));
-    const snap = await getDocs(q);
+    const res = await fetch(API + '/admin/stats', { headers: { 'x-auth-uid': adminUid } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const users = Array.isArray(data.recentUsers) ? data.recentUsers.slice(0, 5) : [];
     const el = document.getElementById('recentJoins');
-    if (!snap.docs.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-size:12px;">No users yet</div>'; return; }
-    el.innerHTML = snap.docs.map(d => {
-      const u = d.data();
+    if (!users.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-size:12px;">No users yet</div>'; return; }
+    el.innerHTML = users.map(u => {
       const initial = (u.name || u.email || '?')[0].toUpperCase();
       const ts = Number(u.createdAt) || Number(u.created_at) || 0;
       const rel = ts ? (() => { const s = Math.floor((Date.now() - ts) / 1000); if (s < 60) return 'Just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; return Math.floor(s / 86400) + 'd ago'; })() : '';

@@ -117,6 +117,7 @@
         <button class="tab" data-tab="packages"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>Packages</button>
         <button class="tab" data-tab="audit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Audit</button>
         <button class="tab" data-tab="deposits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Deposits</button>
+        <button class="tab" data-tab="withdrawals"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Withdrawals</button>
         <button class="tab" data-tab="config"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</button>
     </div>
 
@@ -193,6 +194,30 @@
                 <table><thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Network</th><th>Tx Hash</th><th>Status</th></tr></thead><tbody id="depBody"></tbody></table>
             </div>
             <div class="empty-state" id="depEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><br>No deposits found</div>
+        </div>
+    </div>
+
+    <!-- WITHDRAWALS TAB -->
+    <div class="tab-content" id="tabWithdrawals">
+        <div class="stats-row">
+            <div class="stat-card"><div class="label">Total Withdrawn</div><div class="value" id="wdTotal" style="color:var(--success)">0</div></div>
+            <div class="stat-card"><div class="label">Pending</div><div class="value" id="wdPending" style="color:var(--warning)">0</div></div>
+            <div class="stat-card"><div class="label">Completed</div><div class="value" id="wdCompleted" style="color:var(--primary)">0</div></div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="wdSearch" placeholder="Search by UID or wallet..." oninput="filterWithdrawals()">
+            <select id="wdStatusFilter" onchange="filterWithdrawals()">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table><thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Net</th><th>Wallet</th><th>Status</th><th>Tx Hash</th></tr></thead><tbody id="wdBody"></tbody></table>
+            </div>
+            <div class="empty-state" id="wdEmpty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg><br>No withdrawals found</div>
         </div>
     </div>
 
@@ -367,15 +392,9 @@ const db = {};
     // ---- AUDIT ----
     async function loadAudit() {
         try {
-            const q = query(collection(db,'auditLogs'), orderBy('createdAt','desc'), limit(100));
-            const snap = await getDocs(q);
-            const users = {};
-            const list = [];
-            for (const d of snap.docs) {
-                const w = d.data();
-                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
-                list.push({ ...w, userName: users[w.uid] });
-            }
+            const res = await fetch(API + '/admin/audit', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : [];
             document.getElementById('auditCount').textContent = list.length;
             document.getElementById('auditWithdrawals').textContent = list.filter(l=>l.type==='withdrawal').length;
             const body = document.getElementById('auditBody');
@@ -386,7 +405,7 @@ const db = {};
                 <td style="white-space:nowrap">${formatRelative(l.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(l.createdAt)}</span></td>
                 <td><span class="status processed">${l.type||'-'}</span></td>
                 <td><strong>${l.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(l.uid)}</span></td>
-                <td style="font-family:'Space Grotesk';font-weight:700">${(l.amount||0).toFixed(2)}</td>
+                <td style="font-family:'Space Grotesk';font-weight:700">${Number(l.amount||0).toFixed(2)}</td>
                 <td><span class="status ${l.status||'pending'}">${l.status||'-'}</span></td>
                 <td style="font-size:10px;color:var(--text-dim);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block">${l.wallet||'-'}</td>
             </tr>`).join('');
@@ -396,17 +415,11 @@ const db = {};
     // ---- DEPOSITS ----
     async function loadDeposits() {
         try {
-            const q = query(collection(db,'deposits'), orderBy('createdAt','desc'), limit(100));
-            const snap = await getDocs(q);
-            const users = {};
-            depData = [];
-            for (const d of snap.docs) {
-                const w = d.data();
-                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
-                depData.push({ ...w, userName: users[w.uid] });
-            }
+            const res = await fetch(API + '/admin/deposits', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            depData = Array.isArray(data) ? data : [];
             filterDeposits();
-            const total = depData.reduce((s,d)=>s+(d.amount||0),0);
+            const total = depData.reduce((s,d)=>s+Number(d.amount||0),0);
             document.getElementById('depTotal').textContent = total.toFixed(2);
             document.getElementById('depCount').textContent = depData.length;
         } catch(e) { console.error(e); }
@@ -427,6 +440,44 @@ const db = {};
             <td>${d.network||'BEP20'}</td>
             <td><a href="https://bscscan.com/tx/${d.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;font-family:monospace">${shortId(d.txHash)}</a></td>
             <td><span class="status completed">${d.status||'completed'}</span></td>
+        </tr>`).join('');
+    };
+
+    // ---- WITHDRAWALS ----
+    let wdData = [];
+    async function loadWithdrawals() {
+        try {
+            const res = await fetch(API + '/admin/withdrawals', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            wdData = Array.isArray(data) ? data : [];
+            filterWithdrawals();
+            const total = wdData.filter(w=>w.status==='completed').reduce((s,w)=>s+Number(w.amount||0),0);
+            const pending = wdData.filter(w=>w.status==='pending').length;
+            const completed = wdData.filter(w=>w.status==='completed').length;
+            document.getElementById('wdTotal').textContent = total.toFixed(2);
+            document.getElementById('wdPending').textContent = pending;
+            document.getElementById('wdCompleted').textContent = completed;
+        } catch(e) { console.error(e); }
+    }
+
+    window.filterWithdrawals = function() {
+        const term = document.getElementById('wdSearch').value.toLowerCase();
+        const status = document.getElementById('wdStatusFilter').value;
+        let filtered = wdData;
+        if (term) filtered = filtered.filter(w => (w.uid||'').includes(term) || (w.userName||'').toLowerCase().includes(term) || (w.wallet||'').toLowerCase().includes(term));
+        if (status) filtered = filtered.filter(w => w.status === status);
+        const body = document.getElementById('wdBody');
+        const empty = document.getElementById('wdEmpty');
+        if (!filtered.length) { body.innerHTML=''; empty.style.display='block'; return; }
+        empty.style.display='none';
+        body.innerHTML = filtered.map(w => `<tr>
+            <td style="white-space:nowrap">${formatRelative(w.createdAt)}<br><span style="font-size:10px;color:var(--text-dim)">${formatDate(w.createdAt)}</span></td>
+            <td><strong>${w.userName||'?'}</strong><br><span style="font-size:9px;color:var(--text-dim);font-family:monospace">${shortId(w.uid)}</span></td>
+            <td style="font-family:'Space Grotesk';font-weight:700;color:var(--danger)">${Number(w.amount||0).toFixed(2)}</td>
+            <td style="font-family:'Space Grotesk';font-weight:700">${Number(w.netAmount||w.amount||0).toFixed(2)}</td>
+            <td style="font-size:10px;color:var(--text-dim);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;font-family:monospace">${w.wallet||'-'}</td>
+            <td><span class="status ${w.status==='completed'?'completed':w.status==='rejected'?'rejected':'pending'}">${w.status||'-'}</span></td>
+            <td>${w.txHash ? `<a href="https://bscscan.com/tx/${w.txHash}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;font-family:monospace">${shortId(w.txHash)}</a>` : '-'}</td>
         </tr>`).join('');
     };
 
@@ -486,6 +537,7 @@ const db = {};
             loadPackages();
             loadAudit();
             loadDeposits();
+            loadWithdrawals();
             loadConfig();
         } catch(e) { console.error(e); }
     });

@@ -375,6 +375,8 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
         allDeposits.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
         const recentDeposits = allDeposits.slice(0, 15);
 
+        const recentUsers = [...users].sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt)).slice(0, 10);
+
         const wdByUser = {}, wdCountByUser = {};
         wdRes.rows.forEach(d => {
             if (d.status !== 'completed') return;
@@ -394,7 +396,7 @@ router.get('/admin/stats', requireAdmin, async (req, res) => {
             rankCounts, topDepositors, users,
             pendingWithdrawalsList, packageBreakdown,
             todayDeposits, todayWithdrawals, todayRewards, todayRegistrations,
-            recentRewards, recentDeposits, topWithdrawers
+            recentRewards, recentDeposits, topWithdrawers, recentUsers
         });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1150,6 +1152,64 @@ router.get('/admin/packages', requireAdmin, async (req, res) => {
             id: r.id, uid: r.uid, name: r.name || r.package_name || r.package_id || '-',
             amount: Number(r.amount || 0), paid: Number(r.paid || r.amount || 0),
             boost: r.boost, promoApplied: r.promo_applied,
+            userName: nameMap[r.uid] || '?',
+            createdAt: r.created_at
+        })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/admin/withdrawals', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pg.query(`SELECT * FROM withdrawals ORDER BY created_at DESC LIMIT 200`);
+        const withdrawals = rows.rows;
+        const allUids = [...new Set(withdrawals.map(w => w.uid).filter(Boolean))];
+        const nameMap = {};
+        if (allUids.length) {
+            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
+            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
+        }
+        res.json(withdrawals.map(r => ({
+            id: r.id, uid: r.uid, amount: Number(r.amount || 0), fee: Number(r.fee || 0),
+            netAmount: Number(r.net_amount || 0), status: r.status, wallet: r.wallet,
+            txHash: r.tx_hash, network: r.network || 'BEP20',
+            userName: nameMap[r.uid] || '?',
+            createdAt: r.created_at, updatedAt: r.updated_at
+        })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/admin/deposits', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pg.query(`SELECT * FROM deposits ORDER BY created_at DESC LIMIT 200`);
+        const deposits = rows.rows;
+        const allUids = [...new Set(deposits.map(d => d.uid).filter(Boolean))];
+        const nameMap = {};
+        if (allUids.length) {
+            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
+            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
+        }
+        res.json(deposits.map(r => ({
+            id: r.id, uid: r.uid, amount: Number(r.amount || 0), status: r.status,
+            txHash: r.tx_hash, network: r.network || 'BEP20', wallet: r.wallet,
+            userName: nameMap[r.uid] || '?',
+            createdAt: r.created_at
+        })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/admin/audit', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pg.query(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200`);
+        const logs = rows.rows;
+        const allUids = [...new Set(logs.map(l => l.uid).filter(Boolean))];
+        const nameMap = {};
+        if (allUids.length) {
+            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
+            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
+        }
+        res.json(logs.map(r => ({
+            id: r.id, uid: r.uid, type: r.type, amount: Number(r.amount || 0),
+            status: r.status, wallet: r.wallet, details: r.details,
             userName: nameMap[r.uid] || '?',
             createdAt: r.created_at
         })));
