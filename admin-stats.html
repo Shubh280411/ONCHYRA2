@@ -176,7 +176,7 @@ tr:last-child td { border-bottom:none; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc   } from "./supabase-adapter.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const API = 'https://onchyra-backend.onrender.com/api';
 let cached = {};
@@ -187,20 +187,31 @@ const app = initializeApp({
   projectId: "onchyra"
 });
 const auth = getAuth(app);
-const db = {};
 let adminUid = null;
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location = 'admin-login.html'; return; }
   adminUid = user.uid;
   try {
-    const adminSnap = await getDoc(doc(db, 'admins', user.uid));
-    if (!adminSnap.exists() || adminSnap.data().role !== 'admin') {
-      window.location = 'dashboard.html';
-      return;
-    }
     const r = await fetch(API + '/admin/stats', { headers: { 'x-auth-uid': adminUid } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     cached = await r.json();
+    if (cached.users) cached.users = cached.users.map(u => ({
+      ...u,
+      commissionBalance: Number(u.commissionBalance || 0),
+      walletBalance: Number(u.walletBalance || 0),
+      balance: Number(u.balance || 0),
+      streak: Number(u.streak || 0),
+      packageUsage: Number(u.packageUsage || 0),
+      packageCap: Number(u.packageCap || 0),
+      referrals: Number(u.referrals || 0),
+      totalDeposits: Number(u.totalDeposits || 0),
+    }));
+    if (cached.pendingWithdrawalsList) cached.pendingWithdrawalsList = cached.pendingWithdrawalsList.map(w => ({ ...w, amount: Number(w.amount || 0) }));
+    if (cached.recentRewards) cached.recentRewards = cached.recentRewards.map(r => ({ ...r, amount: Number(r.amount || 0) }));
+    if (cached.recentDeposits) cached.recentDeposits = cached.recentDeposits.map(d => ({ ...d, amount: Number(d.amount || 0) }));
+    if (cached.topDepositors) cached.topDepositors = cached.topDepositors.map(d => ({ ...d, amount: Number(d.amount || 0) }));
+    if (cached.topWithdrawers) cached.topWithdrawers = cached.topWithdrawers.map(w => ({ ...w, amount: Number(w.amount || 0) }));
+    if (cached.packageBreakdown) cached.packageBreakdown = cached.packageBreakdown.map(p => ({ ...p, count: Number(p.count || 0), revenue: Number(p.revenue || 0) }));
   } catch(e) {
     document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Failed to load stats: ' + e.message + '</div>';
     return;
