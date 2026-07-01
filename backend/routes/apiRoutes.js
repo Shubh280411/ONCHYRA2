@@ -1136,6 +1136,26 @@ router.get('/admin/commissions', requireAdmin, async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.get('/admin/packages', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pg.query(`SELECT * FROM package_purchases ORDER BY created_at DESC LIMIT 200`);
+        const purchases = rows.rows;
+        const allUids = [...new Set(purchases.map(p => p.uid).filter(Boolean))];
+        const nameMap = {};
+        if (allUids.length) {
+            const usersRes = await pg.query(`SELECT uid, name, email, referral_code FROM users WHERE uid = ANY($1)`, [allUids]);
+            for (const u of usersRes.rows) nameMap[u.uid] = u.name || u.referral_code || u.email || '?';
+        }
+        res.json(purchases.map(r => ({
+            id: r.id, uid: r.uid, name: r.name || r.package_name || r.package_id || '-',
+            amount: Number(r.amount || 0), paid: Number(r.paid || r.amount || 0),
+            boost: r.boost, promoApplied: r.promo_applied,
+            userName: nameMap[r.uid] || '?',
+            createdAt: r.created_at
+        })));
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.post('/admin/fix-total-deposits', requireAdmin, async (req, res) => {
     try {
         const { uid, amount } = req.body;

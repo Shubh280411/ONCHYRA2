@@ -333,17 +333,11 @@ const db = {};
     // ---- PACKAGES ----
     async function loadPackages() {
         try {
-            const q = query(collection(db,'packagePurchases'), orderBy('createdAt','desc'), limit(100));
-            const snap = await getDocs(q);
-            const users = {};
-            pkgData = [];
-            for (const d of snap.docs) {
-                const w = d.data();
-                if (!users[w.uid]) { try { const u = await getDoc(doc(db,'users',w.uid)); users[w.uid]=u.exists()?(u.data().name||u.data().referralCode||'?'):'?'; } catch(e) { users[w.uid]='?'; } }
-                pkgData.push({ ...w, userName: users[w.uid] });
-            }
+            const res = await fetch(API + '/admin/packages', { headers: { 'x-auth-uid': adminUid || '' } });
+            const data = await res.json();
+            pkgData = Array.isArray(data) ? data : [];
             filterPackages();
-            const vol = pkgData.reduce((s,p)=>s+(p.amount||0),0);
+            const vol = pkgData.reduce((s,p)=>s+Number(p.amount||0),0);
             const unique = new Set(pkgData.map(p=>p.uid)).size;
             document.getElementById('pkgCount').textContent = pkgData.length;
             document.getElementById('pkgVolume').textContent = vol.toFixed(2);
