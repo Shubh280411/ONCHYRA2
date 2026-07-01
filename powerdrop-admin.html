@@ -110,6 +110,8 @@ opacity:0.8;
 
 <input id="maxParticipants" type="number" placeholder="Max Participants">
 
+<input id="duration" type="number" placeholder="Duration (days)" value="7">
+
 <input id="startTime" type="datetime-local">
 
 <button onclick="createPowerDrop()">Create Event</button>
@@ -130,15 +132,6 @@ opacity:0.8;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import { collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc,
-serverTimestamp,
-Timestamp
-  } from "./supabase-adapter.js";
-
 import {
 getAuth,
 onAuthStateChanged
@@ -157,19 +150,21 @@ appId: "1:441822770982:web:f22f6b95fd5148ce21b3e7"
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = {};
+const API = 'https://onchyra-backend.onrender.com/api';
+
+let adminUid = null;
 
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
 window.location="admin-login.html";
+} else {
+    adminUid = user.uid;
 }
 
 });
 
 const eventsDiv=document.getElementById("events");
-
-/* CREATE EVENT */
 
 window.createPowerDrop = async()=>{
 
@@ -177,76 +172,86 @@ const title=document.getElementById("title").value;
 const reward=Number(document.getElementById("reward").value);
 const winners=Number(document.getElementById("winners").value);
 const maxParticipants=Number(document.getElementById("maxParticipants").value);
+const duration=Number(document.getElementById("duration").value) || 7;
 const startTimeValue=document.getElementById("startTime").value;
+const startTime = startTimeValue ? new Date(startTimeValue).getTime() : Date.now();
 
-const startTime=Timestamp.fromDate(new Date(startTimeValue));
-
-await addDoc(collection(db,"powerdrops"),{
-
-title,
-reward,
-winners,
-maxParticipants,
-participantsCount:0,
-startTime,
-createdAt:serverTimestamp()
-
-});
-
-alert("PowerDrop Created");
-
-loadEvents();
-
+try {
+    const res = await fetch(API + '/powerdrop/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid },
+        body: JSON.stringify({ title, reward, winners, maxParticipants, duration, startTime })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    alert("PowerDrop Created");
+    loadEvents();
+} catch(e) {
+    alert("Error: " + e.message);
 }
 
-/* LOAD EVENTS */
+}
 
 async function loadEvents(){
 
 eventsDiv.innerHTML="";
 
-const snap=await getDocs(collection(db,"powerdrops"));
+try {
+    const res = await fetch(API + '/powerdrop/all', { headers: { 'x-auth-uid': adminUid } });
+    const events = await res.json();
 
-snap.forEach(d=>{
+    events.forEach(d=>{
+        eventsDiv.innerHTML+=`
 
-const data=d.data();
+        <div class="event">
 
-eventsDiv.innerHTML+=`
+        <b>${d.title}</b>
 
-<div class="event">
+        <div class="small">
 
-<b>${data.title}</b>
+        Reward: ${d.reward} USDT<br>
 
-<div class="small">
+        Winners: ${d.winners}<br>
 
-Reward: ${data.reward} USDT<br>
+        Max Participants: ${d.maxParticipants}<br>
 
-Winners: ${data.winners}<br>
+        Duration: ${d.duration || 7} days
 
-Max Participants: ${data.maxParticipants}
+        </div>
 
-</div>
+        <button class="delete"
+        onclick="deleteEvent('${d.id}')">
 
-<button class="delete"
-onclick="deleteEvent('${d.id}')">
+        Delete
 
-Delete
+        </button>
 
-</button>
+        </div>
 
-</div>
-
-`;
-
-});
+        `;
+    });
+} catch(e) {
+    eventsDiv.innerHTML = '<div class="small">Error loading events</div>';
+}
 
 }
 
 window.deleteEvent = async(id)=>{
 
-await deleteDoc(doc(db,"powerdrops",id));
+if (!confirm("Delete this PowerDrop?")) return;
 
-loadEvents();
+try {
+    const res = await fetch(API + '/powerdrop/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-uid': adminUid },
+        body: JSON.stringify({ id })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    loadEvents();
+} catch(e) {
+    alert("Error: " + e.message);
+}
 
 }
 
