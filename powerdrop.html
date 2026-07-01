@@ -121,7 +121,6 @@ input::placeholder { color:rgba(255,255,255,0.25); }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc, onSnapshot, collection, serverTimestamp, updateDoc, increment   } from "./supabase-adapter.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDLAekP6DO0oKQQzD7USkiyCm0M3BFoyYI",
@@ -134,16 +133,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = {};
+const API = 'https://onchyra-backend.onrender.com/api';
 let currentEventId = null, userUid = null, tInterval = null;
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         userUid = user.uid;
-        const uSnap = await getDoc(doc(db, "users", userUid));
-        if (uSnap.exists() && uSnap.data().banned === true) {
-            window.location.href = "banned.html"; return;
-        }
         initEvent();
     } else {
         window.location.href = "login.html";
@@ -151,23 +146,19 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function initEvent() {
-    onSnapshot(collection(db, "powerdrops"), (snap) => {
-        if (!snap.empty) {
-            const d = snap.docs[0];
-            currentEventId = d.id;
-            render(d.data());
-            checkJoined();
+    try {
+        const res = await fetch(API + '/powerdrop/current');
+        const data = await res.json();
+        if (!data.active || !data.event) {
+            document.getElementById('loader').innerText = 'NO ACTIVE DROP';
+            return;
         }
-    });
-}
-
-// Safe timestamp → milliseconds (handles Firestore Timestamp, plain number, or missing)
-function toMillis(val) {
-    if (!val) return null;
-    if (typeof val.toMillis === 'function') return val.toMillis();   // Firestore Timestamp
-    if (typeof val.seconds === 'number') return val.seconds * 1000;  // raw {seconds, nanoseconds}
-    if (typeof val === 'number') return val;                          // already ms
-    return null;
+        currentEventId = data.event.id;
+        render(data.event);
+        checkJoined();
+    } catch(e) {
+        document.getElementById('loader').innerText = 'FAILED TO LOAD';
+    }
 }
 
 function render(data) {
@@ -176,21 +167,17 @@ function render(data) {
     document.getElementById('eventTitle').innerText = (data.title || "POWERDROP").toUpperCase();
     document.getElementById('reward').innerText = data.reward || "0";
 
-    // Winners count
     document.getElementById('winnersCount').innerText = data.winners || data.winnersCount || "?";
 
-    // Participants
     const c = data.participantsCount || 0;
     const m = data.maxParticipants || 100;
     document.getElementById('pCount').innerText = `${c} / ${m}`;
     document.getElementById('fill').style.width = Math.min((c / m * 100), 100) + "%";
 
-    // Timer — safe conversion
-    const startMs = toMillis(data.startTime);
+    const startMs = Number(data.startTime);
     const durationDays = data.duration || 7;
 
-    if (startMs === null) {
-        // startTime missing or invalid — show dashes
+    if (!startMs || isNaN(startMs)) {
         ['days','hours','mins','secs'].forEach(id => document.getElementById(id).innerText = '--');
         return;
     }
@@ -220,15 +207,20 @@ function render(data) {
 }
 
 async function checkJoined() {
-    const snap = await getDoc(doc(db, "powerdrops", currentEventId, "participants", userUid));
-    if (snap.exists()) {
-        const btn = document.getElementById('joinBtn');
-        btn.disabled = true;
-        btn.innerText = "ENTRY VERIFIED ✅";
-        document.getElementById('wallet').value = snap.data().address;
-        document.getElementById('wallet').disabled = true;
-        document.getElementById('shareBtn').style.display = "flex";
-    } else {
+    try {
+        const res = await fetch(API + '/powerdrop/check/' + currentEventId + '/' + userUid);
+        const data = await res.json();
+        if (data.joined) {
+            const btn = document.getElementById('joinBtn');
+            btn.disabled = true;
+            btn.innerText = "ENTRY VERIFIED ✅";
+            document.getElementById('wallet').value = data.address;
+            document.getElementById('wallet').disabled = true;
+            document.getElementById('shareBtn').style.display = "flex";
+        } else {
+            document.getElementById('joinBtn').disabled = false;
+        }
+    } catch(e) {
         document.getElementById('joinBtn').disabled = false;
     }
 }
@@ -240,20 +232,21 @@ window.participate = async () => {
     btn.disabled = true;
     btn.innerText = "PROCESSING...";
     try {
-        await setDoc(doc(db, "powerdrops", currentEventId, "participants", userUid), {
-            address: addr,
-            joinedAt: serverTimestamp()
+        const res = await fetch(API + '/powerdrop/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId: currentEventId, uid: userUid, address: addr })
         });
-        await updateDoc(doc(db, "powerdrops", currentEventId), {
-            participantsCount: increment(1)
-        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Join failed');
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         showMsg("Registration Successful! 🎉", "#34d399");
         btn.innerText = "ENTRY VERIFIED ✅";
+        document.getElementById('wallet').disabled = true;
         document.getElementById('shareBtn').style.display = "flex";
     } catch (e) {
         console.error(e);
-        showMsg("Firestore Error. Check Rules.", "#f87171");
+        showMsg(e.message || "Error joining. Try again.", "#f87171");
         btn.disabled = false;
         btn.innerText = "CONFIRM ENTRY";
     }

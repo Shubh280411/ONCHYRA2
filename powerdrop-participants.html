@@ -136,7 +136,6 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { collection, getDocs, doc, getDoc   } from "./supabase-adapter.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -150,7 +149,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = {};
+const API = 'https://onchyra-backend.onrender.com/api';
 
 const eventSelect = document.getElementById("eventSelect");
 const tableBody = document.getElementById("tableBody");
@@ -163,26 +162,27 @@ onAuthStateChanged(auth, user => {
     if (!user) window.location = "admin-login.html";
 });
 
-// Load all powerdrop events into dropdown
 async function loadEvents() {
-    const snap = await getDocs(collection(db, "powerdrops"));
-    if (snap.empty) {
-        eventSelect.innerHTML = '<option>No events found</option>';
-        return;
-    }
-    snap.forEach(d => {
+    try {
+        const res = await fetch(API + '/powerdrop/current');
+        const data = await res.json();
+        if (!data.active || !data.event) {
+            eventSelect.innerHTML = '<option>No active event</option>';
+            return;
+        }
         const opt = document.createElement("option");
-        opt.value = d.id;
-        opt.textContent = d.data().title || d.id;
+        opt.value = data.event.id;
+        opt.textContent = data.event.title || data.event.id;
         eventSelect.appendChild(opt);
-    });
-    loadParticipants(eventSelect.value);
+        loadParticipants(data.event.id);
+    } catch(e) {
+        eventSelect.innerHTML = '<option>Error loading</option>';
+    }
 }
 loadEvents();
 
 eventSelect.addEventListener("change", () => loadParticipants(eventSelect.value));
 
-// KEY FIX: doc.id is the userUid (not data.uid)
 async function loadParticipants(eventId) {
     if (!eventId) return;
     participants = [];
@@ -191,32 +191,23 @@ async function loadParticipants(eventId) {
     document.getElementById('participantBadge').innerText = "...";
 
     try {
-        const snap = await getDocs(collection(db, "powerdrops", eventId, "participants"));
+        const res = await fetch(API + '/powerdrop/participants/' + eventId);
+        const data = await res.json();
 
-        if (snap.empty) {
+        if (!data.length) {
             tableBody.innerHTML = `<tr class="loading-row"><td colspan="2"><div class="empty-state"><div>📭</div>No participants yet</div></td></tr>`;
             document.getElementById('countTotal').innerText = 0;
             document.getElementById('participantBadge').innerText = 0;
             return;
         }
 
-        document.getElementById('countTotal').innerText = snap.size;
-        document.getElementById('participantBadge').innerText = snap.size;
+        document.getElementById('countTotal').innerText = data.length;
+        document.getElementById('participantBadge').innerText = data.length;
 
-        // Fetch each user's name using doc.id as uid
-        const rows = await Promise.all(snap.docs.map(async (pDoc) => {
-            const uid = pDoc.id; // ← THE FIX: doc ID = uid
-            const address = pDoc.data().address || "—";
-
-            // Try to get user name from users collection
+        const rows = data.map(p => {
+            const uid = p.id;
+            const address = p.address || "—";
             let name = "Miner #" + uid.slice(0, 6).toUpperCase();
-            try {
-                const uSnap = await getDoc(doc(db, "users", uid));
-                if (uSnap.exists() && uSnap.data().name) {
-                    name = uSnap.data().name;
-                }
-            } catch (e) { /* use fallback name */ }
-
             participants.push({ uid, name, address });
 
             const initials = name.substring(0, 2).toUpperCase();
@@ -230,7 +221,7 @@ async function loadParticipants(eventId) {
                     </td>
                     <td style="font-family:monospace; font-size:11px; color:#94A3B8; word-break:break-all;">${address}</td>
                 </tr>`;
-        }));
+        });
 
         tableBody.innerHTML = rows.join("");
 
@@ -247,7 +238,6 @@ window.pickWinners = () => {
     const num = Math.min(parseInt(input), participants.length);
     if (isNaN(num) || num <= 0) return alert("Invalid number!");
 
-    // Shuffle and pick
     winners = [...participants].sort(() => 0.5 - Math.random()).slice(0, num);
 
     document.getElementById('countWinners').innerText = num;
