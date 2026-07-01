@@ -269,13 +269,14 @@ const db = {};
 
     function formatDate(ts) {
         if (!ts) return '-';
-        const d = new Date(ts);
+        const d = new Date(Number(ts));
         return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     }
 
     function formatRelative(ts) {
         if (!ts) return '-';
-        const s = Math.floor((Date.now()-ts)/1000);
+        const n = Number(ts);
+        const s = Math.floor((Date.now()-n)/1000);
         if (s<60) return 'Just now';
         if (s<3600) return Math.floor(s/60)+'m ago';
         if (s<86400) return Math.floor(s/3600)+'h ago';
