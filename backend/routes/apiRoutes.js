@@ -1156,6 +1156,28 @@ router.get('/admin/packages', requireAdmin, async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.post('/admin/fix-missing-packages', requireAdmin, async (req, res) => {
+    try {
+        const usersRes = await pg.query(`SELECT uid, name, email, referral_code, active_package, package_amount, package_boost, package_purchased_at, created_at FROM users WHERE active_package IS NOT NULL AND active_package != ''`);
+        const users = usersRes.rows;
+        let inserted = 0;
+        const alreadyExists = [];
+        const fixed = [];
+        for (const u of users) {
+            const exists = await pg.query(`SELECT id FROM package_purchases WHERE uid = $1 AND LOWER(name) = LOWER($2)`, [u.uid, u.active_package]);
+            if (exists.rows.length === 0) {
+                await pg.query(`INSERT INTO package_purchases (id, uid, name, amount, paid, boost, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                    [u.uid + '-' + Date.now(), u.uid, u.active_package, Number(u.package_amount || 0), Number(u.package_amount || 0), u.package_boost || '0', u.package_purchased_at || u.created_at]);
+                inserted++;
+                fixed.push({ uid: u.uid, name: u.name || u.email || '?', package: u.active_package });
+            } else {
+                alreadyExists.push(u.uid);
+            }
+        }
+        res.json({ total: users.length, inserted, alreadyExists: alreadyExists.length, fixed });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.post('/admin/fix-total-deposits', requireAdmin, async (req, res) => {
     try {
         const { uid, amount } = req.body;
