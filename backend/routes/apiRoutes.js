@@ -1200,7 +1200,7 @@ router.post('/admin/withdrawal/set-tx', requireAdmin, async (req, res) => {
     try {
         const { id, txHash } = req.body;
         if (!id || !txHash) return res.status(400).json({ error: 'id and txHash required' });
-        await pg.query(`UPDATE withdrawals SET tx_hash = $1, status = 'completed', updated_at = $2 WHERE id = $3`, [txHash, Date.now(), id]);
+        await pg.query(`UPDATE withdrawals SET tx_hash = $1, status = 'completed', completed_at = $2 WHERE id = $3`, [txHash, Date.now(), id]);
         res.json({ success: true, message: 'Marked as completed with tx hash' });
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
